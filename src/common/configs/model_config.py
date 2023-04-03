@@ -3,7 +3,7 @@ from src.common.configs.base_config import BaseConfig
 
 class ModelConfig(BaseConfig):
     def __init__(self):
-        super(BaseConfig, self).__init__()
+        super().__init__()
         
         # Preprocessing
         self.TILE_W = 300

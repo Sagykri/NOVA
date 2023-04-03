@@ -6,7 +6,7 @@ from models.neuroself.configs.config import NeuroselfConfig
 
 class FigureV5Config(FigureConfig):
     def __init__(self):
-        super(FigureConfig, self).__init__()
+        super().__init__()
         
         self.HOME_SUBFOLDER = os.path.join(self.HOME_FIGURES_FOLDER, "V5")
         
@@ -28,7 +28,7 @@ class FigureV5Config(FigureConfig):
 
 class CytoselfConfigFig1(CytoselfConfig):
     def __init__(self):
-        super(CytoselfConfigFig1, self).__init__()
+        super().__init__()
         
         self.ADD_CONDITION_TO_LABEL = True 
         self.ADD_LINE_TO_LABEL = False

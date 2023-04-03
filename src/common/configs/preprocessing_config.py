@@ -3,7 +3,7 @@ from src.common.configs.base_config import BaseConfig
 
 class PreprocessingConfig(BaseConfig):
     def __init__(self):
-        super(PreprocessingConfig, self).__init__()
+        super().__init__()
         
         self.input_folders = None
         self.output_folders = None

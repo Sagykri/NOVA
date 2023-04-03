@@ -3,7 +3,7 @@ from src.common.configs.base_config import BaseConfig
 
 class FigureConfig(BaseConfig):
     def __init__(self):
-        super(BaseConfig, self).__init__()
+        super().__init__()
         
         self.HOME_FIGURES_FOLDER = os.path.join(self.HOME_FOLDER, "figures")
         self.OUTPUT_DIR = None

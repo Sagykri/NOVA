@@ -18,7 +18,7 @@ class SPDPreprocessor(Preprocessor):
     Preprocessor for preprocessing images captured by the spinning disk
     """
     def __init__(self, conf: SPDPreprocessingConfig):
-        super(SPDPreprocessor, self).__init__(conf)
+        super().__init__(conf)
         
         self.to_show = get_if_exists(conf, conf.TO_SHOW)
         self.markers_to_include = get_if_exists(conf, conf.MARKERS_TO_INCLUDE)

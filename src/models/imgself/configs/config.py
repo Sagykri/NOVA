@@ -5,7 +5,7 @@ from src.common.configs.model_config import ModelConfig
 
 class ImgselfConfig(ModelConfig):
     def __init__(self):
-        super(ImgselfConfig, self).__init__()
+        super().__init__()
         
         self.HOME_SUBFOLDER = os.path.join(self.HOME_FOLDER, "imgself")
         

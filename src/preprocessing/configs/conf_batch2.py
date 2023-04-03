@@ -3,7 +3,7 @@ from preprocessing.configs.preprocessor_conf_config import ConfPreprocessingConf
 
 class Conf_Batch2(ConfPreprocessingConfig):
     def __init__(self):
-        super(Conf_Batch2, self).__init__()
+        super().__init__()
         
         self.__folders = ["220814_neurons",
                         "220818_neurons",

@@ -3,7 +3,7 @@ from src.common.configs.model_config import ModelConfig
 
 class NeuroselfConfig(ModelConfig):
     def __init__(self):
-        super(NeuroselfConfig, self).__init__()
+        super().__init__()
         
         self.HOME_SUBFOLDER = os.path.join(self.HOME_FOLDER, "neuroself")
         

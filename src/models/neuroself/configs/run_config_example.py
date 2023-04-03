@@ -5,7 +5,7 @@ from models.neuroself.configs.config import NeuroselfConfig
 class RunConfigExample(NeuroselfConfig):
     
     def __init__(self):
-        super(NeuroselfConfig, self).__init__()
+        super().__init__()
         
         self.MARKERS_TO_EXCLUDE = ['DAPI', 'lysotracker', 'Syto12']
         self.CELL_LINES = ['WT']

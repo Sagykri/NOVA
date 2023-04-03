@@ -3,7 +3,7 @@ from preprocessing.configs.preprocessor_conf_config import ConfPreprocessingConf
 
 class Conf_Batch25(ConfPreprocessingConfig):
     def __init__(self):
-        super(Conf_Batch25, self).__init__()
+        super().__init__()
         
         self.__folders = ["batch_2_5"]
         
