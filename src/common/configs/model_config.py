@@ -1,4 +1,4 @@
-from configs.base_config import BaseConfig
+from common.configs.base_config import BaseConfig
 
 
 class ModelConfig(BaseConfig):

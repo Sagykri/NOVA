@@ -1,30 +1,14 @@
 import os
-import re
 from matplotlib import pyplot as plt
 import numpy as np
 import pandas as pd
 from cytoself.models import CytoselfFullModel
 from cytoself.data_loader.data_manager import DataManager
 from cytoself.analysis.analytics import Analytics
-from configs.model_config import SEED, PRETRAINED_MODEL_PATH, MODEL_PATH
-from lib.cytoself_custom import calc_umap_embvec, plot_umap
-from lib.metrics import plot_metrics
-from sklearn.preprocessing import LabelEncoder
-from sklearn.metrics import rand_score, silhouette_score, adjusted_rand_score
-from sklearn.metrics import pairwise_distances_argmin_min, confusion_matrix
-from sklearn.cluster import KMeans
-from sklearn.metrics.pairwise import euclidean_distances
-import seaborn as sns
-from umap import UMAP
 from tensorflow.compat.v1.keras.callbacks import CSVLogger
-from tqdm import tqdm
-from sklearn.decomposition import PCA
-from sklearn.preprocessing import StandardScaler
-import tensorflow as tf
-import random
 import logging
 
-from configs.model_config import ModelConfig
+from common.configs.model_config import ModelConfig
 
 
 class Model():
@@ -118,7 +102,7 @@ class Model():
             logging.info("#########################################################")
             logging.info(f"########### Splitting by set! ({set_type}) #############")
             logging.info("#########################################################")
-            np.random.seed(SEED)
+            np.random.seed(self.conf.SEED)
 
         for i, input_folder in enumerate(input_folders):
             logging.info(f"Input folder: {input_folder}")
@@ -144,7 +128,7 @@ class Model():
                     #         advanced_selection = [advanced_selection]
                     #     if tuple((cell_line_folder, cond_folder)) not in advanced_selection:
                     #         if verbose:
-                    #             print(f"Skipping (advanced selection): {cell_line_folder}/{cond_folder}")
+                    #             logging.info(f"Skipping (advanced selection): {cell_line_folder}/{cond_folder}")
                     #             continue
                     
                     for subfolder_name in sorted(os.listdir(cond_folder_fullpath)):

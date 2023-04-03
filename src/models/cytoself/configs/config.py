@@ -1,10 +1,5 @@
 import os
-
-
-# import sys
-# sys.path.insert(0, os.path.join(os.environ['MOMAPS_HOME'], 'src'))
-
-from configs.model_config import ModelConfig
+from common.configs.model_config import ModelConfig
 
 
 class CytoselfConfig(ModelConfig):

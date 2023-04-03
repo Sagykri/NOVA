@@ -1,3 +1,4 @@
+import logging
 import os
 import pandas as pd
 import numpy as np
@@ -8,7 +9,6 @@ from matplotlib import cm
 from tqdm import tqdm
 from collections import deque
 from adjustText import adjust_text
-from configs.model_config import SEED
 from sklearn.cluster import KMeans
 import pickle
 from sklearn.decomposition import PCA
@@ -25,6 +25,7 @@ def calc_umap_embvec(
         savepath=None,
         filename="vqvec_umap",
         verbose=True,
+        seed=1
 ):
     """
     Compute umap of embedding vectors. (With fixed random state)
@@ -56,16 +57,16 @@ def calc_umap_embvec(
             for i, d in enumerate(data)
         ]
     if analytics.model_vec_umap != []:
-        print(
+        logging.info(
             "vqvec models is not empty. vqvec models will be overwritten."
         )
 
-    print(f"Computing UMAP...")
+    logging.info(f"Computing UMAP...")
     analytics.model_vec_umap = []
     analytics.vec_umap = []
     for v in data:
         if min(v.shape) > 0:
-            reducer = umap.UMAP(n_components=n_components, verbose=verbose, random_state=SEED)
+            reducer = umap.UMAP(n_components=n_components, verbose=verbose, random_state=seed)
             u = reducer.fit_transform(v.reshape(v.shape[0], -1))
         else:
             reducer = []
@@ -95,7 +96,7 @@ def calc_umap_embvec(
                         if v != []
                     ]
                 except:
-                    print("UMAP model was not saved.")
+                    logging.info("UMAP model was not saved.")
 
 
 def plot_umap(analytics,
@@ -104,23 +105,47 @@ def plot_umap(analytics,
               embvec=None,
               alpha=1.0,
               target_vq_layer=2,
-              filename="umap_gt",
               cmap="tab20",
               colors_dict=None,
               annotations_font_size=11,
               to_annot=True,
               xlim=None,
               ylim=None,
-              titles=None,
+              title=None,
               subplot_shape=None,
               show_legend=True,
               gt_table=None,
               s=10,
-              savefig=False,
-              output_filename="umap",
+              savepath=None,
               plot_pca=False,
               figsize=None):
-    """Plot UMAP"""
+    """Plot UMAP plot
+
+    Args:
+        analytics (_type_): Cytoself's Analytics object
+        data (_type_, optional): The data (X). Defaults to None.
+        labels (_type_, optional): The labels (y)_. Defaults to None.
+        embvec (_type_, optional): Precomputed embedded vectors. Recompute if None. Defaults to None.
+        alpha (float, optional): The alpha of the points in the plot. Defaults to 1.0.
+        target_vq_layer (int, optional): Which vq layer to use for embedded vectors calculation. Defaults to 2.
+        cmap (str, optional): cmap for the plot. Defaults to "tab20".
+        colors_dict (_type_, optional): colors dictionary for the plot. Defaults to None.
+        annotations_font_size (int, optional): The font size of the annotations. Defaults to 11.
+        to_annot (bool, optional): Should annotate?. Defaults to True.
+        xlim (_type_, optional): The limit of the x axis. Defaults to None.
+        ylim (_type_, optional): The limit of the y axis. Defaults to None.
+        title (string, optional): The title for the plot. Defaults to None.
+        subplot_shape (_type_, optional): The shape for the subplot. Defaults to None.
+        show_legend (bool, optional): Should show legend?. Defaults to True.
+        gt_table (_type_, optional): The ground truth table for the data. Points will be colored according to it. Defaults to None.
+        s (int, optional): Points' size. Defaults to 10.
+        savepath (str, optional): The output file's path. Defaults to None.
+        plot_pca (bool, optional): Should plot PCA. Defaults to False.
+        figsize (_type_, optional): Figure's size. Defaults to None.
+
+    Returns:
+        _type_: data, label
+    """
 
     label = labels.copy() if labels is not None else analytics.data_manager.test_label
     if isinstance(target_vq_layer, int):
@@ -153,7 +178,7 @@ def plot_umap(analytics,
     annots = []
     for vqi, idht in enumerate(data):
         if vqi + 1 in target_vq_layer:
-            print(f"Plotting {filename} subplot{vqi} ...")
+            logging.info(f"Plotting subplot{vqi} ...")
             plt.subplot(nrow, ncol, subplot_ind)
             if min(idht.shape) > 0:
                 if colors_dict is None:
@@ -206,12 +231,10 @@ def plot_umap(analytics,
                 )
                 for ll in range(len(names)):
                     leg.legendHandles[ll]._sizes = [6]
-            if titles is None:
+            if title is None:
                 plt.title(f"Ground true samples vq{vqi + 1}")
-            elif isinstance(titles, str):
-                plt.title(f"{titles} vq{vqi + 1}")
-            else:
-                plt.title(titles[vqi])
+            elif isinstance(title, str):
+                plt.title(f"{title} vq{vqi + 1}")
             plt.ylabel("Umap 2")
             plt.xlabel("Umap 1")
             plt.xticks([])
@@ -221,8 +244,8 @@ def plot_umap(analytics,
     if to_annot:
         adjust_text(annots, arrowprops=dict(arrowstyle="-", color='black', lw=1.5))
 
-    if savefig:
-        plt.savefig(f"./umaps/{output_filename}.pdf")
+    if savepath is not None:
+        plt.savefig(savepath)
     plt.show()
 
     if plot_pca:
@@ -282,7 +305,7 @@ def plot_feature_spectrum_from_image(
     :param filename: file name
     :param title: plot title
     """
-    print(data.shape)
+    logging.info(data.shape)
     embindhist = analytics.model.calc_embindhist(data, do_return=True)
     if len(analytics.dendrogram_index) == 0:
         ValueError("No dendrogram_index found. Load dendrogram_index first.")
@@ -398,7 +421,7 @@ def plot_markers_umap(analytics,
     annots = []
     for vqi, idht in enumerate(data):
         if vqi + 1 in target_vq_layer:
-            print(f"Plotting {filename} subplot{vqi} ...")
+            logging.info(f"Plotting {filename} subplot{vqi} ...")
             plt.subplot(nrow, ncol, subplot_ind)
             if min(idht.shape) > 0:
                 if colors_dict is None:
@@ -602,7 +625,16 @@ def plot_kmeans_umap(analytics, cluster_sizes):
     return clusters_results
 
 
-def arrange_plots(input_folder, nrows, ncols, file_name_contains=None, order=None):
+def arrange_plots(input_folder, nrows:int, ncols:int, file_name_contains=None, order=None):
+    """Arrange multiple plots in a single plot
+
+    Args:
+        input_folder (string): Path to the input folder containing the plots
+        nrows (int): Number of rows in the final plot
+        ncols (int): Number of columns in the final plot
+        file_name_contains (string, optional): Take only files containing this str in their name. Defaults to None.
+        order (list, optional): The order the files should be taken by. Defaults to None.
+    """
     plots = []
     if not order:
         files = sorted(filter(lambda x: os.path.isfile(os.path.join(input_folder, x)),
@@ -620,10 +652,10 @@ def arrange_plots(input_folder, nrows, ncols, file_name_contains=None, order=Non
             continue
         plots.append(Image.open(os.path.join(input_folder, file)))
     if len(plots) == 0:
-        print("found no plots")
+        logging.info("found no plots")
         return
     if nrows * ncols != len(plots):
-        print("number of plots doesn't match nrows*ncols")
+        logging.info("number of plots doesn't match nrows*ncols")
     fig, axs = plt.subplots(nrows=nrows, ncols=ncols, figsize=(16, 7.5), dpi=300)
     for row in range(nrows):
         for col in range(ncols):

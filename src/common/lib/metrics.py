@@ -1,14 +1,10 @@
-import os
 import numpy as np
-import pandas as pd
 from sklearn.cluster import KMeans
-from sklearn.metrics import rand_score, silhouette_score, adjusted_rand_score, davies_bouldin_score
-from sklearn.metrics.pairwise import euclidean_distances
+from sklearn.metrics import silhouette_score, adjusted_rand_score
 import matplotlib.pyplot as plt
-from configs.model_config import SEED
 import tensorflow as tf
 
-def calc_metrics(X, labels_true, n_clusters=3):
+def calc_metrics(X, labels_true, n_clusters=3, seed=1):
   """Calc metrics (silhouette and ARI)
 
   Args:
@@ -19,7 +15,7 @@ def calc_metrics(X, labels_true, n_clusters=3):
   Returns:
       (ARI, silhouette score): The ARI and silhouette scores
   """
-  labels_pred = KMeans(n_clusters=n_clusters, random_state=SEED).fit_predict(X)  
+  labels_pred = KMeans(n_clusters=n_clusters, random_state=seed).fit_predict(X)  
   
   silhouette_score_val = silhouette_score(X, labels_pred)
   adjusted_rand_score_val = adjusted_rand_score(labels_true=labels_true, labels_pred=labels_pred)

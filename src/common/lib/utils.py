@@ -7,8 +7,6 @@ import numpy as np
 from common.configs.base_config import BaseConfig
 from common.lib.model import Model
 
-from configs.model_config import COLORS_MAPPING
-
 def get_if_exists(container:object, param_name: string, default_value=None):
     """Get value of param in container if it exists, otherwise return default value
 
@@ -37,7 +35,7 @@ def xy_to_tuple(xy_arr):
     
     return [(arr[0],arr[1]) for arr in xy_arr]
 
-def get_colors_dict(labels, colors_dict=COLORS_MAPPING):
+def get_colors_dict(labels, colors_dict):
     """Get mapping between the given colors and labels
 
     Args:

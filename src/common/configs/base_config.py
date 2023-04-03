@@ -5,7 +5,7 @@ import os
 import random
 import numpy as np
 
-from lib.utils import init_logging
+from common.lib.utils import init_logging
 
 
 class BaseConfig():
@@ -19,6 +19,8 @@ class BaseConfig():
             random.seed(self.SEED)
                         
         self.SEED = 1
+        np.random.seed(self.SEED)
+        random.seed(self.SEED)
 
         self.HOME_FOLDER = os.environ['MOMAPS_HOME']
 

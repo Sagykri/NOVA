@@ -1,5 +1,5 @@
 import os
-from configs.base_config import BaseConfig
+from common.configs.base_config import BaseConfig
 
 class FigureConfig(BaseConfig):
     def __init__(self):

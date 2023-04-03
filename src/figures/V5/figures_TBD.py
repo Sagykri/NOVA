@@ -8,26 +8,21 @@ import logging
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
+from common.lib.model import Model
 
-import random
 from figures.V5.configs.config import FigureV5Config
-from model import load_data, get_analytics
-from cytoself_custom import plot_umap, calc_umap_embvec, plot_feature_spectrum_from_image, arrange_plots
-from synthetic_multiplexing import multiplex
-from metrics import plot_boostrapping, calc_bootstrapping, plot_metrics, calc_reconstruction_error
-from explainability import generate_images, plot_clusters_distance_heatmap
-from utils import get_colors_dict
+# from model import load_data, get_analytics
+from common.lib.cytoself_custom import plot_umap, plot_feature_spectrum_from_image
+from common.lib.synthetic_multiplexing import multiplex, plot_boostrapping, calc_bootstrapping
+from common.lib.metrics import plot_metrics, calc_reconstruction_error
+from common.lib.utils import get_colors_dict
 from sklearn.metrics.pairwise import euclidean_distances
 import seaborn as sns
-from src.lib.utils import init_logging
 
 import os
-import configs.model_config as model_config
-from configs.model_config import SEED, PRETRAINED_MODEL_PATH, MODEL_FOLDER, METRICS_FOLDER, METRICS_MATCH_PATH, METRICS_RANDOM_PATH, \
-    MARKERS, MICROGLIA_MARKERS, COMBINED_MARKERS
-
-# np.random.seed(SEED)
-# random.seed(SEED)
+import common.configs.model_config as model_config
+# from common.configs.model_config import METRICS_FOLDER, METRICS_MATCH_PATH, METRICS_RANDOM_PATH, \
+#     MARKERS, MICROGLIA_MARKERS, COMBINED_MARKERS
 
 def __set_params(config:FigureV5Config):
     # TODO: Get rid of this function (and these global variables) and change the functions in this file to use the config vars directly instead
@@ -68,6 +63,17 @@ def __set_params(config:FigureV5Config):
     groups_terms_type = ["_WT_microglia", "_WT_neurons", "_TDP43_microglia", "_TDP43_neurons",
                         "_FUS_microglia", "_FUS_neurons", "_OPTN_microglia", "_OPTN_neurons"]
 
+    global self_config
+    self_config = config
+    
+    global cytoself_config
+    cytoself_config = config.cytoself_config
+    
+    global neuroself_config
+    neuroself_config = config.neuroself_config
+    
+    global imgself_config
+    imgself_config = config.imgself_config
 
 def get_figures(config: FigureV5Config):
     """Get figures
@@ -116,6 +122,8 @@ def __plot_umap_per_marker(images, labels, markers, model_path, fig_id='unknown'
             plot_metrics(analytics.model.embvec[1].reshape(analytics.model.embvec[1].shape[0], -1), labels_subset,
                          n_clusters=len(np.unique(labels_subset)))
 
+def __get_save_path(fig_id, panel_id):
+    return os.path.join(output_dir, f"{fig_id}_{panel_id}")
 
 def __run_panels(panels_mapping, panels_ids=None):
     # If None -> run all panels
@@ -132,18 +140,22 @@ def __get_figure1(panels_ids=None):
     fig_id = "Fig1"
 
     logging.info(f"[{fig_id}] init")
+    
+    cytoself_model = Model(cytoself_config)
 
     def get_panel_c():
         panel_id = "C"
 
         markers = ['DAPI', 'Phalloidin', 'DCP1A', 'G3BP1']
+        cytoself_model.markers = markers
         logging.info(f"[{fig_id} {panel_id}] Loading data")
-        images, labels, labels_changepoints, markers_order = load_data(input_folders_cytoself, condition_l=True,
-                                                                       markers=markers, type_l=False,
-                                                                       split_by_set=False)
+        # images, labels, labels_changepoints, markers_order = load_data(input_folders_cytoself, condition_l=True,
+        #                                                                markers=markers, type_l=False,
+        #                                                                split_by_set=False)
+        images, labels, labels_changepoints, markers_order = cytoself_model.load_data()
 
         # Load data
-        colors_dict = get_colors_dict(labels)
+        colors_dict = get_colors_dict(labels, cytoself_model.conf.COLORS_MAPPING)
 
         logging.info(f"[{fig_id} {panel_id}] Processing markers")
         for m in markers:
@@ -155,70 +167,90 @@ def __get_figure1(panels_ids=None):
 
             # Load model
             logging.info(f"[{fig_id} {panel_id}] Processing markers - {m} (get analytics_cytoself)")
-            analytics_cytoself = get_analytics(images_subset, labels_subset, model_path=cytoself_model_path)
+            # analytics_cytoself = get_analytics(images_subset, labels_subset, model_path=cytoself_model_path)
+            analytics_cytoself = cytoself_model.load_analytics()
 
+            savepath = __get_save_path(fig_id, panel_id)
             logging.info(f"[{fig_id} {panel_id}] Processing markers - {m} (plot umap)")
-            umap_vec, _ = plot_umap(analytics_cytoself, colors_dict=colors_dict, to_annot=False)
+            umap_vec, _ = plot_umap(analytics_cytoself, colors_dict=colors_dict,
+                                    to_annot=False, savepath=savepath+f"_{m}_umap.pdf")
 
             logging.info(f"[{fig_id} {panel_id}] Processing markers - {m} (plot mertrics)")
 
             logging.info("On UMAP vectors")
-            plot_metrics(umap_vec[1], labels_subset, n_clusters=len(groups_terms_condition))
+            plot_metrics(umap_vec[1], labels_subset, n_clusters=len(groups_terms_condition), savepath=savepath+f"_{m}_metrics_umap.pdf")
 
             logging.info("On embedded vectors")
             plot_metrics(analytics_cytoself.model.embvec[1].reshape(analytics_cytoself.model.embvec[1].shape[0], -1),
                          labels_subset,
-                         n_clusters=len(groups_terms_condition))
+                         n_clusters=len(groups_terms_condition),
+                         savepath=savepath+f"_{m}_metrics_embvec.pdf")
 
     def get_panel_e_and_f():
         panel_id = "E+F"
         logging.info(f"[{fig_id} {panel_id}] init")
 
         markers = ["Phalloidin", "DCP1A"]
-
+        cytoself_model.markers = markers
         # Load data
         logging.info(f"[{fig_id} {panel_id}] Loading data")
-        images, labels, labels_changepoints, markers_order = load_data(input_folders_cytoself, markers=markers,
-                                                                       condition_l=True, type_l=False,
-                                                                       split_by_set=False)
+        # images, labels, labels_changepoints, markers_order = load_data(input_folders_cytoself, markers=markers,
+        #                                                                condition_l=True, type_l=False,
+        #                                                                split_by_set=False)
+        images, labels, labels_changepoints, markers_order = cytoself_model.load_data()
+
 
         # Load model
         logging.info(f"[{fig_id} {panel_id}] get analytics_cytoself")
-        analytics_cytoself = get_analytics(images, labels, model_path=cytoself_model_path)
+        # analytics_cytoself = get_analytics(images, labels, model_path=cytoself_model_path)
+        cytoself_model.load_analytics()
+
 
         # E - Synthetic multiplexing
         panel_id = "E"
+        savepath = __get_save_path(fig_id, panel_id)
         logging.info(f"[{fig_id} {panel_id}] init")
         logging.info(f"[{fig_id} {panel_id}] Calculating synthetic multiplexing")
-        _, _ = multiplex(analytics_cytoself, images, labels, \
+        _, _ = multiplex(cytoself_model, images, labels, \
                          groups_terms=groups_terms_condition, markers=markers, \
-                         markers_order=markers_order, annot_font_size1=15, match=False, legend_inside=False)
+                         markers_order=markers_order, annot_font_size1=15, match=False, legend_inside=False,
+                         savepath1 = savepath + "_umap1.pdf",
+                         savepath1 = savepath + "_umap2.pdf")
 
         # F - Actual Multiplexing
         panel_id = "F"
+        savepath = __get_save_path(fig_id, panel_id)
         logging.info(f"[{fig_id} {panel_id}] init")
         logging.info(f"[{fig_id} {panel_id}] Calculating actual multiplexing")
-        _, _ = multiplex(analytics_cytoself, images, labels, \
+        _, _ = multiplex(cytoself_model, images, labels, \
                          groups_terms=groups_terms_condition, markers=markers, \
                          labels_changepoints=labels_changepoints, \
-                         markers_order=markers_order, annot_font_size1=15, match=True, legend_inside=False)
+                         markers_order=markers_order, annot_font_size1=15, match=True, legend_inside=False,
+                         savepath1 = savepath + "_umap1.pdf",
+                         savepath1 = savepath + "_umap2.pdf")
 
+    # TODO: TBD
     def get_panel_g():
+        raise NotImplementedError()
         panel_id = "G"
         markers = ["Phalloidin", "DCP1A"]
-
+        cytoself_model.markers = markers
         # Load data
         logging.info(f"[{fig_id} {panel_id}] Loading data")
-        images, labels, labels_changepoints, markers_order = load_data(input_folders_cytoself, markers=markers,
-                                                                       condition_l=True, type_l=False,
-                                                                       split_by_set=False)
+        # images, labels, labels_changepoints, markers_order = load_data(input_folders_cytoself, markers=markers,
+        #                                                                condition_l=True, type_l=False,
+        #                                                                split_by_set=False)
+        images, labels, labels_changepoints, markers_order = cytoself_model.load_data()
+
 
         # logging.info(f"[{fig_id} {panel_id}] init")
         # markers = np.unique([m[:m.find("_")] for m in labels])
 
         # Load model
         logging.info(f"[{fig_id} {panel_id}] get analytics_cytoself")
-        analytics_cytoself = get_analytics(images, labels, model_path=cytoself_model_path)
+        # analytics_cytoself = get_analytics(images, labels, model_path=cytoself_model_path)
+        analytics_cytoself = cytoself_model.load_analytics()
+
 
         logging.info(f"[{fig_id} {panel_id}] Calculating ARI (bootstrapping)")
         calc_bootstrapping(analytics_cytoself, images, labels, markers=markers,
@@ -232,18 +264,21 @@ def __get_figure1(panels_ids=None):
         panel_id = "H"
         # markers = ["Phalloidin", "DCP1A"]
         markers = ['DAPI', 'Phalloidin', 'DCP1A', 'G3BP1']
-
+        cytoself_model.markers = markers
         # Load data
         logging.info(f"[{fig_id} {panel_id}] Loading data")
-        images, labels, labels_changepoints, markers_order = load_data(input_folders_cytoself, markers=markers,
-                                                                       condition_l=True, type_l=False,
-                                                                       split_by_set=False)
+        # images, labels, labels_changepoints, markers_order = load_data(input_folders_cytoself, markers=markers,
+        #                                                                condition_l=True, type_l=False,
+        #                                                                split_by_set=False)
+        images, labels, labels_changepoints, markers_order = cytoself_model.load_data()
+
 
         logging.info(f"[{fig_id} {panel_id}] Processing markers")
 
         # Load model
         logging.info(f"[{fig_id} {panel_id}] Processing markers - (get analytics_cytoself)")
-        analytics_cytoself = get_analytics(images, labels, model_path=cytoself_model_path)
+        # analytics_cytoself = get_analytics(images, labels, model_path=cytoself_model_path)
+        analytics_cytoself = cytoself_model.load_analytics()
 
         # 1D (Feature spectrum)
         logging.info(f"[{fig_id} {panel_id}] Processing markers - (feature spectrum)")
@@ -260,10 +295,10 @@ def __get_figure1(panels_ids=None):
             plot_feature_spectrum_from_image(
                 analytics=analytics_cytoself,
                 data=images_subset_cond,
-                savepath="default",
-                filename=f"ALL_{cond}_Feature_spectrum",
+                savepath=output_dir,
+                filename=f"{fig_id}_{panel_id}_ALL_{cond}_Feature_spectrum",
                 color=color,
-                figsize=(15, 1)
+                figsize=(15, 1),
             )
 
     panels_mapping = {"c": get_panel_c, 'e+f': get_panel_e_and_f,
@@ -383,7 +418,7 @@ def __get_figure3(panels_ids=None):
     #     analytics_neuroself.model.calc_embvec(analytics_neuroself.data_manager.test_data)
     #     X = analytics_neuroself.model.embvec[1]
     #     X = X.reshape(X.shape[0], -1)
-    #     print(X.shape)
+    #     logging.info(X.shape)
 
     #     # Setting clusters_centers as the median of all images of specific marker+cond
     #     logging.info(f"[{fig_id} {panel_id}] Calculating the median of each set of marker+cond combination")
@@ -412,7 +447,7 @@ def __get_figure3(panels_ids=None):
 
     #     for ind in dists_df_copy.index:
     #         m, cond = ind.split('_')
-    #         print(m, cond)
+    #         logging.info(m, cond)
     #         cols_with_current_marker = dists_df_copy.columns.str.contains(f"{m}_")
     #         distances_for_marker[m] = dists_df_copy.loc[ind, cols_with_current_marker]
 
@@ -528,7 +563,7 @@ def __get_figure4_old(panels_ids=None):
         logging.info(f"[{fig_id} {panel_id}] Init")
         X = analytics_neuroself.model.embvec[1]
         X = X.reshape(X.shape[0], -1)
-        print(X.shape)
+        logging.info(X.shape)
 
         # Setting clusters_centers as the median of all images of specific marker+cond
         logging.info(f"[{fig_id} {panel_id}] Calculating the median of each set of marker+cond combination")
@@ -582,7 +617,7 @@ def __get_figure4_old(panels_ids=None):
 
         X = analytics_neuroself.model.embvec[1]
         X = X.reshape(X.shape[0], -1)
-        print(X.shape)
+        logging.info(X.shape)
 
         # Setting clusters_centers as the median of all images of specific marker+cond
         logging.info(f"[{fig_id} {panel_id}] Calculating the median of each set of marker+cond combination")
@@ -690,7 +725,7 @@ def __calc_dist_conds(fig_id, panel_id, images, labels, model_path):
     logging.info(f"[{fig_id} {panel_id}] Init")
     X = analytics_neuroself.model.embvec[1]
     X = X.reshape(X.shape[0], -1)
-    print(X.shape)
+    logging.info(X.shape)
 
     # Setting clusters_centers as the median of all images of specific marker+cond
     logging.info(f"[{fig_id} {panel_id}] Calculating the median of each set of marker+cond combination")
@@ -735,7 +770,7 @@ def __calc_dist(fig_id, panel_id, images, labels, model_path, model_name):
     logging.info(f"[{fig_id} {panel_id}] Init")
     X = analytics_neuroself.model.embvec[1]
     X = X.reshape(X.shape[0], -1)
-    print(X.shape)
+    logging.info(X.shape)
 
     # Setting clusters_centers as the median of all images of specific marker+cond
     logging.info(f"[{fig_id} {panel_id}] Calculating the median of each set of marker+cond combination")
@@ -781,7 +816,7 @@ def __calc_dist_combined(fig_id, panel_id, images, labels, model_path, model_nam
     logging.info(f"[{fig_id} {panel_id}] Init")
     X = analytics_neuroself.model.embvec[1]
     X = X.reshape(X.shape[0], -1)
-    print(X.shape)
+    logging.info(X.shape)
 
     # Setting clusters_centers as the median of all images of specific marker+cond
     logging.info(f"[{fig_id} {panel_id}] Calculating the median of each set of marker+cond combination")
