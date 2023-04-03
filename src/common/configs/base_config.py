@@ -1,11 +1,10 @@
 import datetime
-import json
 import logging
 import os
 import random
 import numpy as np
 
-from common.lib.utils import init_logging
+from src.common.lib.utils import init_logging
 
 
 class BaseConfig():

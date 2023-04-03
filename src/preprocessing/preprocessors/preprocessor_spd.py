@@ -7,9 +7,9 @@ import numpy as np
 import torch
 from skimage import io
 
-from common.lib.preprocessor import Preprocessor
-from common.lib import preprocessing_utils
-from common.lib.utils import get_if_exists
+from src.common.lib.preprocessor import Preprocessor
+from src.common.lib import preprocessing_utils
+from src.common.lib.utils import get_if_exists
 from preprocessing.configs.preprocessor_spd_config import SPDPreprocessingConfig
 
 

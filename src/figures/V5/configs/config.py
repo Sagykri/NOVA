@@ -1,5 +1,5 @@
 import os
-from common.configs.figure_config import FigureConfig
+from src.common.configs.figure_config import FigureConfig
 from models.cytoself.configs.config import CytoselfConfig
 from models.imgself.configs.config import ImgselfConfig
 from models.neuroself.configs.config import NeuroselfConfig

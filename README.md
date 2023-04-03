@@ -50,3 +50,9 @@ python -m ipykernel install --user --name=momaps
 - 'generate_embeddings' - generate the embedding vectors
 - 'training' - for training a model
 - 'generate_figures' - for generating the figures for the paper
+
+## Pay Attention!
+In order to run anything here, you must set an environment variable "MOMAPS_HOME" as your MOmaps home directory.
+```
+export MOMAPS_HOME=PATH_TO_HOME_FOLDER
+```

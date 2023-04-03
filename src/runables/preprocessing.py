@@ -1,9 +1,9 @@
 import sys
 import importlib
 import logging
-from common.configs.preprocessing_config import PreprocessingConfig
-from common.lib.preprocessor import Preprocessor
-from common.lib.utils import load_config_file
+from src.common.configs.preprocessing_config import PreprocessingConfig
+from src.common.lib.preprocessor import Preprocessor
+from src.common.lib.utils import load_config_file
 
 
 def run_preprocessing():

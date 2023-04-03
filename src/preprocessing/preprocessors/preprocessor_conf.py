@@ -1,8 +1,8 @@
 import logging
 import os
-from common.lib.preprocessor import Preprocessor
-from common.lib.utils import get_if_exists
-from common.lib import preprocessing_utils
+from src.common.lib.preprocessor import Preprocessor
+from src.common.lib.utils import get_if_exists
+from src.common.lib import preprocessing_utils
 from preprocessing.configs.preprocessor_conf_config import ConfPreprocessingConfig
 import torch
 import numpy as np

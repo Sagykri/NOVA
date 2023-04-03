@@ -1,5 +1,5 @@
 import os
-from common.configs.model_config import ModelConfig
+from src.common.configs.model_config import ModelConfig
 
 class NeuroselfConfig(ModelConfig):
     def __init__(self):

@@ -1,7 +1,7 @@
 import sys
 import logging
 import common.lib.utils as utils
-from common.configs.model_config import ModelConfig
+from src.common.configs.model_config import ModelConfig
 
 
 def generate_embeddings():

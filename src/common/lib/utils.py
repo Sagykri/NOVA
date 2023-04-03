@@ -4,8 +4,6 @@ import logging
 import os
 import string
 import numpy as np
-from common.configs.base_config import BaseConfig
-from common.lib.model import Model
 
 def get_if_exists(container:object, param_name: string, default_value=None):
     """Get value of param in container if it exists, otherwise return default value
@@ -56,7 +54,7 @@ def get_colors_dict(labels, colors_dict):
             colors[label] = color
     return colors
 
-def generate_embeddings(run_config: BaseConfig):
+def generate_embeddings(run_config):
     """Generate embedding vectors
 
     Args:
@@ -66,6 +64,7 @@ def generate_embeddings(run_config: BaseConfig):
 
     logging.info("Load data")
 
+    from src.common.lib.model import Model
     model = Model(run_config)
 
 
@@ -93,12 +92,24 @@ def load_config_file(path:string, postfix_filename:string=""):
     """Load config file (and save it to file for documentation)
 
     Args:
-        path (string): Path to config file
+        path (string): Path to config file (the last argument will be the class to load from the file)
         postfix_filename (string): Postfix to add to the file name of the file (config that was used) to save
     Returns:
         _type_: Instance of the loaded config class
     """
-    config_class = importlib.import_module(path.replace('/', '.'))
+    if path.startswith("."):
+        path = path[1:]
+    if path.startswith("/"):
+        path = path[1:]
+    if path.endswith(".py"):
+        path = os.path.splitext(path)[0]
+    
+    # Extract and load the module
+    module = os.path.dirname(path).replace('/', '.')
+    config_module = importlib.import_module(module)
+    # Extract the class name from the path and load it from the module
+    class_in_module = os.path.basename(path)
+    config_class = config_module.__dict__[class_in_module]
     config = config_class()
     
     with open(f"{config.CONFIGS_USED_FOLDER}{postfix_filename}.txt", 'w') as f:

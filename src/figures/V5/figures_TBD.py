@@ -8,20 +8,20 @@ import logging
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
-from common.lib.model import Model
+from src.common.lib.model import Model
 
 from figures.V5.configs.config import FigureV5Config
 # from model import load_data, get_analytics
-from common.lib.cytoself_custom import plot_umap, plot_feature_spectrum_from_image
-from common.lib.synthetic_multiplexing import multiplex, plot_boostrapping, calc_bootstrapping
-from common.lib.metrics import plot_metrics, calc_reconstruction_error
-from common.lib.utils import get_colors_dict
+from src.common.lib.cytoself_custom import plot_umap, plot_feature_spectrum_from_image
+from src.common.lib.synthetic_multiplexing import multiplex, plot_boostrapping, calc_bootstrapping
+from src.common.lib.metrics import plot_metrics, calc_reconstruction_error
+from src.common.lib.utils import get_colors_dict
 from sklearn.metrics.pairwise import euclidean_distances
 import seaborn as sns
 
 import os
 import common.configs.model_config as model_config
-# from common.configs.model_config import METRICS_FOLDER, METRICS_MATCH_PATH, METRICS_RANDOM_PATH, \
+# from src.common.configs.model_config import METRICS_FOLDER, METRICS_MATCH_PATH, METRICS_RANDOM_PATH, \
 #     MARKERS, MICROGLIA_MARKERS, COMBINED_MARKERS
 
 def __set_params(config:FigureV5Config):

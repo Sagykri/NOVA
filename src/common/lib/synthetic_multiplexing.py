@@ -3,9 +3,9 @@ import os
 import random
 import numpy as np
 import pandas as pd
-from common.lib.model import Model
+from src.common.lib.model import Model
 from cytoself_custom import calc_umap_embvec, plot_umap
-from common.lib.metrics import calc_metrics
+from src.common.lib.metrics import calc_metrics
 from metrics import plot_metrics
 from umap import UMAP
 import re

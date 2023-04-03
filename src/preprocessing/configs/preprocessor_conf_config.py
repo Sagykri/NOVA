@@ -1,5 +1,5 @@
 import os
-from common.configs.preprocessing_config import PreprocessingConfig
+from src.common.configs.preprocessing_config import PreprocessingConfig
 
 class ConfPreprocessingConfig(PreprocessingConfig):
     def __init__(self):

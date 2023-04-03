@@ -1,4 +1,4 @@
-from common.configs.base_config import BaseConfig
+from src.common.configs.base_config import BaseConfig
 
 
 class PreprocessingConfig(BaseConfig):

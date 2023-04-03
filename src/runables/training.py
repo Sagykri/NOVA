@@ -1,7 +1,7 @@
 import tensorflow as tf
 import sys
-from common.lib.utils import load_config_file
-from common.lib.model import Model
+from src.common.lib.utils import load_config_file
+from src.common.lib.model import Model
 import logging
 
 def train():

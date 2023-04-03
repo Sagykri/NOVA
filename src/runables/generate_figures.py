@@ -1,7 +1,7 @@
 import sys
 import logging
-from common.configs.figure_config import FigureConfig
-from common.lib.utils import load_config_file
+from src.common.configs.figure_config import FigureConfig
+from src.common.lib.utils import load_config_file
 import figures.V5.figures_TBD as figures_TBD
 
 

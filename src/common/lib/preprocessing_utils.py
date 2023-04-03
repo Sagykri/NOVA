@@ -2,7 +2,7 @@ import logging
 import matplotlib.pyplot as plt
 import numpy as np
 from skimage.measure import block_reduce
-from common.lib.utils import xy_to_tuple
+from src.common.lib.utils import xy_to_tuple
 import cv2
 import cellpose
 from cellpose import models
