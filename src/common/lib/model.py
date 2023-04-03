@@ -2,6 +2,7 @@ import os
 from matplotlib import pyplot as plt
 import numpy as np
 import pandas as pd
+from common.lib import cytoself_custom
 from cytoself.models import CytoselfFullModel
 from cytoself.data_loader.data_manager import DataManager
 from cytoself.analysis.analytics import Analytics
@@ -556,3 +557,15 @@ class Model():
         raise NotImplementedError()
     
     
+    
+    ############################# WRAPPERS #########################
+    
+    def plot_umap(self, **kwargs):
+        """
+        [Wrapper] Plot UMAP
+        """
+        assert self.analytics is not None, "Analytics cannot be None"
+        
+        return cytoself_custom.plot_umap(self.analytics, **kwargs)
+    
+    ################################################################
