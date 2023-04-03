@@ -1,0 +1,10 @@
+import os
+from preprocessing.configs.preprocessor_spd_config import SPDPreprocessingConfig
+
+
+class SPD_Batch4(SPDPreprocessingConfig):
+    def __init__(self):
+        super(SPD_Batch4, self).__init__()
+        
+        self.input_folders = [os.path.join(".", "data", "raw", "SpinningDisk", "batch4")]
+        self.output_folders = [os.path.join(".", "data", "processed", "spd2", "SpinningDisk", "batch4")]
