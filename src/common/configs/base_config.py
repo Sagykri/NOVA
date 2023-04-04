@@ -11,15 +11,9 @@ class BaseConfig():
     def __init__(self):
         __now = datetime.datetime.now()
         
-        @SEED.setter
-        def SEED(self, value):
-            self.SEED = value
-            np.random.seed(self.SEED)
-            random.seed(self.SEED)
-                        
-        self.SEED = 1
-        np.random.seed(self.SEED)
-        random.seed(self.SEED)
+        self.__SEED = 1
+        np.random.seed(self.__SEED)
+        random.seed(self.__SEED)
 
         self.HOME_FOLDER = os.environ['MOMAPS_HOME']
 
@@ -32,20 +26,15 @@ class BaseConfig():
         
         
         # Model
-        self.PRETRAINED_MODEL_PATH = os.path.join(self.MODEL_FOLDER, "pretrained_model.h5")
-    
+        self.PRETRAINED_MODEL_PATH = os.path.join(self.HOME_FOLDER, "models", "cytoself", "models", "pretrained_model.h5")    
         
         # Logs
-        @LOGS_FOLDER.setter
-        def LOGS_FOLDER(self, path):
-            self.LOGS_FOLDER = path
-            
-            log_file_path = os.path.join(self.LOGS_FOLDER, __now.strftime("%d%m%y_%H%M%S_%f"))
-            init_logging(log_file_path)
-            logging.info(f"[{self.__class__.__name__}] Init")
-            
-        self.LOGS_FOLDER = os.path.join(self.HOME_FOLDER, 'logs')
-        
+        self.__LOGS_FOLDER = os.path.join(self.HOME_FOLDER, 'logs')
+        log_file_path = os.path.join(self.__LOGS_FOLDER, __now.strftime("%d%m%y_%H%M%S_%f"))
+        if not os.path.exists(self.__LOGS_FOLDER):
+            os.makedirs(self.__LOGS_FOLDER)
+        init_logging(log_file_path)
+        logging.info(f"[{self.__class__.__name__}] Init")
         
         # For plotting
         self.TERM_UNSTRESSED = "_unstressed"
@@ -160,3 +149,27 @@ class BaseConfig():
         }
         
         
+    @property
+    def SEED(self):
+        return self.__SEED
+    
+    @SEED.setter
+    def SEED(self, value):
+        self.__SEED = value
+        np.random.seed(self.__SEED)
+        random.seed(self.__SEED)
+        
+    @property
+    def LOGS_FOLDER(self):
+        return self.__LOGS_FOLDER
+    
+    @LOGS_FOLDER.setter
+    def LOGS_FOLDER(self, path):
+        self.__LOGS_FOLDER = path
+        
+        __now = datetime.datetime.now()
+        log_file_path = os.path.join(self.__LOGS_FOLDER, __now.strftime("%d%m%y_%H%M%S_%f"))
+        if not os.path.exists(self.__LOGS_FOLDER):
+            os.makedirs(self.__LOGS_FOLDER)
+        init_logging(log_file_path)
+        logging.info(f"[{self.__class__.__name__}] Init")

@@ -7,7 +7,7 @@ class ImgselfConfig(ModelConfig):
     def __init__(self):
         super().__init__()
         
-        self.HOME_SUBFOLDER = os.path.join(self.HOME_FOLDER, "imgself")
+        self.HOME_SUBFOLDER = os.path.join(self.MODELS_HOME_FOLDER, "imgself")
         
         self.INPUT_FOLDERS = os.path.join(self.PROCESSED_FOLDER_ROOT, "microglia") 
         

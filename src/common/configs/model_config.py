@@ -1,9 +1,12 @@
+import os
 from src.common.configs.base_config import BaseConfig
 
 
 class ModelConfig(BaseConfig):
     def __init__(self):
         super().__init__()
+        
+        self.MODELS_HOME_FOLDER = os.path.join(self.HOME_FOLDER, "src", "models")
         
         # Preprocessing
         self.TILE_W = 300

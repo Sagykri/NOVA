@@ -5,7 +5,7 @@ class NeuroselfConfig(ModelConfig):
     def __init__(self):
         super().__init__()
         
-        self.HOME_SUBFOLDER = os.path.join(self.HOME_FOLDER, "neuroself")
+        self.HOME_SUBFOLDER = os.path.join(self.MODELS_HOME_FOLDER, "neuroself")
         
         self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, f) for f in 
                         ["220814_neurons",
