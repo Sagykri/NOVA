@@ -28,10 +28,6 @@ class ModelConfig(BaseConfig):
         self.MARKERS_TO_EXCLUDE = None
         self.CELL_LINES = None
         self.CONDITIONS = None
-        self.TRAIN_CELL_LINES = None
-        self.TEST_CELL_LINES = None
-        self.TRAIN_CONDITIONS = None
-        self.TEST_CONDITIONS = None
         self.MARKERS_FOR_DOWNSAMPLE = None
         self.TRAIN_PCT = 0.7
         self.ADD_CONDITION_TO_LABEL = True 

@@ -15,7 +15,7 @@ from src.common.configs.model_config import ModelConfig
 class Model():
 
     def __init__(self, conf:ModelConfig):
-        self.set_params(conf())
+        self.set_params(conf)
         
         self.train_data = None
         self.train_label = None
@@ -52,7 +52,6 @@ class Model():
             self.markers = conf.MARKERS    
             self.markers_to_exclude = conf.MARKERS_TO_EXCLUDE
             self.markers_for_downsample = conf.MARKERS_FOR_DOWNSAMPLE   
-            self.cell_lines_include= conf.TRAIN_CELL_LINES
             self.split_by_set = conf.SPLIT_DATA
             self.data_set_type = conf.DATA_SET_TYPE
             self.train_part = conf.TRAIN_PCT
@@ -84,7 +83,7 @@ class Model():
         markers                 =   self.markers
         markers_to_exclude      =   self.markers_to_exclude
         markers_for_downsample  =   self.markers_for_downsample
-        cell_lines_include      =   self.cell_lines_include
+        cell_lines_include      =   self.cell_lines
         conds_include           =   self.conditions
         set_type                =   self.data_set_type
         split_by_set            =   self.split_by_set
@@ -237,10 +236,7 @@ class Model():
 
         if shuffle:
             p = np.random.permutation(len(images_concat))
-            return images_concat[p], labels[p], None, None
-
-
-
+            images_concat, labels, labels_changepoints, markers_order = images_concat[p], labels[p], None, None
         
         if not split_by_set or (split_by_set and set_type == 'test'):
             self.test_data, self.test_label,self.test_labels_changepoints, self.test_markers_order = images_concat, labels, labels_changepoints, markers_order
@@ -318,7 +314,7 @@ class Model():
         logging.info("Training the model...")
 
         model_to_train.init_callbacks()
-        csv_logger = CSVLogger(f"./logs/training_log_hist.csv", append=True, separator=',')
+        csv_logger = CSVLogger(f"{os.path.join(model_output_folder, 'history', 'training_log_hist.csv')}", append=True, separator=',')
 
         model_to_train.callbacks += [csv_logger]
         model_to_train.train_with_datamanager(data_manager, batch_size=batch_size, max_epoch=max_epoch, reset_callbacks=False)
@@ -565,7 +561,7 @@ class Model():
         [Wrapper] Plot UMAP
         """
         assert self.analytics is not None, "Analytics cannot be None"
-        
+        kwargs.update({"seed": self.conf.SEED})
         return cytoself_custom.plot_umap(self.analytics, **kwargs)
     
     ################################################################

@@ -10,7 +10,7 @@ from skimage import io
 from src.common.lib.preprocessor import Preprocessor
 from src.common.lib import preprocessing_utils
 from src.common.lib.utils import get_if_exists
-from preprocessing.configs.preprocessor_spd_config import SPDPreprocessingConfig
+from src.preprocessing.configs.preprocessor_spd_config import SPDPreprocessingConfig
 
 
 class SPDPreprocessor(Preprocessor):
@@ -20,17 +20,17 @@ class SPDPreprocessor(Preprocessor):
     def __init__(self, conf: SPDPreprocessingConfig):
         super().__init__(conf)
         
-        self.to_show = get_if_exists(conf, conf.TO_SHOW)
-        self.markers_to_include = get_if_exists(conf, conf.MARKERS_TO_INCLUDE)
-        self.nucleus_diameter = get_if_exists(conf, conf.NUCLEUS_DIAMETER)
-        self.tile_width = get_if_exists(conf, conf.TILE_WIDTH)
-        self.tile_height = get_if_exists(conf, conf.TILE_HEIGHT)
-        self.to_downsample = get_if_exists(conf, conf.TO_DOWNSAMPLE)
-        self.to_normalize = get_if_exists(conf, conf.TO_NORMALIZE)
-        self.cellprob_threshold = get_if_exists(conf, conf.CELL_PROB_THRESHOLD)
-        self.flow_threshold = get_if_exists(conf, conf.FLOW_THRESHOLD)
-        self.min_edge_distance = get_if_exists(conf, conf.MIN_EDGE_DISTANCE)
-        self.to_denoise = get_if_exists(conf, conf.TO_DENOISE)
+        self.to_show = get_if_exists(conf, 'TO_SHOW')
+        self.markers_to_include = get_if_exists(conf, 'MARKERS_TO_INCLUDE')
+        self.nucleus_diameter = get_if_exists(conf, 'NUCLEUS_DIAMETER')
+        self.tile_width = get_if_exists(conf, 'TILE_WIDTH')
+        self.tile_height = get_if_exists(conf, 'TILE_HEIGHT')
+        self.to_downsample = get_if_exists(conf, 'TO_DOWNSAMPLE')
+        self.to_normalize = get_if_exists(conf, 'TO_NORMALIZE')
+        self.cellprob_threshold = get_if_exists(conf, 'CELL_PROB_THRESHOLD')
+        self.flow_threshold = get_if_exists(conf, 'FLOW_THRESHOLD')
+        self.min_edge_distance = get_if_exists(conf, 'MIN_EDGE_DISTANCE')
+        self.to_denoise = get_if_exists(conf, 'TO_DENOISE')
         
     
     def preprocess_images(self, **kwargs):

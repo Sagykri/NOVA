@@ -118,7 +118,8 @@ def plot_umap(analytics,
               s=10,
               savepath=None,
               plot_pca=False,
-              figsize=None):
+              figsize=None,
+              seed=1):
     """Plot UMAP plot
 
     Args:
@@ -157,7 +158,7 @@ def plot_umap(analytics,
 
     if data is None:
         analytics.model.embvec = embvec.copy() if embvec is not None else None
-        calc_umap_embvec(analytics, target_vq_layer=target_vq_layer)
+        calc_umap_embvec(analytics, target_vq_layer=target_vq_layer, seed=seed)
         data = analytics.vec_umap
 
     # make sure data is in a list
@@ -207,7 +208,7 @@ def plot_umap(analytics,
                         alpha=alpha
                     )
                     if to_annot:
-                        km = KMeans(n_clusters=1, random_state=SEED).fit(data0)
+                        km = KMeans(n_clusters=1, random_state=seed).fit(data0)
                         annot = plt.annotate(fname, (km.cluster_centers_[0, 0], km.cluster_centers_[0, 1]),
                                              fontsize=annotations_font_size)
                         annots.append(annot)
@@ -245,7 +246,7 @@ def plot_umap(analytics,
         adjust_text(annots, arrowprops=dict(arrowstyle="-", color='black', lw=1.5))
 
     if savepath is not None:
-        plt.savefig(savepath)
+        plt.savefig(savepath, dpi=300, facecolor="white",bbox_inches='tight')
     plt.show()
 
     if plot_pca:
@@ -388,7 +389,8 @@ def plot_markers_umap(analytics,
                       s=10,
                       savefig=False,
                       output_filename="umap",
-                      plot_pca=False):
+                      plot_pca=False,
+                      seed=1):
     """Plot UMAP in a clean version"""
 
     label = labels.copy() if labels is not None else analytics.data_manager.test_label
@@ -451,7 +453,7 @@ def plot_markers_umap(analytics,
                         alpha=alpha
                     )
                     if to_annot:
-                        km = KMeans(n_clusters=1, random_state=SEED).fit(data0)
+                        km = KMeans(n_clusters=1, random_state=seed).fit(data0)
                         annot = plt.annotate(fname, (km.cluster_centers_[0, 0], km.cluster_centers_[0, 1]),
                                              fontsize=annotations_font_size)
                         annots.append(annot)

@@ -16,8 +16,8 @@ def get_if_exists(container:object, param_name: string, default_value=None):
     Returns:
         value: Param value (or default value if it doesn't exist)
     """
-    if param_name in container:
-        return container[param_name]
+    if hasattr(container, param_name):
+        return getattr(container, param_name)
     return default_value
 
 def xy_to_tuple(xy_arr):
@@ -94,8 +94,26 @@ def load_config_file(path:string, postfix_filename:string=""):
     Args:
         path (string): Path to config file (the last argument will be the class to load from the file)
         postfix_filename (string): Postfix to add to the file name of the file (config that was used) to save
+        to_save (bool, Optional): Should save the config to file. Defaults to True.
     Returns:
         _type_: Instance of the loaded config class
+    """
+    config_class = get_class(path)
+    config = config_class()
+    
+    with open(f"{config.CONFIGS_USED_FOLDER}{postfix_filename}.txt", 'w') as f:
+        f.write(json.dumps(config.__dict__))
+    
+    return config
+
+def get_class(path:string):
+    """Get the class of a given python file and class
+
+    Args:
+        path (string): Path to module file (the last argument will be the class to load from the file)
+
+    Returns:
+        _type_: The class
     """
     if path.startswith("."):
         path = path[1:]
@@ -105,17 +123,13 @@ def load_config_file(path:string, postfix_filename:string=""):
         path = os.path.splitext(path)[0]
     
     # Extract and load the module
-    module = os.path.dirname(path).replace('/', '.')
-    config_module = importlib.import_module(module)
+    module_path = os.path.dirname(path).replace('/', '.')
+    module = importlib.import_module(module_path)
     # Extract the class name from the path and load it from the module
     class_in_module = os.path.basename(path)
-    config_class = config_module.__dict__[class_in_module]
-    config = config_class()
+    module_class = module.__dict__[class_in_module]
     
-    with open(f"{config.CONFIGS_USED_FOLDER}{postfix_filename}.txt", 'w') as f:
-        f.write(json.dumps(config.__dict__))
-    
-    return config
+    return module_class
         
 def init_logging(path:string):
     """Init logging.

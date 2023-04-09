@@ -23,12 +23,8 @@ class ImgselfConfig(ModelConfig):
                             "Calreticulin", "PML", "PEX14", "pNFKB", "IL18RAP", "FUS", "DAPI"] 
 
         self.MARKERS_TO_EXCLUDE=['TDP43', 'PURA']
-        self.CELL_LINES = None
-        self.CONDITIONS = None
-        self.TRAIN_CONDITIONS = ["unstressed"]
-        self.TEST_CONDITIONS=["unstressed"]
-        self.TRAIN_CELL_LINES = ['WT']
-        self.TEST_CELL_LINES=['WT', "TDP43", "OPTN", "FUS"]
+        self.CELL_LINES = ['WT']
+        self.CONDITIONS = ['unstressed']
         self.MARKERS_FOR_DOWNSAMPLE = {"DAPI": 0.12}
         self.TRAIN_PCT = 0.6
         self.SHUFFLE = True

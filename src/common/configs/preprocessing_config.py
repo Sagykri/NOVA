@@ -1,3 +1,4 @@
+import os
 from src.common.configs.base_config import BaseConfig
 
 
@@ -8,16 +9,19 @@ class PreprocessingConfig(BaseConfig):
         self.input_folders = None
         self.output_folders = None
         
+        self.HOME_SUBFOLDER = os.path.join(self.HOME_FOLDER, "src", "preprocessing")
+        self.LOGS_FOLDER = os.path.join(self.HOME_SUBFOLDER, 'logs')
+        
         self.preprocessor_class_path = None
         
-        self.markers_to_include = None
-        self.to_show = False
-        self.nucleus_diameter = 60
-        self.tile_width = 100
-        self.tile_height = 100
-        self.to_downsample = False
-        self.to_normalize = True
-        self.cellprob_threshold = 0
-        self.flow_threshold = 0.4
-        self.min_edge_distance = 2
-        self.to_denoise = False    
+        self.MARKERS_TO_INCLUDE = None
+        self.TO_SHOW = False
+        self.NUCLEUS_DIAMETER = 60
+        self.TILE_WIDTH = 100
+        self.TILE_HEIGHT = 100
+        self.TO_DOWNSAMPLE = False
+        self.TO_NORMALIZE = True
+        self.CELLPROB_THRESHOLD = 0
+        self.FLOW_THRESHOLD = 0.4
+        self.MIN_EDGE_DISTANCE = 2
+        self.TO_DENOISE = False    

@@ -4,7 +4,7 @@ from sklearn.metrics import silhouette_score, adjusted_rand_score
 import matplotlib.pyplot as plt
 import tensorflow as tf
 
-def calc_metrics(X, labels_true, n_clusters=3, seed=1):
+def calc_clustering_validation(X, labels_true, n_clusters=3, seed=1):
   """Calc metrics (silhouette and ARI)
 
   Args:
@@ -34,7 +34,7 @@ def plot_metrics(X, labels_true, n_clusters=3,savepath=None):
   Returns:
       [ARI, silhouette]: The scores
   """
-  adjusted_rand_score_val, silhouette_score_val = calc_metrics(X, labels_true.reshape(-1,), n_clusters=n_clusters)
+  adjusted_rand_score_val, silhouette_score_val = calc_clustering_validation(X, labels_true.reshape(-1,), n_clusters=n_clusters)
 
   scores = [adjusted_rand_score_val, silhouette_score_val]
   scores = [round(s,2) for s in scores]

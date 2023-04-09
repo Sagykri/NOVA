@@ -30,11 +30,6 @@ class BaseConfig():
         
         # Logs
         self.__LOGS_FOLDER = os.path.join(self.HOME_FOLDER, 'logs')
-        log_file_path = os.path.join(self.__LOGS_FOLDER, __now.strftime("%d%m%y_%H%M%S_%f"))
-        if not os.path.exists(self.__LOGS_FOLDER):
-            os.makedirs(self.__LOGS_FOLDER)
-        init_logging(log_file_path)
-        logging.info(f"[{self.__class__.__name__}] Init")
         
         # For plotting
         self.TERM_UNSTRESSED = "_unstressed"
@@ -168,7 +163,7 @@ class BaseConfig():
         self.__LOGS_FOLDER = path
         
         __now = datetime.datetime.now()
-        log_file_path = os.path.join(self.__LOGS_FOLDER, __now.strftime("%d%m%y_%H%M%S_%f"))
+        log_file_path = os.path.join(self.__LOGS_FOLDER, __now.strftime("%d%m%y_%H%M%S_%f") + '.log')
         if not os.path.exists(self.__LOGS_FOLDER):
             os.makedirs(self.__LOGS_FOLDER)
         init_logging(log_file_path)

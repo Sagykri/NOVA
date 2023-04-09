@@ -1,5 +1,5 @@
 import os
-from preprocessing.configs.preprocessor_conf_config import ConfPreprocessingConfig
+from src.preprocessing.configs.preprocessor_conf_config import ConfPreprocessingConfig
 
 class Conf_Batch2(ConfPreprocessingConfig):
     def __init__(self):

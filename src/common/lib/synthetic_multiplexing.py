@@ -5,7 +5,7 @@ import numpy as np
 import pandas as pd
 from src.common.lib.model import Model
 from cytoself_custom import calc_umap_embvec, plot_umap
-from src.common.lib.metrics import calc_metrics
+from src.common.lib.metrics import calc_clustering_validation
 from metrics import plot_metrics
 from umap import UMAP
 import re
@@ -300,7 +300,7 @@ def calc_bootstrapping(model:Model, groups_terms, n_runs=1000, save_folder=None)
                                 match=False,reset_embvec=(reset_embvec & (i==0))
                                 )
 
-        adjusted_rand_score_val_j, silhouette_score_val_j = calc_metrics(data, labels.reshape(-1,), n_clusters=n_clusters)
+        adjusted_rand_score_val_j, silhouette_score_val_j = calc_clustering_validation(data, labels.reshape(-1,), n_clusters=n_clusters)
 
         metrics_random.append([adjusted_rand_score_val_j, silhouette_score_val_j])
 
@@ -311,7 +311,7 @@ def calc_bootstrapping(model:Model, groups_terms, n_runs=1000, save_folder=None)
                                         match=True,reset_embvec=False
                                     )
 
-            adjusted_rand_score_val_j, silhouette_score_val_j = calc_metrics(data, labels.reshape(-1,), n_clusters=n_clusters)
+            adjusted_rand_score_val_j, silhouette_score_val_j = calc_clustering_validation(data, labels.reshape(-1,), n_clusters=n_clusters)
 
             metrics_match[i].append([adjusted_rand_score_val_j, silhouette_score_val_j])
 
