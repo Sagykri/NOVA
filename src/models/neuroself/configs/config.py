@@ -1,4 +1,7 @@
 import os
+import sys
+sys.path.insert(1, os.getenv("MOMAPS_HOME"))
+
 from src.common.configs.model_config import ModelConfig
 
 class NeuroselfConfig(ModelConfig):

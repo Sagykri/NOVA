@@ -1,14 +1,17 @@
 import os
+import sys
+sys.path.insert(1, os.getenv("MOMAPS_HOME"))
+
 from matplotlib import pyplot as plt
 import numpy as np
 import pandas as pd
-from src.common.lib import cytoself_custom
 from cytoself.models import CytoselfFullModel
 from cytoself.data_loader.data_manager import DataManager
 from cytoself.analysis.analytics import Analytics
 from tensorflow.compat.v1.keras.callbacks import CSVLogger
 import logging
 
+from src.common.lib import cytoself_custom
 from src.common.configs.model_config import ModelConfig
 
 

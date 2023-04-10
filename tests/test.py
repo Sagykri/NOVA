@@ -1,9 +1,9 @@
-import tensorflow as tf
-import sys
 import os
-import logging
-
+import sys
 sys.path.insert(1, os.getenv("MOMAPS_HOME"))
+
+import tensorflow as tf
+import logging
 
 from src.common.lib.utils import load_config_file
 from src.common.lib.model import Model

@@ -1,4 +1,8 @@
 import os
+
+import sys
+sys.path.insert(1, os.getenv("MOMAPS_HOME"))
+
 from src.common.configs.base_config import BaseConfig
 
 
@@ -44,23 +48,3 @@ class ModelConfig(BaseConfig):
         self.LEARN_RATE = 2e-4
         self.BATCH_SIZE = 32
         self.MAX_EPOCH = 100
-        
-        # self.MARKERS = ["CD41", "CLTC", "FMRP", "G3BP1", "KIF5A", "NONO", "Phalloidin", \
-        #         "PSD95", "PURA", "SQSTM1", "TDP43", "TIA1", "NEMO", "DCP1A", \
-        #         "TOMM20", "ANXA11", "Calreticulin", "FUS", "LAMP1", \
-        #         "mitotracker", "Nucleolin", "SNCA", \
-        #         "GM130", "PEX14", "PML", "DAPI"]
-        # self.MICROGLIA_MARKERS = ["G3BP1", "KIF5A", "TIA1", "NONO", "SQSTM1",
-        #                     "FMRP", "CD41", "PSD95", "CLTC", "Phalloidin", "NEMO", "DCP1A",
-        #                     "GM130", "TOMM20", "syto12", "Nucleolin", "SNCA", "ANXA11", "LAMP1",
-        #                     "Calreticulin", "PML", "PEX14", "pNFKB", "IL18RAP", "FUS", "DAPI"]  # ,"TDP43", "PURA"]
-
-        # self.COMBINED_MARKERS = ["G3BP1", "KIF5A", "TIA1", "NONO", "SQSTM1",
-        #                     "FMRP", "CD41", "PSD95", "CLTC", "Phalloidin", "NEMO", "DCP1A",
-        #                     "GM130", "TOMM20", "Nucleolin", "SNCA", "ANXA11", "LAMP1",
-        #                     "Calreticulin", "PML", "PEX14", "FUS", "DAPI"]
-        # UMAP
-
-        
-
-

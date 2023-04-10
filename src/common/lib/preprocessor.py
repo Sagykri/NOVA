@@ -1,3 +1,8 @@
+import os
+import sys
+sys.path.insert(1, os.getenv("MOMAPS_HOME"))
+
+
 import string
 from src.common.configs.preprocessing_config import PreprocessingConfig
 
@@ -5,8 +10,8 @@ from abc import ABC, abstractmethod
 
 class Preprocessor(ABC):
   def __init__(self, conf: PreprocessingConfig):
-    self.input_folders = conf.input_folders
-    self.output_folders = conf.output_folders
+    self.input_folders = conf.INPUT_FOLDERS
+    self.output_folders = conf.OUTPUT_FOLDERS
 
   @abstractmethod
   def preprocess_images(self, **kwargs):

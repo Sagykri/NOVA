@@ -1,6 +1,10 @@
+import os
 import sys
+sys.path.insert(1, os.getenv("MOMAPS_HOME"))
+
+
 import logging
-import common.lib.utils as utils
+import src.common.lib.utils as utils
 from src.common.configs.model_config import ModelConfig
 
 

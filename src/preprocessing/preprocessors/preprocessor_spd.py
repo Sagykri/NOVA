@@ -1,6 +1,10 @@
+import os
+import sys
+sys.path.insert(1, os.getenv("MOMAPS_HOME"))
+
+
 import glob
 import logging
-import os
 
 import numpy as np
 
@@ -27,7 +31,7 @@ class SPDPreprocessor(Preprocessor):
         self.tile_height = get_if_exists(conf, 'TILE_HEIGHT')
         self.to_downsample = get_if_exists(conf, 'TO_DOWNSAMPLE')
         self.to_normalize = get_if_exists(conf, 'TO_NORMALIZE')
-        self.cellprob_threshold = get_if_exists(conf, 'CELL_PROB_THRESHOLD')
+        self.cellprob_threshold = get_if_exists(conf, 'CELLPROB_THRESHOLD')
         self.flow_threshold = get_if_exists(conf, 'FLOW_THRESHOLD')
         self.min_edge_distance = get_if_exists(conf, 'MIN_EDGE_DISTANCE')
         self.to_denoise = get_if_exists(conf, 'TO_DENOISE')
@@ -172,18 +176,25 @@ class SPDPreprocessor(Preprocessor):
         # img = np.moveaxis(img, channel_axis,-1)
         img_nucleus = io.imread(nucleus_file)
         
+        
+        # Check if files are corrputed
+        if np.size(img_target) == 0:
+            logging.info(f"File {file_path} is corrupted. Skiping this one.")
+            return
+        if np.size(img_nucleus) == 0:
+            logging.info(f"File {nucleus_file} is corrupted. Skiping this one.")
+            return
+        
         # Take nuclues and target channels so target is the first channel and nuclues is the second
-        # img = img[...,[target_channel, nucleus_channel]]
-
         img = np.stack([img_target, img_nucleus], axis=2)
 
-        logging.info(f"Processing {file_path}, {nucleus_file}... ({img.shape})", flush=True)
+        logging.info(f"Processing {file_path}, {nucleus_file}... ({img.shape})")
 
         n_channels = img.shape[-1]
         
-        logging.info(f"#Channels= {n_channels}", flush=True)
+        logging.info(f"#Channels= {n_channels}")
 
-        processed_images = preprocessing_utils.preprocess_image_pipeline(file_path, save_path, n_channels=n_channels, nucleus_diameter=nucleus_diameter,
+        processed_images = preprocessing_utils.preprocess_image_pipeline(img, file_path, save_path, n_channels=n_channels, nucleus_diameter=nucleus_diameter,
                               flow_threshold=flow_threshold, cellprob_threshold=cellprob_threshold, min_edge_distance=min_edge_distance,
                               tile_width=tile_width, tile_height=tile_height, to_downsample=to_downsample,
                               to_denoise=to_denoise, to_normalize=to_normalize, to_show=to_show)

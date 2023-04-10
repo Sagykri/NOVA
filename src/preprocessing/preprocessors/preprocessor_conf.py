@@ -1,5 +1,8 @@
-import logging
 import os
+import sys
+sys.path.insert(1, os.getenv("MOMAPS_HOME"))
+
+import logging
 from src.common.lib.preprocessor import Preprocessor
 from src.common.lib.utils import get_if_exists
 from src.common.lib import preprocessing_utils
@@ -23,7 +26,7 @@ class ConfPreprocessor(Preprocessor):
         self.tile_height = get_if_exists(conf, 'TILE_HEIGHT')
         self.to_downsample = get_if_exists(conf, 'TO_DOWNSAMPLE')
         self.to_normalize = get_if_exists(conf, 'TO_NORMALIZE')
-        self.cellprob_threshold = get_if_exists(conf, 'CELL_PROB_THRESHOLD')
+        self.cellprob_threshold = get_if_exists(conf, 'CELLPROB_THRESHOLD')
         self.flow_threshold = get_if_exists(conf, 'FLOW_THRESHOLD')
         self.min_edge_distance = get_if_exists(conf, 'MIN_EDGE_DISTANCE')
         self.to_denoise = get_if_exists(conf, 'TO_DENOISE')
@@ -125,8 +128,7 @@ class ConfPreprocessor(Preprocessor):
                                     os.makedirs(output_subfolder)
 
                                 self.preprocess_image(filename_path, save_path,
-                                                      target_channel=c, show=False,
-                                                      flow_threshold=self.flow_threshold)
+                                                      target_channel=c)
                 
 
 
@@ -161,14 +163,14 @@ class ConfPreprocessor(Preprocessor):
         # Take nuclues and target channels so target is the first channel and nuclues is the second
         img = img[...,[target_channel, nucleus_channel]]
 
-        logging.info(f"Processing {input_path}... ({img.shape})", flush=True)
+        logging.info(f"Processing {input_path}... ({img.shape})")
 
         n_channels = img.shape[-1]
         
-        logging.info(f"#Channels= {n_channels}", flush=True)
+        logging.info(f"#Channels= {n_channels}")
 
 
-        processed_images = preprocessing_utils.preprocess_image_pipeline(input_path, save_path, n_channels=n_channels, nucleus_diameter=nucleus_diameter,
+        processed_images = preprocessing_utils.preprocess_image_pipeline(img, input_path, save_path, n_channels=n_channels, nucleus_diameter=nucleus_diameter,
                               flow_threshold=flow_threshold, cellprob_threshold=cellprob_threshold, min_edge_distance=min_edge_distance,
                               tile_width=tile_width, tile_height=tile_height, to_downsample=to_downsample,
                               to_denoise=to_denoise, to_normalize=to_normalize, to_show=to_show)

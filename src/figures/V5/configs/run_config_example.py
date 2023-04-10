@@ -4,4 +4,4 @@ class RunConfigExample(FigureV5Config):
     def __init__(self):
         super().__init__()
         
-        self.figures = {"1": ["c"]}
+        self.FIGURES = {"1": ["c"]}

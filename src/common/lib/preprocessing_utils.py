@@ -1,3 +1,7 @@
+import os
+import sys
+sys.path.insert(1, os.getenv("MOMAPS_HOME"))
+
 import logging
 import matplotlib.pyplot as plt
 import numpy as np
@@ -217,7 +221,7 @@ def segment(img, channels=None, diameter=500,\
   return masks, flows, styles, diams
 
 
-def preprocess_image_pipeline(file_path, save_path, n_channels=2, nucleus_diameter=60,
+def preprocess_image_pipeline(img, file_path, save_path, n_channels=2, nucleus_diameter=60,
                               flow_threshold=0.4, cellprob_threshold=0, min_edge_distance=2,
                               tile_width=100, tile_height=100, to_downsample=True,
                               to_denoise=False, to_normalize=True, to_show=False):

@@ -1,7 +1,10 @@
+import os
+import sys
+sys.path.insert(1, os.getenv("MOMAPS_HOME"))
+
 import importlib
 import json
 import logging
-import os
 import string
 import numpy as np
 
@@ -16,8 +19,13 @@ def get_if_exists(container:object, param_name: string, default_value=None):
     Returns:
         value: Param value (or default value if it doesn't exist)
     """
-    if hasattr(container, param_name):
+    
+    if isinstance(container, dict):
+        if param_name in container:
+            return container[param_name]
+    elif hasattr(container, param_name):
         return getattr(container, param_name)
+    
     return default_value
 
 def xy_to_tuple(xy_arr):

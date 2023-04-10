@@ -1,12 +1,14 @@
-import logging
 import os
+import sys
+sys.path.insert(1, os.getenv("MOMAPS_HOME"))
+
+import logging
 import random
 import numpy as np
 import pandas as pd
 from src.common.lib.model import Model
-from cytoself_custom import calc_umap_embvec, plot_umap
-from src.common.lib.metrics import calc_clustering_validation
-from metrics import plot_metrics
+from src.common.lib.cytoself_custom import calc_umap_embvec, plot_umap
+from src.common.lib.metrics import calc_clustering_validation, plot_metrics
 from umap import UMAP
 import re
 import matplotlib.pyplot as plt

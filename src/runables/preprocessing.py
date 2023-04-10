@@ -1,9 +1,8 @@
-import sys
-import importlib
-import logging
 import os
-
+import sys
 sys.path.insert(1, os.getenv("MOMAPS_HOME"))
+
+import logging
 
 from src.common.configs.preprocessing_config import PreprocessingConfig
 from src.common.lib.preprocessor import Preprocessor
@@ -16,8 +15,8 @@ def run_preprocessing():
     logging.info("init")
     
     
-    logging.info(f"Importing preprocessor class.. {run_config.preprocessor_class_path}")
-    preprocessor_class: Preprocessor = get_class(run_config.preprocessor_class_path)
+    logging.info(f"Importing preprocessor class.. {run_config.PREPROCESSOR_CLASS_PATH}")
+    preprocessor_class: Preprocessor = get_class(run_config.PREPROCESSOR_CLASS_PATH)
     
     logging.info(f"Instantiate preprocessor {type(preprocessor_class)}")
     preprocessor: Preprocessor = preprocessor_class(run_config)

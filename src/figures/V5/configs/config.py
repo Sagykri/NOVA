@@ -1,4 +1,8 @@
 import os
+import sys
+sys.path.insert(1, os.getenv("MOMAPS_HOME"))
+
+
 from src.common.configs.figure_config import FigureConfig
 from models.cytoself.configs.config import CytoselfConfig
 from models.imgself.configs.config import ImgselfConfig
@@ -20,10 +24,10 @@ class FigureV5Config(FigureConfig):
         
         
         
-        self.output_folder = os.path.join(self.HOME_SUBFOLDER, "outputs", "figures")
+        self.OUTPUT_FOLDER = os.path.join(self.HOME_SUBFOLDER, "outputs", "figures")
         
         # Example: self.figures = {fig_id: [panel_id1, panel_id2, ...], fig_id2: [..], ...}
-        self.figures = {}
+        self.FIGURES = {}
 
 
 class CytoselfConfigFig1(CytoselfConfig):
