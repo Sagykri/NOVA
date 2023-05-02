@@ -43,19 +43,19 @@ class SPDPreprocessor(Preprocessor):
         This preprocessing is suitable for handling the spinning disk images
         """
         
-        logging.info(f"Is GPU available: {torch.cuda.is_available()}")
+#        logging.info(f"Is GPU available: {torch.cuda.is_available()}")  #IS
 
 
         for input_folder_root, output_folder_root in zip(self.input_folders, self.output_folders):
             raw_f = os.path.basename(input_folder_root)
             
             logging.info(f"[{raw_f}] Processing folder")
-            
-            if not os.path.isdir(input_folder_root):
+
+            if not os.path.isdir((os.getenv("MOMAPS_HOME")+input_folder_root)): #IS sys.path[1]+ os.path.isfile(input_folder_root):   #IS
                 logging.info(f"[{raw_f}] Skipping non-folder")
                 continue
-            
-            cell_lines = [f for f in os.listdir(input_folder_root) if os.path.isdir(os.path.join(input_folder_root, f))]
+            Helper = os.listdir(os.getenv("MOMAPS_HOME")+ input_folder_root)
+            cell_lines = [f for f in Helper if os.path.isdir(os.path.join(os.getenv("MOMAPS_HOME")+input_folder_root, f))]   #IS added os.getenv("MOMAPS_HOME")+
 
             logging.info(f"[{raw_f}] Cell line detected: {cell_lines}")
 
@@ -63,7 +63,7 @@ class SPDPreprocessor(Preprocessor):
                 
                 logging.info(f"[{raw_f} {cell_line}] Cell line: {cell_line}")
                 
-                input_folder_root_cell_line = os.path.join(input_folder_root, cell_line)
+                input_folder_root_cell_line = os.path.join(os.getenv("MOMAPS_HOME")+input_folder_root, cell_line)  #IS added os.getenv("MOMAPS_HOME")+
                 
                 panels = [f for f in os.listdir(input_folder_root_cell_line) if os.path.isdir(os.path.join(input_folder_root_cell_line, f))]        
                 
@@ -73,7 +73,7 @@ class SPDPreprocessor(Preprocessor):
                     logging.info(f"[{raw_f} {cell_line} {panel}] Panel: {panel}")
                     
                     input_folder_root_panel = os.path.join(input_folder_root_cell_line, panel)
-                    
+                    # Nancy filter invalide to here   #IS
                     conditions = [f for f in os.listdir(input_folder_root_panel) 
                                 if os.path.isdir(os.path.join(input_folder_root_panel, f)) and f != 'experiment setup']   
                         
@@ -81,6 +81,7 @@ class SPDPreprocessor(Preprocessor):
                     
                     
                     for condition in conditions:
+
                         logging.info(f"[{raw_f} {cell_line} {panel} {condition}] Condition: {condition}")
                     
                         input_folder_root_condition = os.path.join(input_folder_root_panel, condition)
@@ -95,17 +96,17 @@ class SPDPreprocessor(Preprocessor):
                         format_output_filename = lambda filename, ext: f"{filename}_{panel}_{cell_line}{ext}"
                 
                         for input_folder, output_folder in zip(input_folders, output_folders):
-                            markers = os.listdir(input_folder)
-                            panel = os.path.basename(input_folder)
-                            nucleus_folder = os.path.join(input_folder, "DAPI")
+                            markers = os.listdir(os.path.join(os.getenv("MOMAPS_HOME")+input_folder))
+                            # panel = os.path.basename(os.path.join(os.getenv("MOMAPS_HOME")+input_folder))   #IS - error panel is set outside the loop
+                            nucleus_folder = os.path.join(os.path.join(os.getenv("MOMAPS_HOME")+input_folder, "DAPI"))
                             
                             for marker in markers:
                                 if self.markers_to_include is not None and marker not in self.markers_to_include:
                                     logging.info(f"Skipping {marker}")
                                     continue
                                         
-                                input_subfolder = os.path.join(input_folder, marker)
-                                output_subfolder = os.path.join(output_folder, marker)
+                                input_subfolder = os.path.join(os.getenv("MOMAPS_HOME")+input_folder, marker)
+                                output_subfolder = os.path.join(os.getenv("MOMAPS_HOME")+output_folder, marker)
                                 
                                 logging.info(f"Subfolder {input_subfolder}")
                                 

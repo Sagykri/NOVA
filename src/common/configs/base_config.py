@@ -8,6 +8,8 @@ import numpy as np
 
 
 from src.common.lib.utils import init_logging
+from src.common.lib.utils import init_Stats_logging, init_CellsFeaturesHolder
+#from src.common.lib.StatsLog import Stats_log  #IS prob non need to remove
 
 
 class BaseConfig():
@@ -171,3 +173,8 @@ class BaseConfig():
             os.makedirs(self.__LOGS_FOLDER)
         init_logging(log_file_path)
         logging.info(f"[{self.__class__.__name__}] Init")
+
+        Statslog_file_path = os.path.join(self.__LOGS_FOLDER, __now.strftime("Stats_%d%m%y_%H%M%S_%f") + '.log')
+        init_Stats_logging(Statslog_file_path)
+        CellsFeaturesHolder_file_path = os.path.join(self.__LOGS_FOLDER, __now.strftime("CellsFeaturesHolder_%d%m%y_%H%M%S_%f") + '.csv')
+        init_CellsFeaturesHolder(CellsFeaturesHolder_file_path)
