@@ -3,6 +3,8 @@ import sys
 sys.path.insert(1, os.getenv("MOMAPS_HOME"))
 
 import logging
+import datetime
+from src.common.lib.StatsLog import Stats_log
 import matplotlib.pyplot as plt
 import numpy as np
 from skimage.measure import block_reduce
@@ -11,6 +13,9 @@ import cv2
 import cellpose
 from cellpose import models
 from shapely.geometry import Polygon
+from src.common.lib.globals import CountsDF
+from src.common.lib.DataDescriptors import Parse2Descriptors
+
 
 
 def filter_invalid_tiles(file_name, tiles, nucleus_diameter=100, cellprob_threshold=0,\
@@ -19,55 +24,72 @@ def filter_invalid_tiles(file_name, tiles, nucleus_diameter=100, cellprob_thresh
     Filter invalid tiles (leave only tiles with #nuclues (not touching the edges) == 1)
     """
     image_processed_tiles_passed = []
-    n_tiles = tiles.shape[0]
+    n_tiles = tiles.shape[0]   #IS - in debug change here
 
+    FilterAllTiles_Time = 0
+    CellposeAllTiles_Time = 0
+    if n_tiles > 0:  # IS
+        cells_count = np.zeros([n_tiles], dtype=np.int16)   # IS
 
     for i in range(n_tiles):
-        tile = tiles[i]
+            tile = tiles[i]
 
-        # Nuclues seg
-        logging.info(f"[{file_name}] Tile number {i} out of {n_tiles}")
-        logging.info(f"[{file_name}] Segmenting nuclues")
-        
-        if show_plot:
-            _, ax = plt.subplots(1,2)
-            ax[0].imshow(tile[...,0])
-            ax[1].imshow(tile[...,1])
-            plt.show()
+            # Nuclues seg
+            logging.info(f"[{file_name}] Tile number {i} out of {n_tiles}")
+            logging.info(f"[{file_name}] Segmenting nuclues")
 
-        kernel = np.array([[-1,-1,-1], [-1,25,-1], [-1,-1,-1]])
-        tile_for_seg = cv2.filter2D(tile, -1, kernel)
+            if show_plot:
+                _, ax = plt.subplots(1,2)
+                ax[0].imshow(tile[...,0])
+                ax[1].imshow(tile[...,1])
+                plt.show()
 
-        seg_save_path = f'{file_name}_nuclei'
-        masks, _, _, _ = segment(img=tile_for_seg, channels=[1+1,0],\
-                                        model_type='nuclei', diameter=nucleus_diameter,\
-                                        cellprob_threshold=cellprob_threshold,\
-                                        flow_threshold=flow_threshold,save_path=seg_save_path, channel_axis=-1, show_plot=show_plot)
+            start_time = datetime.datetime.now()
+
+            kernel = np.array([[-1,-1,-1], [-1,25,-1], [-1,-1,-1]])
+            tile_for_seg = cv2.filter2D(tile, -1, kernel)
+
+            FilterAllTiles_Time += (datetime.datetime.now() - start_time).total_seconds()
+            start_time = datetime.datetime.now()
+
+            seg_save_path = f'{file_name}_nuclei'
+            masks, _, _, _ = segment(img=tile_for_seg, channels=[1+1,0],\
+                                            model_type='nuclei', diameter=nucleus_diameter,\
+                                            cellprob_threshold=cellprob_threshold,\
+                                            flow_threshold=flow_threshold,save_path=seg_save_path, channel_axis=-1, show_plot=show_plot)
+
+            CellposeAllTiles_Time += (datetime.datetime.now() - start_time).total_seconds()
+            """
+            Filter tiles with no nuclues
+            """
+            outlines = cellpose.utils.outlines_list(masks)
+            polys_nuclei = [Polygon(xy_to_tuple(o)) for o in outlines]
+
+            # Build polygon of image's edges
+            img_edges = Polygon([[min_edge_distance,min_edge_distance],\
+                            [min_edge_distance,tile_h-min_edge_distance],\
+                            [tile_w-min_edge_distance,tile_h-min_edge_distance],\
+                            [tile_w-min_edge_distance,min_edge_distance]])
+
+            # Is there any nuclues inside the image boundries?
+            is_valid = any([p.covered_by(img_edges) for p in polys_nuclei])
+            cells_count[i] = len(polys_nuclei)  # IS
+            #####################################################################
+            ############# 210722: New constraint - only 1-5 nuclei per tile #####
+            is_valid = is_valid and (len(polys_nuclei) >= 1 and len(polys_nuclei) <= 5)
+            #####################################################################
 
 
-        """
-        Filter tiles with no nuclues
-        """
-        outlines = cellpose.utils.outlines_list(masks)
-        polys_nuclei = [Polygon(xy_to_tuple(o)) for o in outlines]
+            if is_valid:
+                image_processed_tiles_passed.append(tile)
 
-        # Build polygon of image's edges
-        img_edges = Polygon([[min_edge_distance,min_edge_distance],\
-                        [min_edge_distance,tile_h-min_edge_distance],\
-                        [tile_w-min_edge_distance,tile_h-min_edge_distance],\
-                        [tile_w-min_edge_distance,min_edge_distance]])
-        
-        # Is there any nuclues inside the image boundries?
-        is_valid = any([p.covered_by(img_edges) for p in polys_nuclei])
-
-        #####################################################################
-        ############# 210722: New constraint - only 1-5 nuclei per tile #####
-        is_valid = is_valid and (len(polys_nuclei) >= 1 and len(polys_nuclei) <= 5)
-        #####################################################################
-
-
-        if is_valid:
-            image_processed_tiles_passed.append(tile)
+    Overall_cells_count = np.sum(cells_count)
+    TaggedDataDescriptors = Parse2Descriptors(file_name)
+    Stats_log.line(f"[{TaggedDataDescriptors}] @STAT: Overall_cells_count: [{Overall_cells_count}]")
+    Stats_log.line(f"[{TaggedDataDescriptors}] @RunTime: FilterAllTiles_Time: [{FilterAllTiles_Time}] sec")
+    Stats_log.line(f"[{TaggedDataDescriptors}] @RunTime: CellposeAllTiles_Time: [{CellposeAllTiles_Time}] sec")
+    Stats_log.vector('cell_count', cells_count)
+    CountsDF.AddLine(file_name, cells_count)  ## save counts as dataframe
 
     if len(image_processed_tiles_passed) == 0:
         logging.info(f"Nothing is valid (total: {n_tiles})")
@@ -223,13 +245,26 @@ def segment(img, channels=None, diameter=500,\
 
 def preprocess_image_pipeline(img, file_path, save_path, n_channels=2, nucleus_diameter=60,
                               flow_threshold=0.4, cellprob_threshold=0, min_edge_distance=2,
-                              tile_width=100, tile_height=100, to_downsample=True,
+                              tile_width=100, tile_height=100, to_downsample=True,   #IS PATCH only was  tile_width=100, tile_height=100
                               to_denoise=False, to_normalize=True, to_show=False):
     """
         Run the image preprocessing pipeline
     """
+
+    Stats_log.line(f"FullName: [{file_path}]")
+    TaggedDataDescriptors = Parse2Descriptors(file_path)
+    Stats_log.line(f"[{TaggedDataDescriptors}] @RunTime: FRAME_START")  #IS
+      # IS
+
+
+
     if to_denoise:
-        img = denoise(to_show, True, img)   
+        start_time = datetime.datetime.now()
+
+        img = denoise(to_show, True, img)
+
+        deltatime = datetime.datetime.now() - start_time
+        Stats_log.line(f"[{TaggedDataDescriptors}] @RunTime: to_denoise: [{deltatime.total_seconds()}] sec")
 
     img_processed = None
     for c in range(n_channels):
@@ -237,11 +272,21 @@ def preprocess_image_pipeline(img, file_path, save_path, n_channels=2, nucleus_d
         
         if to_downsample:
             # Downsampling
-            img_current_channel = downsample(to_show, img_current_channel) 
+            start_time = datetime.datetime.now()
+
+            img_current_channel = downsample(to_show, img_current_channel)
+
+            deltatime = datetime.datetime.now() - start_time
+            Stats_log.line(f"[{TaggedDataDescriptors}] @RunTime: to_downsample: [{deltatime.total_seconds()}] sec")
 
         if to_normalize:
             # Normalize
+            start_time = datetime.datetime.now()
+
             normalize(to_show, img_current_channel)
+
+            deltatime = datetime.datetime.now() - start_time
+            Stats_log.line(f"[{TaggedDataDescriptors}] @RunTime: to_normalize: [{deltatime.total_seconds()}] sec")
 
         if img_processed is None:
             img_processed = img_current_channel
@@ -251,7 +296,12 @@ def preprocess_image_pipeline(img, file_path, save_path, n_channels=2, nucleus_d
     logging.info(f"Image (post image processing) shape {img_processed.shape}")
 
     # Crop tiles
+    start_time = datetime.datetime.now()
+
     image_processed_tiles = crop_to_tiles(tile_width, tile_height, img_processed)
+
+    deltatime = datetime.datetime.now() - start_time
+    Stats_log.line(f"[{TaggedDataDescriptors}] @RunTime: crop_to_tiles: [{deltatime.total_seconds()}] sec")
 
     # Filter invalid tiles (leave only tiles with #nuclues (not touching the edges) == 1)
     image_processed_tiles_passed = filter_invalid_tiles(file_path, image_processed_tiles,\
@@ -263,6 +313,9 @@ def preprocess_image_pipeline(img, file_path, save_path, n_channels=2, nucleus_d
     
     if len(image_processed_tiles_passed) == 0:
         logging.info(f"[{file_path}] No valid results. Skipping this one")
+        end_time = datetime.datetime.now()  # IS
+        deltatime = end_time - start_time
+        Stats_log.line(f"[{TaggedDataDescriptors}] @RunTime: FRAME_END: [{deltatime.total_seconds()}] sec")
         return image_processed_tiles_passed
     
     size = 100
@@ -278,5 +331,9 @@ def preprocess_image_pipeline(img, file_path, save_path, n_channels=2, nucleus_d
     with open(f"{save_path}_processed", 'wb') as f:
         np.save(f, image_processed_tiles_passed_reshaped)
         logging.info(f"Saved to {save_path}_processed.npy")
+
+    end_time = datetime.datetime.now()  #IS
+    deltatime = end_time - start_time
+    Stats_log.line(f"[{TaggedDataDescriptors}] @RunTime: FRAME_END: [{deltatime.total_seconds()}] sec")
 
     return image_processed_tiles_passed_reshaped

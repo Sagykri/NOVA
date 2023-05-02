@@ -7,6 +7,8 @@ import json
 import logging
 import string
 import numpy as np
+from src.common.lib.StatsLog import Stats_log
+from src.common.lib.globals import CountsDF
 
 def get_if_exists(container:object, param_name: string, default_value=None):
     """Get value of param in container if it exists, otherwise return default value
@@ -131,7 +133,13 @@ def get_class(path:string):
         path = os.path.splitext(path)[0]
     
     # Extract and load the module
+
     module_path = os.path.dirname(path).replace('/', '.')
+    module_path = os.path.normpath(module_path)
+    print(module_path)
+
+    module_path = module_path.replace('\\', '.')  #IS
+    print(module_path)
     module = importlib.import_module(module_path)
     # Extract the class name from the path and load it from the module
     class_in_module = os.path.basename(path)
@@ -153,4 +161,9 @@ def init_logging(path:string):
                             logging.StreamHandler()
                         ])
     
-    
+def init_Stats_logging(path:string):
+
+     Stats_log.SetFileName(file_name = path )
+
+def init_CellsFeaturesHolder(path:string):
+    CountsDF.SetName(path)
