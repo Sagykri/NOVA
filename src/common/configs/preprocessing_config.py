@@ -21,11 +21,14 @@ class PreprocessingConfig(BaseConfig):
         self.MARKERS_TO_INCLUDE = None
         self.TO_SHOW = False
         self.NUCLEUS_DIAMETER = 60
-        self.TILE_WIDTH = 100
-        self.TILE_HEIGHT = 100
+        self.TILE_WIDTH = 256    # 100  #IS patch - verify that is ok
+        self.TILE_HEIGHT = 256   # 100  #IS patch  - verify that is ok
         self.TO_DOWNSAMPLE = False
         self.TO_NORMALIZE = True
         self.CELLPROB_THRESHOLD = 0
         self.FLOW_THRESHOLD = 0.4
         self.MIN_EDGE_DISTANCE = 2
-        self.TO_DENOISE = False    
+        self.TO_DENOISE = False
+        self.SemiSig_ERODE_NUM = 3
+        self.SemiSig_DILATE_NUM = 2
+        self.SemiSig_MIN_BLOB_AREA = 350

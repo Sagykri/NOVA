@@ -177,4 +177,5 @@ class BaseConfig():
         Statslog_file_path = os.path.join(self.__LOGS_FOLDER, __now.strftime("Stats_%d%m%y_%H%M%S_%f") + '.log')
         init_Stats_logging(Statslog_file_path)
         CellsFeaturesHolder_file_path = os.path.join(self.__LOGS_FOLDER, __now.strftime("CellsFeaturesHolder_%d%m%y_%H%M%S_%f") + '.csv')
-        init_CellsFeaturesHolder(CellsFeaturesHolder_file_path)
+        Summary_CellsFeaturesHolder_file_path = os.path.join(self.__LOGS_FOLDER,__now.strftime("Suumary_CellsFeaturesHolder_%d%m%y_%H%M%S_%f") + '.csv')
+        init_CellsFeaturesHolder(CellsFeaturesHolder_file_path, Summary_CellsFeaturesHolder_file_path)

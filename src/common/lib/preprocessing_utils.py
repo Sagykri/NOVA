@@ -1,7 +1,7 @@
 import os
 import sys
 sys.path.insert(1, os.getenv("MOMAPS_HOME"))
-
+from pathlib import Path
 import logging
 import datetime
 from src.common.lib.StatsLog import Stats_log
@@ -15,16 +15,19 @@ from cellpose import models
 from shapely.geometry import Polygon
 from src.common.lib.globals import CountsDF
 from src.common.lib.DataDescriptors import Parse2Descriptors
-
-
+from src.common.lib.SemiSegmantation import PerformSemiSegmentation
+from src.common.lib.SemiSegmantation import ShowComparison_Tiles, bValidation  # just in order to compare with cellpose
+from src.common.lib.SemiSegmantation import SemiSegmentation_filter_invalid_tiles
 
 def filter_invalid_tiles(file_name, tiles, nucleus_diameter=100, cellprob_threshold=0,\
                           flow_threshold=0.7, min_edge_distance = 2, tile_w=100,tile_h=100, show_plot=True):
     """
     Filter invalid tiles (leave only tiles with #nuclues (not touching the edges) == 1)
     """
+
     image_processed_tiles_passed = []
     n_tiles = tiles.shape[0]   #IS - in debug change here
+    ValidTilesIds = []
 
     FilterAllTiles_Time = 0
     CellposeAllTiles_Time = 0
@@ -82,12 +85,15 @@ def filter_invalid_tiles(file_name, tiles, nucleus_diameter=100, cellprob_thresh
 
             if is_valid:
                 image_processed_tiles_passed.append(tile)
+                ValidTilesIds.append(i)
 
     Overall_cells_count = np.sum(cells_count)
     TaggedDataDescriptors = Parse2Descriptors(file_name)
     Stats_log.line(f"[{TaggedDataDescriptors}] @STAT: Overall_cells_count: [{Overall_cells_count}]")
     Stats_log.line(f"[{TaggedDataDescriptors}] @RunTime: FilterAllTiles_Time: [{FilterAllTiles_Time}] sec")
     Stats_log.line(f"[{TaggedDataDescriptors}] @RunTime: CellposeAllTiles_Time: [{CellposeAllTiles_Time}] sec")
+    Cellpose_Filter_AllTiles_Time = CellposeAllTiles_Time + FilterAllTiles_Time
+    Stats_log.line(f"[{TaggedDataDescriptors}] @RunTime: Cellpose_Filter_AllTiles_Time: [{Cellpose_Filter_AllTiles_Time}] sec")
     Stats_log.vector('cell_count', cells_count)
     CountsDF.AddLine(file_name, cells_count)  ## save counts as dataframe
 
@@ -101,7 +107,7 @@ def filter_invalid_tiles(file_name, tiles, nucleus_diameter=100, cellprob_thresh
 
     logging.info(f"#ALL {n_tiles}, #Passed {image_processed_tiles_passed.shape[0]}")
 
-    return image_processed_tiles_passed
+    return image_processed_tiles_passed, ValidTilesIds, Cellpose_Filter_AllTiles_Time
 
 def rescale(n_channels, image_processed_tiles_passed, size):
     """Rescale images to given size"""
@@ -133,7 +139,7 @@ def crop_to_tiles(tile_w, tile_h, img_processed):
     image_processed_tiles = []
     image_w = img_processed.shape[0]
     image_h = img_processed.shape[1]
-  
+
     to_validate = True
     if image_w % tile_w != 0 or image_h % tile_h != 0:
       to_validate = False
@@ -147,9 +153,15 @@ def crop_to_tiles(tile_w, tile_h, img_processed):
     if to_validate:
       n_tiles_expected = (image_w * image_w) // (tile_w * tile_h)
 
-    for w in range(0, image_w, tile_w):
-      for h in range(0, image_h, tile_h):
-        image_processed_tiles.append(img_processed[w:w+tile_w, h:h+tile_h, :])
+
+    if image_dim == 2:   #IS - less memory footprint & fragmantation
+        for w in range(0, image_w, tile_w):
+            for h in range(0, image_h, tile_h):
+                image_processed_tiles.append(img_processed[w:w + tile_w, h:h + tile_h])
+    else:  # dapi & other markers
+        for w in range(0, image_w, tile_w):
+          for h in range(0, image_h, tile_h):
+            image_processed_tiles.append(img_processed[w:w+tile_w, h:h+tile_h, :])
 
     image_processed_tiles = np.stack(image_processed_tiles, axis=image_dim)
     image_processed_tiles = np.moveaxis(image_processed_tiles, -1, 0)
@@ -246,7 +258,8 @@ def segment(img, channels=None, diameter=500,\
 def preprocess_image_pipeline(img, file_path, save_path, n_channels=2, nucleus_diameter=60,
                               flow_threshold=0.4, cellprob_threshold=0, min_edge_distance=2,
                               tile_width=100, tile_height=100, to_downsample=True,   #IS PATCH only was  tile_width=100, tile_height=100
-                              to_denoise=False, to_normalize=True, to_show=False):
+                              to_denoise=False, to_normalize=True, to_show=False,
+                              SemiSig_ERODE_NUM = 3,SemiSig_DILATE_NUM = 2, SemiSig_MIN_BLOB_AREA = 350):
     """
         Run the image preprocessing pipeline
     """
@@ -254,9 +267,24 @@ def preprocess_image_pipeline(img, file_path, save_path, n_channels=2, nucleus_d
     Stats_log.line(f"FullName: [{file_path}]")
     TaggedDataDescriptors = Parse2Descriptors(file_path)
     Stats_log.line(f"[{TaggedDataDescriptors}] @RunTime: FRAME_START")  #IS
-      # IS
 
+    ############### New Semi segmenation #####################
+    # segmentation on uint values
+    Helper = img[:, :, 1]# IS todo check with Sagy how do i state DAPI channel
+    Nuclie_img = Helper.reshape(Helper.shape[0], Helper.shape[1])
+    SemiSegmentation_clean_img, SemiSegmentation_TimesDic = PerformSemiSegmentation(Nuclie_img, save_path, SemiSig_ERODE_NUM,SemiSig_DILATE_NUM, SemiSig_MIN_BLOB_AREA)
 
+    SemiSegmentation_tiles = crop_to_tiles(tile_width, tile_height, SemiSegmentation_clean_img)
+
+    SemiSegmentation_image_processed_tiles_passed, SemiSegmentation_ValidTilesIds = SemiSegmentation_filter_invalid_tiles(file_path,
+                                                                                                         tiles=SemiSegmentation_tiles,
+                                                                                                         min_edge_distance=min_edge_distance,
+                                                                                                         tile_w=tile_width,
+                                                                                                         tile_h=tile_height)
+
+    logging.info(
+        f"[{file_path}]:  SemiSeg: {len(SemiSegmentation_image_processed_tiles_passed)} out of {len(SemiSegmentation_tiles)} passed ({len(SemiSegmentation_tiles) - len(SemiSegmentation_image_processed_tiles_passed)} unvalid)")
+    #####################################################
 
     if to_denoise:
         start_time = datetime.datetime.now()
@@ -295,22 +323,39 @@ def preprocess_image_pipeline(img, file_path, save_path, n_channels=2, nucleus_d
         
     logging.info(f"Image (post image processing) shape {img_processed.shape}")
 
+
     # Crop tiles
     start_time = datetime.datetime.now()
 
+    #image_processed_tiles = crop_to_Valid_tiles(tile_width, tile_height, img_processed, SemiSegmentation_ValidTilesIds) SemiSeg - crop only on valid tiles
     image_processed_tiles = crop_to_tiles(tile_width, tile_height, img_processed)
 
     deltatime = datetime.datetime.now() - start_time
     Stats_log.line(f"[{TaggedDataDescriptors}] @RunTime: crop_to_tiles: [{deltatime.total_seconds()}] sec")
 
     # Filter invalid tiles (leave only tiles with #nuclues (not touching the edges) == 1)
-    image_processed_tiles_passed = filter_invalid_tiles(file_path, image_processed_tiles,\
+    image_processed_tiles_passed, Cellpose_ValidTilesIds, Cellpose_Filter_AllTiles_Time= filter_invalid_tiles(file_path, image_processed_tiles, \
                                                         nucleus_diameter=nucleus_diameter, cellprob_threshold=cellprob_threshold,\
                                                         flow_threshold=flow_threshold, min_edge_distance = min_edge_distance,\
                                                             tile_w=tile_width,tile_h=tile_height, show_plot=to_show)
     
     logging.info(f"[{file_path}] {len(image_processed_tiles_passed)} out of {len(image_processed_tiles)} passed ({len(image_processed_tiles)-len(image_processed_tiles_passed)} unvalid)")
-    
+
+
+    if bValidation:
+
+        FileName = Path(save_path).name
+        FilePath = Path(save_path).parent
+        Helper = FilePath.parts
+        SignificantPath = ''
+        for i in Helper[-6:]:
+            SignificantPath += '_' + i
+        # print(SignificantPath)
+        NewSegVsCellpose_FileName = os.path.join(FilePath, "NewSegVsCellpose" + SignificantPath + FileName)
+
+        ShowComparison_Tiles(img, SemiSegmentation_clean_img,SemiSegmentation_ValidTilesIds, Cellpose_ValidTilesIds, SemiSegmentation_TimesDic, Cellpose_Filter_AllTiles_Time, NewSegVsCellpose_FileName)
+
+
     if len(image_processed_tiles_passed) == 0:
         logging.info(f"[{file_path}] No valid results. Skipping this one")
         end_time = datetime.datetime.now()  # IS

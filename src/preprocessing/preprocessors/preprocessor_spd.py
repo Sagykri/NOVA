@@ -16,6 +16,13 @@ from src.common.lib import preprocessing_utils
 from src.common.lib.utils import get_if_exists
 from src.preprocessing.configs.preprocessor_spd_config import SPDPreprocessingConfig
 
+#########################
+## just for the check SemiSeg vs. Cellpose
+import random
+FractionChanceRun = 0.5  #IS set here   #Lottery
+MaximalImagesToSample = 7
+
+################################
 
 class SPDPreprocessor(Preprocessor):
     """
@@ -35,8 +42,13 @@ class SPDPreprocessor(Preprocessor):
         self.flow_threshold = get_if_exists(conf, 'FLOW_THRESHOLD')
         self.min_edge_distance = get_if_exists(conf, 'MIN_EDGE_DISTANCE')
         self.to_denoise = get_if_exists(conf, 'TO_DENOISE')
-        
-    
+
+        self.SemiSig_ERODE_NUM = get_if_exists(conf, 'SemiSig_ERODE_NUM')
+        self.SemiSig_DILATE_NUM = get_if_exists(conf, 'SemiSig_DILATE_NUM')
+        self.SemiSig_MIN_BLOB_AREA = get_if_exists(conf, 'SemiSig_MIN_BLOB_AREA')
+
+
+        self.ImageSampleNum = 0   ##IS just for the check SemiSeg vs. Cellpose
     def preprocess_images(self, **kwargs):
         """
         Preprocess the images inside the input folders specified in the config file.
@@ -90,7 +102,7 @@ class SPDPreprocessor(Preprocessor):
 
                         input_folders = [os.path.join(input_folder_root, cell_line, panel, condition, rep) for rep in reps]     
                         output_folders = [os.path.join(output_folder_root, cell_line, condition) for rep in reps]
-                        
+
                         logging.info(f"Input folders: {input_folders}")
 
                         format_output_filename = lambda filename, ext: f"{filename}_{panel}_{cell_line}{ext}"
@@ -123,8 +135,19 @@ class SPDPreprocessor(Preprocessor):
                                     if len(nucleus_filepath) == 0:
                                         logging.info(f"Skipping site {site} for {target_filepath} since no DAPI for this site was found")
                                         continue
-                                    
+
                                     nucleus_filepath = nucleus_filepath[0]
+                                    ####################################
+                                    ##IS  temp - just for the cellpose semiseg comparison
+                                    Chance = random.uniform(0, 1)
+                                    print("self.ImageSampleNum="+str(self.ImageSampleNum))
+                                    if Chance > FractionChanceRun or self.ImageSampleNum >= MaximalImagesToSample:
+                                        logging.info(
+                                            f"Ahh No Chance ...: {Chance}. Skip Input : {nucleus_filepath}")
+                                        continue
+                                    else:
+                                        self.ImageSampleNum += 1  # ok - so lets check this image
+                                    ###################################
                                     logging.info(f"{target_filepath}, {nucleus_filepath}")
                                     
                                     
@@ -170,6 +193,13 @@ class SPDPreprocessor(Preprocessor):
         min_edge_distance   = self.min_edge_distance
         to_denoise          = self.to_denoise
         to_show             = self.to_show
+
+        SemiSig_ERODE_NUM =  self.SemiSig_ERODE_NUM
+        SemiSig_DILATE_NUM = self.SemiSig_DILATE_NUM
+        SemiSig_MIN_BLOB_AREA = self.SemiSig_MIN_BLOB_AREA
+
+
+
         
         
         img_target = io.imread(file_path)
@@ -198,7 +228,9 @@ class SPDPreprocessor(Preprocessor):
         processed_images = preprocessing_utils.preprocess_image_pipeline(img, file_path, save_path, n_channels=n_channels, nucleus_diameter=nucleus_diameter,
                               flow_threshold=flow_threshold, cellprob_threshold=cellprob_threshold, min_edge_distance=min_edge_distance,
                               tile_width=tile_width, tile_height=tile_height, to_downsample=to_downsample,
-                              to_denoise=to_denoise, to_normalize=to_normalize, to_show=to_show)
+                              to_denoise=to_denoise, to_normalize=to_normalize, to_show=to_show,
+                              SemiSig_ERODE_NUM= SemiSig_ERODE_NUM,
+                              SemiSig_DILATE_NUM = SemiSig_DILATE_NUM, SemiSig_MIN_BLOB_AREA = SemiSig_MIN_BLOB_AREA)
         
         return processed_images
 

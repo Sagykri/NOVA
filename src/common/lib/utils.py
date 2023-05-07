@@ -165,5 +165,5 @@ def init_Stats_logging(path:string):
 
      Stats_log.SetFileName(file_name = path )
 
-def init_CellsFeaturesHolder(path:string):
-    CountsDF.SetName(path)
+def init_CellsFeaturesHolder(path:string, path2:string):
+    CountsDF.SetName(path, path2)

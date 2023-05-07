@@ -30,6 +30,7 @@ def run_preprocessing():
 if __name__ == "__main__":
     print("---------------Start---------------")
     run_preprocessing()
+    CountsDF.Stats()
     CountsDF = CountsDF.Save()
     logging.info("Done")
     Stats_log.line("Done")

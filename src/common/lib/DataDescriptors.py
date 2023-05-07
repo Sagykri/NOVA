@@ -46,7 +46,7 @@ class FeaturesHolder(object):
         self.RowIdentifierName = 'Site\Image'
         self.DF = None
         self.ToPath = None   #IS check if you can not save & grab in need
-
+        self.ToPath2 = None
     def AddLine(self, file_name, Vector):
         try:
 
@@ -60,6 +60,7 @@ class FeaturesHolder(object):
                 self.DF =pd.merge(left = DF1, right = DF2, how = 'outer', left_index = True, right_index = True)
                 self.bFirstTime = False
                 return self
+
             i = len(self.DF)
             self.DF.loc[i+1] = name[self.BATCH_Idenetifer_i:] + list(Vector)
             return self
@@ -78,5 +79,43 @@ class FeaturesHolder(object):
             #print(ex.__context__)
             print('FeaturesHolder: No Save')
 
-    def SetName(self, Path):
+    def Stats(self):
+        try:
+
+            Columns = ['TileDif','SemiSeg.rel.Cellpose']
+            ImageStatsDF = pd.DataFrame(columns=[Columns])
+
+            TilesNamesVector = self.DF['TILE']
+            for l in range(1, (len(TilesNamesVector)), 2):
+                if list(TilesNamesVector.loc[l, 'TILE']) != list(TilesNamesVector.loc[l + 1, 'TILE']):
+                    print('Error in the data. This is Comparison so every tile sholud appear twice.File:' + str(
+                        list(TilesNamesVector.loc[l, 'TILE'])))
+                    raise Exception("BAD data in FeaturesHolder:Stats")
+
+            Helper = self.DF.drop(self.DF.columns[0:7], axis = 1)
+            NumArr = Helper.to_numpy()
+            for l in range(0,(len(NumArr)), 2):
+                h1 = (NumArr[l,:] >0)
+                v1 = [int(i) for i in h1]
+                h2 = (NumArr[l+1, :] > 0)
+                v2 = [int(i) for i in h2]
+                d = [e1 - e2 for (e1,e2) in zip(v1,v2)]  # values are -1,1,0 .
+                sum_abs = sum([abs(i) for i in d])
+                sum1 = sum(d)
+
+                size = len(ImageStatsDF)
+                ImageStatsDF.loc[size+1] = [sum1, sum_abs]
+
+            xx = ImageStatsDF.mean()
+            ImageStatsDF.loc["mean"] = [xx['TileDif'], xx['SemiSeg.rel.Cellpose']]
+
+            ImageStatsDF.to_csv(self.ToPath2)
+
+        except Exception as ex:
+            # logging.error(traceback.format_exc())
+            # print(ex.__context__)
+            print('FeaturesHolder: No Stats')
+
+    def SetName(self, Path, Path2):
         self.ToPath = Path
+        self.ToPath2 = Path2
