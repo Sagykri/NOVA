@@ -76,7 +76,7 @@ def filter_invalid_tiles(file_name, tiles, nucleus_diameter=100, cellprob_thresh
 
             # Is there any nuclues inside the image boundries?
             is_valid = any([p.covered_by(img_edges) for p in polys_nuclei])
-            cells_count[i] = len(polys_nuclei)  # IS
+
             #####################################################################
             ############# 210722: New constraint - only 1-5 nuclei per tile #####
             is_valid = is_valid and (len(polys_nuclei) >= 1 and len(polys_nuclei) <= 5)
@@ -86,6 +86,7 @@ def filter_invalid_tiles(file_name, tiles, nucleus_diameter=100, cellprob_thresh
             if is_valid:
                 image_processed_tiles_passed.append(tile)
                 ValidTilesIds.append(i)
+                cells_count[i] = len(polys_nuclei)  # IS
 
     Overall_cells_count = np.sum(cells_count)
     TaggedDataDescriptors = Parse2Descriptors(file_name)
@@ -270,9 +271,12 @@ def preprocess_image_pipeline(img, file_path, save_path, n_channels=2, nucleus_d
 
     ############### New Semi segmenation #####################
     # segmentation on uint values
+    start_time = datetime.datetime.now()
     Helper = img[:, :, 1]# IS todo check with Sagy how do i state DAPI channel
     Nuclie_img = Helper.reshape(Helper.shape[0], Helper.shape[1])
     SemiSegmentation_clean_img, SemiSegmentation_TimesDic = PerformSemiSegmentation(Nuclie_img, save_path, SemiSig_ERODE_NUM,SemiSig_DILATE_NUM, SemiSig_MIN_BLOB_AREA)
+    deltatime = datetime.datetime.now() - start_time
+    Stats_log.line(f"[{TaggedDataDescriptors}] @RunTime: PerformSemiSegmentation: [{deltatime.total_seconds()}] sec")
 
     SemiSegmentation_tiles = crop_to_tiles(tile_width, tile_height, SemiSegmentation_clean_img)
 

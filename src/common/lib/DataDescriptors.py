@@ -82,7 +82,7 @@ class FeaturesHolder(object):
     def Stats(self):
         try:
 
-            Columns = ['TileDif','SemiSeg.rel.Cellpose']
+            Columns = ['Site_sum_tile_dif','Tile_Any_id_Dif_counted']
             ImageStatsDF = pd.DataFrame(columns=[Columns])
 
             TilesNamesVector = self.DF['TILE']
@@ -107,7 +107,7 @@ class FeaturesHolder(object):
                 ImageStatsDF.loc[size+1] = [sum1, sum_abs]
 
             xx = ImageStatsDF.mean()
-            ImageStatsDF.loc["mean"] = [xx['TileDif'], xx['SemiSeg.rel.Cellpose']]
+            ImageStatsDF.loc["mean"] = [xx['Site_sum_tile_dif'], xx['Tile_Any_id_Dif_counted']]
 
             ImageStatsDF.to_csv(self.ToPath2)
 
