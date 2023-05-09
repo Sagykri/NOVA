@@ -1,11 +1,19 @@
 import os
 import sys
 sys.path.insert(1, os.getenv("MOMAPS_HOME"))
+sys.path.insert(1,'/home/labs/hornsteinlab/Collaboration/MOmaps/') # Nancy
+
 
 from src.common.configs.preprocessing_config import PreprocessingConfig
 
 class SPDPreprocessingConfig(PreprocessingConfig):
+    # Break the 1024x1024 input image (after it has been normalized) 
+    # to 16 tiles of 256x256, and then downsample them to 100x100 
+    # (down-sample by 2 so tile is 128x128 and then resize tile to 100x100)
     def __init__(self):
         super().__init__()
         
         self.PREPROCESSOR_CLASS_PATH = os.path.join("src", "preprocessing", "preprocessors", "preprocessor_spd", "SPDPreprocessor")
+        self.TO_DOWNSAMPLE = True
+        self.TILE_WIDTH = 256 
+        self.TILE_HEIGHT = 256

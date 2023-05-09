@@ -1,7 +1,12 @@
 import os
 import sys
-sys.path.insert(1, os.getenv("MOMAPS_HOME"))
 
+sys.path.insert(1, os.getenv("MOMAPS_HOME")) 
+#sys.path.insert(1,'/home/labs/hornsteinlab/Collaboration/MOmaps/') # Nancy
+print("MOMAPS_HOME", os.getenv("MOMAPS_HOME"))  #IS
+
+
+import torch
 import logging
 
 from src.common.configs.preprocessing_config import PreprocessingConfig
@@ -10,6 +15,7 @@ from src.common.lib.utils import load_config_file, get_class
 
 
 def run_preprocessing():
+    
     run_config: PreprocessingConfig = load_config_file(sys.argv[1], '_preprocessing')
     
     logging.info("init")
@@ -26,6 +32,10 @@ def run_preprocessing():
     
 if __name__ == "__main__":
     print("---------------Start---------------")
+    
+    # For multiprocessing - Must be called as soon as possible
+    torch.multiprocessing.set_start_method('spawn')
+    
     run_preprocessing()
     logging.info("Done")
     

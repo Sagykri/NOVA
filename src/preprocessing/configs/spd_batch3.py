@@ -9,5 +9,6 @@ class SPD_Batch3(SPDPreprocessingConfig):
     def __init__(self):
         super().__init__()
         
-        self.INPUT_FOLDERS = [os.path.join(".", "data", "raw", "SpinningDisk", "batch3")]
-        self.OUTPUT_FOLDERS = [os.path.join(".", "data", "processed", "spd2", "SpinningDisk", "batch3")]
+        self.INPUT_FOLDERS = [os.path.join(".", "input", "images", "raw", "SpinningDisk", "batch3")]
+        
+        self.OUTPUT_FOLDERS = [os.path.join(".", "input", "images", "processed", "spd2", "SpinningDisk", "batch3")]

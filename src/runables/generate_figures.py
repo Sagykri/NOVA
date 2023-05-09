@@ -1,6 +1,7 @@
 import os
 import sys
 sys.path.insert(1, os.getenv("MOMAPS_HOME"))
+sys.path.insert(1,'/home/labs/hornsteinlab/Collaboration/MOmaps/') # Nancy
 
 import logging
 from src.common.lib.figures_handler import FiguresHandler
