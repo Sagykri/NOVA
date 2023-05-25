@@ -115,13 +115,16 @@ class Model():
                 else:
                     cur_cell_type = "neurons"
             for cell_line_folder in sorted(os.listdir(input_folder)):
+                logging.info(f"Cell line: {cell_line_folder}")
                 if cell_lines_include is not None and cell_line_folder not in cell_lines_include:
+                    logging.info(f"Skipping (not in cell lines to include) {cell_line_folder}")
                     continue
                 cell_line_folder_fullpath = os.path.join(input_folder, cell_line_folder)
                 for j, cond_folder in enumerate(sorted(os.listdir(cell_line_folder_fullpath))):
                     #labels_counts.append(0)
-                    
+                    logging.info(f"Condition: {cond_folder}")
                     if conds_include is not None and cond_folder not in conds_include:
+                        logging.info(f"Skipping (not in conditions to include) : {cond_folder}")
                         continue
                     cond_folder_fullpath = os.path.join(cell_line_folder_fullpath, cond_folder)
                     
@@ -135,10 +138,10 @@ class Model():
                     #             continue
                     
                     for subfolder_name in sorted(os.listdir(cond_folder_fullpath)):
-                        logging.info(f"Input subfolder: {subfolder_name}")
+                        logging.info(f"Marker: {subfolder_name}")
 
                         if markers is not None and subfolder_name not in markers:
-                            logging.info(f"Skipping. {subfolder_name}")
+                            logging.info(f"Skipping (not in markers to include). {subfolder_name}")
                             continue
 
                         if markers_to_exclude is not None and subfolder_name in markers_to_exclude:
@@ -153,6 +156,8 @@ class Model():
                             continue
 
                         for filename in sorted(os.listdir(subfolder)):
+                            logging.info(f"Filename: {filename}")
+                            
                             file_path = os.path.join(subfolder, filename)
 
                             if os.path.isdir(file_path) or ".ipynb_checkpoints" in file_path or filename == 'desktop.ini':
