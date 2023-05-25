@@ -29,7 +29,7 @@ class NeuroselfTestConfig(NeuroselfConfig):
         self.CELL_LINES = None
         self.CONDITIONS = None
         self.SPLIT_DATA = True
-        self.DATA_SET_TYPE = 'test'
+        self.DATA_SET_TYPE = 'test' # this is used, only if self.SPLIT_DATA = True
         self.MARKERS_FOR_DOWNSAMPLE = None
         self.TRAIN_PCT = 0.7
         self.SHUFFLE = True

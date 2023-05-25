@@ -24,6 +24,10 @@ Anaconda3-2023.03-Linux-x86_64.sh
 **/*.fastq.deleted
 **/*.fastq.*
 
+outputs/configs_used/
+OpenCell/
+MOmaps_RNASeq_fastq/
+models/**/*.h5
 MOmaps_RNASeq_fastq/20220825_085646_MOmaps_V2_Transcriptome_RNA/*
 MOmaps_RNASeq_fastq/Nancy/RNA/data/*
 MOmaps_RNASeq_fastq/Nancy/RNAseq/raw/**/*.fastq.gz

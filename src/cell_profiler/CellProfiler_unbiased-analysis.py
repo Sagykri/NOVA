@@ -1,4 +1,4 @@
-# Cell profiler analysis of batch 5
+# Cell profiler analysis of batch 9
 
 # Packages 
 import cellprofiler_core.pipeline
@@ -13,7 +13,7 @@ import pathlib
 import os
 
 # Global paths
-BATCH_TO_RUN = 'batch5' 
+BATCH_TO_RUN = 'batch9' 
 
 BASE_DIR = os.path.join('/home','labs','hornsteinlab','Collaboration','MOmaps')
 INPUT_DIR = os.path.join(BASE_DIR, 'input','images','raw','SpinningDisk')
@@ -74,6 +74,10 @@ def collect_image_names_per_marker(input_data_dir):
     
     # This will hold the names of all ~100 images of the marker
     file_list = []
+    # Define rep directory
+    rep_dir = pathlib.Path(input_data_dir).parent.resolve()
+    # Initialize counter for sampling 
+    file_count = 0
     # Target marker
     for file in os.listdir(input_data_dir):
         filename, ext = os.path.splitext(file)
@@ -81,23 +85,25 @@ def collect_image_names_per_marker(input_data_dir):
             image_filename = os.path.join(input_data_dir, file)
             file_list.append(pathlib.Path(image_filename))    # CP requires absolute file paths
     
-    rep_dir = pathlib.Path(input_data_dir).parent.resolve()
-
-    # Nucli marker (DAPI)
-    for y in os.listdir(pathlib.Path(f"{rep_dir}/DAPI")):
-        filename, ext = os.path.splitext(y)
-        if ext == '.tif':
-            file_list.append(pathlib.Path(f"{rep_dir}/DAPI/{y}").resolve()) 
-
-    files = [file.as_uri() for file in file_list]
-    print("\n\n\n\n\n", files)
-    return files
+            #find the right DAPI file to append
+            site = filename.split('_')[-1]
+            nucleus_folder = os.path.join(rep_dir, "DAPI")
+            nucleus_filepath = glob(f"{nucleus_folder}/*_{site}{ext}")[0]
+            file_list.append(pathlib.Path(nucleus_filepath))
+            
+            #stop at 10% of the data
+            file_count += 1
+            if file_count == 10:
+                files = [file.as_uri() for file in file_list]
+                return files
+            else:
+                continue
 
 
 def extract_cell_profilers_features(image_files, pipeline):
 
     logging.info(f"extract_cell_profilers_features")
-
+    logging.info(image_files)
     pipeline.read_file_list(image_files)
     logging.info("\n\nX done pipeline.read_file_list()")
     output_measurements = pipeline.run()     #overwrites any output that is already there
@@ -106,12 +112,9 @@ def extract_cell_profilers_features(image_files, pipeline):
 
 
 def analyze_marker(input_and_output_path_list):
-    
-    global pipeline
-    
+        
     global pipeline
     pipeline = init_cell_profiler()
-    logging.info("\n\n\nXX pipeline")
     logging.info(pipeline)
     
     input_data_dir, output_folder = input_and_output_path_list[0], input_and_output_path_list[1]
@@ -123,7 +126,7 @@ def analyze_marker(input_and_output_path_list):
 
     extract_cell_profilers_features(image_files, pipeline)
 
-    return f"\n\nFinished rxtracting features for {input_data_dir}"
+    return f"\n\nFinished extracting features for {input_data_dir}"
 
 
 def find_marker_folders(batch_path, depth=5):
@@ -131,7 +134,7 @@ def find_marker_folders(batch_path, depth=5):
     For a given batch (defined by "batch_path") it "walks" to its subfolders (until "depth" is reached) 
     and returns for every marker a list of relevant paths (AKA, [input_path, output_path] )
     
-    Note: Markers are assumend to be always in a given constant "depth" 
+    Note: Markers are assumed to be always in a given constant "depth" 
     
     
     """
@@ -155,7 +158,12 @@ def find_marker_folders(batch_path, depth=5):
             # if that's a marker directory
             elif depth==0: 
                 marker_name = os.path.basename(entry.path)
+                #skip nucleus 
                 if marker_name=='DAPI':
+                    continue
+                #skip analyzed markers
+                if len(os.listdir(output_folder)) == 7:
+                    logging.info(f"Marker already analyzed: {output_folder}")
                     continue
                 else:
                     # This is a list of arguments, used as the input of analyze_marker()
@@ -172,7 +180,7 @@ def main():
     #pipeline = init_cell_profiler()
     
     # create a process pool that uses all cpus
-    with Pool(10) as pool:
+    with Pool(3) as pool:
         # call the analyze_marker() function for each marker folder in parallel
         for result in pool.imap_unordered(analyze_marker, find_marker_folders(batch_path=INPUT_DIR_BATCH, depth=5)):
             logging.info(result)

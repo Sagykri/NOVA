@@ -102,3 +102,14 @@ In order to run anything here, you must set an environment variable "MOMAPS_HOME
 export MOMAPS_HOME=PATH_TO_HOME_FOLDER
 ```
 Put the above inside the ~/.bash_profile file in order to set the variable automatically whenever you login
+
+If your data folder is in a different location than MOMAPS_HOME/input, please define MOMAPS_DATA_HOME to be the path to your 'input' folder.
+```
+export MOMAPS_DATA_HOME=PATH_TO_INPUT_FOLDER
+```
+
+Also, add:
+```
+module load cuda/11.7
+```
+to your  /home/labs/hornsteinlab/your_user_name/.bashrc file

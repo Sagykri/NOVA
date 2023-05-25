@@ -4,7 +4,6 @@ import os
 import sys
 import timeit
 sys.path.insert(1, os.getenv("MOMAPS_HOME"))
-sys.path.insert(1,'/home/labs/hornsteinlab/Collaboration/MOmaps/') # Nancy
 
 import logging
 import matplotlib.pyplot as plt
@@ -24,6 +23,7 @@ def filter_invalid_tiles(file_name, img, nucleus_diameter=100, cellprob_threshol
                           cp_model=None, show_plot=True, return_counts=False):
     """
     Filter invalid tiles (leave only tiles with #nuclues (not touching the edges) == 1)
+    This function also segment the cells on the whole image and returns the indexes for the valid tiles
     """
     # image_processed_tiles_passed = []
     tiles_passed_indexes = []
@@ -95,107 +95,14 @@ def filter_invalid_tiles(file_name, img, nucleus_diameter=100, cellprob_threshol
             # image_processed_tiles_passed.append(tile)
             tiles_passed_indexes.append(i)
 
+    n_cells_per_tile = np.asrray(n_cells_per_tile)
+    n_whole_cells_per_tile = np.asarray(n_whole_cells_per_tile)
+    tiles_passed_indexes = np.asarray(tiles_passed_indexes)
+
     if len(tiles_passed_indexes) == 0:
-        logging.info(f"Nothing is valid (total: {n_masked_tiles})")
+        logging.warning(f"Nothing is valid (total: {n_masked_tiles})")
         
-        tiles_passed_indexes = np.asarray(tiles_passed_indexes)
-        
-        if return_counts:
-            return tiles_passed_indexes, n_cells_per_tile, n_whole_cells_per_tile
-        
-        return tiles_passed_indexes
-        
-    tiles_passed_indexes = np.asarray(tiles_passed_indexes)
     logging.info(f"#ALL {n_masked_tiles}, #Passed {tiles_passed_indexes.shape[0]}")
-    
-    if return_counts:
-        return tiles_passed_indexes, n_cells_per_tile, n_whole_cells_per_tile
-    
-    return tiles_passed_indexes
-    #image_processed_tiles_passed = np.stack(image_processed_tiles_passed, axis=-1)
-    #image_processed_tiles_passed = np.moveaxis(image_processed_tiles_passed, -1,0)
-
-    #logging.info(f"#ALL {n_tiles}, #Passed {image_processed_tiles_passed.shape[0]}")
-
-    #return image_processed_tiles_passed
-
-def filter_invalid_tiles_old(file_name, tiles, nucleus_diameter=100, cellprob_threshold=0,\
-                          flow_threshold=0.7, min_edge_distance = 2, tile_w=100,tile_h=100,
-                          cp_model=None, show_plot=True, return_counts=False):
-    """
-    Filter invalid tiles (leave only tiles with #nuclues (not touching the edges) == 1)
-    """
-    image_processed_tiles_passed = []
-    n_tiles = tiles.shape[0]
-    tiles_passed_indexes = []
-    n_cells_per_tile, n_whole_cells_per_tile = [], []
-    cp_model = models.Cellpose(gpu=True, model_type='nuclei') if cp_model is None else cp_model
-
-    for i in range(n_tiles):
-        tile = tiles[i]
-
-        # Nuclues seg
-        logging.info(f"[{file_name}] Tile number {i} out of {n_tiles}")
-        logging.info(f"[{file_name}] Segmenting nuclues")
-        
-        if show_plot:
-            _, ax = plt.subplots(1,2)
-            ax[0].imshow(tile[...,0])
-            ax[1].imshow(tile[...,1])
-            plt.show()
-
-        kernel = np.array([[-1,-1,-1], [-1,25,-1], [-1,-1,-1]])
-        tile_for_seg = cv2.filter2D(tile, -1, kernel)
-
-        # seg_save_path = f'{file_name}_nuclei'
-        masks, _, _, _ = segment(img=tile_for_seg, channels=[1+1,0],\
-                                        model=cp_model, diameter=nucleus_diameter,\
-                                        cellprob_threshold=cellprob_threshold,\
-                                        flow_threshold=flow_threshold, channel_axis=-1, show_plot=show_plot)
-
-
-        """
-        Filter tiles with no nuclues
-        """
-        outlines = cellpose.utils.outlines_list(masks)
-        polys_nuclei = [Polygon(xy_to_tuple(o)) for o in outlines]
-        
-
-        # Build polygon of image's edges
-        img_edges = Polygon([[min_edge_distance,min_edge_distance],\
-                        [min_edge_distance,tile_h-min_edge_distance],\
-                        [tile_w-min_edge_distance,tile_h-min_edge_distance],\
-                        [tile_w-min_edge_distance,min_edge_distance]])
-        
-        # Is there any nuclues inside the image boundries?
-        is_covered = [p.covered_by(img_edges) for p in polys_nuclei]
-        is_valid = any(is_covered)
-
-        #####################################################################
-        ############# 210722: New constraint - only 1-5 nuclei per tile #####
-        is_valid = is_valid and (len(polys_nuclei) >= 1 and len(polys_nuclei) <= 5)
-        #####################################################################
-
-        n_cells_per_tile.append(len(polys_nuclei))
-        n_whole_cells = sum(np.asarray(is_covered)) if len(is_covered) > 0 else 0
-        n_whole_cells_per_tile.append(n_whole_cells)
-
-        if is_valid:
-            # image_processed_tiles_passed.append(tile)
-            tiles_passed_indexes.append(i)
-
-    if len(image_processed_tiles_passed) == 0:
-        logging.info(f"Nothing is valid (total: {n_tiles})")
-        
-        tiles_passed_indexes = np.asarray(tiles_passed_indexes)
-        
-        if return_counts:
-            return tiles_passed_indexes, n_cells_per_tile, n_whole_cells_per_tile
-        
-        return tiles_passed_indexes
-        
-    tiles_passed_indexes = np.asarray(tiles_passed_indexes)
-    logging.info(f"#ALL {n_tiles}, #Passed {tiles_passed_indexes.shape[0]}")
     
     if return_counts:
         return tiles_passed_indexes, n_cells_per_tile, n_whole_cells_per_tile
@@ -282,7 +189,6 @@ def normalize(show, img_current_channel):
     image_test_max = np.max(img_current_channel)
     img_current_channel -= image_test_min
     img_current_channel /= (image_test_max - image_test_min)
-    logging.info(img_current_channel.shape)
     if show:  
       plt.imshow(img_current_channel)
       plt.show()
@@ -292,7 +198,6 @@ def normalize(show, img_current_channel):
 def downsample(show, img_current_channel, block_size=2):
     """Downsampling given image by 2"""
     img_current_channel = block_reduce(image=img_current_channel, block_size=block_size, func=np.mean)
-    logging.info(img_current_channel.shape)
     if show:
       plt.imshow(img_current_channel)
       plt.show()
@@ -349,67 +254,7 @@ def segment(img, model, channels=None,
 
   return masks, flows, styles, diams
 
-def preprocess_image_pipeline(img, file_path, save_path, n_channels=2, nucleus_diameter=60,
-                              flow_threshold=0.4, cellprob_threshold=0, min_edge_distance=2,
-                              tile_width=100, tile_height=100, to_downsample=True,
-                              to_denoise=False, to_normalize=True, to_show=False):
-    """
-        Run the image preprocessing pipeline
-    """
-    if to_denoise:
-        img = denoise(to_show, True, img)   
-
-    img_processed = None
-    for c in range(n_channels):
-        img_current_channel = np.array(img[...,c], dtype=np.float64)
-        
-        if to_downsample:
-            # Downsampling
-            img_current_channel = downsample(to_show, img_current_channel) 
-
-        if to_normalize:
-            # Normalize
-            normalize(to_show, img_current_channel)
-
-        if img_processed is None:
-            img_processed = img_current_channel
-        else:
-            img_processed = np.dstack((img_processed, img_current_channel))
-        
-    logging.info(f"Image (post image processing) shape {img_processed.shape}")
-
-    # Crop tiles
-    image_processed_tiles = crop_to_tiles(tile_width, tile_height, img_processed)
-
-    # Filter invalid tiles (leave only tiles with #nuclues (not touching the edges) == 1)
-    image_processed_tiles_passed = filter_invalid_tiles(file_path, image_processed_tiles,\
-                                                        nucleus_diameter=nucleus_diameter, cellprob_threshold=cellprob_threshold,\
-                                                        flow_threshold=flow_threshold, min_edge_distance = min_edge_distance,\
-                                                            tile_w=tile_width,tile_h=tile_height, show_plot=to_show)
-    image_processed_tiles_passed = image_processed_tiles[image_processed_tiles_passed]
-    logging.info(f"[{file_path}] {len(image_processed_tiles_passed)} out of {len(image_processed_tiles)} passed ({len(image_processed_tiles)-len(image_processed_tiles_passed)} unvalid)")
-    
-    if len(image_processed_tiles_passed) == 0:
-        logging.info(f"[{file_path}] No valid results. Skipping this one")
-        return image_processed_tiles_passed
-    
-    size = 100
-    if image_processed_tiles_passed.shape[1] != size:
-        # Reshape to sizexsize (100x100)
-        logging.info(f"Reshape tiles to {size}x{size} (block_size={image_processed_tiles_passed.shape[1] // size})")
-        
-        image_processed_tiles_passed_reshaped = rescale(n_channels, image_processed_tiles_passed, size)
-    else:
-        image_processed_tiles_passed_reshaped = image_processed_tiles_passed
-
-    # Save processed tiles to file
-    with open(f"{save_path}_processed", 'wb') as f:
-        np.save(f, image_processed_tiles_passed_reshaped)
-        logging.info(f"Saved to {save_path}_processed.npy")
-
-    return image_processed_tiles_passed_reshaped
-
-def preprocess_image_spd_pipeline(img, save_path, n_channels=2,
+def preprocess_image_pipeline(img, save_path, n_channels=2,
                                   tiles_indexes=None,
                                   tile_width=100, tile_height=100, to_downsample=True,
                                   to_denoise=False, to_normalize=True, to_show=False):
@@ -518,6 +363,12 @@ def preprocess_panel(slf, panel, input_folder_root,
                 
                 for f in os.listdir(input_subfolder):
                     filename, ext = os.path.splitext(f)
+                    
+                    if slf.conf.SELECTIVE_INPUT_PATHS is not None \
+                        and os.path.join(input_subfolder, f) not in slf.conf.SELECTIVE_INPUT_PATHS:
+                        logging.info(f"Skipping {os.path.join(input_subfolder, f)} since not in SELECTIVE_INPUT_PATHS")
+                        continue
+                    
                     if ext != '.tif':
                         continue
                     
@@ -531,17 +382,10 @@ def preprocess_panel(slf, panel, input_folder_root,
                     
                     nucleus_filepath = nucleus_filepath[0]
                     logging.info(f"{target_filepath}, {nucleus_filepath}")
-                    
-                    # TODO: Sagy, here is the change of the DAPI cell count per panel. do we need to normalize the dapi image before? Nancy
-                    
+                                        
                     if site not in valid_tiles_indexes:
                         # Crop DAPI tiles
                         img_nucleus = io.imread(nucleus_filepath)
-                        # img_nucleus = img_nucleus.astype(np.float64)
-                        
-                        # preprocessing_utils.normalize(False, img_nucleus)
-                        
-                        # nucleus_image_tiles = preprocessing_utils.crop_to_tiles(self.tile_width, self.tile_height, img_nucleus)
                         
                         nucleus_diameter    = slf.nucleus_diameter
                         tile_width          = slf.tile_width
@@ -551,9 +395,8 @@ def preprocess_panel(slf, panel, input_folder_root,
                         min_edge_distance   = slf.min_edge_distance
                         to_show             = slf.to_show
                         
-                        # Filter invalid tiles (leave only tiles with #nuclues (not touching the edges) == 1)
-                        current_valid_tiles_indexes, n_cells_per_tile, n_whole_cells_per_tile = filter_invalid_tiles(nucleus_filepath, 
-                                                                                                                # nucleus_image_tiles,
+                        # Filter invalid tiles (keep tiles with at least one full nuclues (nuclues border is not overlapping image edges))
+                        current_valid_tiles_indexes, n_cells_per_tile, n_whole_cells_per_tile = filter_invalid_tiles(nucleus_filepath,
                                                                                                                 img_nucleus,
                                                                                                                 nucleus_diameter=nucleus_diameter, 
                                                                                                                 cellprob_threshold=cellprob_threshold,
@@ -571,12 +414,14 @@ def preprocess_panel(slf, panel, input_folder_root,
                         
                         logging.info(f"[{nucleus_filepath}] Saving stats to file {logging_df.path}")
                         logging_df.write([datetime.datetime.now().strftime("%d%m%y_%H%M%S"), filename, raw_f, cell_line,
-                                            panel, condition, rep, marker,
+                                            panel, condition, rep, "DAPI",
                                             n_cells_per_tile,
                                             round(np.mean(n_cells_per_tile), 2), round(np.std(n_cells_per_tile), 2),
                                             n_whole_cells_per_tile,
                                             round(np.mean(n_whole_cells_per_tile), 2), round(np.std(n_whole_cells_per_tile), 2),
-                                            len(current_valid_tiles_indexes)
+                                            len(current_valid_tiles_indexes),
+                                            round(np.mean(n_cells_per_tile[current_valid_tiles_indexes]), 2), round(np.std(n_cells_per_tile[current_valid_tiles_indexes]), 2),
+                                            round(np.mean(n_whole_cells_per_tile[current_valid_tiles_indexes]), 2), round(np.std(n_whole_cells_per_tile[current_valid_tiles_indexes]), 2),
                                             ])
                         
                         # quit()
@@ -600,6 +445,7 @@ def preprocess_panel(slf, panel, input_folder_root,
                     tiles_indexes = valid_tiles_indexes[site]
                     
                     if len(tiles_indexes) == 0:
+                        logging.warning(f"No valid tiles for {os.path.join(input_subfolder, f)}")
                         continue
 
                     slf.preprocess_image(target_filepath, save_path,

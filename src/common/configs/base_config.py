@@ -2,7 +2,6 @@ import os
 import sys
 
 sys.path.insert(1, os.getenv("MOMAPS_HOME")) 
-sys.path.insert(1,'/home/labs/hornsteinlab/Collaboration/MOmaps/') # Nancy
 
 import datetime
 import logging
@@ -22,10 +21,19 @@ class BaseConfig():
         random.seed(self.__SEED)
 
         self.HOME_FOLDER = os.environ['MOMAPS_HOME']
+        self.HOME_DATA_FOLDER = os.environ['MOMAPS_DATA_HOME'] \
+                                    if 'MOMAPS_DATA_HOME' in os.environ \
+                                    else os.path.join(self.HOME_FOLDER, "input")
 
         # Data
-        self.RAW_FOLDER_ROOT = os.path.join(self.HOME_FOLDER, "input", "images", "raw")
-        self.PROCESSED_FOLDER_ROOT = os.path.join(self.HOME_FOLDER, "input", "images", "processed")
+        self.RAW_FOLDER_ROOT = os.path.join(self.HOME_DATA_FOLDER, "images", "raw")
+        self.PROCESSED_FOLDER_ROOT = os.path.join(self.HOME_DATA_FOLDER, "images", "processed")
+        
+        # Precaution - raw and processed folders can't be the same one!
+        assert self.RAW_FOLDER_ROOT != self.PROCESSED_FOLDER_ROOT, f"RAW_FOLDER_ROOT == PROCESSED_FOLDER_ROOT, {self.RAW_FOLDER_ROOT}"
+        
+        # Embeddings
+        self.EMBEDDINGS_FOLDER = os.path.join(self.HOME_FOLDER, "input", "embeddings")
         
         # Output
         self.CONFIGS_USED_FOLDER = os.path.join(self.HOME_FOLDER, "outputs", "configs_used", __now.strftime("%d%m%y_%H%M%S_%f"))
@@ -174,3 +182,4 @@ class BaseConfig():
             os.makedirs(self.__LOGS_FOLDER)
         init_logging(log_file_path)
         logging.info(f"[{self.__class__.__name__}] Init")
+        logging.info(f"[{self.__class__.__name__}] MOMAPS_HOME={self.HOME_FOLDER}, MOMAPS_DATA_HOME={self.MOMAPS_DATA_HOME}")

@@ -2,7 +2,7 @@ import os
 import sys
 
 sys.path.insert(1, os.getenv("MOMAPS_HOME"))
-sys.path.insert(1,'/home/labs/hornsteinlab/Collaboration/MOmaps/') # Nancy
+
 
 import string
 from src.common.configs.preprocessing_config import PreprocessingConfig

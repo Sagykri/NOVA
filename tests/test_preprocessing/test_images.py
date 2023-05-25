@@ -1,5 +1,6 @@
 import os
 import numpy as np
+import matplotlib
 import matplotlib.pyplot as plt
 import sys
 
@@ -26,7 +27,7 @@ def get_img(batch_number, cell_line, condition, marker, filename=None, plot=True
                 ax[i, j].imshow(img[i, ...,j])
         file_id = f"{batch_number}_{cell_line}_{condition}_{marker}_{filename}"
         fig.suptitle(file_id)
-        plt.savefig(f"./tests/test_preprocessing/plots/processed_images/{file_id}.png")
+        plt.savefig(f"./tests/test_preprocessing/plots/processed_images/{file_id}.png", dpi=3000)
         
     return img
 

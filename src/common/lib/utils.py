@@ -1,7 +1,7 @@
 import os
 import sys
-#sys.path.insert(1, os.getenv("MOMAPS_HOME"))
-sys.path.insert(1,'/home/labs/hornsteinlab/Collaboration/MOmaps/') # Nancy
+sys.path.insert(1, os.getenv("MOMAPS_HOME"))
+
 
 import importlib
 import json
@@ -161,8 +161,9 @@ def init_logging(path:string):
     
 
 class LogDF(object):
-    def __init__(self, folder_path: string, index=None, columns=None, should_write_index=False):
-        self.__path = os.path.join(folder_path, datetime.datetime.now().strftime("%d%m%y_%H%M%S_%f") + '.csv')
+    def __init__(self, folder_path: string, filename_prefix='', index=None,
+                 columns=None, should_write_index=False):
+        self.__path = os.path.join(folder_path, filename_prefix + datetime.datetime.now().strftime("%d%m%y_%H%M%S_%f") + '.csv')
         self.__df = pd.DataFrame(index=index, columns=columns)
         self.__should_write_index = should_write_index
         

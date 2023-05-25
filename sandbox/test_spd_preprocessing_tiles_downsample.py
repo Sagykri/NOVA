@@ -19,7 +19,7 @@ sys.path.insert(1,'/home/labs/hornsteinlab/Collaboration/MOmaps/')
 from src.common.lib import preprocessing_utils
 
 # Global paths
-BATCH_TO_RUN = 'batch3' 
+BATCH_TO_RUN = 'batch8' 
 
 BASE_DIR = os.path.join('/home','labs','hornsteinlab','Collaboration','MOmaps')
 INPUT_DIR = os.path.join(BASE_DIR,'input','images','raw','SpinningDisk')
@@ -208,7 +208,7 @@ def save_tile(img, save_path):
     #img = (img - img.min(axis=0)) / (img.max(axis=0) - img.min(axis=0)) # TODO: talk to Sagy about this, with this you see horizental lines
     
     # save image to "save_path" (full path + file name)
-    plt.imsave(save_path, img, cmap = 'gray')
+    plt.imsave(save_path, img, cmap = 'rainbow')
     return None
 
 def preprocess_image(file):
@@ -240,7 +240,22 @@ def preprocess_image(file):
 def main(_tiles_size = 256, sample_size_per_markers=1, num_markers=10):
     
     # Sample markers and then sample images of these markers. The returened value is a list of paths (strings) 
-    files = sample_images_all_markers(sample_size_per_markers, num_markers)
+    ##files = sample_images_all_markers(sample_size_per_markers, num_markers)
+    
+    files = [
+        {
+            'target': '/home/labs/hornsteinlab/Collaboration/MOmaps/input/images/raw/SpinningDisk/batch8/TDP43/panelA/Untreated/rep1/G3BP1/R11_w3confCy5_s491.tif', 
+            'dapi':   '/home/labs/hornsteinlab/Collaboration/MOmaps/input/images/raw/SpinningDisk/batch8/TDP43/panelA/Untreated/rep1/DAPI/R11_w1confDAPI_s491.tif'
+        },
+        {
+            'target': '/home/labs/hornsteinlab/Collaboration/MOmaps/input/images/raw/SpinningDisk/batch8/TDP43/panelA/Untreated/rep1/G3BP1/R11_w3confCy5_s492.tif', 
+            'dapi':   '/home/labs/hornsteinlab/Collaboration/MOmaps/input/images/raw/SpinningDisk/batch8/TDP43/panelA/Untreated/rep1/DAPI/R11_w1confDAPI_s492.tif'
+        },
+        {
+            'target': '/home/labs/hornsteinlab/Collaboration/MOmaps/input/images/raw/SpinningDisk/batch8/TDP43/panelA/Untreated/rep1/KIF5A/R11_w2confmCherry_s492.tif', 
+            'dapi':   '/home/labs/hornsteinlab/Collaboration/MOmaps/input/images/raw/SpinningDisk/batch8/TDP43/panelA/Untreated/rep1/DAPI/R11_w1confDAPI_s492.tif'
+        }
+    ]
     
     for file_path in files:
         
@@ -253,9 +268,10 @@ def main(_tiles_size = 256, sample_size_per_markers=1, num_markers=10):
         tiles = preprocessing_utils.crop_to_tiles(tile_w=_tiles_size, tile_h=_tiles_size, img_processed=img_processed)
         
         # name for new tile files
-        tmp = orig_target_file_path.split('/input/images/raw/SpinningDisk/batch3/', maxsplit=2)
+        tmp = orig_target_file_path.split('/input/images/raw/SpinningDisk/'+BATCH_TO_RUN, maxsplit=2)
+        print(tmp)
         save_name = tmp[1].replace('/','_').replace('tif','')
-        save_path = os.path.join(tmp[0],'src','preprocessing', 'test_tiles_for_Lena', save_name)
+        save_path = os.path.join(BASE_DIR,'sandbox','test_spd_tiles_for_Lena', save_name)
 
         size = 100
         _downsample_block_size=2
@@ -283,27 +299,30 @@ def main(_tiles_size = 256, sample_size_per_markers=1, num_markers=10):
                                  img_current_channel=dapi_tile, 
                                  block_size=_downsample_block_size)
             
-            print("BEFORE:", ds_tile)
-            ds_tile_flt = ds_tile.flatten()
-            plt.scatter(np.arange(len(ds_tile_flt)), ds_tile_flt, alpha=0.5)
+            #print("BEFORE:", ds_tile)
+            #ds_tile_flt = ds_tile.flatten()
+            #plt.scatter(np.arange(len(ds_tile_flt)), ds_tile_flt, alpha=0.5)
+            
             # resize to 100x100
             resized_tile = transform.resize(ds_tile, (size, size), anti_aliasing=True)
-            print("AFTER:", resized_tile)
-            resized_tile_flt = resized_tile.flatten()
-            plt.scatter(np.arange(len(resized_tile_flt)), resized_tile_flt, alpha=0.5)
+            #print("AFTER:", resized_tile)
+            #resized_tile_flt = resized_tile.flatten()
+            #plt.scatter(np.arange(len(resized_tile_flt)), resized_tile_flt, alpha=0.5)
             # plt.show()
             # save the DAPI tile to a png file
-            final_path = save_path + "scatter_dapi_tile_"+str(i)+".png"
-            plt.savefig(final_path)
-            plt.close()
-            # save_tile(resized_tile, final_path)
-            # print("save", final_path)
+            #final_path = save_path + "scatter_dapi_tile_"+str(i)+".png"
+            #plt.savefig(final_path)
+            #plt.close()
+            final_path = save_path + "_DAPI_tile_"+str(i)+".png"
+            
+            save_tile(resized_tile, final_path)
+            print("save", final_path)
 
     return None        
 
 if __name__ == '__main__':
     print("\n\n\n\n\nStart..")
-    main(_tiles_size = 256, sample_size_per_markers=1, num_markers=1)
+    main(_tiles_size = 256, sample_size_per_markers=5, num_markers=3)
     print("\n\n\n\nDone!")
     
     
