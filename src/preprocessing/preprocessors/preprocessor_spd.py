@@ -1,6 +1,15 @@
+import datetime
+from itertools import repeat
+import multiprocessing
 import os
 import sys
+import timeit
+import torch
+import pandas as pd
 sys.path.insert(1, os.getenv("MOMAPS_HOME"))
+
+
+
 
 
 import glob
@@ -8,12 +17,13 @@ import logging
 
 import numpy as np
 
-import torch
+#import torch  #IS temp might not be  needed for the preprocessing - to check
 from skimage import io
+from cellpose import models
 
 from src.common.lib.preprocessor import Preprocessor
 from src.common.lib import preprocessing_utils
-from src.common.lib.utils import get_if_exists
+from src.common.lib.utils import LogDF, get_if_exists
 from src.preprocessing.configs.preprocessor_spd_config import SPDPreprocessingConfig
 
 
@@ -35,7 +45,11 @@ class SPDPreprocessor(Preprocessor):
         self.flow_threshold = get_if_exists(conf, 'FLOW_THRESHOLD')
         self.min_edge_distance = get_if_exists(conf, 'MIN_EDGE_DISTANCE')
         self.to_denoise = get_if_exists(conf, 'TO_DENOISE')
+        self.conf = conf
         
+        if self.conf.SELECTIVE_INPUT_PATHS is not None:
+            logging.info(f"SELECTIVE_INPUT_PATHS is ON. Processing only these files: {self.conf.SELECTIVE_INPUT_PATHS}")
+    
     
     def preprocess_images(self, **kwargs):
         """
@@ -44,6 +58,21 @@ class SPDPreprocessor(Preprocessor):
         """
         
         logging.info(f"Is GPU available: {torch.cuda.is_available()}")
+        cp_model = models.Cellpose(gpu=True, model_type='nuclei')
+
+        logging_df = LogDF(self.conf.LOGS_FOLDER, 
+                           columns=["DATETIME", "filename", "batch", "cell_line", "panel",
+                                    "condition", "rep", "marker",
+                                    "cells_counts", "cells_count_mean", "cells_count_std",
+                                    "whole_cells_counts", "whole_cells_count_mean", "whole_cells_count_std",
+                                    "n_valid_tiles", "cells_count_in_valid_tiles_mean", "cells_count_in_valid_tiles_std",
+                                    "whole_cells_count_in_valid_tiles_mean", "whole_cells_count_in_valid_tiles_std"],
+                           filename_prefix="cell_count_stats_")
+        
+        timing_df = LogDF(self.conf.LOGS_FOLDER, 
+                           columns=["DATETIME", "batch", "cell_line", "panel",
+                                    "condition", "rep", "time_seconds"],
+                           filename_prefix="timing_")
 
 
         for input_folder_root, output_folder_root in zip(self.input_folders, self.output_folders):
@@ -69,84 +98,17 @@ class SPDPreprocessor(Preprocessor):
                 
                 logging.info(f"[{raw_f}, {cell_line}] Panels: {panels}")
                 
-                for panel in panels:
-                    logging.info(f"[{raw_f} {cell_line} {panel}] Panel: {panel}")
-                    
-                    input_folder_root_panel = os.path.join(input_folder_root_cell_line, panel)
-                    
-                    conditions = [f for f in os.listdir(input_folder_root_panel) 
-                                if os.path.isdir(os.path.join(input_folder_root_panel, f)) and f != 'experiment setup']   
-                        
-                    logging.info(f"[{raw_f} {cell_line} {panel}] Conditions: {conditions}")
-                    
-                    
-                    for condition in conditions:
-                        logging.info(f"[{raw_f} {cell_line} {panel} {condition}] Condition: {condition}")
-                    
-                        input_folder_root_condition = os.path.join(input_folder_root_panel, condition)
-                        
-                        reps = [f for f in os.listdir(input_folder_root_condition ) if os.path.isdir(os.path.join(input_folder_root_condition , f))]
-
-                        input_folders = [os.path.join(input_folder_root, cell_line, panel, condition, rep) for rep in reps]     
-                        output_folders = [os.path.join(output_folder_root, cell_line, condition) for rep in reps]
-                        
-                        logging.info(f"Input folders: {input_folders}")
-
-                        format_output_filename = lambda filename, ext: f"{filename}_{panel}_{cell_line}{ext}"
+                args = zip(repeat(self), panels, repeat(input_folder_root), repeat(output_folder_root), repeat(input_folder_root_cell_line),\
+                            repeat(cp_model), repeat(raw_f), repeat(cell_line),\
+                            repeat(logging_df), repeat(timing_df))
                 
-                        for input_folder, output_folder in zip(input_folders, output_folders):
-                            markers = os.listdir(input_folder)
-                            panel = os.path.basename(input_folder)
-                            nucleus_folder = os.path.join(input_folder, "DAPI")
-                            
-                            for marker in markers:
-                                if self.markers_to_include is not None and marker not in self.markers_to_include:
-                                    logging.info(f"Skipping {marker}")
-                                    continue
-                                        
-                                input_subfolder = os.path.join(input_folder, marker)
-                                output_subfolder = os.path.join(output_folder, marker)
-                                
-                                logging.info(f"Subfolder {input_subfolder}")
-                                
-                                
-                                for f in os.listdir(input_subfolder):
-                                    filename, ext = os.path.splitext(f)
-                                    if ext != '.tif':
-                                        continue
-                                    
-                                    site = filename.split('_')[-1]
-                                    target_filepath = os.path.join(input_subfolder, f)
-                                    
-                                    nucleus_filepath = glob.glob(f"{nucleus_folder}/*_{site}{ext}")
-                                    if len(nucleus_filepath) == 0:
-                                        logging.info(f"Skipping site {site} for {target_filepath} since no DAPI for this site was found")
-                                        continue
-                                    
-                                    nucleus_filepath = nucleus_filepath[0]
-                                    logging.info(f"{target_filepath}, {nucleus_filepath}")
-                                    
-                                    
-                                    
-                                    output_filename = format_output_filename(filename, ext) if format_output_filename else f
-                                    
-                                    save_path = os.path.join(output_subfolder, f"{panel}_{output_filename}")
-                                    
-                                    logging.info(f"Save path: {save_path}")
-                                
-                                    if os.path.exists(f"{save_path}_processed"):
-                                        logging.info(f"[Skipping ,exists] Already exists {save_path}_processed")
-                                        continue
-                                
-                                    logging.info(output_subfolder)
-                                    if not os.path.exists(output_subfolder):
-                                        os.makedirs(output_subfolder)
-
-                                    self.preprocess_image(target_filepath, save_path,
-                                                          nucleus_file=nucleus_filepath,show=self.to_show,
-                                                          flow_threshold=self.flow_threshold)
-                    
-                    
+                # For running it sequentially
+                # for p in panels:
+                #     preprocessing_utils.preprocess_panel(self, p, input_folder_root, output_folder_root, input_folder_root_cell_line, 
+                #                                         cp_model, raw_f, cell_line, logging_df, timing_df)
+                with multiprocessing.Pool(len(panels)) as pool:
+                    pool.starmap(preprocessing_utils.preprocess_panel, args)
+                     
                         
     def preprocess_image(self, input_path, output_path, **kwargs):
         """Preprocess a single image
@@ -159,23 +121,17 @@ class SPDPreprocessor(Preprocessor):
         file_path           = input_path
         save_path           = output_path
         nucleus_file        = get_if_exists(kwargs, 'nucleus_file')
-        nucleus_diameter    = self.nucleus_diameter
         tile_width          = self.tile_width
         tile_height         = self.tile_height
         to_downsample       = self.to_downsample
         to_normalize        = self.to_normalize
-        cellprob_threshold  = self.cellprob_threshold
-        flow_threshold      = self.flow_threshold
-        min_edge_distance   = self.min_edge_distance
         to_denoise          = self.to_denoise
         to_show             = self.to_show
+        tiles_indexes       = get_if_exists(kwargs, 'tiles_indexes')
         
         
         img_target = io.imread(file_path)
-        # channel_axis = img.shape.index(min(img.shape)) if channel_axis is None else channel_axis # TODO: this is new!
-        # img = np.moveaxis(img, channel_axis,-1)
         img_nucleus = io.imread(nucleus_file)
-        
         
         # Check if files are corrputed
         if np.size(img_target) == 0:
@@ -194,10 +150,15 @@ class SPDPreprocessor(Preprocessor):
         
         logging.info(f"#Channels= {n_channels}")
 
-        processed_images = preprocessing_utils.preprocess_image_pipeline(img, file_path, save_path, n_channels=n_channels, nucleus_diameter=nucleus_diameter,
-                              flow_threshold=flow_threshold, cellprob_threshold=cellprob_threshold, min_edge_distance=min_edge_distance,
-                              tile_width=tile_width, tile_height=tile_height, to_downsample=to_downsample,
-                              to_denoise=to_denoise, to_normalize=to_normalize, to_show=to_show)
+        processed_images = preprocessing_utils.preprocess_image_pipeline(img, save_path, 
+                                                                        tiles_indexes=tiles_indexes,
+                                                                        n_channels=n_channels, 
+                                                                        tile_width=tile_width, tile_height=tile_height, 
+                                                                        to_downsample=to_downsample,
+                                                                        to_denoise=to_denoise, 
+                                                                        to_normalize=to_normalize, 
+                                                                        to_show=to_show)
         
         return processed_images
 
+    

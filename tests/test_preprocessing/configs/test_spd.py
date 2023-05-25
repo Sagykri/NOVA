@@ -16,3 +16,5 @@ class SPD_Test(SPDPreprocessingConfig):
         self.OUTPUT_FOLDERS = [os.path.join(home_subfolder, "input", "images", "processed", f) for f in __folders]
         
         self.LOGS_FOLDER = os.path.join(home_subfolder, 'logs')
+        
+        # self.TO_SHOW = True

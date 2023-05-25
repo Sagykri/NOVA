@@ -33,7 +33,7 @@ class NeuroselfConfig(ModelConfig):
         self.CELL_LINES = None
         self.CONDITIONS = None
         self.SPLIT_DATA = True
-        self.DATA_SET_TYPE = 'test'
+        self.DATA_SET_TYPE = 'test' # this is used, only if self.SPLIT_DATA = True
         self.MARKERS_FOR_DOWNSAMPLE = None
         self.TRAIN_PCT = 0.7
         self.SHUFFLE = True
@@ -49,7 +49,6 @@ class NeuroselfConfig(ModelConfig):
         self.LEARN_RATE = 2e-4
         self.BATCH_SIZE = 32
         self.MAX_EPOCH = 100
-
 
         self.GROUPS_TERMS_CONDITION = [self.TERM_UNSTRESSED, self.TERM_STRESSED]
         self.GROUPS_TERMS_LINE = [self.TERM_WT, self.TERM_TDP43, self.TERM_FUS, self.TERM_OPTN, self.TERM_TBK1]

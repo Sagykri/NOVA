@@ -3,6 +3,7 @@ import os
 import sys
 sys.path.insert(1, os.getenv("MOMAPS_HOME"))
 
+
 from src.common.configs.base_config import BaseConfig
 
 
@@ -12,6 +13,9 @@ class PreprocessingConfig(BaseConfig):
         
         self.INPUT_FOLDERS = None
         self.OUTPUT_FOLDERS = None
+        
+        # For specifing specific paths to preprocess 
+        self.SELECTIVE_INPUT_PATHS = None
         
         self.HOME_SUBFOLDER = os.path.join(self.HOME_FOLDER, "src", "preprocessing")
         self.LOGS_FOLDER = os.path.join(self.HOME_SUBFOLDER, 'logs')
