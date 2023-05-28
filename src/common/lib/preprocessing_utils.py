@@ -400,18 +400,24 @@ def preprocess_panel(slf, panel, input_folder_root,
                         valid_tiles_indexes[site] = current_valid_tiles_indexes
                         
                         logging.info(f"[{nucleus_filepath}] Saving stats to file {logging_df.path}")
-                        logging_df.write([datetime.datetime.now().strftime("%d%m%y_%H%M%S"), filename, raw_f, cell_line,
+                        to_log = [datetime.datetime.now().strftime("%d%m%y_%H%M%S"), filename, raw_f, cell_line,
                                             panel, condition, rep, "DAPI",
                                             n_cells_per_tile,
                                             round(np.mean(n_cells_per_tile), 2), round(np.std(n_cells_per_tile), 2),
                                             n_whole_cells_per_tile,
                                             round(np.mean(n_whole_cells_per_tile), 2), round(np.std(n_whole_cells_per_tile), 2),
-                                            len(current_valid_tiles_indexes),
-                                            round(np.mean(n_cells_per_tile[current_valid_tiles_indexes]), 2), round(np.std(n_cells_per_tile[current_valid_tiles_indexes]), 2),
-                                            round(np.mean(n_whole_cells_per_tile[current_valid_tiles_indexes]), 2), round(np.std(n_whole_cells_per_tile[current_valid_tiles_indexes]), 2),
-                                            ])
+                                            len(current_valid_tiles_indexes)]
                         
-                        # quit()
+                        if len(current_valid_tiles_indexes) > 0:
+                            to_log += [round(np.mean(n_cells_per_tile[current_valid_tiles_indexes]), 2),
+                                       round(np.std(n_cells_per_tile[current_valid_tiles_indexes]), 2),
+                                        round(np.mean(n_whole_cells_per_tile[current_valid_tiles_indexes]), 2),
+                                        round(np.std(n_whole_cells_per_tile[current_valid_tiles_indexes]), 2)]
+                        else:
+                            to_log += [None]*4
+                            
+                        logging_df.write(to_log)
+                        
                     else:
                         logging.info(f"[Marker {marker}, Site: {site}] Valid tiles have already been calculated ({valid_tiles_indexes[site]})")
                                                             
