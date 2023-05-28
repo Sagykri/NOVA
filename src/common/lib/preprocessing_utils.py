@@ -25,7 +25,7 @@ def filter_invalid_tiles(file_name, img, nucleus_diameter=100, cellprob_threshol
     Filter invalid tiles (leave only tiles with #nuclues (not touching the edges) == 1)
     This function also segment the cells on the whole image and returns the indexes for the valid tiles
     """
-    # image_processed_tiles_passed = []
+    
     tiles_passed_indexes = []
     n_cells_per_tile, n_whole_cells_per_tile = [], []
 
@@ -92,10 +92,9 @@ def filter_invalid_tiles(file_name, img, nucleus_diameter=100, cellprob_threshol
         n_whole_cells_per_tile.append(n_whole_cells)
 
         if is_valid:
-            # image_processed_tiles_passed.append(tile)
             tiles_passed_indexes.append(i)
 
-    n_cells_per_tile = np.asrray(n_cells_per_tile)
+    n_cells_per_tile = np.asarray(n_cells_per_tile)
     n_whole_cells_per_tile = np.asarray(n_whole_cells_per_tile)
     tiles_passed_indexes = np.asarray(tiles_passed_indexes)
 
@@ -108,12 +107,6 @@ def filter_invalid_tiles(file_name, img, nucleus_diameter=100, cellprob_threshol
         return tiles_passed_indexes, n_cells_per_tile, n_whole_cells_per_tile
     
     return tiles_passed_indexes
-    #image_processed_tiles_passed = np.stack(image_processed_tiles_passed, axis=-1)
-    #image_processed_tiles_passed = np.moveaxis(image_processed_tiles_passed, -1,0)
-
-    #logging.info(f"#ALL {n_tiles}, #Passed {image_processed_tiles_passed.shape[0]}")
-
-    #return image_processed_tiles_passed
 
 def rescale(n_channels, image_processed_tiles_passed, size):
     """Rescale images to given size"""
@@ -143,7 +136,6 @@ def crop_to_tiles(tile_w, tile_h, img_processed):
     """Crop tiles to given size"""
     
     image_dim = len(img_processed.shape)
-    # is_one_dim = image_dim == 2
     if image_dim == 2:
         # If img has no channel axis, fake one
         img_processed = np.stack([img_processed, img_processed], axis=image_dim)
@@ -161,16 +153,12 @@ def crop_to_tiles(tile_w, tile_h, img_processed):
     img_processed = img_processed[:image_w - image_w % tile_w, :image_h - image_h % tile_h]
     image_w = img_processed.shape[0]
     image_h = img_processed.shape[1]
-    #logging.info(f"[INFO] shape: {img_processed.shape}")
 
     if to_validate:
       n_tiles_expected = (image_w * image_w) // (tile_w * tile_h)
 
     for w in range(0, image_w, tile_w):
       for h in range(0, image_h, tile_h):
-        # if is_one_dim:
-        #     image_processed_tiles.append(img_processed[w:w+tile_w, h:h+tile_h])
-        # else:
         image_processed_tiles.append(img_processed[w:w+tile_w, h:h+tile_h, :])
 
     image_processed_tiles = np.stack(image_processed_tiles, axis=image_dim)
@@ -179,7 +167,6 @@ def crop_to_tiles(tile_w, tile_h, img_processed):
     if to_validate and n_tiles_expected != image_processed_tiles.shape[0]:
       raise f"Error: #Expected tiles ({n_tiles_expected}) != #Observer tiles ({image_processed_tiles.shape[0]})"
 
-    #logging.info(f"Tiles shape {image_processed_tiles.shape}")
     return image_processed_tiles
 
 def normalize(show, img_current_channel):
