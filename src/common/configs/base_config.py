@@ -182,4 +182,4 @@ class BaseConfig():
             os.makedirs(self.__LOGS_FOLDER)
         init_logging(log_file_path)
         logging.info(f"[{self.__class__.__name__}] Init")
-        logging.info(f"[{self.__class__.__name__}] MOMAPS_HOME={self.HOME_FOLDER}, MOMAPS_DATA_HOME={self.MOMAPS_DATA_HOME}")
+        logging.info(f"[{self.__class__.__name__}] MOMAPS_HOME={self.HOME_FOLDER}, MOMAPS_DATA_HOME={self.HOME_DATA_FOLDER}")
