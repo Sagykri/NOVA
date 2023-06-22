@@ -36,6 +36,7 @@ conda activate /home/labs/hornsteinlab/Collaboration/MOmaps/anaconda3/momaps
 - V Shapely (geometric) 
 - V adjustText
 
+pip install jupyter notebook
 Add the conda env as kernel to jupyter:
 python -m ipykernel install --user --name=momaps
 

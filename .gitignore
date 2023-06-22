@@ -8,6 +8,14 @@ __pycache__/
 *.py[cod]
 *$py.class
 
+core.*
+**/*.h5
+outputs/*
+**/*.tif
+**/*.png
+**/*.czi
+**/models/**/*.csv
+
 # C extensions
 *.so
 

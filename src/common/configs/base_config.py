@@ -1,5 +1,8 @@
 import os
 import sys
+import matplotlib
+matplotlib.use('pdf')
+
 sys.path.insert(1, os.getenv("MOMAPS_HOME"))
 import datetime
 import logging
@@ -19,17 +22,21 @@ class BaseConfig():
         random.seed(self.__SEED)
 
         self.HOME_FOLDER = os.environ['MOMAPS_HOME']
+        self.HOME_DATA_FOLDER = os.environ['MOMAPS_DATA_HOME'] \
+                                    if 'MOMAPS_DATA_HOME' in os.environ \
+                                    else os.path.join(self.HOME_FOLDER, "input")
 
         # Data
-        self.RAW_FOLDER_ROOT = os.path.join(self.HOME_FOLDER, "input", "images", "raw")
-        self.PROCESSED_FOLDER_ROOT = os.path.join(self.HOME_FOLDER, "input", "images", "processed")
+        self.RAW_FOLDER_ROOT = os.path.join(self.HOME_DATA_FOLDER, "images", "raw")
+        self.PROCESSED_FOLDER_ROOT = os.path.join(self.HOME_DATA_FOLDER, "images", "processed")
         
         # Output
-        self.CONFIGS_USED_FOLDER = os.path.join(self.HOME_FOLDER, "outputs", "configs_used", __now.strftime("%d%m%y_%H%M%S_%f"))
+        self.OUTPUTS_FOLDER = os.path.join(self.HOME_FOLDER, "outputs")
+        self.CONFIGS_USED_FOLDER = os.path.join(self.OUTPUTS_FOLDER, "configs_used", __now.strftime("%d%m%y_%H%M%S_%f"))
         
         
         # Model
-        self.PRETRAINED_MODEL_PATH = os.path.join(self.HOME_FOLDER, "models", "cytoself", "models", "pretrained_model.h5")    
+        self.PRETRAINED_MODEL_PATH = os.path.join(self.HOME_FOLDER, "src", "models", "cytoself_vanilla", "models", "pretrained_model.h5")    
         
         # Logs
         self.__LOGS_FOLDER = os.path.join(self.HOME_FOLDER, 'logs')
@@ -163,8 +170,10 @@ class BaseConfig():
     
     @LOGS_FOLDER.setter
     def LOGS_FOLDER(self, path):
+        if logging.getLogger().hasHandlers():
+            return
+    
         self.__LOGS_FOLDER = path
-        
         __now = datetime.datetime.now()
         log_file_path = os.path.join(self.__LOGS_FOLDER, __now.strftime("%d%m%y_%H%M%S_%f") + '.log')
         if not os.path.exists(self.__LOGS_FOLDER):
