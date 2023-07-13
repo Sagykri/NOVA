@@ -53,9 +53,7 @@ class DatasetSPD(Dataset):
                     else:
                         # This is a list of arguments, used as the input of analyze_marker()
                         yield entry.path
-
-
-        
+                        
     def _load_data_paths(self):
         """ Return processed images (paths to npy files) from given folders 
             (each item in input_folders is a batch folder path)

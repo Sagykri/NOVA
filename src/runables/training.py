@@ -6,16 +6,16 @@ print(f"MOMAPS_HOME: {os.getenv('MOMAPS_HOME')}")
 
 import numpy as np
 import logging
-import tensorflow as tf
+import torch
+from torch.utils.data import DataLoader, SubsetRandomSampler, BatchSampler
+
+# import tensorflow as tf
 from copy import deepcopy
 from src.datasets.dataset_spd import DatasetSPD
 from src.datasets.dataset_conf import DatasetConf
 from src.common.lib.utils import load_config_file
 from src.common.lib.model import Model
-from src.common.lib.data_loader import DataLoader
-
-from tensorflow.compat.v1 import ConfigProto, Session
-from tensorflow.compat.v1.keras import backend as K
+from src.common.lib.data_loader import get_dataloader
 
 def train_with_datamanager():
     
@@ -83,39 +83,10 @@ def train_with_dataloader():
     config_train, config_val, config_test = load_config_file(config_path_train, 'train', config_model.CONFIGS_USED_FOLDER),\
                                             load_config_file(config_path_val, 'val', config_model.CONFIGS_USED_FOLDER),\
                                             load_config_file(config_path_test, 'test', config_model.CONFIGS_USED_FOLDER)
+    logging.info("init")    
     
-    logging.info("init")
-    
-    
-    # gpus = tf.compat.v1.config.experimental.list_physical_devices('GPU')
-    # if gpus:
-    #     # Restrict TensorFlow to only allocate 1GB of memory on the first GPU
-    #     try:
-    #         tf.compat.v1.config.experimental.set_logical_device_configuration(
-    #             gpus[0],
-    #             [tf.compat.v1.config.experimental.LogicalDeviceConfiguration(memory_limit=1024)])
-    #         logical_gpus = tf.compat.v1.config.experimental.list_logical_devices('GPU')
-    #         logging.info(f"{len(gpus)}, Physical GPUs, {len(logical_gpus)}, Logical GPUs")
-    #     except RuntimeError as e:
-    #         # Virtual devices must be set before GPUs have been initialized
-    #         logging.info(f"ERROR: {e}")
-    logging.info(f"ENV: {os.environ['TF_FORCE_GPU_ALLOW_GROWTH']}")
-    gpus = tf.compat.v1.config.experimental.list_physical_devices('GPU')
-    if gpus:
-        try:
-            # Currently, memory growth needs to be the same across GPUs
-            for gpu in gpus:
-                tf.compat.v1.config.experimental.set_memory_growth(gpu, True)
-                logical_gpus = tf.compat.v1.config.experimental.list_logical_devices('GPU')
-                logging.info(f"{len(gpus)}, Physical GPUs, {len(logical_gpus)}, Logical GPUs")
-        except RuntimeError as e:
-            # Memory growth must be set before GPUs have been initialized
-            logging.info(f"ERROR: {e}")
-    
-    
-    logging.info(f"Is GPU available: {tf.test.is_gpu_available()}")
-    logging.info(f"Num GPUs Available: physical: {tf.compat.v1.config.experimental.list_physical_devices('GPU')} logical: {tf.compat.v1.config.experimental.list_logical_devices('GPU')}")
-    logging.info(f"Visible devices: {tf.compat.v1.config.experimental.get_visible_devices()}")
+    logging.info(f"Is GPU available: {torch.cuda.is_available()}")
+    logging.info(f"Num GPUs Available: {torch.cuda.device_count()}")
     
     logging.info("Creating model")
     
@@ -137,71 +108,30 @@ def train_with_dataloader():
     else:
         dataset_val, dataset_test = DatasetSPD(config_val), DatasetSPD(config_test)
     
-    #######################
-    # DEBUG NANCY
-    # from sklearn.model_selection import train_test_split
-    # logging.info(f"\n\n\nXXXXX before train_test_split, {train_indexes.shape} {dataset_train.y}")
-    # train_indexes, _ = train_test_split(train_indexes, 
-    #                                         train_size=0.4,
-    #                                         random_state=config_train.SEED,
-    #                                         shuffle=True,
-    #                                         stratify=dataset_train.y[train_indexes])
-    # logging.info(f"\n\n\nXXXXX after train_test_split, {train_indexes.shape} {dataset_train.y} {val_indexes.shape} {test_indexes.shape}")
-    #######################
-    
     batch_size = config_model.BATCH_SIZE
-    logging.info(f"Init dataloaders (batch_size: {batch_size})")
-    dataloader_train, dataloader_val, dataloader_test = DataLoader(dataset_train, batch_size=batch_size, indexes=train_indexes, tpe='train'),\
-                                                        DataLoader(dataset_val, batch_size=batch_size, indexes=val_indexes, tpe='val'),\
-                                                        DataLoader(dataset_test, batch_size=batch_size, indexes=test_indexes, tpe='test')
+    num_workers = 2 #2 is advised by the warning log
+    logging.info(f"Init dataloaders (batch_size: {batch_size}, num_workers: {num_workers})")
+    dataloader_train, dataloader_val, dataloader_test = get_dataloader(dataset_train, batch_size, indexes=train_indexes, num_workers=num_workers),\
+                                                        get_dataloader(dataset_val, batch_size, indexes=val_indexes, num_workers=num_workers),\
+                                                        get_dataloader(dataset_test, batch_size, indexes=test_indexes, num_workers=num_workers)
     
-    logging.info(f"\n\n\n\n\nBefore model.load_with_dataloader.. {dataloader_train.X_paths.shape}, {dataloader_val.X_paths.shape}, {dataloader_test.X_paths.shape}")
+    logging.info(f"\n\n\n\n\nBefore model.load_with_dataloader.. {len(train_indexes)}, {len(val_indexes)}, {len(test_indexes)}")
     
     model.load_with_dataloader(dataloader_train, dataloader_val, dataloader_test)
 
     logging.info("[Start] Training..")
 
-   
-    
     model.train_with_dataloader()
                 
     logging.info("[End] Training..")
 
 
-if __name__ == "__main__":
-    
-    print("Set allow_growth = True")
-    config = ConfigProto()
-    config.gpu_options.allow_growth = True
-    # config.log_device_placement = True
-    # config.gpu_options.per_process_gpu_memory_fraction = 0.4
-    sess = Session(config=config)
-    K.set_session(sess)
-    os.environ['TF_FORCE_GPU_ALLOW_GROWTH'] = 'true'
-    
-    # print(os.environ['TF_FORCE_GPU_ALLOW_GROWTH'])
-    print("set allow_grouwth = True in another way")
-    # Limit GPU memory growth
-    gpus = tf.compat.v1.config.experimental.list_physical_devices('GPU')
-    for gpu in gpus:
-        tf.compat.v1.config.experimental.set_memory_growth(gpu, True)
-
-
-
-    # print("set mixed_precision")
-    # from tensorflow.keras.mixed_precision import experimental as mixed_precision
-
-    # # Enable mixed precision training
-    # policy = mixed_precision.Policy('mixed_float16')
-    # mixed_precision.set_policy(policy)
-    
+if __name__ == "__main__":    
     print("Calling the training func...")
     try:
-        # tf.enable_eager_execution()
-        # train_with_datamanager()
         train_with_dataloader()
     except Exception as e:
-        logging.exception(e)
+        logging.exception(str(e))
         raise e
     logging.info("Done")
     

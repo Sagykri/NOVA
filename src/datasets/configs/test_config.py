@@ -22,14 +22,12 @@ class Test8DatasetConfig(DatasetConfig):
         ######################
         # TODO: Just for testing on less classes, remove afterwards
         # self.CELL_LINES = ['WT', 'TDP43', 'TBK1']
-        # self.CELL_LINES = ['WT']
-        #self.CONDITIONS = ['Untreated']
-        self.MARKERS = ['G3BP1']
+        self.CELL_LINES = ['WT']
+        self.CONDITIONS = ['Untreated']
+        self.MARKERS = ['G3BP1', "FMRP", "PURA"]
         ######################
         
         ##############################
-        # TODO: TO DELETE
-        self.HOME_SUBFOLDER = os.path.join(os.path.join(self.HOME_FOLDER, "src", "models"), "neuroself_nancy_test")
         
 class Test6DatasetConfig(DatasetConfig):
     def __init__(self):
@@ -54,8 +52,6 @@ class Test6DatasetConfig(DatasetConfig):
         ######################
         
         ##############################
-        # TODO: TO DELETE
-        self.HOME_SUBFOLDER = os.path.join(os.path.join(self.HOME_FOLDER, "src", "models"), "neuroself_nancy_test")
         
         
 class Test9DatasetConfig(DatasetConfig):
@@ -82,8 +78,6 @@ class Test9DatasetConfig(DatasetConfig):
         ######################
         
         ##############################
-        # TODO: TO DELETE
-        self.HOME_SUBFOLDER = os.path.join(os.path.join(self.HOME_FOLDER, "src", "models"), "neuroself_nancy_test")
         
     
 class Test4DatasetConfig(DatasetConfig):
@@ -111,7 +105,41 @@ class Test4DatasetConfig(DatasetConfig):
         ######################
         
         ##############################
-        # TODO: TO DELETE
-        self.HOME_SUBFOLDER = os.path.join(os.path.join(self.HOME_FOLDER, "src", "models"), "neuroself_nancy_test")
         
+        
+class TrainB8PiecewiseAlsoStressSmallDatasetConfig(DatasetConfig):
+    def __init__(self):
+        super().__init__()
+
+        # self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "spd2", "SpinningDisk", f) for f in 
+        #                 ["batch8_testCV2"]]
+        self.INPUT_FOLDERS = ["/home/labs/hornsteinlab/Collaboration/MOmaps_Ilan2/MOmaps/input/images/processed/spd2/SpinningDisk/batch8_linear_piecewise"]
+
+        self.SPLIT_DATA = True
+
+        ######################
+        # TODO: Just for testing on less classes, remove afterwards
+        # self.CELL_LINES = ['WT', 'TDP43', 'TBK1']
+        self.CELL_LINES = ['WT']
+        # self.CONDITIONS = ['Untreated']
+        self.MARKERS = ['G3BP1']#, 'FMRP', 'PURA', 'DCP1A']
+        ######################
+        
+class TrainB8PiecewiseSmallDatasetConfig(DatasetConfig):
+    def __init__(self):
+        super().__init__()
+
+        # self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "spd2", "SpinningDisk", f) for f in 
+        #                 ["batch8_testCV2"]]
+        self.INPUT_FOLDERS = ["/home/labs/hornsteinlab/Collaboration/MOmaps_Ilan2/MOmaps/input/images/processed/spd2/SpinningDisk/batch8_linear_piecewise"]
+
+        self.SPLIT_DATA = True
+
+        ######################
+        # TODO: Just for testing on less classes, remove afterwards
+        # self.CELL_LINES = ['WT', 'TDP43', 'TBK1']
+        self.CELL_LINES = ['WT']
+        self.CONDITIONS = ['Untreated']
+        self.MARKERS = ['G3BP1']#, 'FMRP', 'PURA', 'DCP1A']
+        ######################
     

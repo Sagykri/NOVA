@@ -1,8 +1,5 @@
 import os
 import sys
-import matplotlib
-matplotlib.use('pdf')
-
 sys.path.insert(1, os.getenv("MOMAPS_HOME"))
 import datetime
 import logging
@@ -179,4 +176,4 @@ class BaseConfig():
         if not os.path.exists(self.__LOGS_FOLDER):
             os.makedirs(self.__LOGS_FOLDER)
         init_logging(log_file_path)
-        logging.info(f"[{self.__class__.__name__}] Init")
+        logging.info(f"[{self.__class__.__name__}] Init (log path: {log_file_path})")

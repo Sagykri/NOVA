@@ -1,3 +1,4 @@
+import datetime
 import os
 import sys
 sys.path.insert(1, os.getenv("MOMAPS_HOME"))
@@ -8,9 +9,7 @@ class NeuroselfBatch2DLTrainingConfig(NeuroselfConfig):
     def __init__(self):
         super().__init__()
         
-        # self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "spd2", "SpinningDisk", f) for f in 
-        #                 ["batch8"]]
-
+        
         
         self.MODEL_OUTPUT_FOLDER = os.path.join(self.OUTPUTS_FOLDER, 'models_outputs_batch2_dl_new')
         self.LOGS_FOLDER = os.path.join(self.MODEL_OUTPUT_FOLDER, 'logs')
@@ -19,49 +18,105 @@ class NeuroselfBatch2DLTrainingConfig(NeuroselfConfig):
         # Models
         self.MODEL_PATH = None
 
-        # self.MARKERS = ["CD41", "CLTC", "FMRP", "G3BP1", "KIF5A", "NONO", "Phalloidin", \
-        #     "PSD95", "PURA", "SQSTM1", "TDP43", "TIA1", "NEMO", "DCP1A", \
-        #     "TOMM20", "ANXA11", "Calreticulin", "FUS", "LAMP1", \
-        #     "mitotracker", "Nucleolin", "SNCA", \
-        #     "GM130", "PEX14", "PML", "DAPI"]
         
-        # self.MARKERS = None
-
-        # self.MARKERS_TO_EXCLUDE = ['DAPI']#, 'lysotracker', 'Syto12']
-        # self.CELL_LINES = None
-        # self.CONDITIONS = None
-        # self.SPLIT_DATA = True
-        # self.DATA_SET_TYPE = 'train'
-        # self.MARKERS_FOR_DOWNSAMPLE = None
-        # self.TRAIN_PCT = 0.7
-        # self.SHUFFLE = True
-        # self.ADD_CONDITION_TO_LABEL = True 
-        # self.ADD_LINE_TO_LABEL = True
-        # self.ADD_TYPE_TO_LABEL = False
-        # self.ADD_BATCH_TO_LABEL = False
-        
-        # self.SPLIT_BY_SET_FOR = None
-        # self.SPLIT_BY_SET_FOR_BATCH = None
         
         self.EARLY_STOP_PATIENCE = 10
         self.LEARN_RATE = 2e-4
         self.BATCH_SIZE = 8 #32 # = 2*~16 tiles per site -> 32 tiles~
-        # self.BATCH_SIZE = 128
         self.MAX_EPOCH = 100
 
         # Was calculated based on all training data of batch2
         self.DATA_VAR = 0.00675623276886494
 
-        # self.GROUPS_TERMS_CONDITION = [self.TERM_UNSTRESSED, self.TERM_STRESSED]
-        # self.GROUPS_TERMS_LINE = [self.TERM_WT, self.TERM_TDP43, self.TERM_FUS, self.TERM_OPTN, self.TERM_TBK1]
 
         
+class NeuroselfB2SmallTrainingConfig(NeuroselfConfig):
+    def __init__(self):
+        super().__init__()
+        
+        
+        self.MODEL_OUTPUT_FOLDER = os.path.join(self.OUTPUTS_FOLDER, 'models_outputs_batch2_small2')
+        self.LOGS_FOLDER = os.path.join(self.MODEL_OUTPUT_FOLDER, 'logs')
+        self.CONFIGS_USED_FOLDER = os.path.join(self.MODEL_OUTPUT_FOLDER, "configs_used", datetime.datetime.now().strftime("%d%m%y_%H%M%S_%f"))
+
+        # Models
+        self.MODEL_PATH = None
+        
+        self.EARLY_STOP_PATIENCE = 10
+        self.LEARN_RATE = 2e-4
+        self.BATCH_SIZE = 2#20#16 # 4= 4*~8 tiles per site -> 32 tiles~
+        self.MAX_EPOCH = 100
+
+        self.DATA_VAR = 0.00675623276886494
+
+class NeuroselfB2WTUnstressedTrainingConfig(NeuroselfConfig):
+    def __init__(self):
+        super().__init__()
+        
+        
+        
+        self.MODEL_OUTPUT_FOLDER = os.path.join(self.OUTPUTS_FOLDER, 'models_outputs_batch2_WT_untresssed3')
+        self.LOGS_FOLDER = os.path.join(self.MODEL_OUTPUT_FOLDER, 'logs')
+        self.CONFIGS_USED_FOLDER = os.path.join(self.MODEL_OUTPUT_FOLDER, "configs_used", datetime.datetime.now().strftime("%d%m%y_%H%M%S_%f"))
+
+        # Models
+        self.MODEL_PATH = None
+        
+        self.EARLY_STOP_PATIENCE = 10
+        self.LEARN_RATE = 2e-4
+        self.BATCH_SIZE = 2#20#16 # 4= 4*~8 tiles per site -> 32 tiles~
+        self.MAX_EPOCH = 100
+
+        self.DATA_VAR = 0.00675623276886494
+        
+        self.FC_ARGS = {'num_layers': 3, 'act': 'swish'}
+        
+class NeuroselfB2WTUnstressedTrainingConfig4(NeuroselfConfig):
+    def __init__(self):
+        super().__init__()
+        
+       
+        self.MODEL_OUTPUT_FOLDER = os.path.join(self.OUTPUTS_FOLDER, 'models_outputs_batch2_WT_untresssed4')
+        self.LOGS_FOLDER = os.path.join(self.MODEL_OUTPUT_FOLDER, 'logs')
+        self.CONFIGS_USED_FOLDER = os.path.join(self.MODEL_OUTPUT_FOLDER, "configs_used", datetime.datetime.now().strftime("%d%m%y_%H%M%S_%f"))
+
+        # Models
+        self.MODEL_PATH = None
+        
+        self.EARLY_STOP_PATIENCE = 10
+        self.LEARN_RATE = 2e-4
+        self.BATCH_SIZE = 2#20#16 # 4= 4*~8 tiles per site -> 32 tiles~
+        self.MAX_EPOCH = 100
+
+        self.DATA_VAR = 0.00675623276886494
+        
+        self.FC_INPUT_TYPE = 'vqindhist'
+        
+class TEMPNeuroselfB2WTUnstressedTrainingConfig(NeuroselfConfig):
+    def __init__(self):
+        super().__init__()
+        
+
+        
+        self.MODEL_OUTPUT_FOLDER = os.path.join(self.OUTPUTS_FOLDER, 'models_outputs_batch2_WT_untresssed_TEMP')
+        self.LOGS_FOLDER = os.path.join(self.MODEL_OUTPUT_FOLDER, 'logs')
+        self.CONFIGS_USED_FOLDER = os.path.join(self.MODEL_OUTPUT_FOLDER, "configs_used", datetime.datetime.now().strftime("%d%m%y_%H%M%S_%f"))
+
+        # Models
+        self.MODEL_PATH = None
+        
+        self.EARLY_STOP_PATIENCE = 10
+        self.LEARN_RATE = 1e-4
+        self.BATCH_SIZE = 2#20#16 # 4= 4*~8 tiles per site -> 32 tiles~
+        self.MAX_EPOCH = 100
+
+        self.DATA_VAR = 0.00675623276886494
+        
+
 class NeuroselfBatch2DLALLTrainingConfig(NeuroselfConfig):
     def __init__(self):
         super().__init__()
         
-        # self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "spd2", "SpinningDisk", f) for f in 
-        #                 ["batch8"]]
 
         
         self.MODEL_OUTPUT_FOLDER = os.path.join(self.OUTPUTS_FOLDER, 'models_outputs_batch2_dl_all_new')
@@ -71,40 +126,15 @@ class NeuroselfBatch2DLALLTrainingConfig(NeuroselfConfig):
         # Models
         self.MODEL_PATH = None
 
-        # self.MARKERS = ["CD41", "CLTC", "FMRP", "G3BP1", "KIF5A", "NONO", "Phalloidin", \
-        #     "PSD95", "PURA", "SQSTM1", "TDP43", "TIA1", "NEMO", "DCP1A", \
-        #     "TOMM20", "ANXA11", "Calreticulin", "FUS", "LAMP1", \
-        #     "mitotracker", "Nucleolin", "SNCA", \
-        #     "GM130", "PEX14", "PML", "DAPI"]
         
-        # self.MARKERS = None
-
-        # self.MARKERS_TO_EXCLUDE = ['DAPI']#, 'lysotracker', 'Syto12']
-        # self.CELL_LINES = None
-        # self.CONDITIONS = None
-        # self.SPLIT_DATA = True
-        # self.DATA_SET_TYPE = 'train'
-        # self.MARKERS_FOR_DOWNSAMPLE = None
-        # self.TRAIN_PCT = 0.7
-        # self.SHUFFLE = True
-        # self.ADD_CONDITION_TO_LABEL = True 
-        # self.ADD_LINE_TO_LABEL = True
-        # self.ADD_TYPE_TO_LABEL = False
-        # self.ADD_BATCH_TO_LABEL = False
-        
-        # self.SPLIT_BY_SET_FOR = None
-        # self.SPLIT_BY_SET_FOR_BATCH = None
         
         self.EARLY_STOP_PATIENCE = 10
         self.LEARN_RATE = 2e-4
         self.BATCH_SIZE = 8 #32 # = 2*~16 tiles per site -> 32 tiles~
-        # self.BATCH_SIZE = 128
         self.MAX_EPOCH = 100
 
         # Was calculated based on all training data of batch2
         self.DATA_VAR = 0.00675623276886494
 
-        # self.GROUPS_TERMS_CONDITION = [self.TERM_UNSTRESSED, self.TERM_STRESSED]
-        # self.GROUPS_TERMS_LINE = [self.TERM_WT, self.TERM_TDP43, self.TERM_FUS, self.TERM_OPTN, self.TERM_TBK1]
 
         

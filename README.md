@@ -35,6 +35,7 @@ conda activate /home/labs/hornsteinlab/Collaboration/MOmaps/anaconda3/momaps
 - V shap (shaply values)
 - V Shapely (geometric) 
 - V adjustText
+- torch-tb-profiler
 
 pip install jupyter notebook
 Add the conda env as kernel to jupyter:
@@ -51,6 +52,13 @@ python -m ipykernel install --user --name=momaps
 - 'generate_embeddings' - generate the embedding vectors
 - 'training' - for training a model
 - 'generate_figures' - for generating the figures for the paper
+
+## Tensorboard
+For using tensorboard run the following command:
+```
+tensorboard --logdir=PATH_TO_tb_logs_DIR
+```
+If port is alread use add the flag: ```--port=PORT```
 
 ## Pay Attention!
 In order to run anything here, you must set an environment variable "MOMAPS_HOME" as your MOmaps home directory.

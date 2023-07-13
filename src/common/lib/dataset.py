@@ -1,18 +1,36 @@
 
-from abc import ABC, abstractmethod
+from abc import ABC, ABCMeta, abstractmethod
 import logging
 import sys
 import os
 import numpy as np
+import torch
 
 sys.path.insert(1, os.getenv("MOMAPS_HOME"))
 from sklearn.model_selection import train_test_split
-
 from src.common.configs.dataset_config import DatasetConfig
+import src.common.lib.utils as utils
+
+# TODO: Use torch.transforms instead!
+def random_horizontal_flip(image):
+    if np.random.rand() < 0.5:
+        return np.fliplr(image)
+    return image
+
+def random_vertical_flip(image):
+    if np.random.rand() < 0.5:
+        return np.flipud(image)
+    return image
+
+def random_choice_rotate(image):
+    k = np.random.choice([0, 1, 2, 3])
+    return np.rot90(image, k=k, axes=(0,1))
+
+def flat_list_of_lists(l):
+    return [item for sublist in l for item in sublist]
 
 
-
-class Dataset(ABC):
+class Dataset(torch.utils.data.Dataset ,metaclass=ABCMeta):
     def __init__(self, conf: DatasetConfig):
         self.__set_params(conf)
         
@@ -32,10 +50,14 @@ class Dataset(ABC):
         self.rot = conf.AUG_TO_ROT
         self.to_split_data = conf.SPLIT_DATA
         self.data_set_type = conf.DATA_SET_TYPE
+        self.is_aug_inplace = conf.IS_AUG_INPLACE
         
         self.conf = conf
         
-        self.X_paths, self.y, self.unique_markers = self._load_data_paths()        
+        self.X_paths, self.y, self.unique_markers = self._load_data_paths()  
+        
+        # PATCH...
+        self.label = self.y      
         
     @abstractmethod
     def _load_data_paths(self):
@@ -52,6 +74,131 @@ class Dataset(ABC):
         
         return np.var(images)
     """
+    
+    def __len__(self):
+        return len(self.y)
+    
+    
+    
+    def __getitem__(self, index):
+        logging.info(f"\n\n\n\n XX  __getitem__ {index}")
+        'Generate one batch of data'
+        
+        X_batch, y_batch = self.get_batch(index)
+    
+        y_batch = self.__label_converter(y_batch, label_format='index')
+        
+        return {'image': X_batch, 'label': y_batch}
+        
+
+    def get_batch(self, indexes):
+        if not isinstance(indexes, list):
+            indexes = [indexes]
+        logging.info(f"Indexes: {indexes}")
+        X_paths_batch = self.X_paths[indexes]
+        y_batch = self.y[indexes]
+
+        return self.__load_batch(X_paths_batch, y_batch)
+
+    def __load_batch(self, paths, labels):
+        'Generates data containing batch_size samples' 
+        X_batch = []
+        y_batch = []
+        
+        # Generate data
+        for i, path in enumerate(paths):
+            logging.info(f"Path: {path}")
+            imgs = np.load(path)
+            
+            n_tiles = imgs.shape[0]
+            
+            augmented_images = []
+            
+            if self.flip or self.rot:
+                for j in range(n_tiles): 
+                    # Augmentations
+                    img = np.copy(imgs[j]) if not self.is_aug_inplace else imgs[j]
+                    if self.flip:
+                        img = random_horizontal_flip(img) 
+                        img = random_vertical_flip(img) 
+                    if self.rot:
+                        img = random_choice_rotate(img) 
+                    
+                    if self.is_aug_inplace:
+                        imgs[j] = img
+                    elif not np.array_equal(img, imgs[j]): 
+                        augmented_images.append(img) 
+        
+            # Store sample - all the tiles in site
+            X_batch.append(imgs)
+            y_batch.append([labels[i]]*n_tiles)
+            
+            if not self.is_aug_inplace:
+                # Append augmented images
+                if len(augmented_images) > 0: 
+                    augmented_images = np.stack(augmented_images) 
+                    X_batch.append(augmented_images) 
+                    y_batch.append([labels[i]]*len(augmented_images)) 
+        
+        X_batch = np.concatenate(X_batch)
+        y_batch = np.asarray(flat_list_of_lists(y_batch))
+
+        # If the channel axis is the last one, move it to be the second one
+        # (#tiles, 100, 100, #channel) -> (#tiles, #channel, 100, 100)
+        if np.argmin(X_batch.shape[1:]) == len(X_batch.shape) - 2:
+            X_batch = np.moveaxis(X_batch, -1, 1)
+
+        logging.info(f"y_batch shape: {y_batch.shape}")
+        
+        logging.info(f"\n\n [load_batch]  X_batch: {X_batch.shape}, y [{np.unique(y_batch)}]: {y_batch.shape}, {y_batch}")
+
+        
+        ###############################################################
+        
+        res = utils.apply_for_all_gpus(utils.getfreegpumem)
+        logging.info(f"Resources (Free, Used, Total): {res}")
+        nvidia_smi_info = utils.apply_for_all_gpus(utils.get_nvidia_smi_output)
+        logging.info(f"nvidia_smi: {nvidia_smi_info}")
+        
+        return X_batch, y_batch
+        
+    
+    def __label_converter(self, y, label_format='index'):
+        if self.unique_markers is None:
+            raise ValueError('unique_markers is empty.')
+        else:
+            y = y.reshape(-1,)
+            onehot = y[:, None] == self.unique_markers
+            if label_format == 'onehot':
+                output = onehot
+            elif label_format == 'index':
+                output = onehot.argmax(1)
+            else:
+                output = y
+
+            output = output.reshape(-1,1)
+            return output
+    
+    @staticmethod
+    def get_collate_fn(shuffle=False):
+        def collate_fn(batch):
+            images = [b['image'] for b in batch]
+            labels = [b['label'] for b in batch]
+            
+            output_images = torch.from_numpy(np.vstack(images))
+            output_labels = torch.from_numpy(np.vstack(labels).reshape(-1,))
+            
+            if shuffle:
+                indexes = np.arange(len(output_images))
+                np.random.shuffle(indexes)
+                output_images = output_images[indexes]
+                output_labels = output_labels[indexes]
+            
+            logging.info(output_labels)
+            logging.info(f"Image shape: {output_images.shape}, label shape: {output_labels.shape}")
+            return {'image': output_images, 'label': output_labels}
+        
+        return collate_fn
     
     def split(self):
         """

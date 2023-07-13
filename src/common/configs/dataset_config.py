@@ -31,18 +31,6 @@ class DatasetConfig(BaseConfig):
         self.SPLIT_BY_SET_FOR = None
         self.SPLIT_BY_SET_FOR_BATCH = None
         
-        
-        ###################################
-        # TODO: TO DELETE
-        self.EARLY_STOP_PATIENCE = 10
-        self.LEARN_RATE = 2e-4
-        self.BATCH_SIZE = 16 # ~8 tiles site * 32 sites per batch = 256 tiles per batch
-        self.MAX_EPOCH = 100
-        
-        self.HOME_SUBFOLDER = os.path.join(self.HOME_FOLDER, "src", "models", "neuroself")
-        self.MODEL_OUTPUT_FOLDER = os.path.join(self.HOME_SUBFOLDER, 'models_outputs')
-        
-        ########################################
-        
         self.AUG_TO_FLIP = True
         self.AUG_TO_ROT = True
+        self.IS_AUG_INPLACE = False

@@ -229,9 +229,9 @@ def getfreegpumem(gpuidx):
         return -1
     
 def apply_for_all_gpus(func):
-    import tensorflow as tf
+    import torch
     
-    n_devices = len(tf.compat.v1.config.experimental.get_visible_devices())
+    n_devices = torch.cuda.device_count()
     l = []
     for i in range(n_devices):
         l.append(func(i))
