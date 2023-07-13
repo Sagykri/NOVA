@@ -1,19 +1,30 @@
+import datetime
 import os
 import sys
+
+
+
+
 sys.path.insert(1, os.getenv("MOMAPS_HOME"))
 
+import torch
 from matplotlib import pyplot as plt
 import numpy as np
 import pandas as pd
-from cytoself.models import CytoselfFullModel
-from cytoself.data_loader.data_manager import DataManager
-from cytoself.analysis.analytics import Analytics
-from tensorflow.compat.v1.keras.callbacks import CSVLogger
+from torch.utils.data import DataLoader
+
+from cytoself.trainer.cytoselflite_trainer import CytoselfFullTrainer
+from cytoself.analysis.analysis_opencell import AnalysisOpenCell
+from cytoself.trainer.utils.plot_history import plot_history_cytoself
+from cytoself.datamanager.base import DataManagerBase
 import logging
 
+
+from src.common.lib.utils import get_if_exists
+
+from src.datasets.dataset_spd import DatasetSPD
 from src.common.lib import cytoself_custom
 from src.common.configs.model_config import ModelConfig
-
 
 class Model():
 
@@ -35,10 +46,77 @@ class Model():
         self.test_labels_changepoints = None
         self.test_markers_order = None
         
+        self.train_loader = None
+        self.valid_loader = None
+        self.test_loader  = None
+        
         
         self.model = None
         self.analytics = None
+        self.unique_markers = None
         
+    def generate_model_visualization(self, num_class=None, savepath=None):
+        savepath = savepath if savepath is not None else os.path.join(self.conf.MODEL_OUTPUT_FOLDER,'model_viz')
+        
+        logging.info(f"Constructing trainer with num_class={num_class}")
+        trainer = self.__construct_trainer(num_class)
+        dummy_input = torch.randn(10, 2, 100, 100, device="cuda" if torch.cuda.is_available() else "cpu")
+        logging.info(f"Writing graph to {savepath}")
+        writer = torch.utils.tensorboard.SummaryWriter(savepath)
+        writer.add_graph(trainer.model, dummy_input)
+        writer.close()
+        
+    def __construct_trainer(self, num_class=None):
+        pretrained_model_path   = self.pretrained_model_path
+        early_stop_patience     = self.early_stop_patience
+        learn_rate              = self.learn_rate 
+        batch_size              = self.batch_size
+        max_epoch               = self.max_epoch
+        model_output_folder     = self.conf.MODEL_OUTPUT_FOLDER
+        input_shape             = self.conf.INPUT_SHAPE
+        emb_shapes              = self.conf.EMB_SHAPES
+        output_shape            = self.conf.OUTPUT_SHAPE
+        fc_args                 = self.conf.FC_ARGS
+        fc_output_idx           = self.conf.FC_OUTPUT_IDX
+        vq_args                 = self.conf.VQ_ARGS
+        fc_input_type           = self.conf.FC_INPUT_TYPE
+        reducelr_patience       = self.conf.REDUCELR_PATIENCE
+        reducelr_increment      = self.conf.REDUCELR_INCREMENT
+        
+        if num_class is None:
+            num_class = len(self.unique_markers)
+        
+        model_args = {
+            'input_shape': input_shape,
+            'emb_shapes': emb_shapes, 
+            'output_shape': output_shape,
+            'fc_args': fc_args, #New
+            'fc_output_idx': fc_output_idx,
+            'vq_args': vq_args,# NEW
+            'num_class': num_class,
+            'fc_input_type': fc_input_type
+        }
+        train_args = {
+            'lr': learn_rate,
+            'max_epoch': max_epoch,
+            'reducelr_patience': reducelr_patience,
+            'reducelr_increment': reducelr_increment,
+            'earlystop_patience': early_stop_patience,
+        }
+        
+                
+        logging.info("Creating the model")
+        logging.info(
+            f"early_stop_patience={early_stop_patience}, learn_rate={learn_rate},\
+                batch_size={batch_size}, max_epoch={max_epoch}")
+
+        logging.info(f"Init model object (fc output: {num_class})")
+        trainer = CytoselfFullTrainer(train_args,
+                                      homepath=model_output_folder,
+                                      model_args=model_args)
+        
+        return trainer
+            
         
     def set_params(self, conf:ModelConfig):
         """Set the parameters
@@ -47,23 +125,6 @@ class Model():
             conf (ModelConfig): The new values
         """
         try:
-            self.input_folders = conf.INPUT_FOLDERS
-            self.add_condition_to_label = conf.ADD_CONDITION_TO_LABEL
-            self.add_line_to_label = conf.ADD_LINE_TO_LABEL
-            self.add_type_to_label = conf.ADD_TYPE_TO_LABEL
-            self.add_batch_to_label = conf.ADD_BATCH_TO_LABEL
-            self.markers = conf.MARKERS    
-            self.markers_to_exclude = conf.MARKERS_TO_EXCLUDE
-            self.markers_for_downsample = conf.MARKERS_FOR_DOWNSAMPLE   
-            self.split_by_set = conf.SPLIT_DATA
-            self.data_set_type = conf.DATA_SET_TYPE
-            self.train_part = conf.TRAIN_PCT
-            self.shuffle = conf.SHUFFLE
-            self.cell_lines = conf.CELL_LINES 
-            self.conditions = conf.CONDITIONS
-            self.split_by_set_for = conf.SPLIT_BY_SET_FOR
-            self.split_by_set_for_batch = conf.SPLIT_BY_SET_FOR_BATCH
-            
             self.pretrained_model_path = conf.PRETRAINED_MODEL_PATH
             
             self.early_stop_patience = conf.EARLY_STOP_PATIENCE
@@ -75,271 +136,99 @@ class Model():
         except Exception as ex:
             logging.error(f"Error with the configuration file. {ex}")
     
-    def load_data(self):
-        """ Load images from given folders """
+    def load_with_dataloader(self, train_loader:DataLoader=None,
+                             valid_loader:DataLoader=None, test_loader:DataLoader=None):
+        """
+        Load data generators for train, val and test
+        """
         
-        input_folders           =   self.input_folders
-        condition_l             =   self.add_condition_to_label
-        line_l                  =   self.add_line_to_label
-        batch_l                 =   self.add_batch_to_label
-        cell_type_l             =   self.add_type_to_label
-        markers                 =   self.markers
-        markers_to_exclude      =   self.markers_to_exclude
-        markers_for_downsample  =   self.markers_for_downsample
-        cell_lines_include      =   self.cell_lines
-        conds_include           =   self.conditions
-        set_type                =   self.data_set_type
-        split_by_set            =   self.split_by_set
-        split_by_set_for        =   self.split_by_set_for
-        split_by_set_for_batch  =   self.split_by_set_for_batch
-        train_part              =   self.train_part
-        shuffle                 =   self.shuffle
         
-
-        labels_changepoints = [0]
-        labels = []
-        images_concat = None
-        markers_order = []
-
-        if split_by_set:
-            logging.info("#########################################################")
-            logging.info(f"########### Splitting by set! ({set_type}) #############")
-            logging.info("#########################################################")
-            np.random.seed(self.conf.SEED)
-
-        for i, input_folder in enumerate(input_folders):
-            logging.info(f"Input folder: {input_folder}")
-            if cell_type_l:
-                if "microglia" in input_folder:
-                    cur_cell_type = "microglia"
-                else:
-                    cur_cell_type = "neurons"
-            for cell_line_folder in sorted(os.listdir(input_folder)):
-                logging.info(f"Cell line: {cell_line_folder}")
-                if cell_lines_include is not None and cell_line_folder not in cell_lines_include:
-                    logging.info(f"Skipping (not in cell lines to include) {cell_line_folder}")
-                    continue
-                cell_line_folder_fullpath = os.path.join(input_folder, cell_line_folder)
-                for j, cond_folder in enumerate(sorted(os.listdir(cell_line_folder_fullpath))):
-                    #labels_counts.append(0)
-                    logging.info(f"Condition: {cond_folder}")
-                    if conds_include is not None and cond_folder not in conds_include:
-                        logging.info(f"Skipping (not in conditions to include) : {cond_folder}")
-                        continue
-                    cond_folder_fullpath = os.path.join(cell_line_folder_fullpath, cond_folder)
-                    
-                    
-                    # if advanced_selection is not None:
-                    #     if not isinstance(advanced_selection, list):
-                    #         advanced_selection = [advanced_selection]
-                    #     if tuple((cell_line_folder, cond_folder)) not in advanced_selection:
-                    #         if verbose:
-                    #             logging.info(f"Skipping (advanced selection): {cell_line_folder}/{cond_folder}")
-                    #             continue
-                    
-                    for subfolder_name in sorted(os.listdir(cond_folder_fullpath)):
-                        logging.info(f"Marker: {subfolder_name}")
-
-                        if markers is not None and subfolder_name not in markers:
-                            logging.info(f"Skipping (not in markers to include). {subfolder_name}")
-                            continue
-
-                        if markers_to_exclude is not None and subfolder_name in markers_to_exclude:
-                            logging.info(f"Skipping (in markers to exclude). {subfolder_name}")
-                            continue
-
-                        if subfolder_name not in markers_order:
-                            markers_order.append(subfolder_name)
-                        subfolder = os.path.join(cond_folder_fullpath, subfolder_name)
-
-                        if not os.path.isdir(subfolder) or ".ipynb_checkpoints" in subfolder:
-                            continue
-
-                        for filename in sorted(os.listdir(subfolder)):
-                            logging.info(f"Filename: {filename}")
-                            
-                            file_path = os.path.join(subfolder, filename)
-
-                            if os.path.isdir(file_path) or ".ipynb_checkpoints" in file_path or filename == 'desktop.ini':
-                                continue
-
-                            f_no_ext = os.path.splitext(filename)[0]
-                            tpe = f_no_ext[f_no_ext.rindex('_') + 1:]
-
-                            if cell_lines_include is not None and tpe not in cell_lines_include:
-                                continue
-
-                            logging.info(f"Filepath: {file_path}")
-
-                            data = np.load(file_path)
-
-                            split_by_set_include_current = True
-
-                            # Cell line, condition
-                            if split_by_set_for is not None:
-                                if not isinstance(split_by_set_for, list):
-                                    split_by_set_for = [split_by_set_for]
-                                if tuple((cell_line_folder, cond_folder)) not in split_by_set_for:
-                                    split_by_set_include_current = False
-
-                            # Batch
-                            if split_by_set_for_batch is not None:
-                                if not isinstance(split_by_set_for_batch, list):
-                                    split_by_set_for_batch = [split_by_set_for_batch]
-                                if input_folder not in split_by_set_for_batch:
-                                    split_by_set_include_current = False
-
-                            # Downsample all data
-                            if markers_for_downsample:  # TODO: ask Sagy!
-                                if subfolder_name in markers_for_downsample.keys():
-                                    to_sample = int(data.shape[0] * markers_for_downsample[subfolder_name])
-                                    rng = np.random.default_rng()
-                                    data = rng.choice(data, size=to_sample, replace=False)
-
-                            # Split data by set (train/val/test)
-                            if split_by_set and split_by_set_include_current:
-
-                                np.random.shuffle(data)
-                                train_size = int(len(data) * train_part)
-                                val_size = int((len(data) - train_size) * train_part)
-
-                                if set_type == 'train':
-                                    data = data[:train_size]
-                                elif set_type == 'val':
-                                    data = data[train_size: train_size + val_size]
-                                elif set_type == 'test':
-                                    data = data[train_size + val_size:]
-                                else:
-                                    raise "ERROR: Bad set_type"
-
-                            if images_concat is None:
-                                images_concat = data
-                            else:
-                                images_concat = np.vstack((images_concat, data))
-
-                            # Save when there is change between markers/conditions
-                            labels_changepoints.append(len(images_concat))
-                            
-                            cond = cond_folder
-                            
-                            lbl = subfolder_name
-                            if line_l:
-                                lbl += f"_{tpe}"
-                            if condition_l:
-                                lbl += f"_{cond}"
-                            if cell_type_l:
-                                lbl += f"_{cur_cell_type}"
-                            
-                            labels += [lbl] * len(data)
-
-                            if batch_l:
-                                batch_postfix = f"_{os.path.basename(input_folder)}"
-                                batch_size = len(data)
-
-                                labels[-batch_size:] = [l + batch_postfix for l in labels[-batch_size:]]
-
-        labels = np.asarray(labels).reshape(-1, 1)
-
-        logging.info(f"{images_concat.shape}, {labels.shape}")
-
-        if shuffle:
-            p = np.random.permutation(len(images_concat))
-            images_concat, labels, labels_changepoints, markers_order = images_concat[p], labels[p], None, None
+        # data_loader_factory = DataLoader(self.conf, dataset)
         
-        if not split_by_set or (split_by_set and set_type == 'test'):
-            self.test_data, self.test_label,self.test_labels_changepoints, self.test_markers_order = images_concat, labels, labels_changepoints, markers_order
-        else:
-            if set_type == 'train':
-                self.train_data, self.train_label,self.train_labels_changepoints, self.train_markers_order = images_concat, labels, labels_changepoints, markers_order
-            elif set_type == 'val':
-                self.val_data, self.val_label,self.val_labels_changepoints, self.val_markers_order = images_concat, labels, labels_changepoints, markers_order
-
-        return images_concat, labels, labels_changepoints, markers_order
-
-
-    def train(self, continue_training=False):
+        if train_loader is None and valid_loader is None and test_loader is None:
+            raise Exception("All loaders are None")
+        
+        def __set_unique_markers(loader):
+            if self.unique_markers is None:
+                self.unique_markers = loader.dataset.unique_markers
+        
+        if train_loader is not None:
+            self.train_loader = train_loader    
+            __set_unique_markers(self.train_loader)
+        if valid_loader is not None:
+            self.valid_loader = valid_loader
+            __set_unique_markers(self.valid_loader)
+        if test_loader is not None:
+            self.test_loader = test_loader
+            __set_unique_markers(self.test_loader)
+        
+        num_class = len(self.unique_markers)
+        
+        data_var = self.conf.DATA_VAR
+        self.__init_datamanager_dummy(self.train_loader, self.valid_loader, self.test_loader,
+                                      data_var, data_var, data_var, num_class)
+            
+    def __init_datamanager_dummy(self, train_loader, val_loader, test_loader,
+                                 train_variance, val_variance, test_variance, num_class):
+        dm = DataManagerBase(None, None, None)
+        dm.train_loader = train_loader
+        dm.val_loader = val_loader
+        dm.test_loader = test_loader
+        dm.train_variance = train_variance
+        dm.val_variance = val_variance
+        dm.test_variance = test_variance
+        dm.unique_labels = num_class
+        
+        self.data_manager = dm
+    
+    def train_with_dataloader(self):
         """ 
         Train a model on given data
         
-        Args:
-            continue_training (bool): Whether to continue training or start training from the pretrained model
-            
         """
         
-        if continue_training:
-            if self.model is None:
-                raise Exception("Cannot continue training the model. Model is undefined.")
-            else:
-                model_to_train = self.model
+        last_checkpoint_path = get_if_exists(self.conf, 'LAST_CHECKPOINT_PATH', None)
+        
+        if last_checkpoint_path is not None \
+            and os.path.exists(last_checkpoint_path) \
+                and os.path.isfile(last_checkpoint_path):
+            logging.info(f"LAST_CHECKPOINT_PATH has been detected: {last_checkpoint_path}")
+            logging.info("Loading checkpoint to continue from there.")
+            if self.model is not None:
+                logging.warning(f"Overriding currently loaded model with {last_checkpoint_path}")
+            trainer = self.load_model(last_checkpoint_path)
+            # Moving to the next epoch
+            logging.info(f"Loaded checkpoint is: {trainer.current_epoch}. Moving to the next one!")
+            trainer.current_epoch += 1
+        else:
+            logging.info("Constructing trainer...")
+            trainer = self.__construct_trainer()
+            
         
         logging.info("Loading params from configuration")
         
-        train_data, train_label = self.train_data, self.train_label
-        val_data, val_label     = self.val_data, self.val_label
-        test_data, test_label   = self.test_data, self.test_label
-        pretrained_model_path   = self.pretrained_model_path
-        early_stop_patience     = self.early_stop_patience
-        learn_rate              = self.learn_rate 
-        batch_size              = self.batch_size
-        max_epoch               = self.max_epoch
         model_output_folder     = self.conf.MODEL_OUTPUT_FOLDER
         
-        
-        logging.info("Creating the model")
-        logging.info(
-            f"early_stop_patience={early_stop_patience}, learn_rate={learn_rate}, batch_size={batch_size}, max_epoch={max_epoch}")
-
-        if not continue_training:
-            model_to_train = CytoselfFullModel(input_image_shape=train_data.shape[1:],
-                                    num_fc_output_classes=len(np.unique(train_label)),
-                                    early_stop_patience=early_stop_patience, learn_rate=learn_rate,
-                                    output_dir=model_output_folder)
-
-        data_manager = DataManager(
-            train_data=train_data,
-            train_label=train_label,
-            val_data=val_data,
-            val_label=val_label,
-            test_data=test_data,
-            test_label=test_label
-        )
-
-        # Load pre-trained model
-
-        logging.info("Loading a pretrained model's weights...")
-        pretrained_model = CytoselfFullModel(input_image_shape=train_data.shape[1:])
-        pretrained_model.load_model(pretrained_model_path)
-
-        if not continue_training:
-            # Copying weights (except the last two because of a different num_fc_output_classes)
-            for i in range(len(pretrained_model.model.layers) - 2):
-                model_to_train.model.layers[i].set_weights(pretrained_model.model.layers[i].get_weights())
-
-        logging.info("Compiling the model...")
-        # Compile the model with data_manager
-        model_to_train.compile_with_datamanager(data_manager)
-
         logging.info("Training the model...")
-
-        model_to_train.init_callbacks()
-        csv_logger = CSVLogger(f"{os.path.join(model_output_folder, 'history', 'training_log_hist.csv')}", append=True, separator=',')
-
-        model_to_train.callbacks += [csv_logger]
-        model_to_train.train_with_datamanager(data_manager, batch_size=batch_size, max_epoch=max_epoch, reset_callbacks=False)
-
+        trainer.fit(self.data_manager,
+                    initial_epoch=trainer.current_epoch,
+                    tensorboard_path=f'tb_logs_{datetime.datetime.now().strftime("%d%m%y_%H%M%S_%f")}')
+        
+        logging.info("Plot history...")
+        plot_history_cytoself(trainer.history, savepath=os.path.join(model_output_folder, 'visualization'))
+        
         logging.info("Finished training the model...")
 
-        self.model = model_to_train
+        self.model = trainer
         
         return self.model
 
-    def load_model(self, num_fc_output_classes=None, input_image_shape=None):
+    def load_model(self, model_path=None, num_fc_output_classes=None):
         
         """Load model
 
         Args:
             num_fc_output_classes (bool, Optional): Number ouf outputs for the fully connected model (number of classes) (Default is number of unique values in labels)
-            input_image_shape (bool, Optional): Size of input image (Default is based on test_data)
 
         Raises:
             ValueError: No input image shape
@@ -349,34 +238,27 @@ class Model():
             _type_: The model
         """
         
-        model_path = self.conf.MODEL_PATH
+        model_path = model_path if model_path is not None else self.conf.MODEL_PATH
         
-        if input_image_shape is None:
-            if self.test_data is None:
-                raise ValueError("No input image shape")
-            else:
-                input_image_shape = self.test_data.shape[1:]
+        if self.model is not None:
+            logging.warning(f"[load_model] Overriding currently loaded model with {model_path}")
+        self.model = self.__construct_trainer(num_fc_output_classes)
+            
+        # if os.path.isdir(model_path):
+        if os.path.splitext(model_path)[1] == '.chkp':
+            # Load checkpoint
+            logging.info(f"Loading model from checkpoint {model_path}")
+            self.model.load_checkpoint(model_path)
+        else:
+            # Load model
+            logging.info(f"Loading model {model_path}")
+            self.model.load_model(model_path, by_weights=False)
         
-        if num_fc_output_classes is None:
-            if self.test_label is None:
-                raise ValueError("No num_fc_output_classes")
-            else:
-                num_fc_output_classes = len(np.unique(self.test_label))
-                
-        model = CytoselfFullModel(input_image_shape=input_image_shape,
-                                  num_fc_output_classes=num_fc_output_classes,
-                                  output_dir=self.conf.MODEL_OUTPUT_FOLDER)
-        
-        logging.info("Loading weights")
-
-        model.load_model(model_path)
-        
-        self.model = model
-        
-        return model
+        return self.model
         
 
     def load_analytics(self):
+        # TODO: WIP!
         """Load Analytics - an API object to cytoself
 
         Raises:
@@ -386,172 +268,63 @@ class Model():
             Analytics: The analytics object
         """
 
+        # # Generate ground truth from labels
+        # lbl = np.unique(test_label)
+        # gt_table = pd.DataFrame([[l, l] for l in lbl], columns=["gene_name", "localization"])
+
+        # logging.info("Ground truth:")
+        # logging.info(gt_table['gene_name'].values)
+
         if self.model is None:
-            raise ValueError("Model not loaded")
+            raise Exception("model is None")
+        if self.data_manager is None:
+            raise Exception("data_manager is None")
 
-        test_data   = self.test_data
-        test_label  = self.test_label
-
-
-        logging.info("X, y:")
-        test_label_pd = pd.Series(test_label.reshape(-1, ))
-        logging.info(f"{test_data.shape}, {test_label_pd.shape}")
-        logging.info(test_label_pd.value_counts())
-
-        
-        data_manager = DataManager(
-            test_data=test_data,
-            test_label=test_label
-        )
-
-        # Generate ground truth from labels
-        lbl = np.unique(test_label)
-        gt_table = pd.DataFrame([[l, l] for l in lbl], columns=["gene_name", "localization"])
-
-        logging.info("Ground truth:")
-        logging.info(gt_table['gene_name'].values)
-
-        analytics = Analytics(self.model, data_manager, gt_table=gt_table)
+        analytics = AnalysisOpenCell(self.data_manager, self.model)#, gt_table=gt_table)
         
         self.analytics = analytics
         
         return analytics
 
-
-    def generate_reconstructed_images(self, images_indexes=None, embvecs=None,\
-                        reset_embvec=True, only_second_layer=False, show=True):
-        """Generate reconstructed images for a given input images via the autoencoder
-
+    def generate_reconstructed_image(self, dataloader=None, savepath=None):
+        """
         Args:
-            images_indexes ([int], optional): Indexes of images to use as input from the test_data. Defaults to all indexes.
-            embvecs (_type_, optional): Use an existing embedded vectors. Defaults to calculating them.
-            only_second_layer (bool, optional): Use only the second vq layer. Defaults to False.
-            show (bool, optional): Show reconstructed images. Defaults to True.
-
-        Raises:
-            ValueError: Analytic not loaded
-
-        Returns:
-            np array: reconstructed images
+            savepath (str, Optional): Path to save the images. The default is model_output/visualization/reconstructed_images.png
+            dataloader (str, Optional): The default is self.test_loader
         """
         
-        if self.analytics is None:
-            raise ValueError("Analytics not loaded")
+        if dataloader is None:
+            dataloader = self.test_loader
         
-        analytics = self.analytics
+        data_ch = ['target', 'nucleus']
+        img = next(iter(dataloader))['image'].detach().cpu().numpy()
+        torch.cuda.empty_cache()
+        reconstructed = self.model.infer_reconstruction(img)
+        fig, ax = plt.subplots(2, len(data_ch), figsize=(5 * len(data_ch), 5), squeeze=False)
+        for ii, ch in enumerate(data_ch):
+            t0 = np.zeros((2 * 100, 5 * 100))
+            for i, im in enumerate(img[:10, ii, ...]):
+                i0, i1 = np.unravel_index(i, (2, 5))
+                t0[i0 * 100 : (i0 + 1) * 100, i1 * 100 : (i1 + 1) * 100] = im
+            t1 = np.zeros((2 * 100, 5 * 100))
+            for i, im in enumerate(reconstructed[:10, ii, ...]):
+                i0, i1 = np.unravel_index(i, (2, 5))
+                t1[i0 * 100 : (i0 + 1) * 100, i1 * 100 : (i1 + 1) * 100] = im
+            ax[0, ii].imshow(t0, cmap='gray')
+            ax[0, ii].axis('off')
+            ax[0, ii].set_title('input ' + ch)
+            ax[1, ii].imshow(t1, cmap='gray')
+            ax[1, ii].axis('off')
+            ax[1, ii].set_title('output ' + ch)
+        fig.tight_layout()
         
-        vq_layer = 1 if only_second_layer else 0 
+        if savepath is None:
+            savepath = os.path.join(self.conf.MODEL_OUTPUT_FOLDER, self.model.savepath_dict['visualization'], 'reconstructed_images.png')
         
-        # Create decoder model
-        dec_model = analytics.model.construct_decoder_model(dec_idx=vq_layer+1)
+        fig.savefig(savepath, dpi=300)
 
-        # Load embedding vectors
-        if embvecs is None:
-            if analytics.model.embvec is None or reset_embvec:
-                analytics.model.calc_embvec(analytics.data_manager.test_data)
-                embvec0 = analytics.model.embvec[0].copy()
-                embvec1 = analytics.model.embvec[1].copy()
-        else:
-            embvec0 = embvecs[0].copy()
-            embvec1 = embvecs[1].copy()
-            
-            
-        # Load data
-        if images_indexes is None:
-            # Take all
-            images_indexes = np.arange(len(analytics.data_manager.test_data))
-            
-        train_raw = analytics.data_manager.test_data[images_indexes]
-        train_labels = analytics.data_manager.test_label[images_indexes].flatten()
-        num_img = len(images_indexes)
-        train_raw = train_raw[:num_img]
-        
-        embvec0 = embvec0[images_indexes]
-        embvec1 = embvec1[images_indexes]
-        logging.info(f"embvec0 shape: {embvec0.shape}, embvec1 shape: {embvec1.shape}")
-        
-        if vq_layer == 1:
-            embvecs = embvecs[0]
-        embvecs = [embvec1.reshape(-1, 4, 4, 576), embvec0]
-        
-        # Generate images
-        train_gen = dec_model.predict(embvecs)
-        train_gen = train_gen[:num_img]
+        return savepath
 
-        if not show:
-            return train_gen
-
-        ################ Plot generated images ################
-        
-        fig, ax = plt.subplots(num_img,5, figsize=(8,8), dpi=1000)
-        fig.patch.set_facecolor('white')
-        
-        # Set titles
-        titles = ['Target_Org', 'Nucleus_Org', 'Target', 'Nucleus']
-        current_ax = ax[0] if num_img > 1 else ax
-        for i, t in enumerate(titles):
-            current_ax[i].set_title(t, fontsize=3)
-            
-        # Show images
-        cax = fig.add_axes([0, 0.5, 0.01, 0.1])
-        for i in range(num_img):
-            current_ax = ax[i] if num_img > 1 else ax
-            
-            ##### ORIGINAL IMAGES ######
-            
-            # Target channel - original image
-            img = train_raw[i,...,0]
-            # Increase contrast with min-max scaling
-            X_std = (img - img.min(axis=0)) / (img.max(axis=0) - img.min(axis=0))
-            img = X_std * (1 - 0) + 0
-            im = current_ax[0].imshow(img, cmap = 'rainbow', interpolation = 'sinc')
-            current_ax[0].set_axis_off()
-
-            # Nucleus channel - original image
-            img = train_raw[i,...,1]
-            # Increase contrast with min-max scaling
-            X_std = (img - img.min(axis=0)) / (img.max(axis=0) - img.min(axis=0))
-            img = X_std * (1 - 0) + 0
-            im = current_ax[1].imshow(img, cmap = 'rainbow', interpolation = 'sinc')
-            current_ax[1].set_axis_off()
-            
-            ###############################
-            
-            ##### GENERATED IMAGES ######
-            
-            # Target
-            img = train_gen[i,...,0]
-            X_std = (img - img.min(axis=0)) / (img.max(axis=0) - img.min(axis=0))
-            img = X_std * (1 - 0) + 0
-            im = current_ax[2].imshow(img, cmap = 'rainbow', interpolation = 'sinc')
-            current_ax[2].set_axis_off()
-            
-            # Nucleus
-            img = train_gen[i,...,1]
-            X_std = (img - img.min(axis=0)) / (img.max(axis=0) - img.min(axis=0))
-            img = X_std * (1 - 0) + 0
-            im = current_ax[3].imshow(img, cmap = 'rainbow', interpolation = 'sinc')
-            current_ax[3].set_axis_off()
-            
-            ###############################
-            
-            # Label
-            current_ax[4].set_axis_off()
-            current_ax[4].text(0,0.5,train_labels[i], fontsize='xx-small')
-        
-        # Add colorbar
-        fig.colorbar(im, cax=cax, orientation='vertical')
-        
-        # Reduce the space between axes
-        plt.subplots_adjust(left=0.1,
-                        bottom=0.1, 
-                        right=0.3, 
-                        top=0.9)
-        plt.show()
-        
-        return train_gen
-        
-        
     # TODO: Move here the feature specturm generation
     def generate_feature_spectrum(self):
         raise NotImplementedError()
@@ -560,16 +333,43 @@ class Model():
     def load_embedding_vectors(self):
         raise NotImplementedError()
     
+    def plot_umap(self, data_loader=None, title='UMAP', s=0.3, alpha=0.5, **kwargs):
+        # TODO: WIP!
+        """
+        Args:
+            Plot (and save to file in model_output/umap_figures/{title}.png) a UMAP plot
+            data_loader(DataLoader, Optional): The default is self.test_loader
+        """
+        if self.analytics is None:
+            raise Exception("Analytics is None. Please call load_analytics() beforehand")
+        
+        if data_loader is None:
+            data_loader = self.test_loader
+        
+        umap_data = self.analytics.plot_umap_of_embedding_vector(
+            data_loader=data_loader,
+            group_col=0,
+            title=title,
+            xlabel='UMAP1',
+            ylabel='UMAP2',
+            s=s,
+            alpha=alpha,
+            show_legend=True,
+            random_state=self.conf.SEED,
+            **kwargs)
+        
+        return umap_data
     
     
     ############################# WRAPPERS #########################
     
-    def plot_umap(self, **kwargs):
-        """
-        [Wrapper] Plot UMAP
-        """
-        assert self.analytics is not None, "Analytics cannot be None"
-        kwargs.update({"seed": self.conf.SEED})
-        return cytoself_custom.plot_umap(self.analytics, **kwargs)
+    # def plot_umap(self, **kwargs):
+    #     # TODO:
+    #     """
+    #     [Wrapper] Plot UMAP
+    #     """
+    #     assert self.analytics is not None, "Analytics cannot be None"
+    #     kwargs.update({"seed": self.conf.SEED})
+    #     return cytoself_custom.plot_umap(self.analytics, **kwargs)
     
     ################################################################

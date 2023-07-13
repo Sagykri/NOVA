@@ -1,5 +1,7 @@
+import datetime
 import os
 import sys
+import uuid
 sys.path.insert(1, os.getenv("MOMAPS_HOME"))
 
 
@@ -44,6 +46,14 @@ def xy_to_tuple(xy_arr):
     
     return [(arr[0],arr[1]) for arr in xy_arr]
 
+def flat_list_of_lists(l):
+    return [item for sublist in l for item in sublist]
+
+
+def generate_confusion_matrix(model):
+    pass
+
+
 def get_colors_dict(labels, colors_dict):
     """Get mapping between the given colors and labels
 
@@ -78,9 +88,8 @@ def generate_embeddings(run_config):
     from src.common.lib.model import Model
     model = Model(run_config)
 
-
     logging.info("Load data")
-    model.load_data()
+    model.load_with_datamanager()
     
     logging.info("Load model")
     model.load_model()
@@ -97,22 +106,30 @@ def generate_embeddings(run_config):
     labels_output_path = os.path.join(run_config.MODEL_OUTPUT_DIR, f"labels_{model_name}.txt") 
     logging.info(f"Save labels to file: {labels_output_path}")
     np.savetxt(labels_output_path, model.test_label)
-    
-    
-def load_config_file(path:string, postfix_filename:string=""):
+     
+def load_config_file(path:string, custom_filename:string=None, savefolder:string=None):
     """Load config file (and save it to file for documentation)
 
     Args:
         path (string): Path to config file (the last argument will be the class to load from the file)
-        postfix_filename (string): Postfix to add to the file name of the file (config that was used) to save
-        to_save (bool, Optional): Should save the config to file. Defaults to True.
+        filename (string, Optional): the file name of the file (config that was used) to save. Default to GUID
     Returns:
         _type_: Instance of the loaded config class
     """
     config_class = get_class(path)
     config = config_class()
     
-    with open(f"{config.CONFIGS_USED_FOLDER}{postfix_filename}.txt", 'w') as f:
+    if savefolder is None or savefolder.strip == "":
+        savefolder = config.CONFIGS_USED_FOLDER
+    
+    if custom_filename is None or custom_filename.strip() == "":
+        custom_filename = f"{uuid.uuid4().hex}"
+        
+    savepath = os.path.join(savefolder, f"{custom_filename}.json")
+    if not os.path.exists(savefolder):
+        os.makedirs(savefolder)
+        
+    with open(savepath, 'w') as f:
         f.write(json.dumps(config.__dict__))
     
     return config
@@ -159,6 +176,92 @@ def init_logging(path:string):
                             logging.StreamHandler()
                         ])
     
+
+
+
+def gpuinfo(gpuidx):
+    """
+    Get GPU information
+
+    Parameters
+    ----------
+    gpuidx : int
+        GPU index
+
+    Returns
+    -------
+    dict :
+        GPU information in dictionary
+    """
+    import subprocess
+
+    out_dict = {}
+    try:
+        sp = subprocess.Popen(
+            ['nvidia-smi', '-q', '-i', str(gpuidx), '-d', 'MEMORY'],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+        )
+        out_str = sp.communicate()
+        out_list = out_str[0].decode("utf-8").split('BAR1', 1)[0].split('\n')
+        for item in out_list:
+            if ':' in item:
+                fragments = item.split(':')
+                if len(fragments) == 2:
+                    out_dict[fragments[0].strip()] = fragments[1].strip()
+    except Exception as e:
+        print(e)
+    return out_dict
+
+
+def getfreegpumem(gpuidx):
+    """
+    Get free GPU memory
+
+    Parameters
+    ----------
+    gpuidx : int
+        GPU index
+
+    Returns
+    -------
+    int :
+        Free memory size
+    """
+    info = gpuinfo(gpuidx)
+    if len(info) > 0:
+        return info['Free'], info['Used'], info['Total']
+    else:
+        return -1
+    
+def apply_for_all_gpus(func):
+    import torch
+    
+    n_devices = torch.cuda.device_count()
+    l = []
+    for i in range(n_devices):
+        l.append(func(i))
+    return l
+
+def get_nvidia_smi_output(gpuidx):
+    import subprocess
+
+    sp = subprocess.Popen(
+            ['nvidia-smi', '-q', '-i', str(gpuidx), '-d', 'MEMORY,UTILIZATION'],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+        )
+    out_dict = {}
+    out_str = sp.communicate()
+    out_list = out_str[0].decode("utf-8").split('\n')
+    
+    for item in out_list:
+            if ':' in item:
+                fragments = item.split(':')
+                if len(fragments) == 2:
+                    out_dict[fragments[0].strip()] = fragments[1].strip()
+
+    return out_dict
 
 class LogDF(object):
     def __init__(self, folder_path: string, filename_prefix='', index=None,

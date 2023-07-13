@@ -35,6 +35,24 @@ wget https://repo.anaconda.com/archive/Anaconda3-2023.03-Linux-x86_64.sh
   d. To use pip, to:
 	/home/labs/hornsteinlab/Collaboration/MOmaps/anaconda3/momaps/bin/python -m pip install package_name
 6. install the following pakages:
+- V opencv-python-headless<4.3 (used pip not conda)
+- V cellpose (used pip cellpose[gui])
+- V cytoself (used pip not conda)
+- V sklearn
+- V scikit-image (used pip not conda)
+- V umap-learn
+- tensorflow (h5py==2.10.0) - For training only:
+    V conda install tensorflow-gpu=1.15
+    V conda install h5py=2.10.0
+- V tqdm
+- V shap (shaply values)
+- V Shapely (geometric) 
+- V adjustText
+- torch-tb-profiler
+
+pip install jupyter notebook
+Add the conda env as kernel to jupyter:
+python -m ipykernel install --user --name=momaps
 
 - Set the pip to work with the installed conda:
 	/home/labs/hornsteinlab/Collaboration/MOmaps/anaconda3/momaps/bin/python -m pip install --user --upgrade pip
@@ -96,6 +114,13 @@ Add the conda env as kernel to jupyter:
 - 'training' - for training a model
 - 'generate_figures' - for generating the figures for the paper
 
+## Tensorboard
+For using tensorboard run the following command:
+```
+tensorboard --logdir=PATH_TO_tb_logs_DIR
+```
+If port is already being used add the flag: ```--port=PORT```
+
 ## Pay Attention!
 In order to run anything here, you must set an environment variable "MOMAPS_HOME" as your MOmaps home directory.
 ```
@@ -108,8 +133,13 @@ If your data folder is in a different location than MOMAPS_HOME/input, please de
 export MOMAPS_DATA_HOME=PATH_TO_INPUT_FOLDER
 ```
 
-Also, add:
+## Troubleshooting:
+- Try running:
+  ```
+  module load gcc
+  ```
+- Try running:
 ```
 module load cuda/11.7
 ```
-to your  /home/labs/hornsteinlab/your_user_name/.bashrc file
+add what worked to your  /home/labs/hornsteinlab/your_user_name/.bashrc file

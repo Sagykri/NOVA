@@ -17,6 +17,9 @@ input/images/raw/*
 input/images/processed/*
 !input/images/processed/.gitkeep
 
+tests/**/*.png
+tests/**/*.tif
+
 Anaconda3-2023.03-Linux-x86_64.sh
 
 **/*.fastq
@@ -37,6 +40,14 @@ MOmaps_RNASeq_fastq/Nancy/RNAseq/raw/**/*.fastq.gz
 __pycache__/
 *.py[cod]
 *$py.class
+
+core.*
+**/*.h5
+outputs/*
+**/*.tif
+**/*.png
+**/*.czi
+**/models/**/*.csv
 
 # C extensions
 *.so
