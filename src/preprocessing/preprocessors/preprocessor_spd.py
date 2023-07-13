@@ -6,18 +6,14 @@ import sys
 import timeit
 import torch
 import pandas as pd
+import cv2
 sys.path.insert(1, os.getenv("MOMAPS_HOME"))
-
-
-
 
 
 import glob
 import logging
 
 import numpy as np
-
-#import torch  #IS temp might not be  needed for the preprocessing - to check
 from skimage import io
 from cellpose import models
 
@@ -25,7 +21,6 @@ from src.common.lib.preprocessor import Preprocessor
 from src.common.lib import preprocessing_utils
 from src.common.lib.utils import LogDF, get_if_exists
 from src.preprocessing.configs.preprocessor_spd_config import SPDPreprocessingConfig
-
 
 class SPDPreprocessor(Preprocessor):
     """
@@ -84,8 +79,10 @@ class SPDPreprocessor(Preprocessor):
                 logging.info(f"[{raw_f}] Skipping non-folder")
                 continue
             
+            # cell_lines = ["WT"]
             cell_lines = [f for f in os.listdir(input_folder_root) if os.path.isdir(os.path.join(input_folder_root, f))]
 
+            # logging.warning("\n\n\n\n NOTE!! WARNING!! TAKING ONLY WT!! :O :O :O\n\n\n")
             logging.info(f"[{raw_f}] Cell line detected: {cell_lines}")
 
             for cell_line in cell_lines:
@@ -103,11 +100,12 @@ class SPDPreprocessor(Preprocessor):
                             repeat(logging_df), repeat(timing_df))
                 
                 # For running it sequentially
-                # for p in panels:
-                #     preprocessing_utils.preprocess_panel(self, p, input_folder_root, output_folder_root, input_folder_root_cell_line, 
-                #                                         cp_model, raw_f, cell_line, logging_df, timing_df)
+                #for p in panels:
+                #    preprocessing_utils.preprocess_panel(self, p, input_folder_root, output_folder_root, input_folder_root_cell_line, 
+                #                                            cp_model, raw_f, cell_line, logging_df, timing_df)
+                
                 with multiprocessing.Pool(len(panels)) as pool:
-                    pool.starmap(preprocessing_utils.preprocess_panel, args)
+                   pool.starmap(preprocessing_utils.preprocess_panel, args)
                      
                         
     def preprocess_image(self, input_path, output_path, **kwargs):
@@ -130,8 +128,9 @@ class SPDPreprocessor(Preprocessor):
         tiles_indexes       = get_if_exists(kwargs, 'tiles_indexes')
         
         
-        img_target = io.imread(file_path)
-        img_nucleus = io.imread(nucleus_file)
+        # Changing from skimage.load to cv2.load (with grayscale flag)
+        img_target = cv2.imread(file_path, cv2.IMREAD_GRAYSCALE)
+        img_nucleus = cv2.imread(nucleus_file, cv2.IMREAD_GRAYSCALE)
         
         # Check if files are corrputed
         if np.size(img_target) == 0:

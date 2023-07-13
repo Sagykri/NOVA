@@ -16,7 +16,7 @@ import cellpose
 from cellpose import models
 from shapely.geometry import Polygon
 from skimage import io
-
+import skimage.exposure
 
 def filter_invalid_tiles(file_name, img, nucleus_diameter=100, cellprob_threshold=0,\
                           flow_threshold=0.7, min_edge_distance = 2, tile_w=100,tile_h=100,
@@ -169,6 +169,29 @@ def crop_to_tiles(tile_w, tile_h, img_processed):
 
     return image_processed_tiles
 
+def rescale_intensity(img_current_channel):
+    """Return image after stretching or shrinking its intensity levels.
+
+    The desired intensity range of the input and output, in_range and out_range respectively, 
+    are used to stretch or shrink the intensity range of the input image
+    
+    see: https://scikit-image.org/docs/stable/api/skimage.exposure.html#skimage.exposure.rescale_intensity
+    
+    Args:
+        img_current_channel (numpy ndarray): the image to scale
+
+    Returns:
+        img_scaled (numpy ndarray): image in scale of [0,1] after rescaling
+    """
+    
+    vmin, vmax = np.percentile(img_current_channel, q=(0.5, 99.9))
+    img_scaled = skimage.exposure.rescale_intensity(
+                                                    img_current_channel,
+                                                    in_range=(vmin, vmax),
+                                                    out_range=np.float32
+        )
+    return img_scaled
+
 def normalize(show, img_current_channel):
     """Normalize (min-max) given image"""
     
@@ -254,11 +277,11 @@ def preprocess_image_pipeline(img, save_path, n_channels=2,
     img_processed = None
     for c in range(n_channels):
         img_current_channel = np.array(img[...,c], dtype=np.float64)
-        
+                     
         if to_normalize:
             # Normalize original raw image
-            normalize(to_show, img_current_channel)
-
+            img_current_channel = rescale_intensity(img_current_channel)
+            
         if img_processed is None:
             img_processed = img_current_channel
         else:
@@ -282,7 +305,7 @@ def preprocess_image_pipeline(img, save_path, n_channels=2,
             if to_downsample:
                 # Downsampling
                 tile_current_channel = downsample(to_show, tile_current_channel, block_size=2) 
-            
+                
             if tile_current_channel.shape[1] != 100:
                 # Resize from 128x128 to 100x100
                 tile_current_channel = transform.resize(tile_current_channel, (100, 100), anti_aliasing=True)
@@ -350,6 +373,14 @@ def preprocess_panel(slf, panel, input_folder_root,
                 
                 for f in os.listdir(input_subfolder):
                     filename, ext = os.path.splitext(f)
+                    output_filename = format_output_filename(filename, '') if format_output_filename else f
+                    save_path = os.path.join(output_subfolder, f"{rep}_{output_filename}")
+                    
+                    # skip the "tiles validation" if file in this name already exist. 
+                    logging.info(f"Save path: {save_path}")
+                    if os.path.exists(f"{save_path}_processed.npy"): 
+                        logging.info(f"[Skipping ,exists] Already exists {save_path}_processed")
+                        continue
                     
                     if slf.conf.SELECTIVE_INPUT_PATHS is not None \
                         and os.path.join(input_subfolder, f) not in slf.conf.SELECTIVE_INPUT_PATHS:
@@ -372,7 +403,8 @@ def preprocess_panel(slf, panel, input_folder_root,
                                         
                     if site not in valid_tiles_indexes:
                         # Crop DAPI tiles
-                        img_nucleus = io.imread(nucleus_filepath)
+                        img_nucleus = cv2.imread(nucleus_filepath, cv2.IMREAD_GRAYSCALE)
+                        img_nucleus = rescale_intensity(img_nucleus)
                         
                         nucleus_diameter    = slf.nucleus_diameter
                         tile_width          = slf.tile_width
@@ -421,18 +453,10 @@ def preprocess_panel(slf, panel, input_folder_root,
                     else:
                         logging.info(f"[Marker {marker}, Site: {site}] Valid tiles have already been calculated ({valid_tiles_indexes[site]})")
                                                             
-                    output_filename = format_output_filename(filename, '') if format_output_filename else f
-                    
-                    save_path = os.path.join(output_subfolder, f"{rep}_{output_filename}")
-                    
-                    logging.info(f"Save path: {save_path}")
-                
-                    if os.path.exists(f"{save_path}_processed.npy"): 
-                        logging.info(f"[Skipping ,exists] Already exists {save_path}_processed")
-                        continue
                 
                     logging.info(output_subfolder)
                     if not os.path.exists(output_subfolder):
+                        logging.info(f"[Creating subfolder]  {output_subfolder} {os.path.exists(output_subfolder)}")
                         os.makedirs(output_subfolder)
 
                     tiles_indexes = valid_tiles_indexes[site]

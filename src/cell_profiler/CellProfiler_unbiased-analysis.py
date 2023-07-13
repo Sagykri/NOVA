@@ -1,4 +1,4 @@
-# Cell profiler analysis of batch 9
+# Cell profiler analysis 
 
 # Packages 
 import cellprofiler_core.pipeline
@@ -13,11 +13,13 @@ import pathlib
 import os
 
 # Global paths
-BATCH_TO_RUN = 'batch9' 
+BATCH_TO_RUN = 'batch6' 
+LINE_TO_RUN = 'FUSRevertant'
 
 BASE_DIR = os.path.join('/home','labs','hornsteinlab','Collaboration','MOmaps')
 INPUT_DIR = os.path.join(BASE_DIR, 'input','images','raw','SpinningDisk')
 INPUT_DIR_BATCH = os.path.join(INPUT_DIR, BATCH_TO_RUN)
+INPUT_DIR_LINE = os.path.join(INPUT_DIR_BATCH, LINE_TO_RUN)
 OUTPUT_DIR = os.path.join(BASE_DIR, 'outputs','cell_profiler')
 
 LOG_DIR_PATH = os.path.join(OUTPUT_DIR, 'logs')
@@ -91,9 +93,9 @@ def collect_image_names_per_marker(input_data_dir):
             nucleus_filepath = glob(f"{nucleus_folder}/*_{site}{ext}")[0]
             file_list.append(pathlib.Path(nucleus_filepath))
             
-            #stop at 10% of the data
+            #stop at 50% of the data
             file_count += 1
-            if file_count == 10:
+            if file_count == 100:
                 files = [file.as_uri() for file in file_list]
                 return files
             else:
@@ -129,7 +131,7 @@ def analyze_marker(input_and_output_path_list):
     return f"\n\nFinished extracting features for {input_data_dir}"
 
 
-def find_marker_folders(batch_path, depth=5):
+def find_marker_folders(batch_path, depth=4):
     """ 
     For a given batch (defined by "batch_path") it "walks" to its subfolders (until "depth" is reached) 
     and returns for every marker a list of relevant paths (AKA, [input_path, output_path] )
@@ -173,16 +175,17 @@ def find_marker_folders(batch_path, depth=5):
 
 def main():
 
-    logging.info(f"\n\nStarting to run Cell Profiler pipeline on batch: {INPUT_DIR_BATCH}")
+    logging.info(f"\n\nStarting to run Cell Profiler pipeline on batch: {BATCH_TO_RUN}") 
+    logging.info(f"\n\nStarting to run Cell Profiler pipeline on line: {LINE_TO_RUN}")
 
     # TODO: nancy, optimize, can we call this once and broadcast to all multi-processing pools?
     #global pipeline
     #pipeline = init_cell_profiler()
     
     # create a process pool that uses all cpus
-    with Pool(3) as pool:
+    with Pool(5) as pool:
         # call the analyze_marker() function for each marker folder in parallel
-        for result in pool.imap_unordered(analyze_marker, find_marker_folders(batch_path=INPUT_DIR_BATCH, depth=5)):
+        for result in pool.imap_unordered(analyze_marker, find_marker_folders(batch_path=INPUT_DIR_LINE, depth=4)):
             logging.info(result)
 
     logging.info("Terminating the java utils and process pool (killing all tasks...)")

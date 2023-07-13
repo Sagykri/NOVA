@@ -8,7 +8,7 @@ from datetime import datetime
 import logging
 
 # Global paths
-BATCH_TO_RUN = 'batch8' 
+BATCH_TO_RUN = 'batch6' 
 
 BASE_DIR = os.path.join('/home','labs','hornsteinlab','Collaboration','MOmaps')
 INPUT_DIR = os.path.join(BASE_DIR, 'outputs','cell_profiler')
@@ -23,25 +23,19 @@ def set_logging(log_file_path, level=logging.INFO, format=' INFO: %(message)s'):
     logging.basicConfig(level=level, format=formatter, handlers=handlers, datefmt='%Y-%m-%d %H:%M:%S')
     logging.info(__doc__)
     
-    
     return None
+
+
+# create empty list for each marker 
+marker_dict = {'DAPI':[], 'G3BP1':[], 'KIF5A':[], 'PURA':[], 
+            'NONO':[], 'TDP43':[], 'CD41':[], 'FMRP':[], 'SQSTM1':[], 'Phalloidin':[], 'PSD95':[], 'CLTC':[],
+            'NEMO':[], 'DCP1A':[], 'GM130':[], 'TOMM20':[], 'FUS':[], 'NCL':[], 'SCNA':[], 'ANXA11':[],
+            'LAMP1':[], 'Calreticulin':[], 'TIA1':[], 'mitotracker':[], 'PML':[], 'PEX14':[],}
 
 
 def retrieve_features(input_path):
     
-    
     logging.info(f'Collecting object measurements for marker: {input_path}')
-    
-    # create empty list for each marker 
-    marker_dict = {'DAPI':[], 'G3BP1':[], 'KIF5A':[], 'PURA':[], 
-                'NONO':[], 'TDP43':[], 'CD41':[], 'FMRP':[], 'SQSTM1':[], 'Phalloidin':[], 'PSD95':[], 'CLTC':[],
-                'NEMO':[], 'DCP1A':[], 'GM130':[], 'TOMM20':[], 'FUS':[], 'NCL':[], 'SCNA':[], 'ANXA11':[],
-                'LAMP1':[], 'Calreticulin':[], 'TIA1':[], 'mitotracker':[], 'PML':[], 'PEX14':[],}
-    
-    # Nancy: in "marker_dict" I've changed "Mitotracker" to "mitotracker". 
-    # the error was: 
-    # "marker_dict[os.path.basename(input_path)].append(data)
-    # KeyError: 'mitotracker'"
     
     # collect labels
     rep_dir = pathlib.Path(input_path).parent.resolve()
@@ -100,7 +94,9 @@ def find_marker_folders(batch_path, depth=5):
             
             if os.path.basename(entry.path) == 'combined':
                 continue 
-    
+            if os.path.basename(entry.path) == 'plots':
+                continue
+            
             # if that's not a marker directory, recursion...
             if entry.is_dir() and depth > 0:
                 yield from find_marker_folders(entry.path, depth)
@@ -125,21 +121,55 @@ def concatenate_features(marker_dict, output_path):
     
     Per marker, should have 10 average measurements x 2 reps = 20 datapoints per cell line,
     20 x 8 cell lines = 160 rows in output csv (when 10% of data was sampled with CP)
+    
+    Per marker, should have 8 lines x 2 reps = 16 dataframes in the dictionary
     """
     
     for key, value in marker_dict.items():
-        logging.info(f'Concatenating features for marker: {key}')
+        logging.info(f'Concatenating features for marker: {key} with {len(value)} dataframes')
         if len(value)>0: # Nancy, since DAPI is empty.....
             marker_df = pd.concat(value, ignore_index = True)
             #write csv with measurements of all conditions
             marker_df.to_csv(f"{output_path}/{key}_all.csv")
+
+"""
+TO DO: concatenation of object type info. Some code that adds to 1 row of 1 object type (e.g. SecondaryObject) 
+all the columns of 1 row of another object type,and does that for each object type. 
+So instead of up to 80 rows per cell line (10 images per rep x 2 reps x 4 object types), 
+there will be up to 20 per cell line.
+
+what if the numbers are not equal? keep the remaining row?
+"""
+ 
+def combine_markers(files_path):
+    """
+    Create a final csv that contains CP features for all markers, lines, conditions, reps
+    and object types
+    """
     
+    output_frames = []
+    
+    with os.scandir(files_path) as files_folder:
+        for entry in files_folder:
+            df = pd.read_csv(entry)
+            
+            file = os.path.basename(entry.path)
+            marker = file.replace("_all.csv","")
+            df['marker'] = marker
+            
+            output_frames.append(df)
+    
+    df_combined = pd.concat(output_frames)
+    df_combined = pd.DataFrame(df_combined)
+    df_combined.to_csv(os.path.join(OUTPUT_DIR,'all_markers_all.csv'))
+        
 def main():
     logging.info(f"\n\nStarting to combine Cell Profiler output of batch: {INPUT_DIR_BATCH}")
     for sub_folder in find_marker_folders(batch_path=INPUT_DIR_BATCH, depth=5):
-        
-        results = retrieve_features(sub_folder)
-        concatenate_features(results, OUTPUT_DIR)
+       results = retrieve_features(sub_folder)
+    
+    concatenate_features(results, OUTPUT_DIR)
+    combine_markers(OUTPUT_DIR)
 
 if __name__ == '__main__':
     
