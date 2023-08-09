@@ -51,6 +51,6 @@ if [ "$use_gpu" = false ]
 then
   bsub -n 1 -q $queue -m "public_himem_2020_hosts public_2017_hosts" -J Run_$py_name -B -R "rusage[mem=$mem] span[hosts=1]" python $py_name.py $args
 else
-  bsub -n 1 -q $queue -gpu "num=${ngpu}:gmem=${gmem}G:j_exclusive=yes" -J Run_$py_name -B -R "rusage[mem=$mem] span[hosts=1]" python $py_name.py $args
+  bsub -n 1 -q $queue -gpu "num=${ngpu}:gmem=${gmem}G:j_exclusive=yes:aff=yes" -J Run_$py_name -B -R "rusage[mem=$mem] span[hosts=1]" python $py_name.py $args
 fi
 

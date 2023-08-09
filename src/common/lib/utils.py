@@ -110,6 +110,7 @@ def load_config_file(path:string, custom_filename:string=None, savefolder:string
     Args:
         path (string): Path to config file (the last argument will be the class to load from the file)
         filename (string, Optional): the file name of the file (config that was used) to save. Default to GUID
+        savefolder (string, Optional): Path to save the config to. Default to config.CONFIGS_USED_FOLDER
     Returns:
         _type_: Instance of the loaded config class
     """

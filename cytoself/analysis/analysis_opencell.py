@@ -36,6 +36,8 @@ class AnalysisOpenCell(BaseAnalysis):
         unique_groups: Optional = None,
         group_annotation: Optional = None,
         savepath_embeddings: Optional[str] = 'default',
+        infer_labels: Optional = False,#SAGY
+        id2label:Optional=None,#SAGY
         **kwargs,
     ):
         """
@@ -66,16 +68,26 @@ class AnalysisOpenCell(BaseAnalysis):
         if data_loader is None:
             if label_data is None:
                 raise ValueError('label_data cannot be None. Provide a 2D-array to label_data.')
-        else:
+        elif not infer_labels and label_data is None:
             label_data = data_loader.dataset.label
 
         # Get compute umap data from embedding_data
         if umap_data is None:
-            umap_data = self.compute_umap(data_loader, embedding_data, image_data, savepath_embeddings, **kwargs)
-
+            umap_data = self.compute_umap(data_loader, embedding_data,
+                                          image_data, savepath_embeddings,
+                                          return_labels=infer_labels, **kwargs)
+            #SAGY
+            if infer_labels:
+                umap_data, label_data = umap_data
+        
         # Construct group annotation
         label_converted, unique_groups = self.group_labels(label_data, group_col, unique_groups, group_annotation)
-
+        #SAGY
+        if id2label is not None:
+            unique_groups = id2label(unique_groups)
+            label_converted = id2label(label_converted)
+            
+        logging.info(f"[cytoself, plot_umap] unique groups: {unique_groups}")#SAGY
         # Making the plot
         scatter_kwargs = {a: kwargs[a] for a in inspect.signature(self.plot_umap_by_group).parameters if a in kwargs}
         self.fig, self.ax = self.plot_umap_by_group(umap_data, label_converted, unique_groups, **scatter_kwargs)
@@ -88,6 +100,7 @@ class AnalysisOpenCell(BaseAnalysis):
         embedding_data: Optional = None,
         image_data: Optional = None,
         savepath_embeddings: Optional[str] = 'default',
+        return_labels: Optional = False, #SAGY
         **kwargs,
     ):
         """
@@ -116,6 +129,8 @@ class AnalysisOpenCell(BaseAnalysis):
                 **{a: kwargs[a] for a in inspect.signature(self.trainer.infer_embeddings).parameters if a in kwargs},
             )
             if isinstance(embedding_data, tuple) and len(embedding_data) > 1:
+                if return_labels: #SAGY
+                    labels = embedding_data[1].reshape(-1,1) # SAGY
                 embedding_data = embedding_data[0]
             if savepath_embeddings is not None:
                 if savepath_embeddings == 'default':
@@ -135,6 +150,10 @@ class AnalysisOpenCell(BaseAnalysis):
             embedding_data,
             **{a: kwargs[a] for a in inspect.signature(self._transform_umap).parameters if a in kwargs},
         )
+        
+        if return_labels:
+            return umap_data, labels    
+        
         return umap_data
 
     def group_labels(
@@ -275,6 +294,7 @@ class AnalysisOpenCell(BaseAnalysis):
         ax.set_title(title)
         fig.tight_layout()
         if savepath:
+            logging.info(f"Saving umap to {savepath}")#SAGY
             fig.savefig(savepath, dpi=dpi)
         return fig, ax
 

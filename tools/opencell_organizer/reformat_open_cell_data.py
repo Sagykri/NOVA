@@ -39,11 +39,12 @@ def extract_marker_images(marker_name, labels_df, data):
     mask = labels_df['name'] == marker_name
     # Get all rows in the images npy file that correspond to the current marker        
     marker_data = data[mask]
+    assert mask.sum()==marker_data.shape[0]
     print(f"\n\nextract_marker_images *** {marker_name} *** size {marker_data.shape}")
     
-    # Each numpy is 4 channels: [target  protein, nucleus, nuclear distance, nuclear segmentation]
-    # We need to take only the first channel (target protein) and the third channel (nuclear distance)
-    marker_data = marker_data[:,:,:,[0,2]]
+    # Each numpy is 4 channels: [target  protein, ç, nuclear distance, nuclear segmentation]
+    # We need to take only the first channel (target protein) and the 2nd channel (nucleus)
+    marker_data = marker_data[:,:,:,[0,1]]
     ##print(marker_data.shape)
     
     return marker_data
@@ -114,10 +115,11 @@ with Pool(10) as mp_pool:
     
     all_stats = sum_by_key(all_stats)
     
-    print(f"\n\nNumber of images treated: {sum(all_stats.values())}. \n\nFinal stats: {all_stats}")
+    print(f"\n\nFinal stats: {all_stats} \n\nNumber of images treated: {sum(all_stats.values())}. ")
     
     print("\n\nDone!!")
     
+
 
     
 

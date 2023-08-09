@@ -56,7 +56,7 @@ class ConfPreprocessor(Preprocessor):
                     logging.info(f"[{raw_f}] Skipping non-folder")
                     continue
                 
-                cell_lines = [f for f in os.listdir(input_folder_root) if os.path.isdir(os.path.join(input_folder_root, f))]
+                cell_lines = [f for f in sorted(os.listdir(input_folder_root)) if os.path.isdir(os.path.join(input_folder_root, f))]
 
                 logging.info(f"[{raw_f}] Cell line detected: {cell_lines}")
 
@@ -65,7 +65,7 @@ class ConfPreprocessor(Preprocessor):
                     
                     input_folder_root_cell_line = os.path.join(input_folder_root, cell_line)
                     
-                    conditions = [f for f in os.listdir(input_folder_root_cell_line) if os.path.isdir(os.path.join(input_folder_root_cell_line, f))]        
+                    conditions = [f for f in sorted(os.listdir(input_folder_root_cell_line)) if os.path.isdir(os.path.join(input_folder_root_cell_line, f))]        
                     
                     logging.info(f"[{raw_f}] Conditions: {conditions}")
                     
@@ -75,18 +75,10 @@ class ConfPreprocessor(Preprocessor):
                     logging.info(f"Input folders: {input_folders}")
 
                     format_output_filename = lambda filename, ext: f"{filename}_{cell_line}{ext}"
-                    # preprocess_images(input_folders, output_folders,\
-                    #                 format_output_filename=format_output_filename,\
-                    #                 nucleus_channel=-1)
-                    
-                    # self.preprocess_images(input_folders, output_folders,\
-                    #                 format_output_filename=format_output_filename,\
-                    #                 nucleus_channel=-1)
-                    
-                
+  
                 
                     for input_folder, output_folder in zip(input_folders, output_folders):
-                        for f in os.listdir(input_folder):
+                        for f in sorted(os.listdir(input_folder)):
                             filename, ext = os.path.splitext(f)
                             if ext != '.tif':
                                 continue

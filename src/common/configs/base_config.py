@@ -33,7 +33,7 @@ class BaseConfig():
         
         
         # Model
-        self.PRETRAINED_MODEL_PATH = os.path.join(self.HOME_FOLDER, "src", "models", "cytoself_vanilla", "models", "pretrained_model.h5")    
+        self.PRETRAINED_MODEL_PATH = None
         
         # Logs
         self.__LOGS_FOLDER = os.path.join(self.HOME_FOLDER, 'logs')

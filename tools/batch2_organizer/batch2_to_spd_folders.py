@@ -17,13 +17,13 @@ BATCH2_SPD_PROCESSED_FOLDER = os.path.join(PROCESSED_FOLDER_ROOT, 'spd2','Spinni
 
 for folder in batch2_folders:
     data_folder_path = os.path.join(PROCESSED_FOLDER_ROOT, folder)
-    for cell_line in os.listdir(data_folder_path):
+    for cell_line in sorted(os.listdir(data_folder_path)):
         cell_line_folder = os.path.join(data_folder_path, cell_line)
-        for condition in os.listdir(cell_line_folder):
+        for condition in sorted(os.listdir(cell_line_folder)):
             condition_folder = os.path.join(cell_line_folder, condition)
-            for marker in os.listdir(condition_folder):
+            for marker in sorted(os.listdir(condition_folder)):
                 marker_folder = os.path.join(condition_folder, marker)
-                marker_file_name =  os.path.join(marker_folder, os.listdir(marker_folder)[0]) # only one file per marker
+                marker_file_name =  os.path.join(marker_folder, sorted(os.listdir(marker_folder))[0]) # only one file per marker
                 tiles = np.load(marker_file_name)
                 n_tiles = tiles.shape[0]
                 if n_tiles>0:

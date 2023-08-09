@@ -40,7 +40,7 @@ class DatasetConf(Dataset):
         depth -= 1
         with os.scandir(batch_path) as input_data_folder:
             
-            for entry in input_data_folder:
+            for entry in sorted(input_data_folder, key=lambda e: e.name):
                 
                 # if that's not a marker directory, recursion...
                 if entry.is_dir() and depth > 0:
@@ -155,7 +155,7 @@ class DatasetConf(Dataset):
                                         
                 #####################################
                 # Hold a list of all processed images (name of npy files) of this marker
-                filenames = os.listdir(marker_folder)
+                filenames = sorted(os.listdir(marker_folder))
                 
                 # Target marker - loop on all sites (single npy files)
                 for target_file in filenames:

@@ -54,9 +54,9 @@ def eval_model():
     logging.info("Init model")
     model = Model(config_model)
     
-    # n_class = 25
-    # logging.warning(f"NOTE! Setting len(unique_markers) to {n_class} !!!!")
-    # model.unique_markers = np.arange(n_class)
+    n_class = 225#1311#219#225
+    logging.warning(f"NOTE! Setting len(unique_markers) to {n_class} !!!!")
+    model.unique_markers = np.arange(n_class)
     
     logging.info("Loading model with dataloader")
     model.load_with_dataloader(test_loader=dataloader)
@@ -71,7 +71,11 @@ def eval_model():
     logging.info("Loading analytics..")
     model.load_analytics()
     logging.info("Plot umap..")
-    model.plot_umap()
+    model.plot_umap(colormap='Set1',
+                    alpha=0.8,
+                    s=0.8,
+                    infer_labels=True,
+                    id2label=dataloader.dataset.id2label)
     
 
 if __name__ == "__main__":

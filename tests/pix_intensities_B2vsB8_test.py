@@ -68,7 +68,7 @@ def test_normalized_pixels_all(batch_num):
         print(f"\n\n marker_folder={marker_folder}")
         input_data_dir = os.path.join(INPUT_DIR_BATCH, marker_folder)
         # Get npy file names under this batch
-        images = os.listdir(input_data_dir)
+        images = sorted(os.listdir(input_data_dir))
         print("\n\nTotal of", len(images), "images were sampled.")
         
         values = []
@@ -108,7 +108,7 @@ def test_normalized_pixels(batch_num):
 
     
     # Get npy file names under this batch
-    images = os.listdir(input_data_dir)
+    images = sorted(os.listdir(input_data_dir))
     print("\n\nTotal of", len(images), "images were sampled.")
     
     values = []
@@ -176,7 +176,7 @@ def test_raw_pixels(batch_num):
         input_data_dir = os.path.join(INPUT_DIR_BATCH, 'WT','panelA','Untreated', 'rep1', 'PURA')
 
         # Get tiff files names 
-        site_images = os.listdir(input_data_dir)
+        site_images = sorted(os.listdir(input_data_dir))
         print(f"Loaded {len(site_images)} images from {input_data_dir}")
         
         values = []
@@ -216,7 +216,7 @@ def test_normalized_pixels_all(batch_num):
         print(f"\n\n marker_folder={marker_folder}")
         input_data_dir = os.path.join(INPUT_DIR_BATCH, marker_folder)
         # Get npy file names under this batch
-        images = os.listdir(input_data_dir)
+        images = sorted(os.listdir(input_data_dir))
         print("\n\nTotal of", len(images), "images were sampled.")
         
         values = []
@@ -256,7 +256,7 @@ def test_normalized_pixels(batch_num):
 
     
     # Get npy file names under this batch
-    images = os.listdir(input_data_dir)
+    images = sorted(os.listdir(input_data_dir))
     print("\n\nTotal of", len(images), "images were sampled.")
     
     values = []
@@ -324,7 +324,7 @@ def test_raw_pixels(batch_num):
         input_data_dir = os.path.join(INPUT_DIR_BATCH, 'WT','panelA','Untreated', 'rep1', 'PURA')
 
         # Get tiff files names 
-        site_images = os.listdir(input_data_dir)
+        site_images = sorted(os.listdir(input_data_dir))
         print(f"Loaded {len(site_images)} images from {input_data_dir}")
         
         values = []
@@ -364,7 +364,7 @@ def test_normalized_pixels_all(batch_num):
         print(f"\n\n marker_folder={marker_folder}")
         input_data_dir = os.path.join(INPUT_DIR_BATCH, marker_folder)
         # Get npy file names under this batch
-        images = os.listdir(input_data_dir)
+        images = sorted(os.listdir(input_data_dir))
         print("\n\nTotal of", len(images), "images were sampled.")
         
         values = []
@@ -404,7 +404,7 @@ def test_normalized_pixels(batch_num):
 
     
     # Get npy file names under this batch
-    images = os.listdir(input_data_dir)
+    images = sorted(os.listdir(input_data_dir))
     print("\n\nTotal of", len(images), "images were sampled.")
     
     values = []
@@ -472,7 +472,7 @@ def test_raw_pixels(batch_num):
         input_data_dir = os.path.join(INPUT_DIR_BATCH, 'WT','panelA','Untreated', 'rep1', 'PURA')
 
         # Get tiff files names 
-        site_images = os.listdir(input_data_dir)
+        site_images = sorted(os.listdir(input_data_dir))
         print(f"Loaded {len(site_images)} images from {input_data_dir}")
         
         values = []
@@ -519,7 +519,7 @@ def test_fiji_pix_scale():
      DATA_DIR = '/home/labs/hornsteinlab/Collaboration/MOmaps_Sagy/MOmaps/tests/images_for_testing/fiji'
      
      
-     for file in os.listdir(os.path.join(DATA_DIR, 'raw')):         
+     for file in sorted(os.listdir(os.path.join(DATA_DIR, 'raw'))):         
          pre_fiji_img = io.imread(os.path.join(DATA_DIR, 'raw', file))
          post_fiji_img = io.imread(os.path.join(DATA_DIR, 'converted', file))
          print(f"pre_fiji_img {file}: shape: {pre_fiji_img.shape} min: {pre_fiji_img.min()} min: {pre_fiji_img.min()} max: {pre_fiji_img.max()} mean: {pre_fiji_img.mean()} std: {pre_fiji_img.std()} span: {pre_fiji_img.max()-pre_fiji_img.min()}")
@@ -534,7 +534,7 @@ def test_data_normalization_vs_contrast_normalization():
     input_data_dir = os.path.join(INPUT_DIR_BATCH, 'WT','panelC','Untreated', 'rep1', 'SQSTM1')
 
     # Get tiff files names 
-    site_images = os.listdir(input_data_dir)
+    site_images = sorted(os.listdir(input_data_dir))
     print(f"Loaded {len(site_images)} images from {input_data_dir}")
     
     values = []

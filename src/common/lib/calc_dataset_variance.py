@@ -3,8 +3,6 @@
 """
     Script for calculating variance of tiles of all images in a batch dataset.
     
-    In general, "images = sample_images_all_markers_all_lines(sample_size_per_markers=XX)"
-    and "sample_images_all_markers(cell_line_path, sample_size_per_markers=sample_size_per_markers, num_markers=XX)"
     can be used to sample images from any npy dataset.
     
 """
@@ -41,20 +39,30 @@ def _multiproc_calc_variance(images_paths):
     
     vars = []
     with Pool() as mp_pool:    
+        
         for mean_var in mp_pool.map(_calc_variance, ([img_path for img_path in images])):
             vars.append(mean_var) 
+        
+        # if wish to run sequentially, and not multiproc
+        # for img_path in images:
+        #     mean_var = _calc_variance(img_path)
+        #     vars.append(mean_var) 
+        
         mp_pool.close()
         mp_pool.join()
     
     print(f"Variance: {np.mean(vars)}")
     return np.mean(vars)
 
-def calc_variance_neurons_batch(batch_num):
+def calc_variance_neurons_batch(batch_num, sample_size_per_markers=200, num_markers=26):
+    
+    print(f"\n\ncalc_variance_neurons_batch {batch_num}")
+    
     # Global paths
     BATCH_TO_RUN = 'batch'+str(batch_num)
     INPUT_DIR_BATCH = os.path.join(INPUT_DIR, BATCH_TO_RUN)
 
-    images = sample_images_all_markers_all_lines(INPUT_DIR_BATCH, sample_size_per_markers=200, num_markers=26)
+    images = sample_images_all_markers_all_lines(INPUT_DIR_BATCH, sample_size_per_markers, num_markers)
     
     variance = _multiproc_calc_variance(images_paths=images)
     
@@ -77,23 +85,11 @@ def calc_variance_opencell():
 if __name__ == '__main__':
     print("\n\n\nStart..")
     
-    calc_variance_neurons_batch(batch_num=7)
+    calc_variance_neurons_batch(batch_num='7_16bit', sample_size_per_markers=200, num_markers=26)
     
     #calc_variance_opencell()
     
     print("\n\n\n\nDone!")
-
-# Batch 8
-# Total of 40894 images were sampled.
-# Variance: 0.0013192599553113191
-# Variance:  0.0014811185558576319
-# Variance: 0.001349994498773231
-# Variance: 0.001465275497971026
-
-# Batch 6
-# Total of 38963 images were sampled.
-# Variance: 0.000796757464004728
-
 
 #OpenCell
 # Total of 71520 images were sampled. (sample_size_per_markers=200)

@@ -55,7 +55,7 @@ class SPDPreprocessor(Preprocessor):
                 logging.info(f"[{raw_f}] Skipping non-folder")
                 continue
             
-            cell_lines = [f for f in os.listdir(input_folder_root) if os.path.isdir(os.path.join(input_folder_root, f))]
+            cell_lines = [f for f in sorted(os.listdir(input_folder_root)) if os.path.isdir(os.path.join(input_folder_root, f))]
 
             logging.info(f"[{raw_f}] Cell line detected: {cell_lines}")
 
@@ -65,7 +65,7 @@ class SPDPreprocessor(Preprocessor):
                 
                 input_folder_root_cell_line = os.path.join(input_folder_root, cell_line)
                 
-                panels = [f for f in os.listdir(input_folder_root_cell_line) if os.path.isdir(os.path.join(input_folder_root_cell_line, f))]        
+                panels = [f for f in sorted(os.listdir(input_folder_root_cell_line)) if os.path.isdir(os.path.join(input_folder_root_cell_line, f))]        
                 
                 logging.info(f"[{raw_f}, {cell_line}] Panels: {panels}")
                 
@@ -74,7 +74,7 @@ class SPDPreprocessor(Preprocessor):
                     
                     input_folder_root_panel = os.path.join(input_folder_root_cell_line, panel)
                     
-                    conditions = [f for f in os.listdir(input_folder_root_panel) 
+                    conditions = [f for f in sorted(os.listdir(input_folder_root_panel)) 
                                 if os.path.isdir(os.path.join(input_folder_root_panel, f)) and f != 'experiment setup']   
                         
                     logging.info(f"[{raw_f} {cell_line} {panel}] Conditions: {conditions}")
@@ -85,7 +85,7 @@ class SPDPreprocessor(Preprocessor):
                     
                         input_folder_root_condition = os.path.join(input_folder_root_panel, condition)
                         
-                        reps = [f for f in os.listdir(input_folder_root_condition ) if os.path.isdir(os.path.join(input_folder_root_condition , f))]
+                        reps = [f for f in sorted(os.listdir(input_folder_root_condition )) if os.path.isdir(os.path.join(input_folder_root_condition , f))]
 
                         input_folders = [os.path.join(input_folder_root, cell_line, panel, condition, rep) for rep in reps]     
                         output_folders = [os.path.join(output_folder_root, cell_line, condition) for rep in reps]
@@ -95,7 +95,7 @@ class SPDPreprocessor(Preprocessor):
                         format_output_filename = lambda filename, ext: f"{filename}_{panel}_{cell_line}{ext}"
                 
                         for input_folder, output_folder in zip(input_folders, output_folders):
-                            markers = os.listdir(input_folder)
+                            markers = sorted(os.listdir(input_folder))
                             panel = os.path.basename(input_folder)
                             nucleus_folder = os.path.join(input_folder, "DAPI")
                             
@@ -110,7 +110,7 @@ class SPDPreprocessor(Preprocessor):
                                 logging.info(f"Subfolder {input_subfolder}")
                                 
                                 
-                                for f in os.listdir(input_subfolder):
+                                for f in sorted(os.listdir(input_subfolder)):
                                     filename, ext = os.path.splitext(f)
                                     if ext != '.tif':
                                         continue

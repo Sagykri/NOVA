@@ -1,10 +1,7 @@
 import datetime
+import logging
 import os
 import sys
-
-
-
-
 sys.path.insert(1, os.getenv("MOMAPS_HOME"))
 
 import torch
@@ -17,9 +14,8 @@ from cytoself.trainer.cytoselflite_trainer import CytoselfFullTrainer
 from cytoself.analysis.analysis_opencell import AnalysisOpenCell
 from cytoself.trainer.utils.plot_history import plot_history_cytoself
 from cytoself.datamanager.base import DataManagerBase
-import logging
 
-
+from src.common.lib import metrics 
 from src.common.lib.utils import get_if_exists
 
 from src.datasets.dataset_spd import DatasetSPD
@@ -66,7 +62,7 @@ class Model():
         writer.add_graph(trainer.model, dummy_input)
         writer.close()
         
-    def __construct_trainer(self, num_class=None):
+    def __construct_trainer(self, num_class=None, loading_pretrained=True):
         pretrained_model_path   = self.pretrained_model_path
         early_stop_patience     = self.early_stop_patience
         learn_rate              = self.learn_rate 
@@ -115,9 +111,26 @@ class Model():
                                       homepath=model_output_folder,
                                       model_args=model_args)
         
+        if loading_pretrained and pretrained_model_path is not None and os.path.exists(pretrained_model_path):
+            logging.info(f"Loading pretrained model: {pretrained_model_path}")
+            pretrained_trainer = self.load_model(pretrained_model_path, num_fc_output_classes=1311, loading_pretrained=False)
+            logging.info(f"Copy weights")
+            self.__copy_weights(pretrained_trainer.model, trainer.model)
+        
         return trainer
             
+    def __copy_weights(self, model_from, model_to):
+        from_state_dict = model_from.state_dict()
+        to_state_dict = model_to.state_dict()
         
+        for name, param in from_state_dict.items():
+            if name not in to_state_dict or to_state_dict[name].shape != param.shape:
+                continue
+            
+            to_state_dict[name] = param
+
+        model_to.load_state_dict(to_state_dict)
+              
     def set_params(self, conf:ModelConfig):
         """Set the parameters
 
@@ -181,26 +194,47 @@ class Model():
         
         self.data_manager = dm
     
+    def __try_load_trainer(self):
+        last_checkpoint_path = get_if_exists(self.conf, 'LAST_CHECKPOINT_PATH', None)
+        
+        if last_checkpoint_path is None or not os.path.exists(last_checkpoint_path):
+            logging.info(f"LAST_CHECKPOINT_PATH is None. Couldn't load trainer from file. Skipping.")
+            return 
+            
+        logging.info(f"LAST_CHECKPOINT_PATH has been detected: {last_checkpoint_path}")
+        logging.info("Loading checkpoint to continue from there.")
+        
+        # If path is folder, load the last checkpoint in the folder
+        if os.path.isdir(last_checkpoint_path):
+            logging.info(f"LAST_CHECKPOINT_PATH is a folder, hence loading the last created checkpoint inside it")
+            __checkpoints = [os.path.join(last_checkpoint_path, f) for f in os.listdir(last_checkpoint_path) if f.endswith('.chkp')]
+            
+            if len(__checkpoints) == 0:
+                logging.warning(f"The folder {last_checkpoint_path} is empty. Couldn't load trainer from file. Skipping.")
+                return
+            
+            __checkpoints.sort(key=os.path.getctime)
+            last_checkpoint_path = __checkpoints[-1]
+            logging.info(f"Last checkpoint detected is: {last_checkpoint_path}")
+
+        if self.model is not None:
+            logging.warning(f"Overriding currently loaded model with {last_checkpoint_path}")
+        logging.info(f"Loading checkpoint: {last_checkpoint_path}")
+        trainer = self.load_model(last_checkpoint_path)
+        # Moving to the next epoch
+        trainer.current_epoch += 1
+        logging.info(f"Checkpoint loaded successfully. Current epoch is: {trainer.current_epoch}")
+    
+        return trainer
+    
     def train_with_dataloader(self):
         """ 
         Train a model on given data
         
         """
         
-        last_checkpoint_path = get_if_exists(self.conf, 'LAST_CHECKPOINT_PATH', None)
-        
-        if last_checkpoint_path is not None \
-            and os.path.exists(last_checkpoint_path) \
-                and os.path.isfile(last_checkpoint_path):
-            logging.info(f"LAST_CHECKPOINT_PATH has been detected: {last_checkpoint_path}")
-            logging.info("Loading checkpoint to continue from there.")
-            if self.model is not None:
-                logging.warning(f"Overriding currently loaded model with {last_checkpoint_path}")
-            trainer = self.load_model(last_checkpoint_path)
-            # Moving to the next epoch
-            logging.info(f"Loaded checkpoint is: {trainer.current_epoch}. Moving to the next one!")
-            trainer.current_epoch += 1
-        else:
+        trainer = self.__try_load_trainer()
+        if trainer is None:
             logging.info("Constructing trainer...")
             trainer = self.__construct_trainer()
             
@@ -223,11 +257,12 @@ class Model():
         
         return self.model
 
-    def load_model(self, model_path=None, num_fc_output_classes=None):
+    def load_model(self, model_path=None, num_fc_output_classes=None, loading_pretrained=True):
         
         """Load model
 
         Args:
+            model_path (string, Optional): 
             num_fc_output_classes (bool, Optional): Number ouf outputs for the fully connected model (number of classes) (Default is number of unique values in labels)
 
         Raises:
@@ -242,7 +277,7 @@ class Model():
         
         if self.model is not None:
             logging.warning(f"[load_model] Overriding currently loaded model with {model_path}")
-        self.model = self.__construct_trainer(num_fc_output_classes)
+        self.model = self.__construct_trainer(num_fc_output_classes,loading_pretrained=loading_pretrained)
             
         # if os.path.isdir(model_path):
         if os.path.splitext(model_path)[1] == '.chkp':
@@ -256,7 +291,6 @@ class Model():
         
         return self.model
         
-
     def load_analytics(self):
         # TODO: WIP!
         """Load Analytics - an API object to cytoself
@@ -322,7 +356,13 @@ class Model():
             savepath = os.path.join(self.conf.MODEL_OUTPUT_FOLDER, self.model.savepath_dict['visualization'], 'reconstructed_images.png')
         
         fig.savefig(savepath, dpi=300)
-
+        
+        # Calculate MSE
+        logging.info(f"Calculating MSE")
+        mses = metrics.calculate_mse(img, reconstructed)
+        for k,v in mses.items():
+            logging.info(f"MSE (ch={k}) = {v}")
+            
         return savepath
 
     # TODO: Move here the feature specturm generation
@@ -333,8 +373,14 @@ class Model():
     def load_embedding_vectors(self):
         raise NotImplementedError()
     
-    def plot_umap(self, data_loader=None, title='UMAP', s=0.3, alpha=0.5, **kwargs):
-        # TODO: WIP!
+    def set_mode(self, train):
+        self.model.model.train(train)
+    
+    def plot_umap(self, data_loader=None,
+                  title='UMAP',
+                  s=0.3, alpha=0.5, infer_labels=True,
+                  id2label=None,
+                  **kwargs):
         """
         Args:
             Plot (and save to file in model_output/umap_figures/{title}.png) a UMAP plot
@@ -345,9 +391,11 @@ class Model():
         
         if data_loader is None:
             data_loader = self.test_loader
-        
+
         umap_data = self.analytics.plot_umap_of_embedding_vector(
             data_loader=data_loader,
+            infer_labels=infer_labels,
+            id2label=id2label,
             group_col=0,
             title=title,
             xlabel='UMAP1',
@@ -360,16 +408,3 @@ class Model():
         
         return umap_data
     
-    
-    ############################# WRAPPERS #########################
-    
-    # def plot_umap(self, **kwargs):
-    #     # TODO:
-    #     """
-    #     [Wrapper] Plot UMAP
-    #     """
-    #     assert self.analytics is not None, "Analytics cannot be None"
-    #     kwargs.update({"seed": self.conf.SEED})
-    #     return cytoself_custom.plot_umap(self.analytics, **kwargs)
-    
-    ################################################################
