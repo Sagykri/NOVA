@@ -2,6 +2,7 @@ import os
 import sys
 sys.path.insert(1, os.getenv("MOMAPS_HOME"))
 
+
 import logging
 from src.common.lib.figures_handler import FiguresHandler
 from src.common.configs.figure_config import FigureConfig

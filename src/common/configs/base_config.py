@@ -1,6 +1,8 @@
 import os
 import sys
-sys.path.insert(1, os.getenv("MOMAPS_HOME"))
+
+sys.path.insert(1, os.getenv("MOMAPS_HOME")) 
+
 import datetime
 import logging
 import random
@@ -27,6 +29,9 @@ class BaseConfig():
         self.RAW_FOLDER_ROOT = os.path.join(self.HOME_DATA_FOLDER, "images", "raw")
         self.PROCESSED_FOLDER_ROOT = os.path.join(self.HOME_DATA_FOLDER, "images", "processed")
         
+        # Precaution - raw and processed folders can't be the same one!
+        assert self.RAW_FOLDER_ROOT != self.PROCESSED_FOLDER_ROOT, f"RAW_FOLDER_ROOT == PROCESSED_FOLDER_ROOT, {self.RAW_FOLDER_ROOT}"
+                
         # Output
         self.OUTPUTS_FOLDER = os.path.join(self.HOME_FOLDER, "outputs")
         self.CONFIGS_USED_FOLDER = os.path.join(self.OUTPUTS_FOLDER, "configs_used", __now.strftime("%d%m%y_%H%M%S_%f"))
@@ -177,3 +182,4 @@ class BaseConfig():
             os.makedirs(self.__LOGS_FOLDER)
         init_logging(log_file_path)
         logging.info(f"[{self.__class__.__name__}] Init (log path: {log_file_path})")
+        logging.info(f"[{self.__class__.__name__}] MOMAPS_HOME={self.HOME_FOLDER}, MOMAPS_DATA_HOME={self.HOME_DATA_FOLDER}")

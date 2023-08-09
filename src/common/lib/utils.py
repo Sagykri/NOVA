@@ -4,11 +4,14 @@ import sys
 import uuid
 sys.path.insert(1, os.getenv("MOMAPS_HOME"))
 
+
 import importlib
 import json
 import logging
 import string
 import numpy as np
+import pandas as pd
+import datetime
 
 def get_if_exists(container:object, param_name: string, default_value=None):
     """Get value of param in container if it exists, otherwise return default value
@@ -150,9 +153,12 @@ def get_class(path:string):
     
     # Extract and load the module
     module_path = os.path.dirname(path).replace('/', '.')
+    
     module = importlib.import_module(module_path)
+    
     # Extract the class name from the path and load it from the module
     class_in_module = os.path.basename(path)
+    
     module_class = module.__dict__[class_in_module]
     
     return module_class
@@ -257,3 +263,37 @@ def get_nvidia_smi_output(gpuidx):
                     out_dict[fragments[0].strip()] = fragments[1].strip()
 
     return out_dict
+
+class LogDF(object):
+    def __init__(self, folder_path: string, filename_prefix='', index=None,
+                 columns=None, should_write_index=False):
+        self.__path = os.path.join(folder_path, filename_prefix + datetime.datetime.now().strftime("%d%m%y_%H%M%S_%f") + '.csv')
+        self.__df = pd.DataFrame(index=index, columns=columns)
+        self.__should_write_index = should_write_index
+        
+        # Create the file
+        self.__save(self.__should_write_index, mode='w')
+    
+    @property
+    def df(self):
+        return self.__df
+    
+    @property
+    def path(self):
+        return self.__path
+    
+    def write(self, data):
+        if type(data) is not pd.DataFrame:
+            data = [data]
+        
+        try:
+            self.__df = pd.DataFrame(data, columns=self.__df.columns)
+        except Exception as ex:
+            raise f"Can't convert 'data' to pd.DataFrame ({ex})"
+            
+        return self.__save(self.__should_write_index)
+        
+    def __save(self, index:bool=False, mode='a'):
+        self.__df.to_csv(self.__path, index=index, mode=mode, header=mode=='w')
+        
+        return self.__path

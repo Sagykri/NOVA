@@ -53,4 +53,3 @@ then
 else
   bsub -n 1 -q $queue -gpu "num=${ngpu}:gmem=${gmem}G:j_exclusive=yes:aff=yes" -J Run_$py_name -B -R "rusage[mem=$mem] span[hosts=1]" python $py_name.py $args
 fi
-
