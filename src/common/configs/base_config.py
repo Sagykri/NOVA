@@ -36,7 +36,8 @@ class BaseConfig():
         self.EMBEDDINGS_FOLDER = os.path.join(self.HOME_FOLDER, "input", "embeddings")
         
         # Output
-        self.CONFIGS_USED_FOLDER = os.path.join(self.HOME_FOLDER, "outputs", "configs_used", __now.strftime("%d%m%y_%H%M%S_%f"))
+        self.OUTPUTS_FOLDER = os.path.join(self.HOME_FOLDER, "outputs")
+        self.CONFIGS_USED_FOLDER = os.path.join(self.OUTPUTS_FOLDER, "configs_used", __now.strftime("%d%m%y_%H%M%S_%f"))
         
         
         # Model

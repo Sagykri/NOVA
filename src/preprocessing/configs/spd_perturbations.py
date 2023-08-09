@@ -10,5 +10,6 @@ class SPD_Perturbations(SPDPreprocessingConfig):
     def __init__(self):
         super().__init__()
         
-        self.INPUT_FOLDERS = [os.path.join(".", "input", "images", "raw", "SpinningDisk", "Perturbations")]
-        self.OUTPUT_FOLDERS = [os.path.join(".", "input", "images", "processed", "spd2", "SpinningDisk", "Perturbations")]
+        self.INPUT_FOLDERS = [os.path.join(self.RAW_SUBFOLDER_ROOT, "Perturbations")]
+        self.OUTPUT_FOLDERS = [os.path.join(self.PROCESSED_SUBFOLDER_ROOT, "Perturbations")]
+        

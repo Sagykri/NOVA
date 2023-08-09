@@ -9,7 +9,7 @@ import pathlib
 import os
 
 # Global paths
-BATCH_TO_RUN = 'batch7' 
+BATCH_TO_RUN = 'batch8' 
 LINE_TO_RUN = 'WT'
 
 BASE_DIR = os.path.join('/home','labs','hornsteinlab','Collaboration','MOmaps')
@@ -75,7 +75,7 @@ def find_marker_folders(batch_path, depth=5):
 
 def main():
 
-    logging.info(f"\n\nStarting to check if output files exist in batch: {INPUT_DIR_BATCH}")
+    logging.info(f"\n\nStarting to check if output files exist in batch: {INPUT_DIR_BATCH} {INPUT_DIR_LINE}")
 
     for subfolder in find_marker_folders(batch_path=INPUT_DIR_LINE, depth=4):
         results = find_marker_folders(subfolder)

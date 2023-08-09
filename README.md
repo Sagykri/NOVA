@@ -44,7 +44,8 @@ wget https://repo.anaconda.com/archive/Anaconda3-2023.03-Linux-x86_64.sh
 - First uninstall the CPU version of torch
   pip uninstall torch
 - Then run this command to install the GPU version:
-	conda install pytorch cudatoolkit=11.4 -c pytorch -c conda-forge
+	new: conda install pytorch=1.12.1 cudatoolkit=11.3.1 -c pytorch -c conda-forge
+  old: conda install pytorch cudatoolkit=11.4 -c pytorch -c conda-forge
   Notice (4.5.23): Unfortunately, with cudatoolkit 11.4, conda only proposes the CPU version of pytorch.
   You should install cudatoolkit=11.3.1 and pytorch=1.12.1 for the GPU version!
 
@@ -69,15 +70,7 @@ wget https://repo.anaconda.com/archive/Anaconda3-2023.03-Linux-x86_64.sh
     conda install tensorflow-gpu=1.15
     conda install h5py=2.10.0
 
-- conda install -c conda-forge tqdm
-
-- conda install -c conda-forge matplotlib
-
-- conda install -c conda-forge shap
- 
-- conda install -c conda-forge shapely
-
-- conda install -c conda-forge adjusttext
+- conda install -c conda-forge tqdm matplotlib shap shapely adjusttext
 
 At the end, recheck that the pytorch you have installed is indeed the GPU version and wasn't switched to the CPU version!
 (If GPU isn't available all of a sudden, try to uninstall numpy)

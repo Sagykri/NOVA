@@ -8,7 +8,7 @@ from datetime import datetime
 import logging
 
 # Global paths
-BATCH_TO_RUN = 'batch6' 
+BATCH_TO_RUN = 'batch7' 
 
 BASE_DIR = os.path.join('/home','labs','hornsteinlab','Collaboration','MOmaps')
 INPUT_DIR = os.path.join(BASE_DIR, 'outputs','cell_profiler')
@@ -132,15 +132,7 @@ def concatenate_features(marker_dict, output_path):
             #write csv with measurements of all conditions
             marker_df.to_csv(f"{output_path}/{key}_all.csv")
 
-"""
-TO DO: concatenation of object type info. Some code that adds to 1 row of 1 object type (e.g. SecondaryObject) 
-all the columns of 1 row of another object type,and does that for each object type. 
-So instead of up to 80 rows per cell line (10 images per rep x 2 reps x 4 object types), 
-there will be up to 20 per cell line.
 
-what if the numbers are not equal? keep the remaining row?
-"""
- 
 def combine_markers(files_path):
     """
     Create a final csv that contains CP features for all markers, lines, conditions, reps
@@ -167,7 +159,7 @@ def main():
     logging.info(f"\n\nStarting to combine Cell Profiler output of batch: {INPUT_DIR_BATCH}")
     for sub_folder in find_marker_folders(batch_path=INPUT_DIR_BATCH, depth=5):
        results = retrieve_features(sub_folder)
-    
+
     concatenate_features(results, OUTPUT_DIR)
     combine_markers(OUTPUT_DIR)
 

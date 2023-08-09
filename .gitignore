@@ -19,6 +19,9 @@ input/images/processed/*
 
 Anaconda3-2023.03-Linux-x86_64.sh
 
+*.h5
+/tools/images_organizer/**/*.txt
+
 **/*.fastq
 **/*.fastq.gz
 **/*.fastq.deleted

@@ -11,9 +11,11 @@ import umap.plot
 import matplotlib.patches as mpatches
 import numpy as np
 import matplotlib.backends.backend_pdf as bpdf
+from random import shuffle
+from collections import defaultdict
 
 # Global paths
-BATCH_TO_RUN = 'batch6' 
+BATCH_TO_RUN = 'batch9_50percent' 
 
 BASE_DIR = os.path.join('/home','labs','hornsteinlab','Collaboration','MOmaps')
 INPUT_DIR = os.path.join(BASE_DIR, 'outputs','cell_profiler')
@@ -30,7 +32,7 @@ def set_logging(log_file_path, level=logging.INFO, format=' INFO: %(message)s'):
     logging.info(__doc__)
 
 
-def load_data_and_plot_UMAPs(input_path):
+def load_data_and_plot_UMAPs(input_path, stress = False):
      with os.scandir(input_path) as input_data_folder:
         # We loop on all markers, plot single marker UMAPs (AKA UMAP0), 
         # but also keep the marker data for later UMAP1 (of all markers in one plot)
@@ -39,7 +41,22 @@ def load_data_and_plot_UMAPs(input_path):
         for features_file in input_data_folder:
             
             file = os.path.basename(features_file.path)
+            if file == 'all_markers_all.csv':
+                continue
+            
             if (file == f'all_markers_concatenated-by-object-type_{BATCH_TO_RUN}.csv'):
+                continue
+            
+            if file == 'FUS_FUS-lines-only_preprocessed.csv':
+                continue
+            
+            if (file == f'stress_all_markers_concatenated-by-object-type_{BATCH_TO_RUN}.csv'):
+                continue
+            
+            if file == f'UMAP2_dataframe_{BATCH_TO_RUN}.csv':
+                continue
+            
+            if file == f'UMAP2_stress-dataframe_{BATCH_TO_RUN}.csv':
                 continue
             
             # To support UMAP2
@@ -95,7 +112,10 @@ def load_data_and_plot_UMAPs(input_path):
         
         # Combine markers
         #df_all = pd.concat(all_markers_df)
-        #df_all.to_csv(os.path.join(INPUT_DIR_BATCH, f'all_markers_concatenated-by-object-type_{BATCH_TO_RUN}.csv'))
+        # if stress:
+        #     df_all.to_csv(os.path.join(INPUT_DIR_BATCH, f'stress_all_markers_concatenated-by-object-type_{BATCH_TO_RUN}.csv'))
+        # else:
+        #     df_all.to_csv(os.path.join(INPUT_DIR_BATCH, f'all_markers_concatenated-by-object-type_{BATCH_TO_RUN}.csv'))
         
         # Plot UMAP1
         #plot_umap1(df_all)
@@ -103,7 +123,7 @@ def load_data_and_plot_UMAPs(input_path):
         return None
                   
             
-def preprocessing(features_df, use_condition='stress', exclude_cols=['Parent_Nucleus', 'object_type', 'Unnamed: 0_PrimaryObject1', 'Unnamed: 0_PrimaryObject2', 'Unnamed: 0_SecondaryObject']):
+def preprocessing(features_df, use_condition='Untreated', exclude_cols=['Parent_Nucleus', 'object_type', 'Unnamed: 0_PrimaryObject1', 'Unnamed: 0_PrimaryObject2', 'Unnamed: 0_SecondaryObject']):
     """
     Prepare the data for clustering
     - Included desired condition
@@ -113,6 +133,9 @@ def preprocessing(features_df, use_condition='stress', exclude_cols=['Parent_Nuc
     df = features_df.copy()
     # Check if the columns you wish to exclude, really exist in the df
     exclude_cols = [col for col in exclude_cols if col in df.columns]
+    
+    # Drop SCNA line because too many missing values
+    df = df[df['cell_line'].isin(['WT', 'TDP43', 'TBK1', 'OPTN', 'FUSRevertant', 'FUSHomozygous', 'FUSHeterozygous'])]
     
     # Take the desired condition and corresponding columns
     if use_condition == 'stress':
@@ -133,11 +156,14 @@ def preprocessing(features_df, use_condition='stress', exclude_cols=['Parent_Nuc
 
 
 def plot_umap0(df, marker, 
-               color_map = {'WT': 1, 'TDP43': 2, 'TBK1': 3, 'SCNA': 4, 'OPTN': 5, 'FUSRevertant': 6, 'FUSHomozygous': 7, 'FUSHeterozygous': 8},
-               stress = True):
+               color_map = {'WT': 1, 'TDP43': 2, 'TBK1': 3, 'OPTN': 4, 'FUSRevertant': 5, 'FUSHomozygous': 6, 'FUSHeterozygous': 7},
+               stress = False, customized = False):
+    """
+    Remember to change the use_condition variable in preprocessing as well when plotting stress
+    """
     
     logging.info(f"Starting plot_umap0() of marker {marker}...\n")
-    logging.info('%s %s', "\n", df.value_counts(subset=['replicate', 'cell_line', 'marker']))
+    #logging.info('%s %s', "\n", df.value_counts(subset=['replicate', 'cell_line', 'marker']))
     
     if stress:
         umap_df = df.drop(['replicate', 'marker', 'cell_line'], axis=1, inplace=False)
@@ -170,7 +196,12 @@ def plot_umap0(df, marker,
         indices2 = umap_df2.index
         embedding2 = umap.UMAP(random_state=42, n_jobs=1).fit_transform(umap_df2)
         
-        pdf_file = os.path.join(OUTPUT_DIR, f'UMAP0_{marker}.pdf')
+        # Allow for specific plots; adjust name manually
+        if customized:
+            pdf_file = os.path.join(OUTPUT_DIR, f'UMAP0_FUS_FUS-lines-only.pdf')
+        else:
+            pdf_file = os.path.join(OUTPUT_DIR, f'UMAP0_{marker}.pdf')
+        
         pdf_pages = bpdf.PdfPages(pdf_file)
 
         # Iterate over the UMAP embeddings and create a scatter plot for each dataframe
@@ -182,7 +213,7 @@ def plot_umap0(df, marker,
                 unique_indices = idx.unique()
                 color_map = {index: color for index, color in zip(unique_indices, range(len(unique_indices)))}
                 colors = idx.map(color_map)
-            scatter = plt.scatter(mapper[:,0], mapper[:,1], c=colors, cmap='Spectral')
+            scatter = plt.scatter(mapper[:,0], mapper[:,1], c=colors, alpha=0.5, cmap='Spectral')
             legend_handles = [mpatches.Patch(color=scatter.cmap(scatter.norm(color)), label=index) for index, color in color_map.items()]
             legend_handles.sort(key=lambda patch: patch.get_label())
             plt.legend(handles=legend_handles, bbox_to_anchor=(0, 0, 1, 1))
@@ -232,7 +263,7 @@ def plot_umap1(df_all):
         unique_indices = idx.unique()
         color_map = {index: color for index, color in zip(unique_indices, range(len(unique_indices)))}
         colors = idx.map(color_map)
-        scatter = plt.scatter(mapper[:,0], mapper[:,1], s=5, c=colors, cmap='Spectral')
+        scatter = plt.scatter(mapper[:,0], mapper[:,1], s=5, c=colors, alpha=0.5, cmap='Spectral')
         legend_handles = [mpatches.Patch(color=scatter.cmap(scatter.norm(color)), label=index) for index, color in color_map.items()]
         legend_handles.sort(key=lambda patch: patch.get_label())
         plt.legend(handles=legend_handles, bbox_to_anchor=(0, 0, 1, 1), fontsize = 'x-small')
@@ -248,43 +279,69 @@ def plot_umap1(df_all):
     return None
 
 
-def plot_umap2(input_path):
+def load_CP_features(input_path, stress = True):
+    # load CP features (all)
+    if stress:
+        df = pd.read_csv(os.path.join(input_path,f'stress_all_markers_concatenated-by-object-type_{BATCH_TO_RUN}.csv'))
+    else:
+        df = pd.read_csv(os.path.join(input_path,f'all_markers_concatenated-by-object-type_{BATCH_TO_RUN}.csv'))
+    print("\n\nXXXX df.shape", df.shape)   
+    # remove Unnamed column
+    df.drop('Unnamed: 0', axis=1, inplace=True)
+    return df
+
+def remove_SCNA_cell_line(df):
+    # Drop SCNA line because too many missing values
+    df = df[df['cell_line'].isin(['WT', 'TDP43', 'TBK1', 'OPTN', 'FUSRevertant', 'FUSHomozygous', 'FUSHeterozygous'])]  
+    return df
+
+def keep_intersected_markers(df):
+    # Remove markers that don't have data in all conditions 
+    groups = df.groupby(['replicate', 'cell_line'])
+    # List of lists, where each list holds the markers names that appear in this group 
+    markers_lists = []
+    for name, group in groups:
+        # Keep only markers that appear in this group
+        markers_lists.append(group['marker'].unique())
+    # Get the intersection of marker names 
+    markers = set.intersection(*map(set,markers_lists))
+    df = df[df['marker'].isin(markers)]
+    
+    # NANCYS TEST
+    # [ 'CD41', 'TDP43', 'NONO', 'Phalloidin', 'TOMM20', 'FUS', 'PML', 'FMRP', 'NCL', 'PSD95', 'NEMO', 'CLTC', 'mitotracker', 'GM130', 'PEX14', 'SQSTM1', 'DCP1A']
+    #df = df[df['marker'].isin(['NCL', 'FUS', 'NONO', 'CD41', 'TOMM20'])] 
+    
+    logging.info(f"\n\n XXXX df.shape: {df.shape}, \nTotal of {len(markers)} intersecting markers:{markers}")   
+    return df
+
+    
+def plot_umap2(input_path, stress = False):
     """
     Receives the dataframe that contains image measurements concatenated by object type, with one row per rep - marker - cell line combination
     = df_all from load_data_and_plot_UMAPs(input_path), which is saved under INPUT_DIR_BATCH = input_path
     = after pre-processing, so columns to exclude already excluded 
     """
-    from random import shuffle
-    from collections import defaultdict
+    
     logging.info(f"\n\nStarting to concatenate markers and plot UMAP2 from Cell Profiler output of batch: {INPUT_DIR_BATCH}")
     
-    # load CP features (all)
-    df_all = pd.read_csv(os.path.join(input_path,f'all_markers_concatenated-by-object-type_{BATCH_TO_RUN}.csv'))
-    print("\n\nXXXX df_all.shape", df_all.shape)   
-    # remove Unnamed column
-    df_all.drop('Unnamed: 0', axis=1, inplace=True)
-    
-    ########### REMOVE THIS FOR TEST
-    # df_all = df_all[['AreaShape_BoundingBoxMaximum_Y_PrimaryObject1',
-    #                 'AreaShape_BoundingBoxMinimum_X_PrimaryObject1',
-    #                 'AreaShape_BoundingBoxMinimum_Y_PrimaryObject1',
-    #                 'AreaShape_Center_X_PrimaryObject1',
-    #                 'AreaShape_Center_Y_PrimaryObject1', 'replicate', 'cell_line', 'marker']]
-    # print("\n\nXXXX df_all.shape", df_all.shape)   
-    
-    df_all = df_all[df_all['marker'].isin(['ANXA11', 'CD41', 'CLTC', 'Calreticulin', 'DCP1A', 'FMRP', 'FUS', 'GM130', 'KIF5A', 'LAMP1', 'NCL', 'NEMO', 'NONO',
-'PEX14', 'PML', 'PSD95', 'PURA', 'Phalloidin' , 'SQSTM1', 'TDP43', 'TIA1', 'TOMM20', 'mitotracker'])]
-    print("\n\nXXXX df_all.shape", df_all.shape)   
-    ########### REMOVE THIS FOR TEST
-    
+    df_all = load_CP_features(input_path)
 
-
-
+    if stress == False:
+        df_all = remove_SCNA_cell_line(df_all)
+        df_all = keep_intersected_markers(df_all)
+    else:
+        df_all = keep_intersected_markers(df_all)
+    
     
     ####################################################################
-    # Group by and create a nested dict with all indecies to match
+    # Group by and create a nested dict with all indices to match
     tmp_d = defaultdict(list)
-    groups = df_all.groupby(['replicate', 'cell_line'])
+    
+    if stress:
+        groups = df_all.groupby(['replicate', 'treatment'])
+    else:
+        groups = df_all.groupby(['replicate', 'cell_line'])
+    
     for c_name, group in groups:
         tmp_d[c_name] = {}
         marker_groups = group.groupby(['marker'])
@@ -306,7 +363,7 @@ def plot_umap2(input_path):
             # get sub-df: all indexes of this marker 
             marker_df = df_all.loc[indexes]
             # change column name to allow concat
-            marker_df.columns = [col+f'_{marker}' if col not in ['replicate', 'cell_line', 'marker'] else col for col in marker_df.columns]
+            marker_df.columns = [col+f'_{marker}' if col not in ['replicate', 'cell_line', 'marker', 'treatment'] else col for col in marker_df.columns]
             marker_df = marker_df.reset_index(drop=True, inplace=False) # reset_index() is important, to remove NaN rows
             print("marker_df", marker, marker_df.shape)
             # append to list of sub-dfs
@@ -314,63 +371,68 @@ def plot_umap2(input_path):
             
         # concat columns (stack columns one after the another)
         cell_df = pd.concat(cell_df_list, axis=1)
-        print("cell_df", k, cell_df.shape)
+        print("cell_df", k, cell_df.shape) #some cell lines don't have data in all markers, so number of columns is different 
         
-        #print(cell_df.reset_index(drop=True, inplace=False).head(50))
-        #cell_df = cell_df.reset_index(drop=True, inplace=False)
-        final_df_list.append(cell_df.reset_index(drop=True))
+        # workaround - removing rows with Nan values (many markers don't have 100 rows)
+        cell_df = cell_df.dropna(axis=0)
+        print("cell_df after NA removal", k, cell_df.shape)
         
-        # Weli, I had a tough fight with this error "pandas.errors.InvalidIndexError: Reindexing only valid with uniquely valued Index objects"
-        # that we get in line "final_df = pd.concat(final_df_list, join="inner", axis=0, ignore_index=True)""
-        # conclusion: it is because we try to stack rows, but each df has different columns and number of rows. tried to add "inner" and other stuff, but didn't work.
+        # remove duplicate columns (replicate, cell_line)
+        cell_df = cell_df.loc[:,~cell_df.columns.duplicated()]
+        print(cell_df.shape, "duplicated columns after removal", cell_df.columns[cell_df.columns.duplicated()])
+        final_df_list.append(cell_df)     
         
-    
-    #final_df = final_df.reset_index(drop=True, inplace=False)
     # concat dataframe of cell lines (stack rows)
-    final_df = pd.concat(final_df_list)
+    final_df = pd.concat(final_df_list, axis=0)
+
+    #final_df = final_df.reset_index(drop=True, inplace=False)
     print("final_df", final_df.shape)
-    
-    
-    
-    # UMAP code - not final
+    if stress:
+        final_df.to_csv(os.path.join(INPUT_DIR_BATCH, f'UMAP2_stress-dataframe_{BATCH_TO_RUN}.csv'))
+    else:
+        final_df.to_csv(os.path.join(INPUT_DIR_BATCH, f'UMAP2_dataframe_{BATCH_TO_RUN}.csv'))
+   
+    ####################################################################
+    # Plotting the UMAP2
     umap_df = final_df.drop(['replicate'], axis=1, inplace=False)
-    
+    umap_df.drop(['marker'], axis=1, inplace=True)
     
     # workaround - removing columns with Nan values 
     umap_df = umap_df.dropna(axis=1)
     
-    # UMAP1 - population: all cell lines and all markers, color by: marker 
-    umap_df2 = umap_df.set_index(['marker'], inplace=False)
-    umap_df2.drop(['cell_line'], axis=1, inplace=True)
-    indices2 = umap_df2.index
-    embedding2 = umap.UMAP(random_state=42, n_jobs=1).fit_transform(umap_df2)
-    
-    # UMAP1 - population: all cell lines and all markers, color by: cell line 
-    umap_df3 = umap_df.set_index(['cell_line'], inplace=False)
-    umap_df3.drop(['marker'], axis=1, inplace=True)
-    indices3 = umap_df3.index
-    embedding3 = umap.UMAP(random_state=42, n_jobs=1).fit_transform(umap_df3)
-    
-    pdf_file = os.path.join(OUTPUT_DIR, f'UMAP2_{BATCH_TO_RUN}.pdf')
-    pdf_pages = bpdf.PdfPages(pdf_file)
-  
-    # Iterate over the UMAP embeddings and create a scatter plot for each dataframe
-    for idx, mapper in zip([indices2, indices3], [embedding2, embedding3]):
-        unique_indices = idx.unique()
-        color_map = {index: color for index, color in zip(unique_indices, range(len(unique_indices)))}
-        colors = idx.map(color_map)
-        scatter = plt.scatter(mapper[:,0], mapper[:,1], s=5, c=colors, cmap='Spectral')
+    if stress:
+        umap_df = umap_df.drop(['cell_line'], axis=1, inplace=False)
+        umap_df.set_index('treatment', inplace=True)
+        indices = umap_df.index
+        embedding = umap.UMAP(random_state=42, n_jobs=1).fit_transform(umap_df)
+        
+        color_map = {'Untreated':'cyan', 'stress':'orange'}
+        colors = indices.map(color_map)
+        scatter = plt.scatter(embedding[:,0], embedding[:,1], s=20, c=colors)
+        legend_handles = [mpatches.Patch(color=color, label=index) for index, color in color_map.items()]
+        legend_handles.sort(key=lambda patch: patch.get_label())
+        plt.legend(handles=legend_handles, bbox_to_anchor=(0, 0, 1, 1))
+        plt.ylabel("UMAP 2")
+        plt.xlabel("UMAP 1")
+        plt.savefig(os.path.join(OUTPUT_DIR, f'UMAP2_stress.pdf'))
+        plt.clf()
+        logging.info(f'UMAP2 of of {BATCH_TO_RUN} stress treatment saved')
+    else:
+        umap_df = umap_df.set_index('cell_line', inplace=False)
+        indices = umap_df.index
+        embedding = umap.UMAP(random_state=42, n_jobs=1).fit_transform(umap_df)
+
+        color_map = {'WT': 1, 'TDP43': 2, 'TBK1': 3, 'OPTN': 4, 'FUSRevertant': 5, 'FUSHomozygous': 6, 'FUSHeterozygous': 7}
+        colors = indices.map(color_map)
+        scatter = plt.scatter(embedding[:,0], embedding[:,1], s=15, c=colors, cmap='Spectral', alpha=0.7) 
         legend_handles = [mpatches.Patch(color=scatter.cmap(scatter.norm(color)), label=index) for index, color in color_map.items()]
         legend_handles.sort(key=lambda patch: patch.get_label())
         plt.legend(handles=legend_handles, bbox_to_anchor=(0, 0, 1, 1), fontsize = 'x-small')
         plt.ylabel("UMAP 2")
         plt.xlabel("UMAP 1")
-        pdf_pages.savefig()
+        plt.savefig(os.path.join(OUTPUT_DIR, f'UMAP2_{BATCH_TO_RUN}.pdf'))
         plt.clf()
-    
-    pdf_pages.close()
-    
-    logging.info(f'UMAP2 of {BATCH_TO_RUN} saved')
+        logging.info(f'UMAP2 of {BATCH_TO_RUN} saved')
             
         # for marker, marker_group in marker_groups:
         #     logging.info(f"\n\Marker group name:{marker} {marker_group.shape}")
@@ -392,11 +454,31 @@ def check_na(df):
                             .rename('missing_ratio')],axis = 1)
                 .loc[count.ne(0)]).sort_values(by='missing_ratio', ascending=False)
     print(new_df[new_df['missing_count']>0.01])
+
+
+def customized_plot():
+    """
+    To plot UMAP0 of FUS marker in only WT and FUS lines. 
+    """
+    df = pd.read_csv(os.path.join(INPUT_DIR_BATCH, 'FUS_all.csv'))
+    marker = 'FUS'
+    df['marker'] = marker
+    
+    df = preprocessing(df)
+    
+    options = ['WT', 'FUSHomozygous', 'FUSHeterozygous', 'FUSRevertant']
+    df_umap = df[df['cell_line'].isin(options)]
+    df_umap.drop('Unnamed: 0', axis = 1, inplace=True)
+    df_umap.to_csv(os.path.join(INPUT_DIR_BATCH, f'FUS_FUS-lines-only_preprocessed.csv'))
+    plot_umap0(df_umap, marker, color_map = {'WT': 1, 'FUSRevertant': 2, 'FUSHomozygous': 3, 'FUSHeterozygous': 4})
+    
+    return None
             
 def main():
     logging.info(f"\n\nStarting to plot marker UMAPs from Cell Profiler output of batch: {INPUT_DIR_BATCH}")
     load_data_and_plot_UMAPs(INPUT_DIR_BATCH)
     #plot_umap2(INPUT_DIR_BATCH)
+    #customized_plot()
     logging.info(f"\n\nFinished plotting marker UMAPs from Cell Profiler output of batch: {INPUT_DIR_BATCH}")
 
 
@@ -407,14 +489,10 @@ if __name__ == '__main__':
     
     main()    
 
-    # TBD - support analysis of 1) across batches 2) WT untreated vs. stress
-    # TBD - check all column names for potential confounders 
-    
-    # UMAP0 - population: all cell lines and a single marker, color by: cell line and batch (batch effect) - TBD
-    # UMAP0 - population: WT cell line and a single marker, color by: treatment and rep (well effect) - TBD
+    # TBD - support analysis across batches  
     
     # UMAP1 - color only one marker at a time, save in one PDF
     
-    # UMAP2 - population: all cell lines and all markers concatenated (so smaller population)   
+    # UMAP2 - deal with missing values?   
     # Remove correlated features 
 

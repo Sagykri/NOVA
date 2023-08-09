@@ -10,5 +10,13 @@ class SPD_Batch6(SPDPreprocessingConfig):
     def __init__(self):
         super().__init__()
         
-        self.INPUT_FOLDERS = [os.path.join(".", "input", "images", "raw", "SpinningDisk", "batch6")]
-        self.OUTPUT_FOLDERS = [os.path.join(".", "input", "images", "processed", "spd2", "SpinningDisk", "batch6")]
+        self.INPUT_FOLDERS = [os.path.join(self.RAW_SUBFOLDER_ROOT, "batch6")]
+        self.OUTPUT_FOLDERS = [os.path.join(self.PROCESSED_SUBFOLDER_ROOT, "batch6")]
+
+class SPD_Batch6_16bit(SPDPreprocessingConfig):
+    def __init__(self):
+        super().__init__()
+
+        self.INPUT_FOLDERS = [os.path.join(self.RAW_SUBFOLDER_ROOT, "batch6")]
+        self.OUTPUT_FOLDERS = [os.path.join(self.PROCESSED_SUBFOLDER_ROOT, "batch6")]
+        

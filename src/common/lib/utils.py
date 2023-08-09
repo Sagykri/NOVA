@@ -65,38 +65,14 @@ def get_colors_dict(labels, colors_dict):
             colors[label] = color
     return colors
 
-def generate_embeddings(run_config):
-    """Generate embedding vectors
-
-    Args:
-        run_config (BaseConfig): run config to use
-    """
-    logging.info("init")
-
-    logging.info("Load data")
-
-    from src.common.lib.model import Model
-    model = Model(run_config)
-
-
-    logging.info("Load data")
-    model.load_data()
+def get_training_variance():
+    from src.common.lib.image_sampling_utils import sample_images_all_markers_all_lines
     
-    logging.info("Load model")
-    model.load_model()
+    paths = sample_images_all_markers_all_lines(50)
     
-    logging.info("Load analytics")
-    model.load_analytics()
-        
-    logging.info("Calc (and save) embvec")
-    model_name = os.path.splitext(os.path.basename(run_config.MODEL_PATH))[0]
-    model.analytics.model.calc_embvec(
-                model.analytics.data_manager.test_data, savepath="default", filename=f"embeddings_{model_name}")    
+    images = np.concatenate([np.load(path) for path in paths])
     
-    
-    labels_output_path = os.path.join(run_config.MODEL_OUTPUT_DIR, f"labels_{model_name}.txt") 
-    logging.info(f"Save labels to file: {labels_output_path}")
-    np.savetxt(labels_output_path, model.test_label)
+    return np.var(images)
     
     
 def load_config_file(path:string, postfix_filename:string=""):

@@ -13,8 +13,8 @@ import pathlib
 import os
 
 # Global paths
-BATCH_TO_RUN = 'batch6' 
-LINE_TO_RUN = 'FUSRevertant'
+BATCH_TO_RUN = 'batch8' 
+LINE_TO_RUN = 'WT'
 
 BASE_DIR = os.path.join('/home','labs','hornsteinlab','Collaboration','MOmaps')
 INPUT_DIR = os.path.join(BASE_DIR, 'input','images','raw','SpinningDisk')
