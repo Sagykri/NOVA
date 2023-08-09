@@ -7,10 +7,8 @@ import random
 import numpy as np
 import pandas as pd
 from src.common.lib.model import Model
-import torch
-# from torch.utils.data import DataLoader
-# from src.common.lib.cytoself_custom import calc_umap_embvec, plot_umap
-# from src.common.lib.metrics import calc_clustering_validation, plot_metrics
+from src.common.lib.cytoself_custom import calc_umap_embvec, plot_umap
+from src.common.lib.metrics import calc_clustering_validation, plot_metrics
 from umap import UMAP
 import re
 import matplotlib.pyplot as plt
@@ -19,98 +17,7 @@ from sklearn.decomposition import PCA
 from sklearn.preprocessing import StandardScaler
 
 
-def multiplex(model: Model):
-    assert model is not None, "Model is None"
-    assert model.test_loader is not None, "model.test_loader is None, please first load dataloaders"
-    
-    embeddings, labels_ids = model.model.infer_embeddings(model.test_loader)
-    labels = model.test_loader.dataset.id2label(labels_ids)
-    
-    logging.info(f"embeddings shape: {embeddings.shape}, labels shape: {labels.shape}")
-    
-    labels_df = pd.DataFrame([s.split('_', 1) for s in labels], columns=['Marker', 'Pheno'])
-    logging.info(labels_df.head())
-    
-    embeddings_series = pd.DataFrame({"Embeddings": [*embeddings]})
-    df = pd.merge(labels_df, embeddings_series, left_index=True, right_index=True)
-    
-    logging.info(df.head())
-    
-    def __shuffle_and_concat(group):
-        group_copy = group.copy()
-        pheno = group['Pheno'].iloc[0]
-        logging.info(f"Pheno: {pheno}")
-        
-        # unique_markers = group_copy['Marker'].unique()
-        # logging.info(f"unique_markers: {unique_markers}")
-        
-        #Shuffle
-        group_copy.sample(frac=1, random_state=model.conf.SEED)
-        
-        n_subgroups = min(group_copy['Marker'].value_counts())
-        logging.info(f"Detected {n_subgroups} subgroups")
-        embeddings = []
-        for i in range(n_subgroups):
-            logging.info(f"{i+1}/{n_subgroups}")
-            subgroup = group_copy\
-                        .groupby('Marker')\
-                        .sample(n=1, replace=False, random_state=model.conf.SEED)
-            
-            subgroup.sort_values('Marker', inplace=True)
-            
-            logging.info(subgroup)
-            
-            __subgroup_embeddings = np.stack(subgroup['Embeddings'].to_numpy(), axis=0)
-            subgroup_embeddings = np.concatenate([e.reshape(-1) for e in __subgroup_embeddings])
-            embeddings.append(subgroup_embeddings)
-            
-            group_copy.drop(index=subgroup.index, inplace=True)
-        
-        embeddings = np.stack(embeddings, axis=0)
-        
-        return pd.Series({
-            'Pheno': pheno,  # Pick any value from the "Pheno" column for the output
-            'Embeddings': embeddings
-        })
-    
-    # # Group by "Pheno" and apply the custom function to each group
-    result_df = df.groupby('Pheno').apply(__shuffle_and_concat).reset_index(drop=True)
-    logging.info(result_df['Embeddings'].to_numpy()[0].shape)
-    logging.info(result_df['Embeddings'].to_numpy()[1].shape)
-    
-    embeddings = np.vstack(result_df['Embeddings'].to_numpy())
-    unique_groups = result_df['Pheno'].to_numpy().reshape(-1,1)
-    
-    label_data = []
-    for index, row in result_df.iterrows():
-        label_data.append([row['Pheno']] * row['Embeddings'].shape[0])
-    
-    def flat_list_of_lists(l):
-        return [item for sublist in l for item in sublist]
-    
-    label_data = flat_list_of_lists(label_data)
-    label_data = np.asarray(label_data).reshape(-1,1)
-    logging.info(f"label_data shape: {label_data.shape}")
-    logging.info(result_df.head())
-    
-    logging.info(f"pheno result: {result_df['Pheno'].to_numpy()}, {unique_groups.shape}")
-    logging.info(f"{embeddings.shape}, {label_data.shape}")
-    
-    logging.info("Loading analytics..")
-    model.load_analytics()
-    logging.info("Plot umap..")
-    model.plot_umap(colormap='Set1',
-                    alpha=0.8,
-                    s=0.8,
-                    label_data=label_data,
-                    # id2label=lambda g: model.test_loader.dataset.id2label(g, label_data),
-                    title='sm_lines',
-                    unique_groups=unique_groups,
-                    infer_labels=False,#False,
-                    # label_data=label_data,
-                    embedding_data=embeddings)
-
-def old_multiplex(model:Model, 
+def multiplex(model:Model, 
               groups_terms,match=False,
               plot_pca=False, is_comb=False, legend_inside=True,
               cmap1=["tab20", "tab20b"], title1="protein localization (before SM)", annot_font_size1=None,
@@ -332,7 +239,8 @@ def old_multiplex(model:Model,
         plt.show()
     return X_transformed, y_transformed
 
-def _old_get_tiles_ids(tile_id, n_markers, mapping):
+
+def _get_tiles_ids(tile_id, n_markers, mapping):
     mapping_np = np.array(mapping)
     transition_index = np.array([mapping_np[i] for i in range(len(mapping_np)) if i % n_markers == 0])
     start_index_transition = np.argwhere(tile_id >= transition_index)[-1][0]
@@ -355,7 +263,7 @@ def _old_get_tiles_ids(tile_id, n_markers, mapping):
     indexes.sort()
     return np.unique(indexes)
 
-def old_calc_bootstrapping(model:Model, groups_terms, n_runs=1000, save_folder=None):
+def calc_bootstrapping(model:Model, groups_terms, n_runs=1000, save_folder=None):
     """Calculate metrics (ARI and silhouette) with bootstrapping
 
     Args:
@@ -424,7 +332,7 @@ def old_calc_bootstrapping(model:Model, groups_terms, n_runs=1000, save_folder=N
 
     return np.array(metrics_random), np.array(metrics_match)
 
-def old_plot_boostrapping(metrics_random=None, metrics_match=None, metrics_random_path=None, metrics_match_path=None):
+def plot_boostrapping(metrics_random=None, metrics_match=None, metrics_random_path=None, metrics_match_path=None):
     """Plot bootstrapping results
 
     Args:
