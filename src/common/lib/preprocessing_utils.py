@@ -16,10 +16,12 @@ import cellpose
 from cellpose import models
 from shapely.geometry import Polygon
 from skimage import io
-
+import skimage.exposure
+from pathlib import Path
 
 def filter_invalid_tiles(file_name, img, nucleus_diameter=100, cellprob_threshold=0,\
                           flow_threshold=0.7, min_edge_distance = 2, tile_w=100,tile_h=100,
+                          calculate_nucleus_distance=False,
                           cp_model=None, show_plot=True, return_counts=False):
     """
     Filter invalid tiles (leave only tiles with #nuclues (not touching the edges) == 1)
@@ -32,7 +34,7 @@ def filter_invalid_tiles(file_name, img, nucleus_diameter=100, cellprob_threshol
     # From 1/None channels to 2 for cellpose (with some adjustments cellpose might work with single channel as well)
     img = np.stack([img, img], axis=-1)
     
-    logging.info(f"[{file_name}] Segmenting nuclues")
+    logging.info(f"[{file_name}] Segmenting nuclues, calculate_nucleus_distance {calculate_nucleus_distance}")
     
     kernel = np.array([[-1,-1,-1], [-1,25,-1], [-1,-1,-1]])
     img_for_seg = cv2.filter2D(img, -1, kernel)
@@ -42,6 +44,13 @@ def filter_invalid_tiles(file_name, img, nucleus_diameter=100, cellprob_threshol
                                     cellprob_threshold=cellprob_threshold,\
                                     flow_threshold=flow_threshold,channel_axis=-1, show_plot=show_plot)
     
+    if calculate_nucleus_distance:
+        # calc nuclear distance
+        masks[masks!=0] = 1 # convert mask to binary
+        nucleus_distance = cv2.distanceTransform(masks.astype('uint8'), cv2.DIST_L2,0)
+    else:
+        nucleus_distance = None
+
     # Crop masks
     masked_tiles = [masks[w:w+tile_w, h:h+tile_h] for w in range(0, masks.shape[0], tile_w) for h in range(0, masks.shape[1], tile_h)]
     masked_tiles = np.stack(masked_tiles, axis=-1)
@@ -104,7 +113,7 @@ def filter_invalid_tiles(file_name, img, nucleus_diameter=100, cellprob_threshol
     logging.info(f"#ALL {n_masked_tiles}, #Passed {tiles_passed_indexes.shape[0]}")
     
     if return_counts:
-        return tiles_passed_indexes, n_cells_per_tile, n_whole_cells_per_tile
+        return tiles_passed_indexes, n_cells_per_tile, n_whole_cells_per_tile, nucleus_distance
     
     return tiles_passed_indexes
 
@@ -169,6 +178,29 @@ def crop_to_tiles(tile_w, tile_h, img_processed):
 
     return image_processed_tiles
 
+def rescale_intensity(img_current_channel):
+    """Return image after stretching or shrinking its intensity levels.
+
+    The desired intensity range of the input and output, in_range and out_range respectively, 
+    are used to stretch or shrink the intensity range of the input image
+    
+    see: https://scikit-image.org/docs/stable/api/skimage.exposure.html#skimage.exposure.rescale_intensity
+    
+    Args:
+        img_current_channel (numpy ndarray): the image to scale
+
+    Returns:
+        img_scaled (numpy ndarray): image in scale of [0,1] after rescaling
+    """
+    
+    vmin, vmax = np.percentile(img_current_channel, q=(0.5, 99.9))
+    img_scaled = skimage.exposure.rescale_intensity(
+                                                    img_current_channel,
+                                                    in_range=(vmin, vmax),
+                                                    out_range=np.float32
+        )
+    return img_scaled
+
 def normalize(show, img_current_channel):
     """Normalize (min-max) given image"""
     
@@ -232,7 +264,6 @@ def segment(img, model, channels=None,
   https://github.com/MouseLand/cellpose/blob/196278e12c135135aff3535d7d0e9218dd2eefc2/cellpose/transforms.py#L341
   """
   masks, flows, styles, diams = model.eval(img, diameter=diameter, channels=channels, cellprob_threshold=cellprob_threshold, flow_threshold=flow_threshold)
-
   if show_plot:
     fig = plt.figure(figsize=(12,5))
     cellpose.plot.show_segmentation(fig, img[...,channels[0]-1], masks, flows[0], channels=channels)
@@ -254,11 +285,11 @@ def preprocess_image_pipeline(img, save_path, n_channels=2,
     img_processed = None
     for c in range(n_channels):
         img_current_channel = np.array(img[...,c], dtype=np.float64)
-        
+                     
         if to_normalize:
             # Normalize original raw image
-            normalize(to_show, img_current_channel)
-
+            img_current_channel = rescale_intensity(img_current_channel)
+            
         if img_processed is None:
             img_processed = img_current_channel
         else:
@@ -282,7 +313,7 @@ def preprocess_image_pipeline(img, save_path, n_channels=2,
             if to_downsample:
                 # Downsampling
                 tile_current_channel = downsample(to_show, tile_current_channel, block_size=2) 
-            
+                
             if tile_current_channel.shape[1] != 100:
                 # Resize from 128x128 to 100x100
                 tile_current_channel = transform.resize(tile_current_channel, (100, 100), anti_aliasing=True)
@@ -350,6 +381,14 @@ def preprocess_panel(slf, panel, input_folder_root,
                 
                 for f in os.listdir(input_subfolder):
                     filename, ext = os.path.splitext(f)
+                    output_filename = format_output_filename(filename, '') if format_output_filename else f
+                    save_path = os.path.join(output_subfolder, f"{rep}_{output_filename}")
+                    
+                    # skip the "tiles validation" if file in this name already exist. 
+                    logging.info(f"Save path: {save_path}")
+                    if os.path.exists(f"{save_path}_processed.npy"): 
+                        logging.info(f"[Skipping ,exists] Already exists {save_path}_processed")
+                        continue
                     
                     if slf.conf.SELECTIVE_INPUT_PATHS is not None \
                         and os.path.join(input_subfolder, f) not in slf.conf.SELECTIVE_INPUT_PATHS:
@@ -371,8 +410,10 @@ def preprocess_panel(slf, panel, input_folder_root,
                     logging.info(f"{target_filepath}, {nucleus_filepath}")
                                         
                     if site not in valid_tiles_indexes:
+
                         # Crop DAPI tiles
-                        img_nucleus = io.imread(nucleus_filepath)
+                        img_nucleus = cv2.imread(nucleus_filepath, cv2.IMREAD_ANYDEPTH) #used to be IMREAD_GRAYSCALE
+                        img_nucleus = rescale_intensity(img_nucleus)
                         
                         nucleus_diameter    = slf.nucleus_diameter
                         tile_width          = slf.tile_width
@@ -381,18 +422,20 @@ def preprocess_panel(slf, panel, input_folder_root,
                         flow_threshold      = slf.flow_threshold
                         min_edge_distance   = slf.min_edge_distance
                         to_show             = slf.to_show
+                        with_nucelus_distance = slf.conf.WITH_NUCLEUS_DISTANCE
                         
                         # Filter invalid tiles (keep tiles with at least one full nuclues (nuclues border is not overlapping image edges))
-                        current_valid_tiles_indexes, n_cells_per_tile, n_whole_cells_per_tile = filter_invalid_tiles(nucleus_filepath,
-                                                                                                                img_nucleus,
-                                                                                                                nucleus_diameter=nucleus_diameter, 
-                                                                                                                cellprob_threshold=cellprob_threshold,
-                                                                                                                flow_threshold=flow_threshold, 
-                                                                                                                min_edge_distance = min_edge_distance,
-                                                                                                                tile_w=tile_width, tile_h=tile_height, 
-                                                                                                                cp_model=cp_model,
-                                                                                                                show_plot=to_show,
-                                                                                                                return_counts=True)
+                        current_valid_tiles_indexes, n_cells_per_tile, n_whole_cells_per_tile, nucleus_distance = filter_invalid_tiles(nucleus_filepath,
+                                                                                                                    img_nucleus,
+                                                                                                                    nucleus_diameter=nucleus_diameter, 
+                                                                                                                    cellprob_threshold=cellprob_threshold,
+                                                                                                                    flow_threshold=flow_threshold, 
+                                                                                                                    min_edge_distance = min_edge_distance,
+                                                                                                                    tile_w=tile_width, tile_h=tile_height, 
+                                                                                                                    cp_model=cp_model,
+                                                                                                                    calculate_nucleus_distance=with_nucelus_distance,
+                                                                                                                    show_plot=to_show,
+                                                                                                                    return_counts=True)
                         
                         logging.info(f"[{nucleus_filepath}] {len(current_valid_tiles_indexes)}")# out of {len(nucleus_image_tiles)} passed ({len(nucleus_image_tiles)-len(current_valid_tiles_indexes)} invalid)")
                         
@@ -421,19 +464,11 @@ def preprocess_panel(slf, panel, input_folder_root,
                     else:
                         logging.info(f"[Marker {marker}, Site: {site}] Valid tiles have already been calculated ({valid_tiles_indexes[site]})")
                                                             
-                    output_filename = format_output_filename(filename, '') if format_output_filename else f
-                    
-                    save_path = os.path.join(output_subfolder, f"{rep}_{output_filename}")
-                    
-                    logging.info(f"Save path: {save_path}")
-                
-                    if os.path.exists(f"{save_path}_processed.npy"): 
-                        logging.info(f"[Skipping ,exists] Already exists {save_path}_processed")
-                        continue
                 
                     logging.info(output_subfolder)
                     if not os.path.exists(output_subfolder):
-                        os.makedirs(output_subfolder)
+                        logging.info(f"[Creating subfolder]  {output_subfolder} {os.path.exists(output_subfolder)}")
+                        Path(output_subfolder).mkdir(parents=True, exist_ok=True)
 
                     tiles_indexes = valid_tiles_indexes[site]
                     
@@ -443,6 +478,7 @@ def preprocess_panel(slf, panel, input_folder_root,
 
                     slf.preprocess_image(target_filepath, save_path,
                                             nucleus_file=nucleus_filepath,
+                                            img_nucleus=nucleus_distance,
                                             tiles_indexes=tiles_indexes,
                                             show=slf.to_show,
                                             flow_threshold=slf.flow_threshold)

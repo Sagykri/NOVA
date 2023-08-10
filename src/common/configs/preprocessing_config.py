@@ -18,7 +18,7 @@ class PreprocessingConfig(BaseConfig):
         self.SELECTIVE_INPUT_PATHS = None
         
         self.HOME_SUBFOLDER = os.path.join(self.HOME_FOLDER, "src", "preprocessing")
-        self.LOGS_FOLDER = os.path.join(self.HOME_SUBFOLDER, 'logs')
+        self.OUTPUTS_SUBFOLDER = os.path.join(self.OUTPUTS_FOLDER, "preprocessing")
         
         self.PREPROCESSOR_CLASS_PATH = None
         
@@ -33,3 +33,4 @@ class PreprocessingConfig(BaseConfig):
         self.FLOW_THRESHOLD = 0.4
         self.MIN_EDGE_DISTANCE = 2
         self.TO_DENOISE = False    
+        self.WITH_NUCLEUS_DISTANCE = False

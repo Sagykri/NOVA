@@ -148,7 +148,8 @@ class ConfPreprocessor(Preprocessor):
         to_denoise          = self.to_denoise
         to_show             = self.to_show
     
-        img = io.imread(input_path)
+        img = cv2.imread(input_path, cv2.IMREAD_GRAYSCALE)
+        
         channel_axis = np.argmin(img.shape)
         nucleus_channel = -1
         img = np.moveaxis(img, channel_axis, nucleus_channel)
