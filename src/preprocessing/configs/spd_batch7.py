@@ -10,5 +10,7 @@ class SPD_Batch7(SPDPreprocessingConfig):
     def __init__(self):
         super().__init__()
         
-        self.INPUT_FOLDERS = [os.path.join(".", "input", "images", "raw", "SpinningDisk", "batch7")]
-        self.OUTPUT_FOLDERS = [os.path.join(".", "input", "images", "processed", "spd2", "SpinningDisk", "batch7")]
+        self.INPUT_FOLDERS = [os.path.join(self.RAW_SUBFOLDER_ROOT, "batch7")]
+        self.OUTPUT_FOLDERS = [os.path.join(self.PROCESSED_SUBFOLDER_ROOT, "batch7_16bit")]
+        self.WITH_NUCLEUS_DISTANCE = False
+        

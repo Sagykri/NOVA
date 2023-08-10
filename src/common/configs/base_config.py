@@ -31,16 +31,14 @@ class BaseConfig():
         
         # Precaution - raw and processed folders can't be the same one!
         assert self.RAW_FOLDER_ROOT != self.PROCESSED_FOLDER_ROOT, f"RAW_FOLDER_ROOT == PROCESSED_FOLDER_ROOT, {self.RAW_FOLDER_ROOT}"
-        
-        # Embeddings
-        self.EMBEDDINGS_FOLDER = os.path.join(self.HOME_FOLDER, "input", "embeddings")
-        
+                
         # Output
-        self.CONFIGS_USED_FOLDER = os.path.join(self.HOME_FOLDER, "outputs", "configs_used", __now.strftime("%d%m%y_%H%M%S_%f"))
+        self.OUTPUTS_FOLDER = os.path.join(self.HOME_FOLDER, "outputs")
+        self.CONFIGS_USED_FOLDER = os.path.join(self.OUTPUTS_FOLDER, "configs_used", __now.strftime("%d%m%y_%H%M%S_%f"))
         
         
         # Model
-        self.PRETRAINED_MODEL_PATH = os.path.join(self.HOME_FOLDER, "models", "cytoself", "models", "pretrained_model.h5")    
+        self.PRETRAINED_MODEL_PATH = None
         
         # Logs
         self.__LOGS_FOLDER = os.path.join(self.HOME_FOLDER, 'logs')
@@ -174,12 +172,14 @@ class BaseConfig():
     
     @LOGS_FOLDER.setter
     def LOGS_FOLDER(self, path):
+        if logging.getLogger().hasHandlers():
+            return
+    
         self.__LOGS_FOLDER = path
-        
         __now = datetime.datetime.now()
         log_file_path = os.path.join(self.__LOGS_FOLDER, __now.strftime("%d%m%y_%H%M%S_%f") + '.log')
         if not os.path.exists(self.__LOGS_FOLDER):
             os.makedirs(self.__LOGS_FOLDER)
         init_logging(log_file_path)
-        logging.info(f"[{self.__class__.__name__}] Init")
+        logging.info(f"[{self.__class__.__name__}] Init (log path: {log_file_path})")
         logging.info(f"[{self.__class__.__name__}] MOMAPS_HOME={self.HOME_FOLDER}, MOMAPS_DATA_HOME={self.HOME_DATA_FOLDER}")

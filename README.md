@@ -35,6 +35,24 @@ wget https://repo.anaconda.com/archive/Anaconda3-2023.03-Linux-x86_64.sh
   d. To use pip, to:
 	/home/labs/hornsteinlab/Collaboration/MOmaps/anaconda3/momaps/bin/python -m pip install package_name
 6. install the following pakages:
+- V opencv-python-headless<4.3 (used pip not conda)
+- V cellpose (used pip cellpose[gui])
+- V cytoself (used pip not conda)
+- V sklearn
+- V scikit-image (used pip not conda)
+- V umap-learn
+- tensorflow (h5py==2.10.0) - For training only:
+    V conda install tensorflow-gpu=1.15
+    V conda install h5py=2.10.0
+- V tqdm
+- V shap (shaply values)
+- V Shapely (geometric) 
+- V adjustText
+- torch-tb-profiler
+
+pip install jupyter notebook
+Add the conda env as kernel to jupyter:
+python -m ipykernel install --user --name=momaps
 
 - Set the pip to work with the installed conda:
 	/home/labs/hornsteinlab/Collaboration/MOmaps/anaconda3/momaps/bin/python -m pip install --user --upgrade pip
@@ -44,7 +62,8 @@ wget https://repo.anaconda.com/archive/Anaconda3-2023.03-Linux-x86_64.sh
 - First uninstall the CPU version of torch
   pip uninstall torch
 - Then run this command to install the GPU version:
-	conda install pytorch cudatoolkit=11.4 -c pytorch -c conda-forge
+	new: conda install pytorch=1.12.1 cudatoolkit=11.3.1 -c pytorch -c conda-forge
+  old: conda install pytorch cudatoolkit=11.4 -c pytorch -c conda-forge
   Notice (4.5.23): Unfortunately, with cudatoolkit 11.4, conda only proposes the CPU version of pytorch.
   You should install cudatoolkit=11.3.1 and pytorch=1.12.1 for the GPU version!
 
@@ -69,15 +88,7 @@ wget https://repo.anaconda.com/archive/Anaconda3-2023.03-Linux-x86_64.sh
     conda install tensorflow-gpu=1.15
     conda install h5py=2.10.0
 
-- conda install -c conda-forge tqdm
-
-- conda install -c conda-forge matplotlib
-
-- conda install -c conda-forge shap
- 
-- conda install -c conda-forge shapely
-
-- conda install -c conda-forge adjusttext
+- conda install -c conda-forge tqdm matplotlib shap shapely adjusttext
 
 At the end, recheck that the pytorch you have installed is indeed the GPU version and wasn't switched to the CPU version!
 (If GPU isn't available all of a sudden, try to uninstall numpy)
@@ -96,6 +107,13 @@ Add the conda env as kernel to jupyter:
 - 'training' - for training a model
 - 'generate_figures' - for generating the figures for the paper
 
+## Tensorboard
+For using tensorboard run the following command:
+```
+tensorboard --logdir=PATH_TO_tb_logs_DIR
+```
+If port is already being used add the flag: ```--port=PORT```
+
 ## Pay Attention!
 In order to run anything here, you must set an environment variable "MOMAPS_HOME" as your MOmaps home directory.
 ```
@@ -108,8 +126,13 @@ If your data folder is in a different location than MOMAPS_HOME/input, please de
 export MOMAPS_DATA_HOME=PATH_TO_INPUT_FOLDER
 ```
 
-Also, add:
+## Troubleshooting:
+- Try running:
+  ```
+  module load gcc
+  ```
+- Try running:
 ```
 module load cuda/11.7
 ```
-to your  /home/labs/hornsteinlab/your_user_name/.bashrc file
+add what worked to your  /home/labs/hornsteinlab/your_user_name/.bashrc file

@@ -6,18 +6,14 @@ import sys
 import timeit
 import torch
 import pandas as pd
+import cv2
 sys.path.insert(1, os.getenv("MOMAPS_HOME"))
-
-
-
 
 
 import glob
 import logging
 
 import numpy as np
-
-#import torch  #IS temp might not be  needed for the preprocessing - to check
 from skimage import io
 from cellpose import models
 
@@ -25,7 +21,6 @@ from src.common.lib.preprocessor import Preprocessor
 from src.common.lib import preprocessing_utils
 from src.common.lib.utils import LogDF, get_if_exists
 from src.preprocessing.configs.preprocessor_spd_config import SPDPreprocessingConfig
-
 
 class SPDPreprocessor(Preprocessor):
     """
@@ -84,8 +79,9 @@ class SPDPreprocessor(Preprocessor):
                 logging.info(f"[{raw_f}] Skipping non-folder")
                 continue
             
-            cell_lines = [f for f in os.listdir(input_folder_root) if os.path.isdir(os.path.join(input_folder_root, f))]
+            cell_lines = [f for f in sorted(os.listdir(input_folder_root)) if os.path.isdir(os.path.join(input_folder_root, f))]
 
+            # logging.warning("\n\n\n\n NOTE!! WARNING!! TAKING ONLY WT!! :O :O :O\n\n\n")
             logging.info(f"[{raw_f}] Cell line detected: {cell_lines}")
 
             for cell_line in cell_lines:
@@ -94,7 +90,7 @@ class SPDPreprocessor(Preprocessor):
                 
                 input_folder_root_cell_line = os.path.join(input_folder_root, cell_line)
                 
-                panels = [f for f in os.listdir(input_folder_root_cell_line) if os.path.isdir(os.path.join(input_folder_root_cell_line, f))]        
+                panels = [f for f in sorted(os.listdir(input_folder_root_cell_line)) if os.path.isdir(os.path.join(input_folder_root_cell_line, f))]        
                 
                 logging.info(f"[{raw_f}, {cell_line}] Panels: {panels}")
                 
@@ -104,10 +100,11 @@ class SPDPreprocessor(Preprocessor):
                 
                 # For running it sequentially
                 # for p in panels:
-                #     preprocessing_utils.preprocess_panel(self, p, input_folder_root, output_folder_root, input_folder_root_cell_line, 
-                #                                         cp_model, raw_f, cell_line, logging_df, timing_df)
+                #    preprocessing_utils.preprocess_panel(self, p, input_folder_root, output_folder_root, input_folder_root_cell_line, 
+                #                                            cp_model, raw_f, cell_line, logging_df, timing_df)
+                # print("/n/n/n/n/n/n/nXXXXXXXXX For running it sequentially")
                 with multiprocessing.Pool(len(panels)) as pool:
-                    pool.starmap(preprocessing_utils.preprocess_panel, args)
+                   pool.starmap(preprocessing_utils.preprocess_panel, args)
                      
                         
     def preprocess_image(self, input_path, output_path, **kwargs):
@@ -121,6 +118,7 @@ class SPDPreprocessor(Preprocessor):
         file_path           = input_path
         save_path           = output_path
         nucleus_file        = get_if_exists(kwargs, 'nucleus_file')
+        img_nucleus         = get_if_exists(kwargs, 'img_nucleus')
         tile_width          = self.tile_width
         tile_height         = self.tile_height
         to_downsample       = self.to_downsample
@@ -129,16 +127,17 @@ class SPDPreprocessor(Preprocessor):
         to_show             = self.to_show
         tiles_indexes       = get_if_exists(kwargs, 'tiles_indexes')
         
-        
-        img_target = io.imread(file_path)
-        img_nucleus = io.imread(nucleus_file)
+        # Changing from skimage.load to cv2.load (with grayscale flag) -> changed to IMREAD_ANYDEPTH to read in 16bit format
+        img_target = cv2.imread(file_path, cv2.IMREAD_ANYDEPTH) #used to be IMREAD_GRAYSCALE
+        if img_nucleus is None:
+            img_nucleus = cv2.imread(nucleus_file, cv2.IMREAD_ANYDEPTH) #used to be IMREAD_GRAYSCALE
         
         # Check if files are corrputed
-        if np.size(img_target) == 0:
-            logging.info(f"File {file_path} is corrupted. Skiping this one.")
+        if img_target is None or np.size(img_target) == 0:
+            logging.warning(f"File {file_path} is corrupted. Skiping this one.")
             return
-        if np.size(img_nucleus) == 0:
-            logging.info(f"File {nucleus_file} is corrupted. Skiping this one.")
+        if img_nucleus is None or np.size(img_nucleus) == 0:
+            logging.warning(f"File {nucleus_file} is corrupted. Skiping this one.")
             return
         
         # Take nuclues and target channels so target is the first channel and nuclues is the second
