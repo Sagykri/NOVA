@@ -28,7 +28,7 @@ def find_marker_folders(batch_path, depth=5, exclude_DAPI=True):
     depth -= 1
     with os.scandir(batch_path) as input_data_folder:
         
-        for entry in input_data_folder:
+        for entry in sorted(input_data_folder, key=lambda e: e.name):
         
             # if that's not a marker directory, recursion...
             if entry.is_dir() and depth > 0:
@@ -59,11 +59,11 @@ def sample_image_names_per_marker(input_data_dir, sample_size=1, raw=False):
     """
     try:
         # This will hold the full path of n images (n is defined by "sample_size") of the marker
-        filenames = random.sample(os.listdir(input_data_dir), sample_size)
+        filenames = random.sample(sorted(os.listdir(input_data_dir)), sample_size)
         logging.info(f"\nsample_image_names_per_marker: {input_data_dir}. {sample_size} images per marker.")
     except ValueError:
-        npy_size = len(os.listdir(input_data_dir))
-        filenames = random.sample(os.listdir(input_data_dir), npy_size) 
+        npy_size = len(sorted(os.listdir(input_data_dir)))
+        filenames = random.sample(sorted(os.listdir(input_data_dir)), npy_size) 
         logging.info(f"\n!!! This marker has less then {sample_size} images. Loaded {input_data_dir}. {npy_size} images per marker.")
         
         
@@ -148,7 +148,7 @@ def sample_images_all_markers_all_lines(input_dir_batch=None, _sample_size_per_m
     logging.info(f"\n\n[sample_images_all_markers_all_lines]: input_dir_batch:{input_dir_batch}, _sample_size_per_markers:{_sample_size_per_markers}, _num_markers:{_num_markers}")
 
     
-    for cell_line in os.listdir(input_dir_batch):
+    for cell_line in sorted(os.listdir(input_dir_batch)):
         
         # get the full path of cell line images
         cell_line_path = os.path.join(input_dir_batch, cell_line)

@@ -4,7 +4,7 @@ sys.path.insert(1, os.getenv("MOMAPS_HOME"))
 
 
 from src.common.configs.figure_config import FigureConfig
-from models.cytoself.configs.config import CytoselfConfig
+from models.cytoself_vanilla.configs.config import CytoselfConfig
 from models.imgself.configs.config import ImgselfConfig
 from models.neuroself.configs.config import NeuroselfConfig
 

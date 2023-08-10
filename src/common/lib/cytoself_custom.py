@@ -205,7 +205,8 @@ def plot_umap(analytics,
                         s=s,
                         c=c,
                         label=fname,
-                        alpha=alpha
+                        alpha=alpha,
+                        edgecolors='none'
                     )
                     if to_annot:
                         km = KMeans(n_clusters=1, random_state=seed).fit(data0)

@@ -10,41 +10,29 @@ class ModelConfig(BaseConfig):
     def __init__(self):
         super().__init__()
         
+        
+        self.INPUT_FOLDERS = None
         self.MODELS_HOME_FOLDER = os.path.join(self.HOME_FOLDER, "src", "models")
-        
-        # Preprocessing
-        self.TILE_W = 300
-        self.TILE_H = 300
-        self.NUCLEUS_CHANNEL = 3
-        self.FLOW_THRESHOLD = 0.4
-        self.CHANNEL_AXIS = -1
-        self.NUCLEUS_DIAMETER = 60
-        self.MIN_EDGE_DISTANCE = 2
-
-        # Metrics
-        # self.METRICS_FOLDER = os.path.join(self.HOME_FOLDER, "metrics")
-        # self.METRICS_RANDOM_PATH = os.path.join(self.METRICS_FOLDER, "random.npy")
-        # self.METRICS_MATCH_PATH = os.path.join(self.METRICS_FOLDER, "match.npy")
-
+        self.MODEL_OUTPUT_FOLDER = None
         
         
-    
-        self.MARKERS_TO_EXCLUDE = None
-        self.CELL_LINES = None
-        self.CONDITIONS = None
-        self.MARKERS_FOR_DOWNSAMPLE = None
-        self.TRAIN_PCT = 0.7
-        self.ADD_CONDITION_TO_LABEL = True 
-        self.ADD_LINE_TO_LABEL = True
-        self.ADD_TYPE_TO_LABEL = False
-        self.ADD_BATCH_TO_LABEL = False
-        
-        
-        self.SPLIT_BY_SET_FOR = None
-        self.SPLIT_BY_SET_FOR_BATCH = None
+        self.LAST_CHECKPOINT_PATH = None
         
         
         self.EARLY_STOP_PATIENCE = 10
         self.LEARN_RATE = 2e-4
         self.BATCH_SIZE = 32
         self.MAX_EPOCH = 100
+        
+        self.DATA_VAR = None
+        
+        self.EMB_SHAPES = ((25, 25), (4, 4))
+        self.INPUT_SHAPE = (2, 100, 100)
+        self.OUTPUT_SHAPE = (2, 100, 100)
+        self.FC_ARGS = {'num_layers': 2}
+        self.FC_OUTPUT_IDX = "all"
+        self.VQ_ARGS = [{'num_embeddings': 2048, 'embedding_dim': 64},
+                        {'num_embeddings': 2048, 'embedding_dim': 64, 'channel_split':9}]
+        self.FC_INPUT_TYPE = 'vqvec'
+        self.REDUCELR_PATIENCE = 3
+        self.REDUCELR_INCREMENT = 0.1

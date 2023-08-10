@@ -152,7 +152,7 @@ def __get_figure1(panels_ids=None):
         # images, labels, labels_changepoints, markers_order = load_data(input_folders_cytoself, condition_l=True,
         #                                                                markers=markers, type_l=False,
         #                                                                split_by_set=False)
-        images, labels, labels_changepoints, markers_order = cytoself_model.load_data()
+        images, labels, labels_changepoints, markers_order = cytoself_model.load_with_datamanager()
 
         # Load data
         colors_dict = get_colors_dict(labels, cytoself_model.conf.COLORS_MAPPING)
@@ -197,7 +197,7 @@ def __get_figure1(panels_ids=None):
         # images, labels, labels_changepoints, markers_order = load_data(input_folders_cytoself, markers=markers,
         #                                                                condition_l=True, type_l=False,
         #                                                                split_by_set=False)
-        images, labels, labels_changepoints, markers_order = cytoself_model.load_data()
+        images, labels, labels_changepoints, markers_order = cytoself_model.load_with_datamanager()
 
 
         # Load model
@@ -240,7 +240,7 @@ def __get_figure1(panels_ids=None):
         # images, labels, labels_changepoints, markers_order = load_data(input_folders_cytoself, markers=markers,
         #                                                                condition_l=True, type_l=False,
         #                                                                split_by_set=False)
-        images, labels, labels_changepoints, markers_order = cytoself_model.load_data()
+        images, labels, labels_changepoints, markers_order = cytoself_model.load_with_datamanager()
 
 
         # logging.info(f"[{fig_id} {panel_id}] init")
@@ -270,7 +270,7 @@ def __get_figure1(panels_ids=None):
         # images, labels, labels_changepoints, markers_order = load_data(input_folders_cytoself, markers=markers,
         #                                                                condition_l=True, type_l=False,
         #                                                                split_by_set=False)
-        images, labels, labels_changepoints, markers_order = cytoself_model.load_data()
+        images, labels, labels_changepoints, markers_order = cytoself_model.load_with_datamanager()
 
 
         logging.info(f"[{fig_id} {panel_id}] Processing markers")
