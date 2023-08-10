@@ -84,7 +84,7 @@ class SPDPreprocessor(Preprocessor):
                 logging.info(f"[{raw_f}] Skipping non-folder")
                 continue
             
-            cell_lines = [f for f in os.listdir(input_folder_root) if os.path.isdir(os.path.join(input_folder_root, f))]
+            cell_lines = [f for f in sorted(os.listdir(input_folder_root)) if os.path.isdir(os.path.join(input_folder_root, f))]
 
             logging.info(f"[{raw_f}] Cell line detected: {cell_lines}")
 
@@ -94,7 +94,7 @@ class SPDPreprocessor(Preprocessor):
                 
                 input_folder_root_cell_line = os.path.join(input_folder_root, cell_line)
                 
-                panels = [f for f in os.listdir(input_folder_root_cell_line) if os.path.isdir(os.path.join(input_folder_root_cell_line, f))]        
+                panels = [f for f in sorted(os.listdir(input_folder_root_cell_line)) if os.path.isdir(os.path.join(input_folder_root_cell_line, f))]        
                 
                 logging.info(f"[{raw_f}, {cell_line}] Panels: {panels}")
                 

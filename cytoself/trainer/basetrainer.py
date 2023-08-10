@@ -323,6 +323,12 @@ class BaseTrainer:
         Numpy array
 
         """
+        # SAGY - set model to eval mode
+        if self.model.training:
+            logging.info("[infer_one_epoch] Setting model in eval mode!")
+            self.model.eval()
+            logging.info(f"[infer_one_epoch] model.training={self.model.training}")
+
         output, output_label = [], []
         for i, _batch in enumerate(tqdm(data_loader, desc='Infer')):
             timg = self.get_data_by_name(_batch, 'image')
@@ -331,6 +337,7 @@ class BaseTrainer:
                 out = out[0]
             output.append(out.detach().cpu().numpy())
             if 'label' in _batch:
+                logging.info(f"{i} LABEL: [{len(_batch['label'])}] {_batch['label']}")
                 output_label.append(_batch['label'])
         output = np.vstack(output)
         if len(output_label) == len(output):
@@ -341,6 +348,8 @@ class BaseTrainer:
                 output_label = _output_label
             else:
                 output_label = np.array([])
+                
+        logging.info(f"Output shape: {output.shape}, {output_label.shape} labels_uq: {np.unique(output_label)}")
         return output, output_label
 
     def get_data_by_name(self, data: dict, name: str, force_float=True) -> Tensor:
@@ -430,10 +439,12 @@ class BaseTrainer:
                     self.current_epoch = current_epoch
                     logging.info(f"Epoch {current_epoch}/{self.train_args['max_epoch']}")
                     # Train the model
+                    logging.info(f"[{current_epoch}] Train Phase")
                     self.model.train(True)
                     train_metrics = self.run_one_epoch(datamanager, 'train', **kwargs)
+                    logging.info(f"[{current_epoch}] Val Phase")
                     self.model.train(False)
-
+                    
                     # Validate the model
                     with torch.inference_mode():
                         val_metrics = self.run_one_epoch(datamanager, 'val', **kwargs)
@@ -591,6 +602,12 @@ class BaseTrainer:
             Image data
 
         """
+        if self.model.training:
+            logging.info("[infer_embeddings] Setting model in eval mode!")
+            self.model.eval()
+            logging.info(f"[infer_embeddings] model.training={self.model.training}")
+
+        
         if data is None:
             raise ValueError('The input to infer_embeddings cannot be None.')
         if isinstance(data, DataLoader):
@@ -609,6 +626,11 @@ class BaseTrainer:
             Image data
 
         """
+        if self.model.training:
+            logging.info("[infer_reconstruction] Setting model in eval mode!")
+            self.model.eval()
+            logging.info(f"[infer_reconstruction] model.training={self.model.training}")
+
         if data is None:
             raise ValueError('The input to infer_embeddings cannot be None.')
         if isinstance(data, DataLoader):

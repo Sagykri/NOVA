@@ -213,6 +213,11 @@ class CytoselfFullTrainer(VQVAETrainer):
             Name & index of output layer
 
         """
+        if self.model.training:
+            logging.info("[infer_embeddings] Setting model in eval mode!")
+            self.model.eval()
+            logging.info(f"[infer_embeddings] model.training={self.model.training}")
+        
         if data is None:
             raise ValueError('The input to infer_embeddings cannot be None.')
         if isinstance(data, DataLoader):

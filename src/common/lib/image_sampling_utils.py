@@ -1,13 +1,9 @@
 # TODO: MOVE TO A DIFFERENT FILE/FOLDER + UTILIZE CONFIGURATION (SAGY WROTE THIS TODO)
-
-
 import random
 import os
 
-
 BASE_DIR = os.path.join('/home','labs','hornsteinlab','Collaboration','MOmaps')
 INPUT_DIR = os.path.join(BASE_DIR,'input','images','processed','spd2','SpinningDisk')
-
 
 BATCH_TO_RUN = 'batch8'
 INPUT_DIR_BATCH = os.path.join(INPUT_DIR, BATCH_TO_RUN)
@@ -30,7 +26,7 @@ def find_marker_folders(batch_path, depth=5, exclude_DAPI=True):
     depth -= 1
     with os.scandir(batch_path) as input_data_folder:
         
-        for entry in input_data_folder:
+        for entry in sorted(input_data_folder, key=lambda e: e.name):
         
             # if that's not a marker directory, recursion...
             if entry.is_dir() and depth > 0:
@@ -61,11 +57,11 @@ def sample_image_names_per_marker(input_data_dir, sample_size=1):
     
     try:
         # This will hold the full path of n images (n is defined by "sample_size") of the marker
-        filenames = random.sample(os.listdir(input_data_dir), sample_size)
+        filenames = random.sample(sorted(os.listdir(input_data_dir)), sample_size)
         print(f"\nsample_image_names_per_marker: {input_data_dir}. {sample_size} images per marker.")
     except ValueError:
-        npy_size = len(os.listdir(input_data_dir))
-        filenames = random.sample(os.listdir(input_data_dir), npy_size)   
+        npy_size = len(sorted(os.listdir(input_data_dir)))
+        filenames = random.sample(sorted(os.listdir(input_data_dir)), npy_size)   
         print(f"\n!!! This marker has less then {sample_size} images. Loaded {input_data_dir}. {npy_size} images per marker.")
         
         
@@ -99,6 +95,8 @@ def sample_images_all_markers(cell_line_path=None, sample_size_per_markers=1, nu
             list: list of paths (strings) 
         """
         
+        print(f"[sample_images_all_markers]")
+        
         sampled_images = []
         sampled_markers = set()
         
@@ -111,7 +109,7 @@ def sample_images_all_markers(cell_line_path=None, sample_size_per_markers=1, nu
             n_images = 0
             
             if (len(sampled_markers) < num_markers):
-            
+                
                 if (n_images<sample_size_per_markers):
             
                     sampled_marker_images = sample_image_names_per_marker(marker_folder, sample_size=sample_size_per_markers)
@@ -127,16 +125,22 @@ def sample_images_all_markers(cell_line_path=None, sample_size_per_markers=1, nu
         print("sampled_images:", len(sampled_images), "sampled_markers:", len(sampled_markers))
         return sampled_images
 
-def sample_images_all_markers_all_lines(input_dir_batch, sample_size_per_markers=150, num_markers=26):
+def sample_images_all_markers_all_lines(input_dir_batch=None, _sample_size_per_markers=150, _num_markers=26):
+    
     images_paths = []
     
-    for cell_line in os.listdir(input_dir_batch):
+    if input_dir_batch is None:
+        raise Exception(f"input argument input_dir_batch is None. ")
+    print(f"\n\n[sample_images_all_markers_all_lines]: input_dir_batch:{input_dir_batch}, _sample_size_per_markers:{_sample_size_per_markers}, _num_markers:{_num_markers}")
+
+    
+    for cell_line in sorted(os.listdir(input_dir_batch)):
         
         # get the full path of cell line images
         cell_line_path = os.path.join(input_dir_batch, cell_line)
         print(f"\n\ncell_line: {cell_line} {cell_line_path}")
         # Sample markers and then sample images of these markers. The returened value is a list of paths (strings) 
-        paths = sample_images_all_markers(cell_line_path, sample_size_per_markers=sample_size_per_markers, num_markers=num_markers)
+        paths = sample_images_all_markers(cell_line_path, sample_size_per_markers=_sample_size_per_markers, num_markers=_num_markers)
         
         images_paths.extend(paths)
         

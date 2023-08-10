@@ -5,6 +5,7 @@ import sys
 import os
 import numpy as np
 import torch
+from copy import deepcopy
 
 sys.path.insert(1, os.getenv("MOMAPS_HOME"))
 from sklearn.model_selection import train_test_split
@@ -78,32 +79,43 @@ class Dataset(torch.utils.data.Dataset ,metaclass=ABCMeta):
     def __len__(self):
         return len(self.y)
     
-    
+    @staticmethod
+    def get_subset(dataset, indexes):
+        subset = deepcopy(dataset)
+        
+        subset.X_paths, subset.y = dataset.X_paths[indexes], dataset.y[indexes]
+        
+        subset.unique_markers = np.unique(subset.y)
+        subset.label = subset.y
+        
+        return subset
     
     def __getitem__(self, index):
-        logging.info(f"\n\n\n\n XX  __getitem__ {index}")
+        logging.info(f"\n\n\n\n __getitem__ {index}")
         'Generate one batch of data'
         
-        X_batch, y_batch = self.get_batch(index)
+        X_batch, y_batch, paths_batch = self.get_batch(index, return_paths=True)
     
         y_batch = self.__label_converter(y_batch, label_format='index')
+        paths_batch = paths_batch.reshape(-1,1)
         
-        return {'image': X_batch, 'label': y_batch}
+        return {'image': X_batch, 'label': y_batch, 'image_path': paths_batch}
         
 
-    def get_batch(self, indexes):
+    def get_batch(self, indexes, return_paths=False):
         if not isinstance(indexes, list):
             indexes = [indexes]
-        logging.info(f"Indexes: {indexes}")
+        logging.info(f"Indexes: {indexes}, {self.X_paths[indexes]}")
         X_paths_batch = self.X_paths[indexes]
         y_batch = self.y[indexes]
 
-        return self.__load_batch(X_paths_batch, y_batch)
+        return self.__load_batch(X_paths_batch, y_batch, return_paths=return_paths)
 
-    def __load_batch(self, paths, labels):
+    def __load_batch(self, paths, labels, return_paths=False):
         'Generates data containing batch_size samples' 
         X_batch = []
         y_batch = []
+        paths_batch = []
         
         # Generate data
         for i, path in enumerate(paths):
@@ -132,6 +144,8 @@ class Dataset(torch.utils.data.Dataset ,metaclass=ABCMeta):
             # Store sample - all the tiles in site
             X_batch.append(imgs)
             y_batch.append([labels[i]]*n_tiles)
+            if return_paths:
+                paths_batch.append([path]*n_tiles)
             
             if not self.is_aug_inplace:
                 # Append augmented images
@@ -139,9 +153,13 @@ class Dataset(torch.utils.data.Dataset ,metaclass=ABCMeta):
                     augmented_images = np.stack(augmented_images) 
                     X_batch.append(augmented_images) 
                     y_batch.append([labels[i]]*len(augmented_images)) 
+                    if return_paths:
+                        paths_batch.append([path]*len(augmented_images))
         
         X_batch = np.concatenate(X_batch)
         y_batch = np.asarray(flat_list_of_lists(y_batch))
+        if return_paths:
+            paths_batch = np.asarray(flat_list_of_lists(paths_batch))
 
         # If the channel axis is the last one, move it to be the second one
         # (#tiles, 100, 100, #channel) -> (#tiles, #channel, 100, 100)
@@ -150,7 +168,7 @@ class Dataset(torch.utils.data.Dataset ,metaclass=ABCMeta):
 
         logging.info(f"y_batch shape: {y_batch.shape}")
         
-        logging.info(f"\n\n [load_batch]  X_batch: {X_batch.shape}, y [{np.unique(y_batch)}]: {y_batch.shape}, {y_batch}")
+        logging.info(f"\n\n [load_batch]  X_batch: {X_batch.shape}, y [{np.unique(y_batch)}]: {y_batch.shape}")
 
         
         ###############################################################
@@ -160,8 +178,21 @@ class Dataset(torch.utils.data.Dataset ,metaclass=ABCMeta):
         nvidia_smi_info = utils.apply_for_all_gpus(utils.get_nvidia_smi_output)
         logging.info(f"nvidia_smi: {nvidia_smi_info}")
         
+        if return_paths:
+            return X_batch, y_batch, paths_batch
+        
         return X_batch, y_batch
         
+    def id2label(self, y_id, unique_markers=None):
+        if unique_markers is None:
+            unique_markers = self.unique_markers
+            
+        y_label = np.empty_like(y_id, dtype='object')
+        for i in range(len(unique_markers)):
+            label = unique_markers[i]
+            y_label[y_id==i] = label
+            
+        return y_label
     
     def __label_converter(self, y, label_format='index'):
         if self.unique_markers is None:
@@ -184,19 +215,23 @@ class Dataset(torch.utils.data.Dataset ,metaclass=ABCMeta):
         def collate_fn(batch):
             images = [b['image'] for b in batch]
             labels = [b['label'] for b in batch]
+            images_paths = [b['image_path'] for b in batch]
             
             output_images = torch.from_numpy(np.vstack(images))
             output_labels = torch.from_numpy(np.vstack(labels).reshape(-1,))
+            output_paths = np.vstack(images_paths).reshape(-1,)
             
             if shuffle:
                 indexes = np.arange(len(output_images))
                 np.random.shuffle(indexes)
                 output_images = output_images[indexes]
                 output_labels = output_labels[indexes]
+                output_paths = output_paths[indexes]
             
-            logging.info(output_labels)
-            logging.info(f"Image shape: {output_images.shape}, label shape: {output_labels.shape}")
-            return {'image': output_images, 'label': output_labels}
+            assert output_images.shape[0] == output_labels.shape[0] == output_paths.shape[0] 
+
+            logging.info(f"Image shape: {output_images.shape}, label shape: {output_labels.shape}, label unique: {np.unique(output_labels)}")
+            return {'image': output_images, 'label': output_labels, 'image_path': output_paths}
         
         return collate_fn
     

@@ -39,7 +39,7 @@ class DatasetSPD(Dataset):
         depth -= 1
         with os.scandir(batch_path) as input_data_folder:
             
-            for entry in input_data_folder:
+            for entry in sorted(input_data_folder, key=lambda e: e.name):
                 
                 # if that's not a marker directory, recursion...
                 if entry.is_dir() and depth > 0:
@@ -107,17 +107,6 @@ class DatasetSPD(Dataset):
                 cell_line = marker_folder.split('/')[-3]
     
                 #####################################
-                
-                # Nancy: currently, data folder doesn't contain "neurons"/"microglia"
-                # NOT IMPLEMENTED #######    
-                #if cell_type_l:
-                #    if "microglia" in input_folder:
-                #        cur_cell_type = "microglia"
-                #    else:
-                #        cur_cell_type = "neurons"
-                # NOT IMPLEMENTED #######
-                
-                #####################################
                 # Filter: cell line
                 if cell_lines_include is not None and cell_line not in cell_lines_include:
                     logging.info(f"Skipping cell line (not in cell lines list). {cell_line}")
@@ -140,18 +129,10 @@ class DatasetSPD(Dataset):
                     logging.info(f"Skipping (in markers to exclude). {marker_name}")
                     continue
                 #####################################
-                
-                #####################################
-                # Split by set - NOT IMPLEMENTED
-                #####################################
-                
-                # NOT IMPLEMENTED #######
-                # Downsample all data - markers_for_downsample
-                # NOT IMPLEMENTED #######
                                         
                 #####################################
                 # Hold a list of all processed images (name of npy files) of this marker
-                filenames = os.listdir(marker_folder)
+                filenames = sorted(os.listdir(marker_folder))
                 
                 # Target marker - loop on all sites (single npy files)
                 for target_file in filenames:
@@ -164,23 +145,6 @@ class DatasetSPD(Dataset):
                         
                         logging.info(f"Filepath (npy): {image_filename}")
                         n_images += 1
-                    # if ext == '.npy':
-                    #     # Hold the full path of a processed image 
-                    #     image_filename = os.path.join(marker_folder, target_file)
-                    #     # Checking the number of tiles in the file
-                    #     arr = np.load(image_filename, mmap_mode='r')
-                    #     arr_n_tiles = arr.shape[0]
-                    #     del arr
-                    #     # Adding each tile as a separate path
-                    #     for t_index in range(arr_n_tiles):
-                    #         # Add to list: the full path of the npy file 
-                    #         tile_image_filename = f"{image_filename}#{t_index}"
-                    #         processed_files_list.append(tile_image_filename)
-                            
-                    #         logging.info(f"Filepath (npy): {tile_image_filename}")
-                    #         n_images += 1
-                        
-                    
                     else:
                         logging.info(f"file {target_file} is not a npy. moving on.. ")
                         continue

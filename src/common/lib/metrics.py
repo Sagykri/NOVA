@@ -2,8 +2,30 @@ import numpy as np
 from sklearn.cluster import KMeans
 from sklearn.metrics import silhouette_score, adjusted_rand_score
 import matplotlib.pyplot as plt
-import tensorflow as tf
+import torch
 
+def calculate_mse(inpt, reconstructed):
+  """Calculate MSE
+
+  Args:
+      inpt (torch.tensor|nparray): Input images
+      reconstructed (torch.tensor|nparray): Reconstructed images
+
+  Returns:
+      dict: {'target': MSE score, 'nuclues': MSE score} 
+  """
+  if not torch.is_tensor(inpt):
+    inpt = torch.from_numpy(inpt)
+  if not torch.is_tensor(reconstructed):
+    reconstructed = torch.from_numpy(reconstructed)
+    
+  data_ch = ['target', 'nucleus']
+  mses = {}
+  for ii, ch in enumerate(data_ch):
+      mses[ch] = torch.nn.functional.mse_loss(inpt[:, ii, ...], reconstructed[:, ii, ...])
+  return mses
+
+# TODO: Adjust to torch version
 def calc_clustering_validation(X, labels_true, n_clusters=3, seed=1):
   """Calc metrics (silhouette and ARI)
 
@@ -22,6 +44,7 @@ def calc_clustering_validation(X, labels_true, n_clusters=3, seed=1):
 
   return adjusted_rand_score_val, silhouette_score_val
 
+# TODO: Adjust to torch version
 def plot_metrics(X, labels_true, n_clusters=3,savepath=None):
   """Generate a plot displaying the metrics
 
@@ -66,43 +89,3 @@ def plot_metrics(X, labels_true, n_clusters=3,savepath=None):
   plt.show()
 
   return scores
-  
-def calc_reconstruction_error(model, images_indexes=None, entire_data=None, embvecs=None,\
-                      reset_embvec=True, only_second_layer=False, show=False,
-                      cmap_original = 'rainbow', cmap_reconstructed = 'rainbow', enhance_contrast=True):
-  """Calculate reconstruction error (MSE between input and reconstructed image)
-
-  Args:
-      model (_type_): The model
-      images_indexes (_type_, optional): Which images to take. Defaults to None (take all).
-      entire_data (_type_, optional): The entire data in the dataset (for normalizing the score). Defaults to None.
-      embvecs (_type_, optional): Precomputed embedded vectors. Defaults to None (recalculate them).
-      only_second_layer (bool, optional): Use only the second VQ. Defaults to False.
-      show (bool, optional): Should we show the reconstructed image. Defaults to False.
-      cmap_original (str, optional): cmap for plotting the input image. Defaults to 'rainbow'.
-      cmap_reconstructed (str, optional): cmap for plotting the reconstructed image. Defaults to 'rainbow'.
-      enhance_contrast (bool, optional): Should we enhance the contrast of the image. Defaults to True.
-
-  Returns:
-      _type_: The scores
-  """
-  
-  images_reconstructed = model.generate_reconstructed_images(images_indexes=images_indexes, embvecs=embvecs,\
-                      reset_embvec=reset_embvec, only_second_layer=only_second_layer, show=show,
-                      cmap_original = cmap_original, cmap_reconstructed = cmap_reconstructed, enhance_contrast=enhance_contrast)
-  images_input = model.analytics.data_manager.test_data[images_indexes]
-  
-  mse_imgs_norms = []
-  
-  for i in range(images_reconstructed.shape[-1]):
-    squared = tf.square(images_reconstructed[...,i]-images_input[...,i])
-    
-    with tf.Session() as sess:
-      squared_numpy = squared.eval()
-      squared_imgs = [np.mean(squared_img) for squared_img in squared_numpy]
-      mse_imgs_mean = np.mean(squared_imgs)
-      mse_imgs_norm_self = mse_imgs_mean / np.var(images_input[...,i])
-      mse_imgs_norm_all = mse_imgs_mean / np.var(entire_data[...,i]) if entire_data is not None else None
-      mse_imgs_norms += [{'by_self': mse_imgs_norm_self, 'by_all': mse_imgs_norm_all, 'unnormalized': mse_imgs_mean}]
-    
-  return mse_imgs_norms

@@ -1,22 +1,19 @@
-import os
+import logging
 import sys
-
-
-
+import os
 
 sys.path.insert(1, os.getenv("MOMAPS_HOME"))
 print(f"MOMAPS_HOME: {os.getenv('MOMAPS_HOME')}")
 
 import numpy as np
 import pandas as pd
-import logging
 import  torch
 
 from src.common.lib.utils import load_config_file
 from src.common.lib.model import Model
 from src.common.lib.data_loader import get_dataloader
 from src.datasets.dataset_spd import DatasetSPD
-
+from src.common.lib.synthetic_multiplexing import multiplex
 
 def eval_model():
     
@@ -64,22 +61,12 @@ def eval_model():
     logging.info(f"Loading model (Path: {config_model.MODEL_PATH})")
     model.load_model()
     
-    logging.info("Generate reconsturcted images")
-    reconstructed_image_path = model.generate_reconstructed_image()
-    logging.info(f"Image was saved to {reconstructed_image_path}")
-    
-    logging.info("Loading analytics..")
-    model.load_analytics()
-    logging.info("Plot umap..")
-    model.plot_umap(colormap='Set1',
-                    alpha=0.8,
-                    s=0.8,
-                    infer_labels=True,
-                    id2label=dataloader.dataset.id2label)
+    logging.info("Multiplex!")
+    multiplex(model)
     
 
 if __name__ == "__main__":
-    print("Starting eval...")
+    print("Testing synthetic multiplexing...")
     try:
         eval_model()
     except Exception as e:

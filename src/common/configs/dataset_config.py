@@ -19,10 +19,10 @@ class DatasetConfig(BaseConfig):
         self.CELL_LINES = None
         self.CONDITIONS = None
         self.SPLIT_DATA = True
-        self.DATA_SET_TYPE = None #'train'
+        self.DATA_SET_TYPE = None # 'train' | 'test' | 'val'
         self.MARKERS_FOR_DOWNSAMPLE = None
         self.TRAIN_PCT = 0.7
-        self.SHUFFLE = True
+        self.SHUFFLE = True #Must be true whenever using SPLIT_DATA=True otherwise train,val,test set won't be the same as when Shuffle was true
         self.ADD_CONDITION_TO_LABEL = True 
         self.ADD_LINE_TO_LABEL = True
         self.ADD_TYPE_TO_LABEL = False

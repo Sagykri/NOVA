@@ -52,6 +52,9 @@ outputs/*
 # C extensions
 *.so
 
+data.json
+model.json
+
 # Distribution / packaging
 .Python
 build/
