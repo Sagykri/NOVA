@@ -46,6 +46,13 @@ lines_order = line_colors.keys()
 custom_palette = [line_colors[line] for line in lines_order]
 expected_dapi_raw = 1100
 expected_raw=2200
+
+# Microglia
+microglia_cell_lines_to_cond = {'FUSHomozygous':['Untreated'], 'TDP43':['Untreated'], 'TBK1':['Untreated'],
+                      'WT':['Untreated'],'SCNA':['Untreated'], 'FUSRevertant':['Untreated'],
+                      'OPTN':['Untreated'], 'FUSHeterozygous':['Untreated']}
+microglia_cell_lines_for_disp = {f'{cell_line}_{cond}':f'{cell_line}_{cond}' 
+                            for cell_line in cell_lines for cond in microglia_cell_lines_to_cond[cell_line] }
 # Perturbations
 per_panels = pd.DataFrame([['Calreticulin','NCL'],
              ['NONO','SQSTM1'],
