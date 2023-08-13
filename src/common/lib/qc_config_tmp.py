@@ -53,6 +53,18 @@ microglia_cell_lines_to_cond = {'FUSHomozygous':['Untreated'], 'TDP43':['Untreat
                       'OPTN':['Untreated'], 'FUSHeterozygous':['Untreated']}
 microglia_cell_lines_for_disp = {f'{cell_line}_{cond}':f'{cell_line}_{cond}' 
                             for cell_line in cell_lines for cond in microglia_cell_lines_to_cond[cell_line] }
+microglia_line_colors = {
+    'FUSHeterozygous': colorblind_palette[0],
+    'FUSHomozygous': colorblind_palette[1],
+    'FUSRevertant': colorblind_palette[2],
+    'OPTN': colorblind_palette[8],
+    'SCNA': colorblind_palette[4],
+    'TBK1': colorblind_palette[5],
+    'TDP43': colorblind_palette[6],
+    'WT': colorblind_palette[9]
+}
+microglia_lines_order = microglia_line_colors.keys()
+microglia_custom_palette = [microglia_line_colors[line] for line in microglia_lines_order]
 # Perturbations
 per_panels = pd.DataFrame([['Calreticulin','NCL'],
              ['NONO','SQSTM1'],

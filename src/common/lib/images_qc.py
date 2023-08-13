@@ -827,9 +827,9 @@ def run_calc_hist_new(batch, cell_lines_for_disp, markers, show_cond=False, samp
     INPUT_DIR_BATCH_RAW = os.path.join(INPUT_DIR_RAW, batch.replace('_16bit',''))
     INPUT_DIR_BATCH_PROC = os.path.join(INPUT_DIR_PROC, batch.replace("_sort",""))
 
-    images_raw = sample_images_all_markers_all_lines(INPUT_DIR_BATCH_RAW, sample_size_per_markers, num_markers, raw=True, quiet=True)
+    images_raw = sample_images_all_markers_all_lines(INPUT_DIR_BATCH_RAW, sample_size_per_markers, num_markers, raw=True)
     images_proc = sample_images_all_markers_all_lines(INPUT_DIR_BATCH_PROC, _sample_size_per_markers=sample_size_per_markers*2, 
-                                                 _num_markers=len(markers), raw=False, quiet=True)
+                                                 _num_markers=len(markers), raw=False)
     cell_lines_for_df = [cell_line for cell_line in cell_lines_for_disp.values() for _ in range(len(markers))]
     batch_df_raw = pd.DataFrame(index=[cell_lines_for_df, markers*len(cell_lines_for_disp.values())], 
                                 columns=np.concatenate(([0], np.arange(350,1000, 20), [1000])))
