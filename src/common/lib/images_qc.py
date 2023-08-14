@@ -20,16 +20,17 @@ import pathlib
 from src.common.lib.qc_config_tmp import *
 from src.common.lib.calc_dataset_variance import _multiproc_calc_variance
 
-MOMAPS_HOME = '/home/labs/hornsteinlab/Collaboration/MOmaps' # because I'm running from Sagy's user
+MOMAPS_HOME = '/home/labs/hornsteinlab/Collaboration/MOmaps_Noam/MOmaps/' # because I'm running from Sagy's user
 BASE_DIR = os.path.join('/home','labs','hornsteinlab','Collaboration','MOmaps')
 INPUT_DIR_RAW = os.path.join(BASE_DIR,'input','images','raw','SpinningDisk')
 
 INPUT_DIR_PROC = os.path.join(BASE_DIR,'input','images','processed','spd2','SpinningDisk')
 
-def sample_and_calc_variance(INPUT_DIR, batch, sample_size_per_markers=200, num_markers=26):
+def sample_and_calc_variance(INPUT_DIR, batch, sample_size_per_markers=200, num_markers=26,rep_count=2,cond_count=2):
     INPUT_DIR_BATCH = os.path.join(INPUT_DIR, batch)
 
-    images = sample_images_all_markers_all_lines(INPUT_DIR_BATCH, sample_size_per_markers, num_markers)
+    images = sample_images_all_markers_all_lines(INPUT_DIR_BATCH, sample_size_per_markers, num_markers, all_conds=True,
+                                                 rep_count=rep_count, cond_count=cond_count)
     
     variance = _multiproc_calc_variance(images_paths=images)
     
@@ -377,6 +378,7 @@ def run_validate_folder_structure(root_dir, proc, panels, markers,plot_path, mar
                 print(file)
 
         title = f'{folder_type}_table_{batch}'
+        print('Total Sites: ',batch_df.sum().sum())
         plot_table(batch_df, title, plot_path, reps, expected_dapi_raw, fig_height,fig_width)
         print('=' * 8)
         batch_dfs.append(batch_df)
@@ -641,7 +643,7 @@ def _calc_hist_proc(paths):
     return norm_hist
 
 
-def create_sublists_by_marker_cell_line(images, raw, show_cond=False):
+def create_sublists_by_marker_cell_line(images, raw, n, cell_lines_for_disp):
     sublists_dict = {}
 
     for file_path in images:
@@ -655,10 +657,7 @@ def create_sublists_by_marker_cell_line(images, raw, show_cond=False):
             marker = parts[-2]
             cur_cond = parts[-3]
             cur_cell_line = parts[-4]
-        cell_line_for_disp = cur_cell_line
-        if cur_cell_line=='WT' or show_cond:
-            cell_line_for_disp = f'{cur_cell_line}_{cur_cond}'
-
+        cell_line_for_disp = cell_lines_for_disp[f'{cur_cell_line}_{cur_cond}']
         # Create a key from the combination of marker and cell line
         key = f"{marker}_{cell_line_for_disp}"
 
@@ -670,13 +669,25 @@ def create_sublists_by_marker_cell_line(images, raw, show_cond=False):
             # If the key does not exist, create a new sublist with the file path
             sublists_dict[key] = [file_path]
     
+
+    def sub_sample_dict(original_dict, n):
+        sub_sampled_dict = {}
+        
+        for key, value_list in original_dict.items():
+            if n >= len(value_list):
+                sub_sampled_dict[key] = value_list.copy()  # Include all elements
+            else:
+                sub_sampled_dict[key] = random.sample(value_list, n)
+        return sub_sampled_dict
+    
+    sublists_dict = sub_sample_dict(sublists_dict, n)
     return sublists_dict
 
-def multiproc_calc_hists_per_batch_raw(images_paths, batch_df_raw, batch_df_norm, show_cond=False):
+def multiproc_calc_hists_per_batch_raw(images_paths, batch_df_raw, batch_df_norm, n, cell_lines_for_disp):
     images = images_paths
     n_images  = len(images)
-    print("\n\nTotal of", n_images, "images were sampled for hist calculation.")
-    sublists_dict = create_sublists_by_marker_cell_line(images, raw=True, show_cond=show_cond)
+    #print("\n\nTotal of", n_images, "images were sampled for hist calculation.")
+    sublists_dict = create_sublists_by_marker_cell_line(images, raw=True, n=n, cell_lines_for_disp=cell_lines_for_disp)
     with Pool() as mp_pool:    
         
         #batch_df_raw,batch_df_norm = mp_pool.map(_calc_hist, sublists_dict,batch_df_raw,batch_df_norm,batch_num)
@@ -692,11 +703,11 @@ def multiproc_calc_hists_per_batch_raw(images_paths, batch_df_raw, batch_df_norm
 
     return batch_df_raw, batch_df_norm
 
-def multiproc_calc_hists_per_batch_proc(images_paths, batch_df_proc, show_cond=False):
+def multiproc_calc_hists_per_batch_proc(images_paths, batch_df_proc, n, cell_lines_for_disp):
     images = images_paths
     n_images  = len(images)
-    print("\n\nTotal of", n_images, "images were sampled for hist calculation.")
-    sublists_dict = create_sublists_by_marker_cell_line(images, raw=False, show_cond=show_cond)
+    #print("\n\nTotal of", n_images, "images were sampled for hist calculation.")
+    sublists_dict = create_sublists_by_marker_cell_line(images, raw=False, n=n, cell_lines_for_disp=cell_lines_for_disp)
     with Pool() as mp_pool:    
         
         #batch_df_raw,batch_df_norm = mp_pool.map(_calc_hist, sublists_dict,batch_df_raw,batch_df_norm,batch_num)
@@ -712,9 +723,9 @@ def multiproc_calc_hists_per_batch_proc(images_paths, batch_df_proc, show_cond=F
     return batch_df_proc
 
 
-def plot_hist_sep_by_type(mean_hist_raw, mean_hist_rescale, mean_hist_proc, batch_num):
+def plot_hist_sep_by_type(mean_hist_raw, mean_hist_rescale, mean_hist_proc, batch_num, ncols=3, nrows=3):
     for hist_df, name in zip([mean_hist_raw, mean_hist_rescale, mean_hist_proc], ['raw', 'rescaled','processed']):
-        fig, axs = plt.subplots(figsize=(15, 8), ncols=3, nrows=3, sharey=True, dpi=200)
+        fig, axs = plt.subplots(figsize=(15, 8), ncols=ncols, nrows=nrows, sharey=True, dpi=200)
         fig.subplots_adjust(top=0.85) 
         plt.rcParams.update({'figure.autolayout': True})
         for j, (cell_line, cell_line_df) in enumerate(hist_df.drop(columns=['site_count']).groupby(level=[0])):
@@ -724,14 +735,14 @@ def plot_hist_sep_by_type(mean_hist_raw, mean_hist_rescale, mean_hist_proc, batc
 
             # Generate positions for the bars using numpy.arange
             bar_positions = np.arange(df.shape[0])
-            ax = axs[j//3, j%3]
+            ax = axs[j//ncols, j%ncols]
             # Plot each column separately using a different color for each column
             for col in df.columns:
                 ax.bar(bar_positions, df.loc[:,col], alpha=0.7, label=col)
             xticks_size = 8 if name=='rescaled' else 3
             ax.set_xticks(bar_positions,x_ticks,  fontsize=xticks_size)
             ax.set_xlabel('Intestiy value', fontsize=8)
-            if j%3==0:
+            if j%ncols==0:
                 ax.set_ylabel('Count', fontsize=10)
                 ax.tick_params(axis='y', labelsize=8)
             ax.set_title(f'{cell_line}', fontsize=8)
@@ -752,7 +763,7 @@ def plot_hist_sep_by_type(mean_hist_raw, mean_hist_rescale, mean_hist_proc, batc
         cbar.set_ticklabels(['Low', 'High'], fontsize=8)
         cbar.ax.set_xticklabels(cbar.ax.get_xticklabels(), rotation=90)
 
-        plt.suptitle(f'{name} batch{batch_num}')
+        plt.suptitle(f'{name} {batch_num}')
         plt.tight_layout()
         plt.show()
 
@@ -808,8 +819,7 @@ def plot_hist_sep_by_cell_line(mean_hist_raw, mean_hist_rescale, mean_hist_proc,
         
         
 
-
-def plot_hists(batch_df_raw,batch_df_norm, batch_df_proc, batch_num, plot_sep_by_cell_line=False ):
+def plot_hists(batch_df_raw,batch_df_norm, batch_df_proc, batch_num, plot_sep_by_cell_line=False, ncols=3, nrows=3):
     mean_hist_raw = batch_df_raw.copy()
     mean_hist_raw[batch_df_raw.columns.difference(['site_count'])] = batch_df_raw.drop(columns=['site_count']).div(batch_df_raw['site_count'], axis=0).astype(int)
     
@@ -818,18 +828,19 @@ def plot_hists(batch_df_raw,batch_df_norm, batch_df_proc, batch_num, plot_sep_by
 
     mean_hist_proc = batch_df_proc.copy()
     mean_hist_proc[batch_df_proc.columns.difference(['site_count'])] = batch_df_proc.drop(columns=['site_count']).div(batch_df_proc['site_count'], axis=0).astype(int)
-
-    plot_hist_sep_by_type(mean_hist_raw, mean_hist_rescale, mean_hist_proc, batch_num)
+    plot_hist_sep_by_type(mean_hist_raw, mean_hist_rescale, mean_hist_proc, batch_num, ncols, nrows)
     if plot_sep_by_cell_line:
         plot_hist_sep_by_cell_line(mean_hist_raw, mean_hist_rescale, mean_hist_proc, batch_num)
 
-def run_calc_hist_new(batch, cell_lines_for_disp, markers, show_cond=False, sample_size_per_markers=200, num_markers=72):    
+def run_calc_hist_new(batch, cell_lines_for_disp, markers, hist_sample=1, 
+                      sample_size_per_markers=200, ncols=3, nrows=3, rep_count=2, cond_count=2):    
     INPUT_DIR_BATCH_RAW = os.path.join(INPUT_DIR_RAW, batch.replace('_16bit',''))
     INPUT_DIR_BATCH_PROC = os.path.join(INPUT_DIR_PROC, batch.replace("_sort",""))
 
-    images_raw = sample_images_all_markers_all_lines(INPUT_DIR_BATCH_RAW, sample_size_per_markers, num_markers, raw=True)
-    images_proc = sample_images_all_markers_all_lines(INPUT_DIR_BATCH_PROC, _sample_size_per_markers=sample_size_per_markers*2, 
-                                                 _num_markers=len(markers), raw=False)
+    images_raw = sample_images_all_markers_all_lines(INPUT_DIR_BATCH_RAW, sample_size_per_markers, _num_markers=len(markers),
+                                                     raw=True, all_conds=False, rep_count=rep_count, cond_count=cond_count)
+    images_proc = sample_images_all_markers_all_lines(INPUT_DIR_BATCH_PROC, _sample_size_per_markers=sample_size_per_markers,#*2, 
+                                                 _num_markers=len(markers), raw=False, all_conds=True)
     cell_lines_for_df = [cell_line for cell_line in cell_lines_for_disp.values() for _ in range(len(markers))]
     batch_df_raw = pd.DataFrame(index=[cell_lines_for_df, markers*len(cell_lines_for_disp.values())], 
                                 columns=np.concatenate(([0], np.arange(350,1000, 20), [1000])))
@@ -840,10 +851,12 @@ def run_calc_hist_new(batch, cell_lines_for_disp, markers, show_cond=False, samp
     batch_df_processed = pd.DataFrame(index=[cell_lines_for_df, markers*len(cell_lines_for_disp.values())], 
                                 columns=np.arange(0,1, 0.1))
     batch_df_processed['site_count'] = np.nan
-    batch_df_raw, batch_df_norm = multiproc_calc_hists_per_batch_raw(images_raw, batch_df_raw, batch_df_norm, show_cond )
-    batch_df_processed = multiproc_calc_hists_per_batch_proc(images_proc, batch_df_processed, show_cond)
+    batch_df_raw, batch_df_norm = multiproc_calc_hists_per_batch_raw(images_raw, batch_df_raw, batch_df_norm, hist_sample, cell_lines_for_disp )
+    batch_df_processed =  multiproc_calc_hists_per_batch_proc(images_proc, batch_df_processed, hist_sample,cell_lines_for_disp)
     #return batch_df_raw, batch_df_norm, batch_df_processed
-    plot_hists(batch_df_raw, batch_df_norm, batch_df_processed, batch)
+    plot_hists(batch_df_raw.dropna(), batch_df_norm.dropna(), batch_df_processed.dropna(), batch, ncols=ncols, nrows=nrows)
+
+    #plot_hists(batch_df_processed, batch_df_processed, batch_df_processed, batch, ncols=ncols, nrows=nrows)
 
 
 def plot_n_valid_tiles_count(df, custom_palette,reps, batch_min=3, batch_max=9):
@@ -890,7 +903,7 @@ def plot_hm(df, split_by, rows, columns):
         df_batch_side_a = df[df[split_by] == splits[0]]
         df_batch_side_b = df[df[split_by] == splits[1]]
 
-        fig, axs = plt.subplots(ncols=len(splits), sharey=True, sharex=False)
+        fig, axs = plt.subplots(ncols=len(splits), sharey=True, sharex=False, figsize=(12,8))
         a = pd.crosstab(df_batch_side_a[rows], df_batch_side_a[columns], 
                         values=df_batch_side_a['whole_cells_count_in_valid_tiles_mean'], aggfunc=np.mean)
         aa = pd.crosstab(df_batch_side_b[rows], df_batch_side_b[columns], 

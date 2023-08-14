@@ -51,7 +51,7 @@ expected_raw=2200
 microglia_cell_lines_to_cond = {'FUSHomozygous':['Untreated'], 'TDP43':['Untreated'], 'TBK1':['Untreated'],
                       'WT':['Untreated'],'SCNA':['Untreated'], 'FUSRevertant':['Untreated'],
                       'OPTN':['Untreated'], 'FUSHeterozygous':['Untreated']}
-microglia_cell_lines_for_disp = {f'{cell_line}_{cond}':f'{cell_line}_{cond}' 
+microglia_cell_lines_for_disp = {f'{cell_line}_{cond}':f'{cell_line}' 
                             for cell_line in cell_lines for cond in microglia_cell_lines_to_cond[cell_line] }
 microglia_line_colors = {
     'FUSHeterozygous': colorblind_palette[0],
@@ -65,6 +65,38 @@ microglia_line_colors = {
 }
 microglia_lines_order = microglia_line_colors.keys()
 microglia_custom_palette = [microglia_line_colors[line] for line in microglia_lines_order]
+
+# Microglia_LPS
+microglia_LPS_panels = pd.DataFrame([['G3BP1','NONO','SQSTM1','PSD95','NEMO','GM130','FUS','SCNA','LAMP1','TIA1',np.nan],
+             ['KIF5A','TDP43','FMRP','CLTC','DCP1A','TOMM20','NCL','ANXA11','Calreticulin','pNFKB','PML'],
+             ['PURA','CD41','Phalloidin',np.nan, np.nan, np.nan, np.nan, np.nan, np.nan, np.nan,'PEX14'],
+             ['DAPI']*11], columns=['A','B','C','D','E','F','G','H','I','J','K'],
+            index=['Cy5', 'mCherry', 'GFP','DAPI'])
+
+microglia_LPS_markers = ['G3BP1','NONO','SQSTM1','PSD95','NEMO','GM130','NCL','ANXA11','Calreticulin', 'pNFKB',
+                                 'KIF5A','TDP43','FMRP','CLTC','DCP1A','TOMM20','FUS','SCNA','LAMP1','TIA1','PML',
+                                 'PURA','CD41','Phalloidin', 'PEX14','DAPI']
+
+microglia_LPS_marker_info = pd.DataFrame([[['Cy5']]*10 + [['mCherry']]*11 + [['GFP']]*4,
+                          [['A'],['B'],['C'],['D'],['E'],['F'],['G'],['H'],['I'],['J'],
+                          ['A'],['B'],['C'],['D'],['E'],['F'],['G'],['H'],['I'],['J'],['K'],
+                          ['A'],['B'],['C'],['K']]], index=['Antibody','panel'],
+                         columns = ['G3BP1','NONO','SQSTM1','PSD95','NEMO','GM130','FUS','SCNA','LAMP1','TIA1',
+                                 'KIF5A','TDP43','FMRP','CLTC','DCP1A','TOMM20','NCL','ANXA11','Calreticulin','pNFKB','PML',
+                                 'PURA','CD41','Phalloidin', 'PEX14']).T  #order here is important - taken from Lena's sheet
+microglia_LPS_cell_lines = ['FUSHomozygous', 'TDP43', 'TBK1', 'WT', 'OPTN']
+microglia_LPS_cell_lines_to_cond = {cell_line:['Untreated','LPS'] for cell_line in microglia_LPS_cell_lines}
+microglia_LPS_cell_lines_for_disp = {f'{cell_line}_{cond}':f'{cell_line}_{cond}' 
+                            for cell_line in microglia_LPS_cell_lines for cond in microglia_LPS_cell_lines_to_cond[cell_line] }
+microglia_LPS_line_colors = {
+    'FUSHomozygous': colorblind_palette[1],
+    'OPTN': colorblind_palette[8],
+    'TBK1': colorblind_palette[5],
+    'TDP43': colorblind_palette[6],
+    'WT': colorblind_palette[9]
+}
+microglia_LPS_lines_order = microglia_LPS_line_colors.keys()
+microglia_LPS_custom_palette = [microglia_LPS_line_colors[line] for line in microglia_LPS_lines_order]
 # Perturbations
 per_panels = pd.DataFrame([['Calreticulin','NCL'],
              ['NONO','SQSTM1'],
@@ -79,12 +111,10 @@ per_marker_info = pd.DataFrame([[['Cy5']]*2 + [['mCherry']]*2 + [['GFP']]*1,
                          columns = ['NONO','SQSTM1','Calreticulin','NCL','PURA']).T #order here is important - taken from Lena's sheet
 
 per_cell_lines = ['WT','TDP43']
-per_cell_lines_to_cond = {'WT':['Chloroquine','DMSO1uM','Riluzole','Untreated',
-                        'DMSO100uM','Edavarone','Pridopine','Tubastatin'],
-                'TDP43':['Chloroquine','DMSO1uM','Riluzole','Untreated',
-                        'DMSO100uM','Edavarone','Pridopine','Tubastatin']}
 pers=['Chloroquine','DMSO1uM','Riluzole','Untreated',
                         'DMSO100uM','Edavarone','Pridopine','Tubastatin']
+per_cell_lines_to_cond = {cell_line:pers for cell_line in per_cell_lines}
+
 per_expected_dapi_raw = 200
 per_expected_raw=200
 condition_colors = {
