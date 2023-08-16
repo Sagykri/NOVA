@@ -89,11 +89,16 @@ microglia_LPS_cell_lines_to_cond = {cell_line:['Untreated','LPS'] for cell_line 
 microglia_LPS_cell_lines_for_disp = {f'{cell_line}_{cond}':f'{cell_line}_{cond}' 
                             for cell_line in microglia_LPS_cell_lines for cond in microglia_LPS_cell_lines_to_cond[cell_line] }
 microglia_LPS_line_colors = {
-    'FUSHomozygous': colorblind_palette[1],
-    'OPTN': colorblind_palette[8],
-    'TBK1': colorblind_palette[5],
-    'TDP43': colorblind_palette[6],
-    'WT': colorblind_palette[9]
+    'FUSHomozygous Untreated': colorblind_palette[1],
+    'OPTN Untreated': colorblind_palette[3],
+    'TBK1 Untreated': colorblind_palette[5],
+    'TDP43 Untreated': (0.09, 0.39, 0.07),
+    'WT Untreated': colorblind_palette[9],
+    'FUSHomozygous LPS': colorblind_palette[2],
+    'OPTN LPS': colorblind_palette[4],
+    'TBK1 LPS': colorblind_palette[6],
+    'TDP43 LPS': colorblind_palette[8],
+    'WT LPS': colorblind_palette[0]
 }
 microglia_LPS_lines_order = microglia_LPS_line_colors.keys()
 microglia_LPS_custom_palette = [microglia_LPS_line_colors[line] for line in microglia_LPS_lines_order]

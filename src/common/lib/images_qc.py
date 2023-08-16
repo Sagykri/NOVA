@@ -19,6 +19,7 @@ import io
 import pathlib
 from src.common.lib.qc_config_tmp import *
 from src.common.lib.calc_dataset_variance import _multiproc_calc_variance
+import re
 
 MOMAPS_HOME = '/home/labs/hornsteinlab/Collaboration/MOmaps_Noam/MOmaps/' # because I'm running from Sagy's user
 BASE_DIR = os.path.join('/home','labs','hornsteinlab','Collaboration','MOmaps')
@@ -219,11 +220,13 @@ def log_files_qc(LOGS_PATH):
     df.loc[df.cell_line=='WT', 'cell_line_cond'] = df.cell_line + " " + df.condition
     df.loc[df.batch=='Perturbations', 'cell_line_cond'] = df.cell_line + " " + df.condition
 
-    if 'dox' in np.unique(df.condition) or 'HPBCD' in np.unique(df.condition):
+    if 'dox' in np.unique(df.condition) or 'HPBCD' in np.unique(df.condition) or 'LPS' in np.unique(df.condition):
         df['cell_line_cond'] = df.cell_line + " " + df.condition
 
     df['site_cells_counts'] = df['cells_counts'].apply(get_array_sum)
     df['site_whole_cells_counts'] = df['whole_cells_counts'].apply(get_array_sum)
+    df['cells_counts_list']=df['cells_counts'].apply(lambda x: re.findall(r'\d+', x)).apply(lambda x: list(map(int, x)))
+    df['p_valid_tiles'] = df['n_valid_tiles']*100 / df['cells_counts_list'].apply(len)
     return df.sort_values(by=['batch'])
 
 
@@ -388,7 +391,7 @@ def run_validate_folder_structure(root_dir, proc, panels, markers,plot_path, mar
 
 def plot_cell_count(df, order, custom_palette, whole_cells=False, norm=False):
     y = 'site_whole_cells_counts' if whole_cells else 'site_cells_counts'
-    if len(np.unique(df.batch))==1:
+    if np.unique(df.batch)[0]=="Perturbations":
         ylabel="count"
         if norm:
             max_average_cell_line = df.groupby('cell_line_cond')[y].mean().max()
@@ -415,47 +418,56 @@ def plot_cell_count(df, order, custom_palette, whole_cells=False, norm=False):
             df['percentage'] = (df[y] / max_average_cell_line)*100
             y='percentage'
             ylabel = '%'
+        if no_batches>1:
+            fig, axs = plt.subplots(nrows=1, ncols=no_batches, sharey=True, sharex=False, figsize=(12,6))
+            fig.subplots_adjust(wspace=0)
+            for i, (batch_name, batch) in enumerate(df.groupby('batch')):
+                c = sns.barplot(data=batch, x='rep', hue='cell_line_cond', y=y, hue_order = order, 
+                                ax=axs[i], palette=custom_palette, errorbar='sd')
+                c.set_xlabel(batch_name, fontsize=12) 
+                c.tick_params(axis='x', labelsize=10)
+                # # ANOVA test
+                # for j, (rep, rep_data) in enumerate(batch.groupby('rep')):
+                #     anova_data = []
+                #     group_labels = []
+                #     for cell_line_cond, cond_data in rep_data.groupby('cell_line_cond'):
+                #         anova_data.append(cond_data[y].values)
+                #         group_labels.append(cell_line_cond)
+                #     anova_f, anova_pvalue = f_oneway(*anova_data)
+                #     anova_text = f"{rep} {anova_pvalue:.10f} {anova_f}"
+                #     print(f'{batch_name} {anova_text}')
+                    # if anova_pvalue < 0.05:
+                    #     # Dunnett's test (comparing each group to the control)
+                    #     control_group_idx = group_labels.index('WT Untreated')
+                    #     control_group_data = anova_data[control_group_idx]
+                    #     dunnett_pvalues = dunnett(*anova_data, control=control_group_data)
 
-        fig, axs = plt.subplots(nrows=1, ncols=no_batches, sharey=True, sharex=False, figsize=(12,6))
-        fig.subplots_adjust(wspace=0)
-        for i, (batch_name, batch) in enumerate(df.groupby('batch')):
-            c = sns.barplot(data=batch, x='rep', hue='cell_line_cond', y=y, hue_order = order, 
-                            ax=axs[i], palette=custom_palette, errorbar='sd')
-            c.set_xlabel(batch_name, fontsize=12) 
-            c.tick_params(axis='x', labelsize=10)
-            # # ANOVA test
-            # for j, (rep, rep_data) in enumerate(batch.groupby('rep')):
-            #     anova_data = []
-            #     group_labels = []
-            #     for cell_line_cond, cond_data in rep_data.groupby('cell_line_cond'):
-            #         anova_data.append(cond_data[y].values)
-            #         group_labels.append(cell_line_cond)
-            #     anova_f, anova_pvalue = f_oneway(*anova_data)
-            #     anova_text = f"{rep} {anova_pvalue:.10f} {anova_f}"
-            #     print(f'{batch_name} {anova_text}')
-                # if anova_pvalue < 0.05:
-                #     # Dunnett's test (comparing each group to the control)
-                #     control_group_idx = group_labels.index('WT Untreated')
-                #     control_group_data = anova_data[control_group_idx]
-                #     dunnett_pvalues = dunnett(*anova_data, control=control_group_data)
+                    #     dunnett_text = "\n".join([f"{group_labels[i]} vs. WT Untreated: {p:.3f}" for i, p in enumerate(dunnett_pvalues) if i != control_group_idx])
+                    #     print(dunnett_text)
+                    # #c.text(0.5*j, 0.95, anova_text, transform=c.transAxes, ha='center', fontsize=12)
 
-                #     dunnett_text = "\n".join([f"{group_labels[i]} vs. WT Untreated: {p:.3f}" for i, p in enumerate(dunnett_pvalues) if i != control_group_idx])
-                #     print(dunnett_text)
-                # #c.text(0.5*j, 0.95, anova_text, transform=c.transAxes, ha='center', fontsize=12)
+                if 0<i<no_batches-1: #middle plots
+                    c.spines['left'].set_visible(False)
+                    c.spines['right'].set_visible(False)
+                    c.legend_.remove()
+                    c.set_ylabel('')
+                if i==no_batches-1:
+                    c.spines['left'].set_visible(False)
+                    c.set_ylabel('')
+                    c.legend(title='Cell Line', loc='upper left', bbox_to_anchor=(1, 0.8), fontsize=14)
 
-            if 0<i<no_batches-1: #middle plots
-                c.spines['left'].set_visible(False)
-                c.spines['right'].set_visible(False)
-                c.legend_.remove()
-                c.set_ylabel('')
-            if i==no_batches-1:
-                c.spines['left'].set_visible(False)
-                c.set_ylabel('')
+                if i==0:
+                    c.spines['right'].set_visible(False)
+                    c.legend_.remove()
+                    c.set_ylabel(ylabel)
+        else:
+            fig, ax = plt.subplots(nrows=1, ncols=no_batches, sharey=True, sharex=False, figsize=(12,6))
+            for i, (batch_name, batch) in enumerate(df.groupby('batch')):
+                c = sns.barplot(data=batch, x='rep', hue='cell_line_cond', y=y, hue_order = order, 
+                                ax=ax, palette=custom_palette, errorbar='sd')
+                c.set_xlabel(batch_name, fontsize=12) 
+                c.tick_params(axis='x', labelsize=10)
                 c.legend(title='Cell Line', loc='upper left', bbox_to_anchor=(1, 0.8), fontsize=14)
-
-            if i==0:
-                c.spines['right'].set_visible(False)
-                c.legend_.remove()
                 c.set_ylabel(ylabel)
     title = 'Cell Count Average per Site with STD'
     if whole_cells:
@@ -467,7 +479,7 @@ def plot_sites_count(df, expected, order, custom_palette, split_to_reps=False):
     title = 'Number of Raw images in each batch and cell line'
     if not split_to_reps:
         plt.figure(figsize=(12, 8))
-        if len(np.unique(df.batch))==1:
+        if np.unique(df.batch)[0]=='Perturbations':
             x = 'cell_line'
             hue = 'condition'
         else:
@@ -517,97 +529,6 @@ def plot_sites_count(df, expected, order, custom_palette, split_to_reps=False):
         plt.suptitle(f'{title}\nexpected count = {expected}', fontsize=20)
         plt.show()
 
-
-
-def calc_hist_from_files_raw(path, batch_df_raw, batch_df_norm):
-    path_split = path.split('/')
-    cur_marker = path_split[-1]
-    cur_cond = path_split[-3]
-    cur_cell_line = path_split[-5]
-    all_files_of_marker_rep = os.listdir(path)
-    cell_line_for_disp = cur_cell_line
-    if cur_cell_line=='WT':
-        cell_line_for_disp = f'{cur_cell_line}_{cur_cond}'
-    random.seed(42)
-    subsampled_files = random.sample(all_files_of_marker_rep, 3)
-    for file in subsampled_files:
-        file_path = os.path.join(path, file)
-        img = cv2.imread(file_path, cv2.IMREAD_ANYDEPTH).flatten()
-        img_rescale = rescale_intensity(img)
-        bins_raw = np.concatenate(([0], np.arange(350,1000, 20), [1000, 2**16]))
-        bins_rescale = np.arange(0,1.1, 0.1)
-
-        cur_hist, _ = np.histogram(img, bins=bins_raw)
-        hist_with_site_count =  np.concatenate([cur_hist,[1]])
-
-        cur_hist_rescale, _ = np.histogram(img_rescale, bins=bins_rescale)
-        hist_with_site_count_rescale =  np.concatenate([cur_hist_rescale,[1]])
-        for df, hist in zip([batch_df_raw, batch_df_norm], [hist_with_site_count, hist_with_site_count_rescale]):
-            if pd.isna(df.loc[cell_line_for_disp,cur_marker]).any():
-                df.loc[cell_line_for_disp,cur_marker] = hist
-            else: 
-                df.loc[cell_line_for_disp,cur_marker] += hist
-    return  batch_df_raw, batch_df_norm
-
-
-                      
-def calc_hists_per_batch(root_dir, folder_structure, batch_df_raw, batch_df_norm):
-    for name, content in folder_structure.items():
-        path = os.path.join(root_dir, name)
-        if not os.path.exists(path):
-            continue
-
-        if isinstance(content, dict):
-            batch_df_raw, batch_df_norm = calc_hists_per_batch(path, content, batch_df_raw, batch_df_norm)
-        
-        else: # end of recursion of folders
-            batch_df_raw, batch_df_norm = calc_hist_from_files_raw(path, batch_df_raw, batch_df_norm)
-                
-    return batch_df_raw, batch_df_norm
-
-def run_calc_hist(batches, root_directory_raw, cell_lines_for_disp, markers):
-    for batch in [f'batch{i}' for i in batches]:# + ['Perturbations']:
-        print(batch)
-        batch_root_dir = os.path.join(root_directory_raw, batch)
-        cell_lines_for_df = [cell_line for cell_line in cell_lines_for_disp.values() for _ in range(26)]
-        batch_df_raw = pd.DataFrame(index=[cell_lines_for_df, markers*len(cell_lines_for_disp.values())], 
-                                    columns=np.concatenate(([0], np.arange(350,1000, 20), [1000])))
-        batch_df_raw['site_count'] = np.nan
-        batch_df_norm = pd.DataFrame(index=[cell_lines_for_df, markers*len(cell_lines_for_disp.values())], 
-                                    columns=np.arange(0,1, 0.1))
-        batch_df_norm['site_count'] = np.nan
-        batch_df_raw, batch_df_norm = calc_hists_per_batch(batch_root_dir, create_folder_structure('raw'), batch_df_raw, batch_df_norm)
-        mean_hist_raw = batch_df_raw.copy()
-        mean_hist_raw[batch_df_raw.columns.difference(['site_count'])] = batch_df_raw.drop(columns=['site_count']).div(batch_df_raw['site_count'], axis=0).astype(int)
-        
-        mean_hist_rescale = batch_df_norm.copy()
-        mean_hist_rescale[batch_df_norm.columns.difference(['site_count'])] = batch_df_norm.drop(columns=['site_count']).div(batch_df_norm['site_count'], axis=0).astype(int)
-
-        for hist_df, name in zip([mean_hist_raw, mean_hist_rescale], ['raw', 'rescaled']):
-            fig, axs = plt.subplots(figsize=(15, 8), ncols=3, nrows=3, sharey=True, dpi=200)
-            for j, (cell_line, cell_line_df) in enumerate(hist_df.drop(columns=['site_count']).groupby(level=[0])):
-                df = cell_line_df.reset_index(level=0, drop=True).T
-
-                # Generate positions for the bars using numpy.arange
-                bar_positions = np.arange(df.shape[0])
-                ax = axs[j//3, j%3]
-                # Plot each column separately using a different color for each column
-                for col in df.columns:
-                    ax.bar(bar_positions, df.loc[:,col], alpha=0.7, label=col)
-                xticks_size = 8 if name=='rescaled' else 3
-                ax.set_xticks(bar_positions,[round(idx, 1) for idx in df.index],  fontsize=xticks_size)
-                ax.set_xlabel('Intestiy value', fontsize=8)
-                if j%3==0:
-                    ax.set_ylabel('Count', fontsize=10)
-                    ax.tick_params(axis='y', labelsize=8)
-                ax.set_title(f'{cell_line}', fontsize=8)
-                ax.grid(False)
-                
-            handles, labels = ax.get_legend_handles_labels()
-            fig.legend(handles, labels, loc='lower center', ncol=13, bbox_to_anchor=(0.5, -0.1), fontsize='xx-small')
-            plt.suptitle(f'{name} {batch}')
-            plt.tight_layout()
-            plt.show()
 
 def _calc_hist_raw(paths):
     bins_raw = np.concatenate(([0], np.arange(350,1000, 20), [1000, 2**16]))
@@ -832,6 +753,7 @@ def plot_hists(batch_df_raw,batch_df_norm, batch_df_proc, batch_num, plot_sep_by
     if plot_sep_by_cell_line:
         plot_hist_sep_by_cell_line(mean_hist_raw, mean_hist_rescale, mean_hist_proc, batch_num)
 
+
 def run_calc_hist_new(batch, cell_lines_for_disp, markers, hist_sample=1, 
                       sample_size_per_markers=200, ncols=3, nrows=3, rep_count=2, cond_count=2):    
     INPUT_DIR_BATCH_RAW = os.path.join(INPUT_DIR_RAW, batch.replace('_16bit',''))
@@ -860,7 +782,7 @@ def run_calc_hist_new(batch, cell_lines_for_disp, markers, hist_sample=1,
 
 
 def plot_n_valid_tiles_count(df, custom_palette,reps, batch_min=3, batch_max=9):
-    if len(np.unique(df.batch))==1:
+    if np.unique(df.batch)[0]=='Perturbations':
         g = sns.catplot(kind='box', data=df, y='cell_line', x='n_valid_tiles',height=12, hue='condition')#, palette=batch_palette,
                     #hue_order=batch_palette.keys(), legend=False)
         g.set_axis_labels('valid tiles count', 'cell line')
@@ -895,6 +817,41 @@ def plot_n_valid_tiles_count(df, custom_palette,reps, batch_min=3, batch_max=9):
 
         plt.show()
 
+def plot_p_valid_tiles_count(df, custom_palette,reps, batch_min=3, batch_max=9):
+    if np.unique(df.batch)[0]=='Perturbations':
+        g = sns.catplot(kind='box', data=df, y='cell_line', x='n_valid_tiles',height=12, hue='condition')#, palette=batch_palette,
+                    #hue_order=batch_palette.keys(), legend=False)
+        g.set_axis_labels('valid tiles count', 'cell line')
+
+        plt.show()
+    else:
+        df['batch_rep'] = df.batch + " " + df.rep
+        # Extract 7 colors from the palette
+        colors_list = custom_palette
+
+        batch_palette = {f'batch{i} {rep}':colors_list[i-batch_min] for i in range(batch_min,batch_max+1) for rep in reps}
+        g = sns.catplot(kind='box', data=df, y='cell_line_cond', x='p_valid_tiles',height=12, hue='batch_rep', palette=batch_palette,
+                        hue_order=batch_palette.keys(), legend=False)
+        g.set_axis_labels('valid tiles %', 'cell line')
+        rep_hatches = {'rep1': '', 'rep2': '//'}  # Use '' for rep1 (solid) and '//' for rep2 (dots)
+
+        for ax in g.axes.flat:
+            for rep in df['rep'].unique():
+                if rep == 'rep1':
+                    continue
+                patches = ax.patches
+                patches = [patch for patch in patches if type(patch) != matplotlib.patches.Rectangle]
+                for patch in patches[1::len(df['rep'].unique())]:
+                    hatch = rep_hatches[rep]
+                    patch.set_hatch(hatch)
+                    
+
+        legend_patches = [plt.Rectangle((0, 0), 1, 1, fc=batch_palette[key],ec='black', hatch=rep_hatches[key.split()[-1]]) for key in batch_palette]
+
+        # Set the legend with the proxy artists
+        g.axes.flat[-1].legend(legend_patches, batch_palette.keys(), title='Batch Rep', loc='center left', bbox_to_anchor=(1, 0.5))
+
+        plt.show()
 
 def plot_hm(df, split_by, rows, columns):
     splits = np.unique(df[split_by])
