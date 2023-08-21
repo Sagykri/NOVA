@@ -27,7 +27,7 @@ def generate_embeddings():
     logging.info(f"Num GPUs Available: {torch.cuda.device_count()}")
     
     # Get dataset 
-    datasets_list = load_dataset_for_embeddings(config_path_data=sys.argv[2])
+    datasets_list = load_dataset_for_embeddings(config_path_data=sys.argv[2], batch_size=100)
     # Set the output folder (where to save the embeddings)
     embeddings_folder = os.path.join(config_model.MODEL_OUTPUT_FOLDER, 'embeddings')
     # Get trained model    
