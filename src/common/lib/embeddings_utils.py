@@ -94,7 +94,11 @@ def load_model_with_dataloader(model, datasets_list):
         logging.info(f"MODEL_PATH and LAST_CHECKPOINT_PATH are None.")
     
     logging.info(f"Loading model with dataloader {model.conf.MODEL_PATH}")
-
+   
+    n_class = 225
+    logging.warning(f"NOTE! Setting len(unique_markers) to {n_class} !!!!")
+    model.unique_markers = np.arange(n_class)
+   
     if len(datasets_list)==3:
         # If data was splitted during training to train/val/test
         model.load_with_dataloader(datasets_list[0], datasets_list[1], datasets_list[2])
@@ -108,12 +112,11 @@ def load_model_with_dataloader(model, datasets_list):
     model.load_model()
     return model
 
-def save_embeddings_and_labels(embedding_data, labels, embeddings_folders, name):
+def save_embeddings_and_labels(embedding_data, embeddings_folders, name):
     """_summary_
 
     Args:
         embedding_data (_type_): _description_
-        labels (_type_): _description_
         embeddings_folders (string): the path to the embeddings folder (under model_outputs)
         name (string): "train/val/test/all"
 
@@ -134,19 +137,21 @@ def save_embeddings_and_labels(embedding_data, labels, embeddings_folders, name)
 
 def calc_embeddings(model, datasets_list, embeddings_folder, save=True):
 
-    # Parser to get the image's batch/cell_line/condition/marker
+    # Parser to get the image's batch/cell_line/condition/rep/marker
     def final_save_path(full_path):
         path_list = full_path.split(os.sep)
-        batch_cell_line_condition_marker = os.path.join(*[os.path.join(path_list[i]) for i in range(-5,-1)])
-        return os.path.join(embeddings_folder, batch_cell_line_condition_marker)
+        batch_cell_line_condition_rep_marker_list = [os.path.join(path_list[-1][:4],path_list[i]) if i==-2 else os.path.join(path_list[i]) for i in range(-5,-1)]
+        batch_cell_line_condition_rep_marker = os.path.join(*batch_cell_line_condition_rep_marker_list)
+        return os.path.join(embeddings_folder, batch_cell_line_condition_rep_marker)
     get_save_path = np.vectorize(final_save_path)
     
     def do_embeddings_inference(images_batch, dataset_type):
         save_path = get_save_path(images_batch['image_path'])
         # images_batch is torch.Tensor of size(n_tiles, n_channels, 100, 100)
         embedding_data = model.model.infer_embeddings(images_batch['image'].numpy())  
-        if save: save_embeddings_and_labels(embedding_data, images_batch['label'], save_path, name=dataset_type+str(i))
-
+        if save: save_embeddings_and_labels(embedding_data, save_path, name=dataset_type+str(i))
+        return None
+    
     if len(datasets_list)==3:
         
         logging.info("Infer embeddings - train set")
@@ -176,7 +181,7 @@ def calc_embeddings(model, datasets_list, embeddings_folder, save=True):
 # Utils for Load Embeddings (callable function)
 ################################################################ 
 
-def get_embeddings_subfolders_filtered(config_data, embeddings_main_folder, depth=3):
+def get_embeddings_subfolders_filtered(config_data, embeddings_main_folder, depth=4):
     """_summary_
 
     Args:
@@ -201,12 +206,13 @@ def get_embeddings_subfolders_filtered(config_data, embeddings_main_folder, dept
         marker_folders_to_include = []
 
         for marker_folder in marker_subfolders:
+                
                 #####################################
                 # Extract experimental settings from marker folder path (avoid multiple nested for loops..)
                 marker_name = os.path.basename(marker_folder)
+                rep =  marker_folder.split('/')[-1]
                 condition = marker_folder.split('/')[-2]
                 cell_line = marker_folder.split('/')[-3]
-                
                 #####################################
                 # Filter: cell line
                 if config_data.CELL_LINES is not None and cell_line not in config_data.CELL_LINES:
@@ -215,6 +221,10 @@ def get_embeddings_subfolders_filtered(config_data, embeddings_main_folder, dept
                 # Filter: stress condition
                 if config_data.CONDITIONS is not None and condition not in config_data.CONDITIONS:
                     logging.info(f"Skipping condition (not in conditions list). {condition}")
+                    continue
+                # Filter: rep
+                if config_data.REPS is not None and rep not in config_data.REPS:
+                    logging.info(f"Skipping rep (not in reps list). {rep}")
                     continue
                 # Filter: marker to include
                 if config_data.MARKERS is not None and marker_name not in config_data.MARKERS:
