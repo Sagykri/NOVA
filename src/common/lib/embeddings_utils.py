@@ -210,9 +210,9 @@ def get_embeddings_subfolders_filtered(config_data, embeddings_main_folder, dept
                 #####################################
                 # Extract experimental settings from marker folder path (avoid multiple nested for loops..)
                 marker_name = os.path.basename(marker_folder)
-                rep =  marker_folder.split('/')[-1]
-                condition = marker_folder.split('/')[-2]
-                cell_line = marker_folder.split('/')[-3]
+                rep =  marker_folder.split('/')[-2]
+                condition = marker_folder.split('/')[-3]
+                cell_line = marker_folder.split('/')[-4]
                 #####################################
                 # Filter: cell line
                 if config_data.CELL_LINES is not None and cell_line not in config_data.CELL_LINES:
