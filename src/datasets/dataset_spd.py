@@ -137,7 +137,7 @@ class DatasetSPD(Dataset):
                 # Target marker - loop on all sites (single npy files)
                 for target_file in filenames:
                     filename, ext = os.path.splitext(target_file)
-                    if ext == '.npy':
+                    if ext == '.npy' or ext == '.tif_processed':
                         # Hold the full path of a processed image 
                         image_filename = os.path.join(marker_folder, target_file)
                         # Add to list: the full path of the npy file 

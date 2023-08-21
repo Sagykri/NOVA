@@ -27,9 +27,6 @@ def random_choice_rotate(image):
     k = np.random.choice([0, 1, 2, 3])
     return np.rot90(image, k=k, axes=(0,1))
 
-def flat_list_of_lists(l):
-    return [item for sublist in l for item in sublist]
-
 
 class Dataset(torch.utils.data.Dataset ,metaclass=ABCMeta):
     def __init__(self, conf: DatasetConfig):
@@ -157,9 +154,9 @@ class Dataset(torch.utils.data.Dataset ,metaclass=ABCMeta):
                         paths_batch.append([path]*len(augmented_images))
         
         X_batch = np.concatenate(X_batch)
-        y_batch = np.asarray(flat_list_of_lists(y_batch))
+        y_batch = np.asarray(utils.flat_list_of_lists(y_batch))
         if return_paths:
-            paths_batch = np.asarray(flat_list_of_lists(paths_batch))
+            paths_batch = np.asarray(utils.flat_list_of_lists(paths_batch))
 
         # If the channel axis is the last one, move it to be the second one
         # (#tiles, 100, 100, #channel) -> (#tiles, #channel, 100, 100)

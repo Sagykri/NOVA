@@ -1,359 +1,132 @@
+import datetime
 import os
 import sys
+
 sys.path.insert(1, os.getenv("MOMAPS_HOME"))
 
 import logging
 import random
 import numpy as np
 import pandas as pd
-from src.common.lib.model import Model
-import torch
-# from torch.utils.data import DataLoader
-# from src.common.lib.cytoself_custom import calc_umap_embvec, plot_umap
-# from src.common.lib.metrics import calc_clustering_validation, plot_metrics
 from umap import UMAP
 import re
 import matplotlib.pyplot as plt
-from tqdm import tqdm
-from sklearn.decomposition import PCA
-from sklearn.preprocessing import StandardScaler
+from src.common.lib.model import Model
+from src.common.lib.utils import flat_list_of_lists, get_if_exists
 
 
-def multiplex(model: Model):
+def multiplex(model: Model, embeddings_type='testset',
+                    title=None,
+                    colormap='Set1',
+                    alpha=0.8,
+                    s=0.8,):
     assert model is not None, "Model is None"
     assert model.test_loader is not None, "model.test_loader is None, please first load dataloaders"
     
-    embeddings, labels_ids = model.model.infer_embeddings(model.test_loader)
-    labels = model.test_loader.dataset.id2label(labels_ids)
+    dataset_conf = model.test_loader.dataset.conf
+    calc_embeddings = get_if_exists(dataset_conf, 'CALCULATE_EMBEDDINGS', False)
+    logging.info(f"calc_embeddings is set to {calc_embeddings}")
     
-    logging.info(f"embeddings shape: {embeddings.shape}, labels shape: {labels.shape}")
+    embeddings, labels = __get_embeddings(model, embeddings_type, calc_embeddings)
+    logging.info(f"[Before concat] Embeddings shape: {embeddings.shape}, Labels shape: {labels.shape}")
     
-    labels_df = pd.DataFrame([s.split('_', 1) for s in labels], columns=['Marker', 'Pheno'])
-    logging.info(labels_df.head())
-    
-    embeddings_series = pd.DataFrame({"Embeddings": [*embeddings]})
-    df = pd.merge(labels_df, embeddings_series, left_index=True, right_index=True)
-    
-    logging.info(df.head())
-    
-    def __shuffle_and_concat(group):
-        group_copy = group.copy()
-        pheno = group['Pheno'].iloc[0]
-        logging.info(f"Pheno: {pheno}")
-        
-        # unique_markers = group_copy['Marker'].unique()
-        # logging.info(f"unique_markers: {unique_markers}")
-        
-        #Shuffle
-        group_copy.sample(frac=1, random_state=model.conf.SEED)
-        
-        n_subgroups = min(group_copy['Marker'].value_counts())
-        logging.info(f"Detected {n_subgroups} subgroups")
-        embeddings = []
-        for i in range(n_subgroups):
-            logging.info(f"{i+1}/{n_subgroups}")
-            subgroup = group_copy\
-                        .groupby('Marker')\
-                        .sample(n=1, replace=False, random_state=model.conf.SEED)
-            
-            subgroup.sort_values('Marker', inplace=True)
-            
-            logging.info(subgroup)
-            
-            __subgroup_embeddings = np.stack(subgroup['Embeddings'].to_numpy(), axis=0)
-            subgroup_embeddings = np.concatenate([e.reshape(-1) for e in __subgroup_embeddings])
-            embeddings.append(subgroup_embeddings)
-            
-            group_copy.drop(index=subgroup.index, inplace=True)
-        
-        embeddings = np.stack(embeddings, axis=0)
-        
-        return pd.Series({
-            'Pheno': pheno,  # Pick any value from the "Pheno" column for the output
-            'Embeddings': embeddings
-        })
-    
-    # # Group by "Pheno" and apply the custom function to each group
-    result_df = df.groupby('Pheno').apply(__shuffle_and_concat).reset_index(drop=True)
-    logging.info(result_df['Embeddings'].to_numpy()[0].shape)
-    logging.info(result_df['Embeddings'].to_numpy()[1].shape)
-    
-    embeddings = np.vstack(result_df['Embeddings'].to_numpy())
-    unique_groups = result_df['Pheno'].to_numpy().reshape(-1,1)
-    
-    label_data = []
-    for index, row in result_df.iterrows():
-        label_data.append([row['Pheno']] * row['Embeddings'].shape[0])
-    
-    def flat_list_of_lists(l):
-        return [item for sublist in l for item in sublist]
-    
-    label_data = flat_list_of_lists(label_data)
-    label_data = np.asarray(label_data).reshape(-1,1)
-    logging.info(f"label_data shape: {label_data.shape}")
-    logging.info(result_df.head())
-    
-    logging.info(f"pheno result: {result_df['Pheno'].to_numpy()}, {unique_groups.shape}")
-    logging.info(f"{embeddings.shape}, {label_data.shape}")
+    df = __embeddings_to_df(embeddings, labels)
+    #TODO: Take only shared markers between all phenos
+    embeddings, label_data, unique_groups = __get_multiplexed_embeddings(df, random_state=dataset_conf.SEED)
+    logging.info(f"[After concat] Embeddings shape: {embeddings.shape}, Labels shape: {label_data.shape}")
     
     logging.info("Loading analytics..")
     model.load_analytics()
+    
     logging.info("Plot umap..")
-    model.plot_umap(colormap='Set1',
-                    alpha=0.8,
-                    s=0.8,
+    model.plot_umap(colormap=colormap,
+                    alpha=alpha,
+                    s=s,
                     label_data=label_data,
-                    # id2label=lambda g: model.test_loader.dataset.id2label(g, label_data),
-                    title='sm_lines',
+                    id2label=None,
+                    calc_embeddings=calc_embeddings,
+                    title=title if title is not None else __generate_plot_title(model.conf, dataset_conf),
                     unique_groups=unique_groups,
-                    infer_labels=False,#False,
-                    # label_data=label_data,
                     embedding_data=embeddings)
 
-def old_multiplex(model:Model, 
-              groups_terms,match=False,
-              plot_pca=False, is_comb=False, legend_inside=True,
-              cmap1=["tab20", "tab20b"], title1="protein localization (before SM)", annot_font_size1=None,
-              colors_dict1=None, s1=None, alpha2=0.5,
-              title2="Proteins localization", s2=30, show1=True, show2=True, reset_embvec=True,
-              savepath1=None, savepath2=None, embvec_savename="multiplexed_data", figsize1=(8, 6), figsize2=(4, 4)):
-    """Run the synthetic multiplexing.
-    Concatenate groups of markers' representations to a single representation.
+def __generate_plot_title(model_conf, dataset_conf):
+    return 'SM_' + f"{'_'.join([os.path.basename(f) for f in dataset_conf.INPUT_FOLDERS])}_{datetime.datetime.now().strftime('%d%m%y_%H%M%S_%f')}_{os.path.splitext(os.path.basename(model_conf.MODEL_PATH))[0]}"
 
-    Args:
-        model (Model): The mode to use
-        groups_terms ([string]): list of terms to group by them
-        match (bool, optional): Should match proteins from the same image?. Defaults to False.
-        plot_pca (bool, optional): Should plot PCA?. Defaults to False.
-        is_comb (bool, optional): Is it the combined model?. Defaults to False.
-        legend_inside (bool, optional): Should the legend be inside the figure?. Defaults to True.
-        cmap1 (list, optional): cmap for UMAP1. Defaults to ["tab20", "tab20b"].
-        title1 (str, optional): Title for UMAP1. Defaults to "protein localization (before SM)".
-        annot_font_size1 (_type_, optional): Annotations' font size for UMAP1. Defaults to None.
-        colors_dict1 (_type_, optional): Color dictionary for UMAP1. Defaults to None.
-        s1 (_type_, optional): Points' size for UMAP1. Defaults to None.
-        alpha2 (float, optional): The alpha of the points. Defaults to 0.5.
-        title2 (str, optional): TItle for UMAP2. Defaults to "Proteins localization".
-        s2 (int, optional): Points' size for UMAP2. Defaults to 30.
-        show1 (bool, optional): Should show UMAP1?. Defaults to True.
-        show2 (bool, optional): Should show UMAP2?. Defaults to True.
-        reset_embvec (bool, optional): Should recalculate embedded vectors?. Defaults to True.
-        savepath1 (str, optional): The path of file to save for UMAP1. Doesn't save if None. Defaults to None.
-        savepath2 (str, optional): The path of file to save for UMAP2. Doesn't save if None. Defaults to None.
-        embvec_savename (str, optional): Name of file to save the embedded vectors to. Doesn't save if None. Defaults to "multiplexed_data".
-        figsize1 (tuple, optional): _description_. Defaults to (8, 6).
-        figsize2 (tuple, optional): _description_. Defaults to (4, 4).
-
-    Returns:
-        tuple(x,y): X transformed, y transformed
-    """
+def __get_multiplexed_embeddings(embeddings_df, random_state=None):
+    grouped_by_pheno = embeddings_df.groupby('Pheno')
+    common_markers = set.intersection(*map(set, grouped_by_pheno['Marker'].unique()))
+    logging.info(f"[SM] Common markers: {common_markers}")
     
-    labels_changepoints = model.test_labels_changepoints
-    X                   = model.test_data
-    y                   = model.test_label
-    markers             = model.markers
-    markers_order       = model.test_markers_order
-    analytics           = model.analytics
+    def __apply_func(df):
+        df = df[df['Marker'].isin(common_markers)]
+        return __concatenate_embeddings_by_group(df, random_state=random_state)
     
+    # # Group by "Pheno" and apply the custom function to each group
+    result_df = grouped_by_pheno.apply(__apply_func).reset_index(drop=True)
     
-    if match and labels_changepoints is None:
-        raise "label_changepoints can't be None if match is True"
+    embeddings = np.vstack(result_df['Embeddings'].to_numpy())
+    unique_groups = result_df['Pheno'].to_numpy().reshape(-1)
+    
+    label_data = []
+    for _, row in result_df.iterrows():
+        label_data.append([row['Pheno']] * row['Embeddings'].shape[0])
+    
+    label_data = flat_list_of_lists(label_data)
+    label_data = np.asarray(label_data).reshape(-1,1)
+    
+    return embeddings, label_data, unique_groups
 
-    markers = [m for m in markers_order if m in markers]
-    is_contains_re = np.vectorize(lambda y, x: re.match(x, y))
+def __embeddings_to_df(embeddings, labels):
+    labels_df = pd.DataFrame([s.split('_', 1) for s in labels], columns=['Marker', 'Pheno'])
+    embeddings_series = pd.DataFrame({"Embeddings": [*embeddings]})
+    df = pd.merge(labels_df, embeddings_series, left_index=True, right_index=True)
+    return df
 
-    y = y.copy()
-
-    if reset_embvec:
-        # Take only images of these markers and recalculate the embvec
-        analytics.model.embvec = None
-        analytics.model.calc_embvec(X, savepath="default", filename=f"{embvec_savename}_embvec_1u")
-        calc_umap_embvec(analytics, target_vq_layer=2, savepath="default", filename=f"{embvec_savename}_umap_1u")
-
-    # Concatenate:
-    groups = None
-    labels_counts = np.zeros((len(groups_terms),), dtype=int)
-    if is_comb:
-        y = pd.Series(y.reshape(-1, )).replace(
-            {"NCL": "Nucleolin", "SNCA": "SCNA", "syto12": "Syto12", "phalloidin": "Phalloidin"}, regex=True).to_numpy().reshape(-1,1)
-    for j, term in enumerate(tqdm(groups_terms)):
-
-        y_group = np.where(is_contains_re(y, f'.*{term}.*'), y, None)
-
-        if all(y_group == None):
-            logging.info(f"{term} not found")
-            continue
-        group_size = pd.Series(y_group.reshape(-1, )).value_counts().min()
-        for i in range(group_size):
-            group = []
-            selected_index = None
-            selected_index_paired = None
-
-            for l, m in enumerate(markers):
-
-                # Get all options for current marker
-                # inner_indexes = np.where(y_group == f"{m}{term}")[0]
-                inner_indexes = np.where(pd.Series(y_group[:, 0]).str.contains(f'{m}{term}'))[0]
-                if len(inner_indexes) == 0:
-                    logging.info(f"Skipping {m}{term}")
-                    continue
-
-                # Select image
-                if match:
-                    if selected_index is None:
-                        selected_index = random.choice(inner_indexes)
-                        selected_index_paired = _get_tiles_ids(selected_index, len(markers), labels_changepoints)
-
-                    index = selected_index_paired[l]
-                else:
-                    index = random.choice(inner_indexes)
-
-                # Remove this choice from ever to be chosen again
-                y_group[index] = None
-                # Concatenate current image's embvec1 with the previous images' embvec
-                group.append(analytics.model.embvec[1][index].reshape(-1, ))
-
-            # Flat
-            group = [item for sublist in group for item in sublist]
-            group = np.array(group)
-
-            if groups is None:
-                groups = group.copy()
-            else:
-                groups = np.vstack((groups, group))
-            labels_counts[j] += 1
-
-    logging.info(f"Groups Counts: {labels_counts}")
-
-    reducer = UMAP(random_state=model.conf.SEED)
-    X_transformed = reducer.fit_transform(groups)
-    y_transformed = [[groups_terms[i]] * labels_counts[i] for i in range(len(labels_counts))]
-    # Flat
-    y_transformed = [item for sublist in y_transformed for item in sublist]
-    # To numpy array
-    y_transformed = np.array(y_transformed)
-
-    if not show2:
-        return X_transformed, y_transformed
-
-    # Plot first UMAP
-
-    if show1:
-        d1, l1 = plot_umap(analytics, data=analytics.vec_umap, cmap=cmap1, s=s1, annotations_font_size=annot_font_size1,
-                           colors_dict=colors_dict1, title=title1,
-                           savepath=savepath1,
-                           plot_pca=plot_pca, figsize=figsize1)
-        plt.show()
-
-    # Plot second (grouped) UMAP
-
-    n_clusters = len(groups_terms)
-    plt.figure(figsize=figsize2)
-    scs = []
-    i = 0
-    for c in range(n_clusters):
-        sc = plt.scatter(
-            X_transformed[i:i + labels_counts[c], 0],
-            X_transformed[i:i + labels_counts[c]:, 1],
-            s=s2,
-            c=np.array([*[model.conf.COLORS_MAPPING[groups_terms[c]]] * labels_counts[c]]),
-            alpha=alpha2
-        )
-        scs.append(sc)
-        i += labels_counts[c]
-
-    legend = np.array([model.conf.TEMR_LEGEND_MAPPING[l] for l in groups_terms])
-    if legend_inside:
-        plt.legend(scs, legend, loc='upper left', ncol=2, borderaxespad=3)
+def __get_embeddings(model, embeddings_type, calc_embeddings):
+    if calc_embeddings:
+        logging.info("Calculating embeddings...")
+        embeddings, labels_ids = model.model.infer_embeddings(model.test_loader)
+        labels = model.test_loader.dataset.id2label(labels_ids)
     else:
-        plt.legend(scs, legend)
-    plt.xlabel("UMAP1")
-    plt.ylabel("UMAP2")
-    plt.xticks([])
-    plt.yticks([])
-    plt.title(title2)
+        logging.info("Loading embeddings...")
+        embeddings, labels = model.load_embeddings(embeddings_type)
+        labels = np.asarray(labels).reshape(-1,)
+    return embeddings,labels
 
-    plt.tight_layout(pad=0.5)
+def __concatenate_embeddings_by_group(group, random_state=None):
+    group_copy = group.copy()
+    pheno = group['Pheno'].iloc[0]
+    logging.info(f"Pheno: {pheno}")
     
-    if savepath2 is not None:
-        plt.savefig(savepath2)
+    #Shuffle
+    group_copy.sample(frac=1, random_state=random_state)
     
-    plt.show()
-
-    logging.info("Metrics:")
-    logging.info("(1)")
-    embvec_flatten = analytics.model.embvec[1].copy()
-    embvec_flatten = embvec_flatten.reshape(embvec_flatten.shape[0], -1)
-    
-    savepath2_metrics1, savepath2_metrics2 = None, None
-    if savepath2 is not None:
-        savepath2_basename, savepath2_ext = os.splitext(savepath2)
-        savepath2_metrics1 = savepath2_basename + "_metrics1" + savepath2_ext
-        savepath2_metrics2 = savepath2_basename + "_metrics2" + savepath2_ext
+    n_subgroups = min(group_copy['Marker'].value_counts())
+    logging.info(f"Detected {n_subgroups} subgroups")
+    embeddings = []
+    for i in range(n_subgroups):
+        logging.info(f"{i+1}/{n_subgroups}")
+        logging.info(f"[{i+1}/{n_subgroups}] Shape: {group_copy.shape}")
+        subgroup = group_copy\
+                    .groupby('Marker')\
+                    .sample(n=1, replace=False, random_state=random_state)
         
-    plot_metrics(embvec_flatten, y, n_clusters=len(np.unique(y)), savepath=savepath2_metrics1)
-    logging.info("(2)")
-    plot_metrics(groups, y_transformed, n_clusters=n_clusters, savepath=savepath2_metrics2)
-
-    np.save(os.path.join(analytics.model.savepath_dict["emb"], f"{embvec_savename}_embvec_2u.npy"), groups)
-    np.save(os.path.join(analytics.model.savepath_dict["emb"], f"{embvec_savename}_umap_2u.npy"), X_transformed)
-
-    # plot PCA
-    if plot_pca:
-        pca = PCA()
-        x = StandardScaler().fit_transform(groups.copy())
-        principal_components = pca.fit_transform(x)
-        principal_df = pd.DataFrame(data=principal_components[:, [0, 1]],
-                                    columns=['principal component 1', 'principal component 2'])
-        y = pd.DataFrame(y_transformed, columns=['group'])
-        final_df = pd.concat([principal_df, y], axis=1)
-        fig = plt.figure(figsize=(5, 5))
-        ax = fig.add_subplot(1, 1, 1)
-        ax.set_xlabel(f'PC 1 ({round(pca.explained_variance_ratio_[0] * 100, 2)}%)', fontsize=15)
-        ax.set_ylabel(f'PC 2 ({round(pca.explained_variance_ratio_[1] * 100, 2)}%)', fontsize=15)
-        for cell_line in groups_terms:
-            indicesToKeep = final_df['group'] == cell_line
-            ax.scatter(final_df.loc[indicesToKeep, 'principal component 1']
-                       , final_df.loc[indicesToKeep, 'principal component 2']
-                       , c=model.conf.COLORS_MAPPING[cell_line]
-                       , s=50)
-        # ax.legend(legend)
-        plt.show()
-        exp_var_pca = pca.explained_variance_ratio_
-        cum_sum_eigenvalues = np.cumsum(exp_var_pca)
-        plt.bar(range(0, len(exp_var_pca)), exp_var_pca, alpha=0.5, align='center',
-                label='Individual explained variance')
-        plt.step(range(0, len(cum_sum_eigenvalues)), cum_sum_eigenvalues, where='mid',
-                 label='Cumulative explained variance')
-        plt.ylabel('Explained variance ratio')
-        plt.xlabel('Principal component index')
-        plt.legend(loc='best')
-        plt.tight_layout()
-        plt.show()
-    return X_transformed, y_transformed
-
-def _old_get_tiles_ids(tile_id, n_markers, mapping):
-    mapping_np = np.array(mapping)
-    transition_index = np.array([mapping_np[i] for i in range(len(mapping_np)) if i % n_markers == 0])
-    start_index_transition = np.argwhere(tile_id >= transition_index)[-1][0]
-    end_index_transition = np.argwhere(tile_id < transition_index)[0][0]
-    start_index_mapping = np.argwhere(mapping_np == transition_index[start_index_transition])[0][0]
-    end_index_mapping = np.argwhere(mapping_np == transition_index[end_index_transition])[0][0]
-
-    blocks = []
-    for i in range(start_index_mapping, end_index_mapping):
-        blocks.append(mapping[i])
-
-    nearest_block = np.argwhere(tile_id >= mapping_np)[-1][0]
-    delta = tile_id - mapping[nearest_block]
-
-    indexes = []
-    for i in range(len(blocks)):
-        indexes.append(blocks[i] + delta)
-
-    # return indexes
-    indexes.sort()
-    return np.unique(indexes)
+        subgroup.sort_values('Marker', inplace=True)
+        
+        __subgroup_embeddings = np.stack(subgroup['Embeddings'].to_numpy(), axis=0)
+        subgroup_embeddings = np.concatenate([e.reshape(-1) for e in __subgroup_embeddings])
+        embeddings.append(subgroup_embeddings)
+        
+        group_copy.drop(index=subgroup.index, inplace=True)
+    
+    embeddings = np.stack(embeddings, axis=0)
+    
+    logging.info(f"[{pheno}] embeddings shape: {embeddings.shape}")
+    
+    return pd.Series({
+        'Pheno': pheno, 
+        'Embeddings': embeddings
+    })
 
 def old_calc_bootstrapping(model:Model, groups_terms, n_runs=1000, save_folder=None):
     """Calculate metrics (ARI and silhouette) with bootstrapping

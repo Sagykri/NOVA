@@ -6,16 +6,22 @@ sys.path.insert(1, os.getenv("MOMAPS_HOME"))
 
 import numpy as np
 
-PROCESSED_FOLDER_ROOT = os.path.join('/home','labs','hornsteinlab','Collaboration','MOmaps','input','images','processed')
-batch2_folders = ["220814_neurons",
-                "220818_neurons",
-                "220831_neurons",
-                "220908", "220914"]
+# PROCESSED_FOLDER_ROOT = os.path.join('/home','labs','hornsteinlab','Collaboration','MOmaps','input','images','processed')
+# batch2_folders = ["220814_neurons",
+#                 "220818_neurons",
+#                 "220831_neurons",
+#                 "220908", "220914"]
+# batch2_5_folder = ["batch_2_5"]
 
-BATCH2_SPD_PROCESSED_FOLDER = os.path.join(PROCESSED_FOLDER_ROOT, 'spd2','SpinningDisk','batch2')
+PROCESSED_FOLDER_ROOT = os.path.join('/home','labs','hornsteinlab','Collaboration','MOmaps','input','images','processed', 'Confocal')
+pertrubations_folder = ["Perturbations"]
+
+# BATCH2_SPD_PROCESSED_FOLDER = os.path.join(PROCESSED_FOLDER_ROOT, 'spd2','SpinningDisk','batch2')
+# BATCH2_5_SPD_PROCESSED_FOLDER = os.path.join(PROCESSED_FOLDER_ROOT,'batch2_5_spd_format')
+PERTRUBATION_SPD_PROCESSED_FOLDER = os.path.join(PROCESSED_FOLDER_ROOT,'Perturbations_spd_format')
 
 
-for folder in batch2_folders:
+for folder in pertrubations_folder:
     data_folder_path = os.path.join(PROCESSED_FOLDER_ROOT, folder)
     for cell_line in sorted(os.listdir(data_folder_path)):
         cell_line_folder = os.path.join(data_folder_path, cell_line)
@@ -39,7 +45,7 @@ for folder in batch2_folders:
                         data = tiles[start:end,...]
                         
                         # save the file (and create subfolders if needed)
-                        save_path = os.path.join(BATCH2_SPD_PROCESSED_FOLDER, cell_line)
+                        save_path = os.path.join(PERTRUBATION_SPD_PROCESSED_FOLDER, cell_line)
                         if not os.path.exists(save_path):
                             os.mkdir(save_path, mode=0o777)
                         save_path = os.path.join(save_path, condition)

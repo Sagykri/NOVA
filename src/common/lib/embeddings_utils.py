@@ -58,7 +58,7 @@ def load_dataset_for_embeddings(config_path_data, batch_size):
     # important! we don't want to get the augmented images
     dataset.flip, dataset.rot = False, False
     
-    logging.info(f"Init dataloaders")
+    logging.info(f"Init dataloaders (batch_size={batch_size})")
     if config_data.SPLIT_DATA:
         logging.info(f"Get the data split that was used during training...")
         # Get numeric indexes of train, val and test sets
@@ -95,6 +95,10 @@ def load_model_with_dataloader(model, datasets_list):
     
     logging.info(f"Loading model with dataloader {model.conf.MODEL_PATH}")
 
+    n_class = 225
+    logging.warning(f"NOTE! Setting len(unique_markers) to {n_class} !!!!")
+    model.unique_markers = np.arange(n_class)
+
     if len(datasets_list)==3:
         # If data was splitted during training to train/val/test
         model.load_with_dataloader(datasets_list[0], datasets_list[1], datasets_list[2])
@@ -108,7 +112,7 @@ def load_model_with_dataloader(model, datasets_list):
     model.load_model()
     return model
 
-def save_embeddings_and_labels(embedding_data, labels, embeddings_folders, name):
+def save_embeddings_and_labels(embedding_data, embeddings_folders, name):
     """_summary_
 
     Args:
@@ -120,15 +124,16 @@ def save_embeddings_and_labels(embedding_data, labels, embeddings_folders, name)
     Returns:
         _type_: _description_
     """
-    
-    for i in range(embedding_data.shape[0]):
+    embeddings_folders_unique = np.unique(embeddings_folders)
+    __dict_temp = {value: [index for index, item in enumerate(embeddings_folders) if item == value] for value in embeddings_folders_unique}
+    for embeddings_folders_marker, marker_indexes in __dict_temp.items():
         # create folder if needed
-        os.makedirs(embeddings_folders[i], exist_ok=True) 
+        os.makedirs(embeddings_folders_marker, exist_ok=True) 
         # embeddings file name 
-        embeddings_file_name = os.path.join(embeddings_folders[i], name) + '_embeddings.npy'
+        embeddings_file_name = os.path.join(embeddings_folders_marker, name) + '_embeddings.npy'
         logging.info(f"Saving embeddings {name}. Path: {embeddings_file_name}")
         # save npy to relevant folder
-        np.save(embeddings_file_name, embedding_data[i,:,:,:])
+        np.save(embeddings_file_name, embedding_data[marker_indexes])
     return None
 
 def calc_embeddings(model, datasets_list, embeddings_folder, save=True):
@@ -144,7 +149,7 @@ def calc_embeddings(model, datasets_list, embeddings_folder, save=True):
         save_path = get_save_path(images_batch['image_path'])
         # images_batch is torch.Tensor of size(n_tiles, n_channels, 100, 100)
         embedding_data = model.model.infer_embeddings(images_batch['image'].numpy())  
-        if save: save_embeddings_and_labels(embedding_data, images_batch['label'], save_path, name=dataset_type+str(i))
+        if save: save_embeddings_and_labels(embedding_data, save_path, name=dataset_type+str(i))
 
     if len(datasets_list)==3:
         
@@ -226,6 +231,9 @@ def get_embeddings_subfolders_filtered(config_data, embeddings_main_folder, dept
                 #####################################
                 marker_folders_to_include.append(marker_folder)
 
+        if len(marker_folders_to_include) == 0:
+            logging.warn("[get_embeddings_subfolders_filtered] Couldn't find any embeddings for your data")
+
         return marker_folders_to_include
 
 
@@ -247,19 +255,22 @@ def _load_stored_embeddings(marker_folder, embeddings_type):
     # Filter npy files by "embeddings_type"
     filtered_emb_filenames = [emb_filename for emb_filename in emb_filenames if embeddings_type in emb_filename]
     
+    logging.info(f"{[os.path.join(marker_folder, emb_filename) for emb_filename in filtered_emb_filenames]}")
+    
     # Load all embeddings .npy files into a single numpy array
-    embedings_data = np.array([np.load(os.path.join(marker_folder, emb_filename)) for emb_filename in filtered_emb_filenames])
+    embedings_data = np.vstack([np.load(os.path.join(marker_folder, emb_filename)) for emb_filename in filtered_emb_filenames])
 
     # Infer the label 
     path_list = marker_folder.split(os.sep)
-    batch_cell_line_condition_marker = os.path.join(*[os.path.join(path_list[i]) for i in range(-5,-1)])
+    batch_cell_line_condition_marker = '_'.join([path_list[-1], path_list[-3], path_list[-2]])
     labels = [batch_cell_line_condition_marker] * embedings_data.shape[0]
     
     logging.info(f"[_load_stored_embeddings] Loading stored embeddings of label {batch_cell_line_condition_marker} of shape {embedings_data.shape} ")
     return embedings_data, labels
     
 
-def load_embeddings(config_path_model=None, config_path_data=None, embeddings_type='valset'):
+def load_embeddings(config_path_model=None, config_path_data=None,
+                    config_model=None, config_data=None, embeddings_type='valset'):
     """Loads the embedding vectors 
 
     Args:
@@ -267,22 +278,23 @@ def load_embeddings(config_path_model=None, config_path_data=None, embeddings_ty
         config_path_data (string): full path to dataset config file
         embeddings_type (string): which part of the dataset to fetch "train"/"test"/"val"/"all"
     """
-    
-    logging.info(f"[load_embeddings] Model: {config_path_model} Dataset: {config_path_data}")
-
-    if config_path_model is None:
-        raise ValueError("Invalid config path. Must supply model config.")
-    if config_path_data is None:
-        raise ValueError("Invalid config path. Must supply dataset config.")
+    if config_path_model is None and config_model is None:
+        raise ValueError("Invalid config (path). Must supply model config.")
+    if config_path_data is None and config_data is None:
+        raise ValueError("Invalid config (path). Must supply dataset config.")
     if embeddings_type not in ["trainset", "testset", "valset", "all"]:
         raise ValueError(f"Invalid embeddings_type. Must supply 'trainset' / 'testset' / 'valset' / 'all'. ")
     
+    logging.info(f"[load_embeddings] Model: {config_path_model if config_path_model is not None else 'preloaded'}\
+                    Dataset: {config_path_data if config_path_data is not None else 'preloaded'},\
+                        embeddings_type: {embeddings_type}")
+    
     # Get configs of model (trained model) 
-    config_model = load_config_file(config_path_model, 'model')
-    embeddings_main_folder = os.path.join(config_model.MODEL_OUTPUT_FOLDER, 'embeddings')
+    config_model = load_config_file(config_path_model, 'model') if config_model is None else config_model
+    embeddings_main_folder = os.path.join(config_model.MODEL_OUTPUT_FOLDER, 'embeddings', 'neurons')
     
     # Get dataset configs (as to be used in the desired UMAP)
-    config_data = load_config_file(config_path_data, 'data')
+    config_data = load_config_file(config_path_data, 'data') if config_data is None else config_data
     
     marker_folders_to_include = get_embeddings_subfolders_filtered(config_data, embeddings_main_folder)
     
@@ -294,9 +306,15 @@ def load_embeddings(config_path_model=None, config_path_data=None, embeddings_ty
         embedings_data_list.append(embedings_data)
         all_labels.extend(labels)
 
+    all_labels = np.asarray(all_labels).reshape(-1,1)
+    
     # Combine all markers to single numpy 
-    all_embedings_data = np.vstack(embedings_data_list)
-    logging.info(f"[load_embeddings] all_embedings_data: {all_embedings_data.shape} all_labels: {len(all_labels)}")
+    if len(embedings_data_list) == 0:
+        all_embedings_data = np.asarray([])  
+        logging.warn('[load_embeddings] 0 embeddings were loaded')  
+    else:
+        all_embedings_data = np.vstack(embedings_data_list)
+        logging.info(f"[load_embeddings] all_embedings_data: {all_embedings_data.shape} all_labels: {all_labels.shape}")
            
     return all_embedings_data, all_labels
 

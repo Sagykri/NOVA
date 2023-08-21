@@ -1,3 +1,4 @@
+import datetime
 import os
 import sys
 
@@ -71,10 +72,12 @@ def eval_model():
     logging.info("Loading analytics..")
     model.load_analytics()
     logging.info("Plot umap..")
-    model.plot_umap(colormap='Set1',
+    model.plot_umap(colormap='tab20',
                     alpha=0.8,
                     s=0.8,
-                    infer_labels=True,
+                    calc_embeddings=False,
+                    is_3d=False,
+                    title=f"{'_'.join([os.path.basename(f) for f in config_data.INPUT_FOLDERS])}_{datetime.datetime.now().strftime('%d%m%y_%H%M%S_%f')}_{os.path.splitext(os.path.basename(config_model.MODEL_PATH))[0]}",
                     id2label=dataloader.dataset.id2label)
     
 

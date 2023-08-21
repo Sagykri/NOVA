@@ -20,11 +20,15 @@ class LenaDatasetConfig(DatasetConfig):
         #                 'mitotracker', 'NCL', 'NEMO', 'NONO', 'PEX14', 'Phalloidin', 'PML', 'PSD95', 'PURA', 'SCNA', 'SQSTM1', 'TDP43',
         #                 'TIA1', 'TOMM20']
                                 
-        #self.CELL_LINES = ['WT']#, 'FUSHomozygous', 'FUSHeterozygous', 'FUSRevertant']
-        self.CONDITIONS = ['Untreated']
-        self.MARKERS = ['PURA', 'Calreticulin', 'SQSTM1', 'NCL', 'TDP43', 'mitotracker', 'FMRP'] #['FUS']
+        # self.CELL_LINES = ['WT']#, 'FUSHomozygous', 'FUSHeterozygous', 'FUSRevertant']
+        # self.CONDITIONS = ['Untreated']
+        self.CONDITIONS = ['unstressed']
+        # self.MARKERS = ['PURA', 'Calreticulin', 'SQSTM1', 'NCL', 'TDP43', 'mitotracker', 'FMRP'] #['FUS']
         
-        input_folder_name = "batch9_16bit"
+        self.CALCULATE_EMBEDDINGS = True
+        # You can add more folder like this: input_folders_names = ["batch9_16bit", "batch7", "batch6",] 
+        input_folders_names = ["Perturbations"]
+        # input_folders_names = ["Perturbations_spd_format"]
         
         #######################################
         
@@ -40,5 +44,7 @@ class LenaDatasetConfig(DatasetConfig):
         
         
         self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "spd2", "SpinningDisk", f) for f in 
-                        [input_folder_name]]
+                        input_folders_names]
+        # self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "Confocal", f) for f in 
+        #                 input_folders_names]
         #####################################

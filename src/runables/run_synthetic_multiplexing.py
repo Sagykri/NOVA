@@ -9,13 +9,13 @@ import numpy as np
 import pandas as pd
 import  torch
 
-from src.common.lib.utils import load_config_file
+from src.common.lib.utils import get_if_exists, load_config_file
 from src.common.lib.model import Model
 from src.common.lib.data_loader import get_dataloader
 from src.datasets.dataset_spd import DatasetSPD
 from src.common.lib.synthetic_multiplexing import multiplex
 
-def eval_model():
+def run_synthetic_multiplexing():
     
     if len(sys.argv) != 3:
         raise ValueError("Invalid config path. Must supply model config and data config.")
@@ -62,13 +62,17 @@ def eval_model():
     model.load_model()
     
     logging.info("Multiplex!")
-    multiplex(model)
+    embeddings_type = get_if_exists(model.test_loader.dataset.conf,
+                                    'EMBEDDINGS_TYPE_TO_LOAD',
+                                    'testset' if config_data.SPLIT_DATA else 'all')
+
+    multiplex(model, embeddings_type=embeddings_type)
     
 
 if __name__ == "__main__":
-    print("Testing synthetic multiplexing...")
+    print("Running synthetic multiplexing...")
     try:
-        eval_model()
+        run_synthetic_multiplexing()
     except Exception as e:
         logging.exception(str(e))
         raise e

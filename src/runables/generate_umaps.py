@@ -14,7 +14,7 @@ import  torch
 import datetime
 
 from src.common.lib.dataset import Dataset
-from src.common.lib.utils import load_config_file
+from src.common.lib.utils import get_if_exists, load_config_file
 from src.common.lib.model import Model
 from src.common.lib.data_loader import get_dataloader
 from src.datasets.dataset_spd import DatasetSPD
@@ -66,6 +66,8 @@ def generate_umaps():
     markers = np.unique([m.split('_')[0] if '_' in m else m for m in dataset.unique_markers]) 
     logging.info(f"Markers detected: {markers}")
     
+    calc_embeddings = get_if_exists(config_data, 'CALCULATE_EMBEDDINGS', False)
+    
     for c in markers:
         logging.info("Clearing cache")
         torch.cuda.empty_cache()
@@ -100,7 +102,7 @@ def generate_umaps():
                         colormap='Set1',
                         alpha=0.7,
                         s=0.8,
-                        infer_labels=True,
+                        calc_embeddings=calc_embeddings,
                         id2label=dataloader.dataset.id2label)
         
         logging.info(f"[{c}] UMAP saved successfully to {savepath}")
