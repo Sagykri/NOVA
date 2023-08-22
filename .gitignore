@@ -17,6 +17,8 @@ input/images/raw/*
 input/images/processed/*
 !input/images/processed/.gitkeep
 
+tools/lena/models_outputs_Lena/embeddings/**/*.npy
+
 tests/**/*.png
 tests/**/*.tif
 
