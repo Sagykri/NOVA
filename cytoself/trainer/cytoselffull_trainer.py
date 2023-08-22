@@ -149,10 +149,21 @@ class CytoselfFullTrainer(VQVAETrainer):
         # Matching the number of label target to the label output from the model.
         # The image output should always come to the first followed by label outputs.
         # self.model.fc_loss will be an empty dict when there is no label output from the model.
+        
+        # SAGY
+        labs = [[l] * (len(model_outputs[1:]) // len(lab)) for l in lab.ravel()]
+        labs = [item for sublist in labs for item in sublist] # flat
+        
         self.model.fc_loss = {
             f'fc{self.model.fc_output_idx[j]}_loss': ce_loss_fn(t, i)
-            for j, (t, i) in enumerate(zip(model_outputs[1:], [lab] * (len(model_outputs) - 1)))
+            for j, (t, i) in enumerate(zip(model_outputs[1:], labs))
         }
+        #####
+        
+        # self.model.fc_loss = {
+        #     f'fc{self.model.fc_output_idx[j]}_loss': ce_loss_fn(t, i)
+        #     for j, (t, i) in enumerate(zip(model_outputs[1:], [lab] * (len(model_outputs[1:]-1)))
+        # }
         return self._combine_losses(vq_coeff, fc_coeff)
 
     def _update_loss_dict(self, output: dict):

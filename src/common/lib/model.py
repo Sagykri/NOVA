@@ -91,7 +91,8 @@ class Model():
             'fc_output_idx': fc_output_idx,
             'vq_args': vq_args,# NEW
             'num_class': num_class,
-            'fc_input_type': fc_input_type
+            'fc_input_type': fc_input_type,
+            'fc_mul': 2 if loading_pretrained else 1 # NEW
         }
         train_args = {
             'lr': learn_rate,

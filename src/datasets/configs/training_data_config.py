@@ -30,6 +30,16 @@ class B78TrainDatasetConfig(DatasetConfig):
 
         self.SPLIT_DATA = True
 
+class B78NoDSTrainDatasetConfig(DatasetConfig):
+    def __init__(self):
+        super().__init__()
+
+        self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "spd2", "SpinningDisk", f) for f in 
+                        ["batch7_16bit_no_downsample", "batch8_16bit_no_downsample"]]
+
+        self.SPLIT_DATA = True
+        
+        self.CONDITIONS = ['Untreated']
 
 class OpenCellTrainDatasetConfig(DatasetConfig):
     def __init__(self):

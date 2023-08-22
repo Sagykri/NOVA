@@ -54,6 +54,9 @@ class Dataset(torch.utils.data.Dataset ,metaclass=ABCMeta):
         
         self.X_paths, self.y, self.unique_markers = self._load_data_paths()  
         
+        # SAGY
+        self.unique_phenos = ['WT', 'ALS']
+        
         # PATCH...
         self.label = self.y      
         
@@ -93,10 +96,17 @@ class Dataset(torch.utils.data.Dataset ,metaclass=ABCMeta):
         
         X_batch, y_batch, paths_batch = self.get_batch(index, return_paths=True)
     
+        y2_batch = np.asarray([y.split('_')[1] for y in y_batch.reshape(-1,)])
+        # Convert non WT to ALS
+        y2_batch = np.asarray([y if y in self.unique_phenos else 'ALS' for y in y2_batch])
+        y2_batch = y2_batch.reshape(-1,1)
+        y2_batch = self.__label_converter(y2_batch, unique_labels=self.unique_phenos, label_format='index')
+        
         y_batch = self.__label_converter(y_batch, label_format='index')
+        
         paths_batch = paths_batch.reshape(-1,1)
         
-        return {'image': X_batch, 'label': y_batch, 'image_path': paths_batch}
+        return {'image': X_batch, 'label': y_batch, 'label2': y2_batch, 'image_path': paths_batch}
         
 
     def get_batch(self, indexes, return_paths=False):
@@ -191,31 +201,38 @@ class Dataset(torch.utils.data.Dataset ,metaclass=ABCMeta):
             
         return y_label
     
-    def __label_converter(self, y, label_format='index'):
-        if self.unique_markers is None:
-            raise ValueError('unique_markers is empty.')
+    def __label_converter(self, y, unique_labels=None, label_format='index'):
+        if unique_labels is None:
+            if self.unique_markers is None:
+                raise ValueError('unique_markers is empty.')
+            unique_labels = self.unique_markers
+        
+        y = y.reshape(-1,)
+        onehot = y[:, None] == unique_labels
+        if label_format == 'onehot':
+            output = onehot
+        elif label_format == 'index':
+            output = onehot.argmax(1)
         else:
-            y = y.reshape(-1,)
-            onehot = y[:, None] == self.unique_markers
-            if label_format == 'onehot':
-                output = onehot
-            elif label_format == 'index':
-                output = onehot.argmax(1)
-            else:
-                output = y
+            output = y
 
-            output = output.reshape(-1,1)
-            return output
+        output = output.reshape(-1,1)
+        return output
     
     @staticmethod
     def get_collate_fn(shuffle=False):
         def collate_fn(batch):
             images = [b['image'] for b in batch]
             labels = [b['label'] for b in batch]
+            labels2 = [b['label2'] for b in batch]
             images_paths = [b['image_path'] for b in batch]
             
+            labels = np.vstack(labels).reshape(-1,)
+            labels2 = np.vstack(labels2).reshape(-1,)
+            labels_merged = np.asarray(list(zip(labels, labels2)))
+            
             output_images = torch.from_numpy(np.vstack(images))
-            output_labels = torch.from_numpy(np.vstack(labels).reshape(-1,))
+            output_labels = torch.from_numpy(labels_merged)
             output_paths = np.vstack(images_paths).reshape(-1,)
             
             if shuffle:
