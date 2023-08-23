@@ -50,7 +50,7 @@ class Model():
         
         self.model = None
         self.analytics = None
-        self.unique_markers = None
+        self.num_class = None
         
     def generate_model_visualization(self, num_class=None, savepath=None):
         savepath = savepath if savepath is not None else os.path.join(self.conf.MODEL_OUTPUT_FOLDER,'model_viz')
@@ -81,7 +81,7 @@ class Model():
         reducelr_increment      = self.conf.REDUCELR_INCREMENT
         
         if num_class is None:
-            num_class = len(self.unique_markers)
+            num_class = self.num_class
         
         model_args = {
             'input_shape': input_shape,
@@ -164,25 +164,23 @@ class Model():
         if train_loader is None and valid_loader is None and test_loader is None:
             raise Exception("All loaders are None")
         
-        def __set_unique_markers(loader):
-            if self.unique_markers is None:
-                self.unique_markers = loader.dataset.unique_markers
+        def __set_num_class(loader):
+            if self.num_class is None:
+                self.num_class = len(loader.dataset.unique_markers)
         
         if train_loader is not None:
             self.train_loader = train_loader    
-            __set_unique_markers(self.train_loader)
+            __set_num_class(self.train_loader)
         if valid_loader is not None:
             self.valid_loader = valid_loader
-            __set_unique_markers(self.valid_loader)
+            __set_num_class(self.valid_loader)
         if test_loader is not None:
             self.test_loader = test_loader
-            __set_unique_markers(self.test_loader)
-        
-        num_class = len(self.unique_markers)
+            __set_num_class(self.test_loader)
         
         data_var = self.conf.DATA_VAR
         self.__init_datamanager_dummy(self.train_loader, self.valid_loader, self.test_loader,
-                                      data_var, data_var, data_var, num_class)
+                                      data_var, data_var, data_var, self.num_class)
             
     def __init_datamanager_dummy(self, train_loader, val_loader, test_loader,
                                  train_variance, val_variance, test_variance, num_class):

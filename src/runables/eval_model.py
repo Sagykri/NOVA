@@ -56,8 +56,8 @@ def eval_model():
     model = Model(config_model)
     
     n_class = 225#1311#219#225
-    logging.warning(f"NOTE! Setting len(unique_markers) to {n_class} !!!!")
-    model.unique_markers = np.arange(n_class)
+    logging.warning(f"NOTE! Setting num_class to {n_class} !!!!")
+    model.num_class = n_class
     
     logging.info("Loading model with dataloader")
     model.load_with_dataloader(test_loader=dataloader)
@@ -75,14 +75,14 @@ def eval_model():
     logging.info("Loading analytics..")
     model.load_analytics()
     logging.info("Plot umap..")
-    model.plot_umap(colormap='tab20',
+    model.plot_umap(colormap='Set1',
                     alpha=0.8,
                     s=0.8,
                     calc_embeddings=calc_embeddings,
                     is_3d=False,
                     title=f"{'_'.join([os.path.basename(f) for f in config_data.INPUT_FOLDERS])}_{datetime.datetime.now().strftime('%d%m%y_%H%M%S_%f')}_{os.path.splitext(os.path.basename(config_model.MODEL_PATH))[0]}",
-                    id2label=dataloader.dataset.id2label,
-                    output_layer='vqvec1')
+                    id2label=dataloader.dataset.id2label)#,
+                    # output_layer='vqvec1')
     
 
 if __name__ == "__main__":

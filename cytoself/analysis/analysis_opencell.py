@@ -83,17 +83,17 @@ class AnalysisOpenCell(BaseAnalysis):
             if infer_labels:
                 umap_data, label_data = umap_data
         
-        # Construct group annotation
-        label_converted, unique_groups = self.group_labels(label_data, group_col, unique_groups, group_annotation)
         #SAGY
         if id2label is not None and infer_labels:
-            unique_groups = id2label(unique_groups)
-            label_converted = id2label(label_converted)
+            label_data = id2label(label_data)
+            
+        if unique_groups is None:
+            unique_groups = np.unique(label_data)
             
         logging.info(f"[cytoself, plot_umap] unique groups: {unique_groups}")#SAGY
         # Making the plot
         scatter_kwargs = {a: kwargs[a] for a in inspect.signature(self.plot_umap_by_group).parameters if a in kwargs}
-        self.fig, self.ax = self.plot_umap_by_group(umap_data, label_converted, unique_groups, **scatter_kwargs)
+        self.fig, self.ax = self.plot_umap_by_group(umap_data, label_data, unique_groups, **scatter_kwargs)
 
         return umap_data
 

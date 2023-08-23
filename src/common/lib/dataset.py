@@ -54,6 +54,98 @@ class Dataset(torch.utils.data.Dataset ,metaclass=ABCMeta):
         
         self.X_paths, self.y, self.unique_markers = self._load_data_paths()  
         
+        self.unique_markers = ['ANXA11_FUSHeterozygous_Untreated', 'CD41_FUSHeterozygous_Untreated',
+                            'CLTC_FUSHeterozygous_Untreated', 'Calreticulin_FUSHeterozygous_Untreated',
+                            'DCP1A_FUSHeterozygous_Untreated', 'FMRP_FUSHeterozygous_Untreated',
+                            'FUS_FUSHeterozygous_Untreated', 'G3BP1_FUSHeterozygous_Untreated',
+                            'GM130_FUSHeterozygous_Untreated', 'KIF5A_FUSHeterozygous_Untreated',
+                            'LAMP1_FUSHeterozygous_Untreated', 'NCL_FUSHeterozygous_Untreated',
+                            'NEMO_FUSHeterozygous_Untreated', 'NONO_FUSHeterozygous_Untreated',
+                            'PEX14_FUSHeterozygous_Untreated', 'PML_FUSHeterozygous_Untreated',
+                            'PSD95_FUSHeterozygous_Untreated', 'PURA_FUSHeterozygous_Untreated',
+                            'Phalloidin_FUSHeterozygous_Untreated', 'SCNA_FUSHeterozygous_Untreated',
+                            'SQSTM1_FUSHeterozygous_Untreated', 'TDP43_FUSHeterozygous_Untreated',
+                            'TIA1_FUSHeterozygous_Untreated', 'TOMM20_FUSHeterozygous_Untreated',
+                            'mitotracker_FUSHeterozygous_Untreated', 'ANXA11_FUSHomozygous_Untreated',
+                            'CD41_FUSHomozygous_Untreated', 'CLTC_FUSHomozygous_Untreated',
+                            'Calreticulin_FUSHomozygous_Untreated', 'DCP1A_FUSHomozygous_Untreated',
+                            'FMRP_FUSHomozygous_Untreated', 'FUS_FUSHomozygous_Untreated',
+                            'G3BP1_FUSHomozygous_Untreated', 'GM130_FUSHomozygous_Untreated',
+                            'KIF5A_FUSHomozygous_Untreated', 'LAMP1_FUSHomozygous_Untreated',
+                            'NCL_FUSHomozygous_Untreated', 'NEMO_FUSHomozygous_Untreated',
+                            'NONO_FUSHomozygous_Untreated', 'PEX14_FUSHomozygous_Untreated',
+                            'PML_FUSHomozygous_Untreated', 'PSD95_FUSHomozygous_Untreated',
+                            'PURA_FUSHomozygous_Untreated', 'Phalloidin_FUSHomozygous_Untreated',
+                            'SCNA_FUSHomozygous_Untreated', 'SQSTM1_FUSHomozygous_Untreated',
+                            'TDP43_FUSHomozygous_Untreated', 'TIA1_FUSHomozygous_Untreated',
+                            'TOMM20_FUSHomozygous_Untreated', 'mitotracker_FUSHomozygous_Untreated',
+                            'ANXA11_FUSRevertant_Untreated', 'CD41_FUSRevertant_Untreated',
+                            'CLTC_FUSRevertant_Untreated', 'Calreticulin_FUSRevertant_Untreated',
+                            'DCP1A_FUSRevertant_Untreated', 'FMRP_FUSRevertant_Untreated',
+                            'FUS_FUSRevertant_Untreated', 'G3BP1_FUSRevertant_Untreated',
+                            'GM130_FUSRevertant_Untreated', 'KIF5A_FUSRevertant_Untreated',
+                            'LAMP1_FUSRevertant_Untreated', 'NCL_FUSRevertant_Untreated',
+                            'NEMO_FUSRevertant_Untreated', 'NONO_FUSRevertant_Untreated',
+                            'PEX14_FUSRevertant_Untreated', 'PML_FUSRevertant_Untreated',
+                            'PSD95_FUSRevertant_Untreated', 'PURA_FUSRevertant_Untreated',
+                            'Phalloidin_FUSRevertant_Untreated', 'SCNA_FUSRevertant_Untreated',
+                            'SQSTM1_FUSRevertant_Untreated', 'TDP43_FUSRevertant_Untreated',
+                            'TIA1_FUSRevertant_Untreated', 'TOMM20_FUSRevertant_Untreated',
+                            'mitotracker_FUSRevertant_Untreated', 'ANXA11_OPTN_Untreated',
+                            'CD41_OPTN_Untreated', 'CLTC_OPTN_Untreated', 'Calreticulin_OPTN_Untreated',
+                            'DCP1A_OPTN_Untreated', 'FMRP_OPTN_Untreated', 'FUS_OPTN_Untreated',
+                            'G3BP1_OPTN_Untreated', 'GM130_OPTN_Untreated', 'KIF5A_OPTN_Untreated',
+                            'LAMP1_OPTN_Untreated', 'NCL_OPTN_Untreated', 'NEMO_OPTN_Untreated',
+                            'NONO_OPTN_Untreated', 'PEX14_OPTN_Untreated', 'PML_OPTN_Untreated',
+                            'PSD95_OPTN_Untreated', 'PURA_OPTN_Untreated', 'Phalloidin_OPTN_Untreated',
+                            'SCNA_OPTN_Untreated', 'SQSTM1_OPTN_Untreated', 'TDP43_OPTN_Untreated',
+                            'TIA1_OPTN_Untreated', 'TOMM20_OPTN_Untreated',
+                            'mitotracker_OPTN_Untreated', 'ANXA11_SCNA_Untreated',
+                            'CD41_SCNA_Untreated', 'CLTC_SCNA_Untreated', 'Calreticulin_SCNA_Untreated',
+                            'DCP1A_SCNA_Untreated', 'FMRP_SCNA_Untreated', 'FUS_SCNA_Untreated',
+                            'G3BP1_SCNA_Untreated', 'GM130_SCNA_Untreated', 'KIF5A_SCNA_Untreated',
+                            'LAMP1_SCNA_Untreated', 'NCL_SCNA_Untreated', 'NEMO_SCNA_Untreated',
+                            'NONO_SCNA_Untreated', 'PEX14_SCNA_Untreated', 'PML_SCNA_Untreated',
+                            'PSD95_SCNA_Untreated', 'PURA_SCNA_Untreated', 'Phalloidin_SCNA_Untreated',
+                            'SCNA_SCNA_Untreated', 'SQSTM1_SCNA_Untreated', 'TDP43_SCNA_Untreated',
+                            'TIA1_SCNA_Untreated', 'TOMM20_SCNA_Untreated',
+                            'mitotracker_SCNA_Untreated', 'ANXA11_TBK1_Untreated',
+                            'CD41_TBK1_Untreated', 'CLTC_TBK1_Untreated', 'Calreticulin_TBK1_Untreated',
+                            'DCP1A_TBK1_Untreated', 'FMRP_TBK1_Untreated', 'FUS_TBK1_Untreated',
+                            'G3BP1_TBK1_Untreated', 'GM130_TBK1_Untreated', 'KIF5A_TBK1_Untreated',
+                            'LAMP1_TBK1_Untreated', 'NCL_TBK1_Untreated', 'NEMO_TBK1_Untreated',
+                            'NONO_TBK1_Untreated', 'PEX14_TBK1_Untreated', 'PML_TBK1_Untreated',
+                            'PSD95_TBK1_Untreated', 'PURA_TBK1_Untreated', 'Phalloidin_TBK1_Untreated',
+                            'SCNA_TBK1_Untreated', 'SQSTM1_TBK1_Untreated', 'TDP43_TBK1_Untreated',
+                            'TIA1_TBK1_Untreated', 'TOMM20_TBK1_Untreated',
+                            'mitotracker_TBK1_Untreated', 'ANXA11_TDP43_Untreated',
+                            'CD41_TDP43_Untreated', 'CLTC_TDP43_Untreated',
+                            'Calreticulin_TDP43_Untreated', 'DCP1A_TDP43_Untreated',
+                            'FMRP_TDP43_Untreated', 'FUS_TDP43_Untreated', 'G3BP1_TDP43_Untreated',
+                            'GM130_TDP43_Untreated', 'KIF5A_TDP43_Untreated', 'LAMP1_TDP43_Untreated',
+                            'NCL_TDP43_Untreated', 'NEMO_TDP43_Untreated', 'NONO_TDP43_Untreated',
+                            'PEX14_TDP43_Untreated', 'PML_TDP43_Untreated', 'PSD95_TDP43_Untreated',
+                            'PURA_TDP43_Untreated', 'Phalloidin_TDP43_Untreated',
+                            'SCNA_TDP43_Untreated', 'SQSTM1_TDP43_Untreated', 'TDP43_TDP43_Untreated',
+                            'TIA1_TDP43_Untreated', 'TOMM20_TDP43_Untreated',
+                            'mitotracker_TDP43_Untreated', 'ANXA11_WT_Untreated', 'CD41_WT_Untreated',
+                            'CLTC_WT_Untreated', 'Calreticulin_WT_Untreated', 'DCP1A_WT_Untreated',
+                            'FMRP_WT_Untreated', 'FUS_WT_Untreated', 'G3BP1_WT_Untreated',
+                            'GM130_WT_Untreated', 'KIF5A_WT_Untreated', 'LAMP1_WT_Untreated',
+                            'NCL_WT_Untreated', 'NEMO_WT_Untreated', 'NONO_WT_Untreated',
+                            'PEX14_WT_Untreated', 'PML_WT_Untreated', 'PSD95_WT_Untreated',
+                            'PURA_WT_Untreated', 'Phalloidin_WT_Untreated', 'SCNA_WT_Untreated',
+                            'SQSTM1_WT_Untreated', 'TDP43_WT_Untreated', 'TIA1_WT_Untreated',
+                            'TOMM20_WT_Untreated', 'mitotracker_WT_Untreated', 'ANXA11_WT_stress',
+                            'CD41_WT_stress', 'CLTC_WT_stress', 'Calreticulin_WT_stress',
+                            'DCP1A_WT_stress', 'FMRP_WT_stress', 'FUS_WT_stress', 'G3BP1_WT_stress',
+                            'GM130_WT_stress', 'KIF5A_WT_stress', 'LAMP1_WT_stress', 'NCL_WT_stress',
+                            'NEMO_WT_stress', 'NONO_WT_stress', 'PEX14_WT_stress', 'PML_WT_stress',
+                            'PSD95_WT_stress', 'PURA_WT_stress', 'Phalloidin_WT_stress',
+                            'SCNA_WT_stress', 'SQSTM1_WT_stress', 'TDP43_WT_stress', 'TIA1_WT_stress',
+                            'TOMM20_WT_stress', 'mitotracker_WT_stress']
+        self.unique_markers = np.asarray(self.unique_markers)
+        
         # PATCH...
         self.label = self.y      
         
@@ -82,7 +174,6 @@ class Dataset(torch.utils.data.Dataset ,metaclass=ABCMeta):
         
         subset.X_paths, subset.y = dataset.X_paths[indexes], dataset.y[indexes]
         
-        subset.unique_markers = np.unique(subset.y)
         subset.label = subset.y
         
         return subset
@@ -180,15 +271,9 @@ class Dataset(torch.utils.data.Dataset ,metaclass=ABCMeta):
         
         return X_batch, y_batch
         
-    def id2label(self, y_id, unique_markers=None):
-        if unique_markers is None:
-            unique_markers = self.unique_markers
-            
-        y_label = np.empty_like(y_id, dtype='object')
-        for i in range(len(unique_markers)):
-            label = unique_markers[i]
-            y_label[y_id==i] = label
-            
+    def id2label(self, y_id):
+        y_label = self.unique_markers[y_id.flatten().astype(int)]
+        
         return y_label
     
     def __label_converter(self, y, label_format='index'):

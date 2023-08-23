@@ -52,8 +52,8 @@ def run_synthetic_multiplexing():
     model = Model(config_model)
     
     n_class = 225#1311#219#225
-    logging.warning(f"NOTE! Setting len(unique_markers) to {n_class} !!!!")
-    model.unique_markers = np.arange(n_class)
+    logging.warning(f"NOTE! Setting num_class to {n_class} !!!!")
+    model.num_class = n_class
     
     logging.info("Loading model with dataloader")
     model.load_with_dataloader(test_loader=dataloader)
@@ -67,8 +67,8 @@ def run_synthetic_multiplexing():
                                     'testset' if config_data.SPLIT_DATA else 'all')
 
     multiplex(model,
-              embeddings_type=embeddings_type,
-              output_layer='vqvec1')
+              embeddings_type=embeddings_type)#,
+            #   output_layer='vqvec1')
     
 
 if __name__ == "__main__":
