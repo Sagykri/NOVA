@@ -50,7 +50,7 @@ class Model():
         
         self.model = None
         self.analytics = None
-        self.unique_markers = None
+        self.num_class = None
         
     def generate_model_visualization(self, num_class=None, savepath=None):
         savepath = savepath if savepath is not None else os.path.join(self.conf.MODEL_OUTPUT_FOLDER,'model_viz')
@@ -63,7 +63,7 @@ class Model():
         writer.add_graph(trainer.model, dummy_input)
         writer.close()
         
-    def __construct_trainer(self, num_class=None, loading_pretrained=False):
+    def __construct_trainer(self, num_class=None, loading_pretrained=False, fc_mul=2):
         pretrained_model_path   = self.pretrained_model_path
         early_stop_patience     = self.early_stop_patience
         learn_rate              = self.learn_rate 
@@ -81,7 +81,7 @@ class Model():
         reducelr_increment      = self.conf.REDUCELR_INCREMENT
         
         if num_class is None:
-            num_class = len(self.unique_markers)
+            num_class = self.num_class
         
         model_args = {
             'input_shape': input_shape,
@@ -92,7 +92,7 @@ class Model():
             'vq_args': vq_args,# NEW
             'num_class': num_class,
             'fc_input_type': fc_input_type,
-            'fc_mul': 2 if loading_pretrained else 1 # NEW
+            'fc_mul':fc_mul # NEW
         }
         train_args = {
             'lr': learn_rate,
@@ -117,7 +117,8 @@ class Model():
             logging.info(f"Loading pretrained model: {pretrained_model_path}")
             pretrained_trainer = self.load_model(pretrained_model_path,
                                                  num_fc_output_classes=1311,
-                                                 loading_pretrained=False)
+                                                 loading_pretrained=False,
+                                                 fc_mul=1)
             logging.info(f"Copy weights")
             self.__copy_weights(pretrained_trainer.model, trainer.model)
         
@@ -165,25 +166,23 @@ class Model():
         if train_loader is None and valid_loader is None and test_loader is None:
             raise Exception("All loaders are None")
         
-        def __set_unique_markers(loader):
-            if self.unique_markers is None:
-                self.unique_markers = loader.dataset.unique_markers
+        def __set_num_class(loader):
+            if self.num_class is None:
+                self.num_class = len(loader.dataset.unique_markers)
         
         if train_loader is not None:
             self.train_loader = train_loader    
-            __set_unique_markers(self.train_loader)
+            __set_num_class(self.train_loader)
         if valid_loader is not None:
             self.valid_loader = valid_loader
-            __set_unique_markers(self.valid_loader)
+            __set_num_class(self.valid_loader)
         if test_loader is not None:
             self.test_loader = test_loader
-            __set_unique_markers(self.test_loader)
-        
-        num_class = len(self.unique_markers)
+            __set_num_class(self.test_loader)
         
         data_var = self.conf.DATA_VAR
         self.__init_datamanager_dummy(self.train_loader, self.valid_loader, self.test_loader,
-                                      data_var, data_var, data_var, num_class)
+                                      data_var, data_var, data_var, self.num_class)
             
     def __init_datamanager_dummy(self, train_loader, val_loader, test_loader,
                                  train_variance, val_variance, test_variance, num_class):
@@ -261,7 +260,10 @@ class Model():
         
         return self.model
 
-    def load_model(self, model_path=None, num_fc_output_classes=None, loading_pretrained=False):
+    def load_model(self, model_path=None,
+                   num_fc_output_classes=None,
+                   loading_pretrained=False,
+                   fc_mul=2):
         
         """Load model
 
@@ -282,7 +284,8 @@ class Model():
         if self.model is not None:
             logging.warning(f"[load_model] Overriding currently loaded model with {model_path}")
         self.model = self.__construct_trainer(num_fc_output_classes, 
-                                              loading_pretrained=loading_pretrained)
+                                              loading_pretrained=loading_pretrained,
+                                              fc_mul=fc_mul)
             
         # if os.path.isdir(model_path):
         if os.path.splitext(model_path)[1] == '.chkp':

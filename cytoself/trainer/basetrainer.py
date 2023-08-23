@@ -339,16 +339,11 @@ class BaseTrainer:
             if 'label' in _batch:
                 logging.info(f"{i} LABEL: [{len(_batch['label'])}] {_batch['label']}")
                 output_label.append(_batch['label'])
+        logging.info(f"output len: {len(output)} output_label len: {len(output_label)}")
         output = np.vstack(output)
-        if len(output_label) == len(output):
-            output_label = np.vstack(output_label)
-        else:
-            _output_label = np.hstack(output_label)
-            if len(_output_label) == len(output):
-                output_label = _output_label
-            else:
-                output_label = np.array([])
-                
+        output_label = np.vstack(output_label)
+        logging.info(f"output shape: {output.shape} output_label shape: {output_label.shape}")
+  
         logging.info(f"Output shape: {output.shape}, {output_label.shape} labels_uq: {np.unique(output_label)}")
         return output, output_label
 

@@ -83,12 +83,12 @@ class AnalysisOpenCell(BaseAnalysis):
             if infer_labels:
                 umap_data, label_data = umap_data
         
-        # Construct group annotation
-        label_converted, unique_groups = self.group_labels(label_data, group_col, unique_groups, group_annotation)
         #SAGY
         if id2label is not None and infer_labels:
-            unique_groups = id2label(unique_groups)
-            label_converted = id2label(label_converted)
+            label_converted = id2label(label_data)
+        
+        if unique_groups is None:
+            unique_groups = np.unique(label_converted)
             
         logging.info(f"[cytoself, plot_umap] unique groups: {unique_groups}")#SAGY
         # Making the plot
@@ -133,7 +133,7 @@ class AnalysisOpenCell(BaseAnalysis):
             )
             if isinstance(embedding_data, tuple) and len(embedding_data) > 1:
                 if return_labels: #SAGY
-                    labels = embedding_data[1].reshape(-1,1) # SAGY
+                    labels = embedding_data[1] # SAGY
                 embedding_data = embedding_data[0]
             if savepath_embeddings is not None:
                 if savepath_embeddings == 'default':

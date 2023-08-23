@@ -60,6 +60,12 @@ class Dataset(torch.utils.data.Dataset ,metaclass=ABCMeta):
         # PATCH...
         self.label = self.y      
         
+        self.unique_markers = ['ANXA11', 'CD41', 'CLTC', 'Calreticulin', 'DCP1A', 'FMRP', 'FUS',
+                                'G3BP1', 'GM130', 'KIF5A', 'LAMP1', 'NCL', 'NEMO', 'NONO', 'PEX14',
+                                'PML', 'PSD95', 'PURA', 'Phalloidin', 'SCNA', 'SQSTM1', 'TDP43',
+                                'TIA1', 'TOMM20', 'mitotracker']
+        logging.info(f"unique_markers: {self.unique_markers}")
+        
     @abstractmethod
     def _load_data_paths(self):
         pass
@@ -85,7 +91,6 @@ class Dataset(torch.utils.data.Dataset ,metaclass=ABCMeta):
         
         subset.X_paths, subset.y = dataset.X_paths[indexes], dataset.y[indexes]
         
-        subset.unique_markers = np.unique(subset.y)
         subset.label = subset.y
         
         return subset
@@ -98,10 +103,10 @@ class Dataset(torch.utils.data.Dataset ,metaclass=ABCMeta):
     
         y2_batch = np.asarray([y.split('_')[1] for y in y_batch.reshape(-1,)])
         # Convert non WT to ALS
-        y2_batch = np.asarray([y if y in self.unique_phenos else 'ALS' for y in y2_batch])
+        y2_batch = np.asarray(['WT' if y in ['WT', 'FUSRevertant'] else 'ALS' for y in y2_batch])
         y2_batch = y2_batch.reshape(-1,1)
         y2_batch = self.__label_converter(y2_batch, unique_labels=self.unique_phenos, label_format='index')
-        
+        y_batch = np.asarray([y.split('_',1)[0] for y in y_batch.reshape(-1,)])
         y_batch = self.__label_converter(y_batch, label_format='index')
         
         paths_batch = paths_batch.reshape(-1,1)
@@ -190,15 +195,12 @@ class Dataset(torch.utils.data.Dataset ,metaclass=ABCMeta):
         
         return X_batch, y_batch
         
-    def id2label(self, y_id, unique_markers=None):
-        if unique_markers is None:
-            unique_markers = self.unique_markers
-            
-        y_label = np.empty_like(y_id, dtype='object')
-        for i in range(len(unique_markers)):
-            label = unique_markers[i]
-            y_label[y_id==i] = label
-            
+    def id2label(self, y_id):
+        y_label = np.array([
+                    f'{self.unique_markers[y_id[i, 0]]}_{self.unique_phenos[y_id[i, 1]]}'
+                    for i in range(y_id.shape[0])
+                    ])
+   
         return y_label
     
     def __label_converter(self, y, unique_labels=None, label_format='index'):
