@@ -116,6 +116,8 @@ class Model():
             pretrained_trainer = self.load_model(pretrained_model_path, num_fc_output_classes=1311, loading_pretrained=False)
             logging.info(f"Copy weights")
             self.__copy_weights(pretrained_trainer.model, trainer.model)
+            logging.info(f"Deleting pretrained trainer")
+            del pretrained_trainer
         
         return trainer
             

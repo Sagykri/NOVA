@@ -45,7 +45,6 @@ class BaseTrainer:
 
         self.train_args = train_args
         self.model = None
-        self.best_model = []
         self.lr = 0
         self.tb_writer = None
         self.optimizer = None
@@ -128,6 +127,8 @@ class BaseTrainer:
 
         model_outputs = self.model(img)
         loss = self._calc_losses(model_outputs, img)
+        # Free mem
+        del model_outputs
 
         if backward:
             loss.backward()
@@ -135,7 +136,10 @@ class BaseTrainer:
         if optimize:
             self.optimizer.step()
 
-        return {'loss': loss.item()}
+        loss_value = loss.item()
+        del loss
+        
+        return {'loss': loss_value}
 
     def _calc_losses(self, model_outputs, img, *args, **kwargs):
         return nn.MSELoss(**kwargs)(model_outputs, img)
@@ -461,7 +465,6 @@ class BaseTrainer:
                         # SAGY
                         logging.info(f"[ep_{current_epoch}] New best! vloss: {_vloss}, (old best: {best_vloss})")
                         best_vloss = _vloss
-                        self.best_model = deepcopy(self.model)
                         # Save the best model checkpoint
                         self.save_checkpoint()
                         
@@ -490,11 +493,18 @@ class BaseTrainer:
 
                     # Record metrics
                     self.record_metrics(metrics_all)
+                    # Free mem (for releasing the 'loss' from GPU)
+                    for m in metrics_all:
+                        del m
+                    del metrics_all
 
                     # Record logs for TensorBoard
                     if tensorboard_path is not None:
                         tensorboard_path = join(self.savepath_dict['homepath'], tensorboard_path)
                     self.write_on_tensorboard(tensorboard_path)
+                    
+                    # Free mem - empty cache
+                    torch.cuda.empty_cache()
 
             self.save_model(self.savepath_dict['homepath'], f'model_{self.current_epoch}.pt')
             self.history.to_csv(join(self.savepath_dict['visualization'], 'training_history.csv'), index=False)
@@ -541,6 +551,7 @@ class BaseTrainer:
         #SAGY
         self.count_lr_no_improve = checkpoint['count_lr_no_improve'] if 'count_lr_no_improve' in checkpoint else 0
         self.count_early_stop = checkpoint['count_early_stop'] if 'count_early_stop' in checkpoint else 0
+        del checkpoint
         ##
         logging.info(f'{fpath} has been loaded.')
 
