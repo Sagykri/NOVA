@@ -45,7 +45,6 @@ class BaseTrainer:
 
         self.train_args = train_args
         self.model = None
-        self.best_model = None
         self.lr = 0
         self.tb_writer = None
         self.optimizer = None
@@ -466,9 +465,6 @@ class BaseTrainer:
                         # SAGY
                         logging.info(f"[ep_{current_epoch}] New best! vloss: {_vloss}, (old best: {best_vloss})")
                         best_vloss = _vloss
-                        if self.best_model is not None:
-                            del self.best_model
-                        self.best_model = deepcopy(self.model)
                         # Save the best model checkpoint
                         self.save_checkpoint()
                         
