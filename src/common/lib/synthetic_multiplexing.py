@@ -19,7 +19,8 @@ def multiplex(model: Model, embeddings_type='testset',
                     title=None,
                     colormap='Set1',
                     alpha=0.8,
-                    s=0.8,):
+                    s=0.8,
+                    output_layer='vqvec2'):
     assert model is not None, "Model is None"
     assert model.test_loader is not None, "model.test_loader is None, please first load dataloaders"
     
@@ -27,7 +28,7 @@ def multiplex(model: Model, embeddings_type='testset',
     calc_embeddings = get_if_exists(dataset_conf, 'CALCULATE_EMBEDDINGS', False)
     logging.info(f"calc_embeddings is set to {calc_embeddings}")
     
-    embeddings, labels = __get_embeddings(model, embeddings_type, calc_embeddings)
+    embeddings, labels = __get_embeddings(model, embeddings_type, calc_embeddings, output_layer)
     logging.info(f"[Before concat] Embeddings shape: {embeddings.shape}, Labels shape: {labels.shape}")
     
     df = __embeddings_to_df(embeddings, labels)
@@ -47,7 +48,8 @@ def multiplex(model: Model, embeddings_type='testset',
                     calc_embeddings=calc_embeddings,
                     title=title if title is not None else __generate_plot_title(model.conf, dataset_conf),
                     unique_groups=unique_groups,
-                    embedding_data=embeddings)
+                    embedding_data=embeddings,
+                    output_layer=output_layer)
 
 def __generate_plot_title(model_conf, dataset_conf):
     return 'SM_' + f"{'_'.join([os.path.basename(f) for f in dataset_conf.INPUT_FOLDERS])}_{datetime.datetime.now().strftime('%d%m%y_%H%M%S_%f')}_{os.path.splitext(os.path.basename(model_conf.MODEL_PATH))[0]}"
@@ -82,10 +84,10 @@ def __embeddings_to_df(embeddings, labels):
     df = pd.merge(labels_df, embeddings_series, left_index=True, right_index=True)
     return df
 
-def __get_embeddings(model, embeddings_type, calc_embeddings):
+def __get_embeddings(model, embeddings_type, calc_embeddings, output_layer: str = 'vqvec2'):
     if calc_embeddings:
         logging.info("Calculating embeddings...")
-        embeddings, labels_ids = model.model.infer_embeddings(model.test_loader)
+        embeddings, labels_ids = model.model.infer_embeddings(model.test_loader, output_layer)
         labels = model.test_loader.dataset.id2label(labels_ids)
     else:
         logging.info("Loading embeddings...")

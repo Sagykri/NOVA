@@ -66,7 +66,9 @@ def run_synthetic_multiplexing():
                                     'EMBEDDINGS_TYPE_TO_LOAD',
                                     'testset' if config_data.SPLIT_DATA else 'all')
 
-    multiplex(model, embeddings_type=embeddings_type)
+    multiplex(model,
+              embeddings_type=embeddings_type,
+              output_layer='vqvec1')
     
 
 if __name__ == "__main__":

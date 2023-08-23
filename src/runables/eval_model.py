@@ -13,7 +13,7 @@ import pandas as pd
 import logging
 import  torch
 
-from src.common.lib.utils import load_config_file
+from src.common.lib.utils import get_if_exists, load_config_file
 from src.common.lib.model import Model
 from src.common.lib.data_loader import get_dataloader
 from src.datasets.dataset_spd import DatasetSPD
@@ -69,16 +69,20 @@ def eval_model():
     reconstructed_image_path = model.generate_reconstructed_image()
     logging.info(f"Image was saved to {reconstructed_image_path}")
     
+    calc_embeddings = get_if_exists(config_data, 'CALCULATE_EMBEDDINGS', False)
+    logging.info(f"calc_embeddings = {calc_embeddings}")
+    
     logging.info("Loading analytics..")
     model.load_analytics()
     logging.info("Plot umap..")
     model.plot_umap(colormap='tab20',
                     alpha=0.8,
                     s=0.8,
-                    calc_embeddings=False,
+                    calc_embeddings=calc_embeddings,
                     is_3d=False,
                     title=f"{'_'.join([os.path.basename(f) for f in config_data.INPUT_FOLDERS])}_{datetime.datetime.now().strftime('%d%m%y_%H%M%S_%f')}_{os.path.splitext(os.path.basename(config_model.MODEL_PATH))[0]}",
-                    id2label=dataloader.dataset.id2label)
+                    id2label=dataloader.dataset.id2label,
+                    output_layer='vqvec1')
     
 
 if __name__ == "__main__":
