@@ -56,7 +56,7 @@ def eval_model():
     logging.info("Init model")
     model = Model(config_model)
     
-    n_class = 200#225#1311#219#225
+    n_class = 25#200#225#1311#219#225
     logging.warning(f"NOTE! Setting num_class to {n_class} !!!!")
     model.num_class = n_class
     
