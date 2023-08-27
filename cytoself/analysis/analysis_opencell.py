@@ -275,6 +275,7 @@ class AnalysisOpenCell(BaseAnalysis):
                 _c = cmap[i % len(cmap)]
                 i += 1
             ind = label_data == gp
+            ind = ind.reshape(-1,)
             if is_3d:#SAGY
                 ax.scatter(
                     umap_data[ind, 0],

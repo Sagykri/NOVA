@@ -103,12 +103,12 @@ class EmbeddingsB9NoDownsamplingDatasetConfig(DatasetConfig):
         self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "spd2", "SpinningDisk", f) for f in 
                         ["batch9_16bit_no_downsample"]]
         
-        self.CALCULATE_EMBEDDINGS = True
-        self.SPLIT_DATA = True        
+        self.CALCULATE_EMBEDDINGS = False
+        self.SPLIT_DATA = False        
         # self.CELL_LINES = ['WT']#, 'FUSHomozygous', 'FUSHeterozygous', 'FUSRevertant']
         self.CELL_LINES = ['WT']#, 'FUSHeterozygous', 'FUSRevertant', 'TDP43']
         # self.CONDITIONS = ['Untreated']
-        # self.MARKERS = ['NONO', 'G3BP1', 'TOMM20', 'mitotracker', 'FUS'] 
+        self.MARKERS = ['G3BP1'] #['NONO', 'G3BP1', 'TOMM20', 'mitotracker', 'FUS'] 
         # self.MARKERS_TO_EXCLUDE = ['TDP43','FUS']
         
 class EmbeddingsOpenCellDatasetConfig(DatasetConfig):

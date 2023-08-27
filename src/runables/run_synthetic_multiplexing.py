@@ -27,6 +27,7 @@ def run_synthetic_multiplexing():
     config_data = load_config_file(config_path_data, 'data', config_model.CONFIGS_USED_FOLDER)
 
     logging.info("init")
+    logging.info("[Synthetic Multiplexing]")
     
     logging.info(f"Is GPU available: {torch.cuda.is_available()}")
     logging.info(f"Num GPUs Available: {torch.cuda.device_count()}")

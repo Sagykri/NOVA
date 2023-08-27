@@ -35,6 +35,7 @@ def generate_umaps():
     assert os.path.isdir(output_folder_path) and os.path.exists(output_folder_path), f"{output_folder_path} is an invalid output folder path or doesn't exists"
 
     logging.info("init")
+    logging.info("[Gnerate UMAPs]")
     
     logging.info(f"Is GPU available: {torch.cuda.is_available()}")
     logging.info(f"Num GPUs Available: {torch.cuda.device_count()}")
