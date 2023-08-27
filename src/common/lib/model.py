@@ -63,7 +63,7 @@ class Model():
         writer.add_graph(trainer.model, dummy_input)
         writer.close()
         
-    def __construct_trainer(self, num_class=None, loading_pretrained=False):
+    def __construct_trainer(self, num_class=None, load_pretrained_model=False):
         pretrained_model_path   = self.pretrained_model_path
         early_stop_patience     = self.early_stop_patience
         learn_rate              = self.learn_rate 
@@ -112,11 +112,11 @@ class Model():
                                       homepath=model_output_folder,
                                       model_args=model_args)
         
-        if loading_pretrained and pretrained_model_path is not None and os.path.exists(pretrained_model_path):
+        if load_pretrained_model and pretrained_model_path is not None and os.path.exists(pretrained_model_path):
             logging.info(f"Loading pretrained model: {pretrained_model_path}")
             pretrained_trainer = self.load_model(pretrained_model_path,
                                                  num_fc_output_classes=1311,
-                                                 loading_pretrained=False)
+                                                 load_pretrained_model=False)
             logging.info(f"Copy weights")
             self.__copy_weights(pretrained_trainer.model, trainer.model)
         
@@ -180,10 +180,10 @@ class Model():
         
         data_var = self.conf.DATA_VAR
         self.__init_datamanager_dummy(self.train_loader, self.valid_loader, self.test_loader,
-                                      data_var, data_var, data_var, self.num_class)
+                                      data_var, data_var, data_var)
             
     def __init_datamanager_dummy(self, train_loader, val_loader, test_loader,
-                                 train_variance, val_variance, test_variance, num_class):
+                                 train_variance, val_variance, test_variance):
         dm = DataManagerBase(None, None, None)
         dm.train_loader = train_loader
         dm.val_loader = val_loader
@@ -191,7 +191,6 @@ class Model():
         dm.train_variance = train_variance
         dm.val_variance = val_variance
         dm.test_variance = test_variance
-        dm.unique_labels = num_class
         
         self.data_manager = dm
     
@@ -221,7 +220,7 @@ class Model():
         if self.model is not None:
             logging.warning(f"Overriding currently loaded model with {last_checkpoint_path}")
         logging.info(f"Loading checkpoint: {last_checkpoint_path}")
-        trainer = self.load_model(last_checkpoint_path, loading_pretrained=True)
+        trainer = self.load_model(last_checkpoint_path, load_pretrained_model=True)
         # Moving to the next epoch
         trainer.current_epoch += 1
         logging.info(f"Checkpoint loaded successfully. Current epoch is: {trainer.current_epoch}")
@@ -237,12 +236,18 @@ class Model():
         trainer = self.__try_load_trainer()
         if trainer is None:
             logging.info("Constructing trainer...")
-            trainer = self.__construct_trainer(loading_pretrained=True)
+            trainer = self.__construct_trainer(load_pretrained_model=True)
             
         
         logging.info("Loading params from configuration")
         
         model_output_folder     = self.conf.MODEL_OUTPUT_FOLDER
+        
+        labels_savepath = os.path.join(model_output_folder, "unique_labels")
+        if not os.path.exists(model_output_folder):
+            os.makedirs(model_output_folder)
+        logging.info(f"Saving unique labels to file: {labels_savepath}.npy")
+        np.save(labels_savepath, np.unique(self.train_loader.dataset.y))
         
         logging.info("Training the model...")
         trainer.fit(self.data_manager,
@@ -258,7 +263,7 @@ class Model():
         
         return self.model
 
-    def load_model(self, model_path=None, num_fc_output_classes=None, loading_pretrained=False):
+    def load_model(self, model_path=None, num_fc_output_classes=None, load_pretrained_model=False):
         
         """Load model
 
@@ -279,7 +284,7 @@ class Model():
         if self.model is not None:
             logging.warning(f"[load_model] Overriding currently loaded model with {model_path}")
         self.model = self.__construct_trainer(num_fc_output_classes, 
-                                              loading_pretrained=loading_pretrained)
+                                              load_pretrained_model=load_pretrained_model)
             
         # if os.path.isdir(model_path):
         if os.path.splitext(model_path)[1] == '.chkp':
@@ -317,6 +322,13 @@ class Model():
             raise Exception("data_manager is None")
 
         analytics = AnalysisOpenCell(self.data_manager, self.model)#, gt_table=gt_table)
+        
+        self.analytics = analytics
+        
+        return analytics
+    
+    def generate_dummy_analytics(self):
+        analytics = AnalysisOpenCell(None, self.model)
         
         self.analytics = analytics
         
@@ -371,22 +383,23 @@ class Model():
     def generate_feature_spectrum(self):
         raise NotImplementedError()
         
-    def load_embeddings(self, embeddings_type='testset'):
+    def load_embeddings(self, embeddings_type='testset', config_data=None):
         from src.common.lib import embeddings_utils
         
-        allowed_embeddings_types = ['trainset', 'valtest', 'testset', 'all']
-        assert embeddings_type is not None \
-                and embeddings_type in allowed_embeddings_types,\
-                f"embeddings_type must be one of the following: {allowed_embeddings_types}" 
-        
-        if embeddings_type == 'trainset':
-            config_data = self.train_loader.dataset.conf
-        elif embeddings_type == 'valtest':
-            config_data = self.valid_loader.dataset.conf
-        elif embeddings_type == 'testset':
-            config_data = self.test_loader.dataset.conf
-        else: #all    
-            config_data = self.test_loader.dataset.conf
+        if config_data is None:
+            allowed_embeddings_types = ['trainset', 'valtest', 'testset', 'all']
+            assert embeddings_type is not None \
+                    and embeddings_type in allowed_embeddings_types,\
+                    f"embeddings_type must be one of the following: {allowed_embeddings_types}" 
+            
+            if embeddings_type == 'trainset':
+                config_data = self.train_loader.dataset.conf
+            elif embeddings_type == 'valtest':
+                config_data = self.valid_loader.dataset.conf
+            elif embeddings_type == 'testset':
+                config_data = self.test_loader.dataset.conf
+            else: #all    
+                config_data = self.test_loader.dataset.conf
         
         embeddings, labels = embeddings_utils.load_embeddings(config_model=self.conf,
                                                             config_data=config_data,
@@ -422,6 +435,7 @@ class Model():
                   title='UMAP',
                   s=0.3,
                   alpha=0.5,
+                  reset_umap=False,
                   **kwargs):
         """
         Args:
@@ -437,11 +451,12 @@ class Model():
         if self.analytics is None:
             raise Exception("Analytics is None. Please call load_analytics() beforehand")
 
+        if reset_umap:
+            self.analytics.reset_umap()
+
         if data_loader is None:
             data_loader = self.test_loader
-        
-        # TODO: use the logic of __get_embeddings from multiplex.py here!
-        
+                
         logging.info(f"[plot_umap] calc_embeddings={calc_embeddings}")
 
         if embedding_data is None and label_data is None:

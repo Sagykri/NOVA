@@ -40,6 +40,11 @@ def eval_model():
     
     logging.info(f"Data shape: {dataset.X_paths.shape}, {dataset.y.shape}")
     
+    __unique_labels_path = os.path.join(config_model.MODEL_OUTPUT_FOLDER, "unique_labels.npy")
+    if os.path.exists(__unique_labels_path):
+        logging.info(f"unique_labels.npy files has been detected - using it. ({__unique_labels_path})")
+        dataset.unique_markers = np.load(__unique_labels_path)
+    
     dataset.flip, dataset.rot = False, False
     if config_data.SPLIT_DATA:
         logging.info("Split data...")
@@ -54,10 +59,6 @@ def eval_model():
     
     logging.info("Init model")
     model = Model(config_model)
-    
-    n_class = 225#1311#219#225
-    logging.warning(f"NOTE! Setting num_class to {n_class} !!!!")
-    model.num_class = n_class
     
     logging.info("Loading model with dataloader")
     model.load_with_dataloader(test_loader=dataloader)

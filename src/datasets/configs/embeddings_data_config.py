@@ -57,6 +57,23 @@ class EmbeddingsB78DatasetConfig(DatasetConfig):
         # self.CONDITIONS = ['Untreated']
         # self.MARKERS = ['TOMM20', 'mitotracker', 'FUS'] 
         
+class EmbeddingsB7NODSDatasetConfig(DatasetConfig):
+    def __init__(self):
+        super().__init__()
+
+        self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "spd2", "SpinningDisk", f) for f in 
+                        ["batch7_16bit_no_downsample"]]
+        
+        self.CALCULATE_EMBEDDINGS = True
+        self.SPLIT_DATA = True  
+        # self.CELL_LINES = ['WT']#, 'FUSHomozygous', 'FUSHeterozygous', 'FUSRevertant']
+        self.CELL_LINES = ['WT', 'FUSHeterozygous', 'FUSRevertant', 'TDP43']
+        self.CONDITIONS = ['Untreated']
+        # self.CELL_LINES = ['WT']#, 'FUSHomozygous', 'FUSHeterozygous', 'FUSRevertant']
+        # self.CONDITIONS = ['Untreated']
+        # self.MARKERS = ['TOMM20', 'mitotracker', 'FUS'] 
+                
+
 class EmbeddingsB9DatasetConfig(DatasetConfig):
     def __init__(self):
         super().__init__()
@@ -89,8 +106,8 @@ class EmbeddingsB9NoDownsamplingDatasetConfig(DatasetConfig):
         self.CALCULATE_EMBEDDINGS = True
         self.SPLIT_DATA = True        
         # self.CELL_LINES = ['WT']#, 'FUSHomozygous', 'FUSHeterozygous', 'FUSRevertant']
-        self.CELL_LINES = ['WT', 'FUSHeterozygous', 'FUSRevertant', 'TDP43']
-        self.CONDITIONS = ['Untreated']
+        self.CELL_LINES = ['WT']#, 'FUSHeterozygous', 'FUSRevertant', 'TDP43']
+        # self.CONDITIONS = ['Untreated']
         # self.MARKERS = ['NONO', 'G3BP1', 'TOMM20', 'mitotracker', 'FUS'] 
         # self.MARKERS_TO_EXCLUDE = ['TDP43','FUS']
         

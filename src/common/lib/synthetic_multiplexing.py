@@ -32,7 +32,6 @@ def multiplex(model: Model, embeddings_type='testset',
     logging.info(f"[Before concat] Embeddings shape: {embeddings.shape}, Labels shape: {labels.shape}")
     
     df = __embeddings_to_df(embeddings, labels)
-    #TODO: Take only shared markers between all phenos
     embeddings, label_data, unique_groups = __get_multiplexed_embeddings(df, random_state=dataset_conf.SEED)
     logging.info(f"[After concat] Embeddings shape: {embeddings.shape}, Labels shape: {label_data.shape}")
     
@@ -45,7 +44,6 @@ def multiplex(model: Model, embeddings_type='testset',
                     s=s,
                     label_data=label_data,
                     id2label=None,
-                    calc_embeddings=calc_embeddings,
                     title=title if title is not None else __generate_plot_title(model.conf, dataset_conf),
                     unique_groups=unique_groups,
                     embedding_data=embeddings,

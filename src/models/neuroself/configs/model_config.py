@@ -116,6 +116,28 @@ class TLep23NeuroselfEP13B78ModelConfig(NeuroselfConfig):
         self.DATA_VAR = 0.00939656708666626 # 7_16bit: 0.00939656708666626
         # ./bash_commands/run_py.sh ./src/runables/training -g -m 15000 -b 40 -a ./src/models/neuroself/configs/model_config/NeuroselfB7TrainingConfig ./src/datasets/configs/train_config/TrainB7DatasetConfig
 
+class TLNeuroselfB78NoDSModelConfig(NeuroselfConfig):
+    def __init__(self):
+        super().__init__()
+        
+        self.MODEL_OUTPUT_FOLDER = os.path.join(self.OUTPUTS_FOLDER, 'models_outputs_batch78_nods_tl_ep23')
+        self.LOGS_FOLDER = os.path.join(self.MODEL_OUTPUT_FOLDER, 'logs',"no_ds")
+        self.CONFIGS_USED_FOLDER = os.path.join(self.MODEL_OUTPUT_FOLDER, "configs_used", "no_ds", datetime.datetime.now().strftime("%d%m%y_%H%M%S_%f"))
+
+        # Models
+        self.PRETRAINED_MODEL_PATH = os.path.join(self.OUTPUTS_FOLDER,"models_outputs_cytoself_qsplit9", "checkpoints", "checkpoint_ep23.chkp") 
+        self.MODEL_PATH = os.path.join(self.MODEL_OUTPUT_FOLDER, 'checkpoints', 'checkpoint_ep18.chkp')
+        self.LAST_CHECKPOINT_PATH = os.path.join(self.MODEL_OUTPUT_FOLDER, 'checkpoints')
+        
+        self.EARLY_STOP_PATIENCE = 10
+        self.LEARN_RATE = 2e-4
+        self.BATCH_SIZE = 4#8
+        self.MAX_EPOCH = 100
+
+        # Was calculated based on 200 images per marker (26) from batch7
+        self.DATA_VAR =0.016091262813612773 # 7_16bit_nods: 0.016091262813612773
+        # ./bash_commands/run_py.sh ./src/runables/training -g -m 15000 -b 40 -a ./src/models/neuroself/configs/model_config/NeuroselfB7TrainingConfig ./src/datasets/configs/train_config/TrainB7DatasetConfig
+        
 
 class NeuroselfBatch2DLModelConfig(NeuroselfConfig):
     def __init__(self):

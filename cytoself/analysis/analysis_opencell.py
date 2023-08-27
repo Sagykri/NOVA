@@ -296,6 +296,20 @@ class AnalysisOpenCell(BaseAnalysis):
                     label=gp,
                     zorder=0 if gp == 'others' else len(unique_groups) - i + 1,
                 )
+                # SAGY
+                others_ind = np.where(np.isin(label_data, unique_groups, invert=True))[0]
+                if len(others_ind) > 0:
+                    logging.info(f"len(others_ind) > 0 : {len(others_ind)}")
+                    ax.scatter(
+                            umap_data[others_ind, 0],
+                            umap_data[others_ind, 1],
+                            s=s,
+                            alpha=alpha,
+                            c=np.array(cm.copper(10)).reshape(1, -1),
+                            label='others',
+                            zorder=len(unique_groups) + 1,
+                        )
+                    
         ax.spines['top'].set_visible(False)
         ax.spines['right'].set_visible(False)
         hndls, names = ax.get_legend_handles_labels()
