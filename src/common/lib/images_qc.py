@@ -21,7 +21,7 @@ from src.common.lib.qc_config_tmp import *
 from src.common.lib.calc_dataset_variance import _multiproc_calc_variance
 import re
 
-MOMAPS_HOME = '/home/labs/hornsteinlab/Collaboration/MOmaps/MOmaps/'
+MOMAPS_HOME = '/home/labs/hornsteinlab/Collaboration/MOmaps/'
 BASE_DIR = os.path.join('/home','labs','hornsteinlab','Collaboration','MOmaps')
 INPUT_DIR_RAW = os.path.join(BASE_DIR,'input','images','raw','SpinningDisk')
 
