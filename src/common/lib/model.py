@@ -353,8 +353,9 @@ class Model():
         fig.tight_layout()
         
         if savepath is None:
-            savepath = os.path.join(self.conf.MODEL_OUTPUT_FOLDER, self.model.savepath_dict['visualization'], 'reconstructed_images.png')
-        
+            # savepath = os.path.join(self.conf.MODEL_OUTPUT_FOLDER, self.model.savepath_dict['visualization'], 'reconstructed_images.png')
+            savepath = os.path.join(self.conf.MODEL_OUTPUT_FOLDER, 'visualization', 'reconstructed_images.png')
+
         fig.savefig(savepath, dpi=300)
         
         # Calculate MSE
