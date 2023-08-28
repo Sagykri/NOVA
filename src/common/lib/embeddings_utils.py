@@ -206,7 +206,6 @@ def get_embeddings_subfolders_filtered(config_data, embeddings_main_folder, dept
         marker_folders_to_include = []
 
         for marker_folder in marker_subfolders:
-
                 #####################################
                 # Extract experimental settings from marker folder path (avoid multiple nested for loops..)
                 marker_name = os.path.basename(marker_folder)
