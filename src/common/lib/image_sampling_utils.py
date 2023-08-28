@@ -111,11 +111,10 @@ def sample_images_all_markers(cell_line_path=None, sample_size_per_markers=1, nu
         sampled_markers = set()
         
         # Get a list of all marker folders
-        exclude_DAPI=False
+        exclude_DAPI=raw #skipping DAPI if sampling from raw images!
         if raw:
             depth=4
             num_markers*=rep_count*cond_count
-            exclude_DAPI=True #skipping DAPI if sampling from raw images!
         
         marker_subfolder = find_marker_folders(cell_line_path, depth=depth, exclude_DAPI=exclude_DAPI)
         # Sample n markers, and for each marker, sample k images (where n=num_markers and k=sample_size_per_markers)
