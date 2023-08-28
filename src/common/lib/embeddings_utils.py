@@ -261,8 +261,9 @@ def _load_stored_embeddings(marker_folder, embeddings_type):
     # Filter npy files by "embeddings_type"
     filtered_emb_filenames = [emb_filename for emb_filename in emb_filenames if embeddings_type in emb_filename]
     
-    logging.info(f"{[os.path.join(marker_folder, emb_filename) for emb_filename in filtered_emb_filenames]}")
-    
+    # Filter 0 size npy files (corrupted emebddings...)
+    filtered_emb_filenames = [emb_filename for emb_filename in filtered_emb_filenames if os.path.getsize(os.path.join(marker_folder, emb_filename))!=0]
+
     # Load all embeddings .npy files into a single numpy array
     embedings_data = np.vstack([np.load(os.path.join(marker_folder, emb_filename)) for emb_filename in filtered_emb_filenames])
 
@@ -297,7 +298,7 @@ def load_embeddings(config_path_model=None, config_path_data=None,
     
     # Get configs of model (trained model) 
     config_model = load_config_file(config_path_model, 'model') if config_model is None else config_model
-    embeddings_main_folder = os.path.join(config_model.MODEL_OUTPUT_FOLDER, 'embeddings') #TODO: need to insert here each time the subfolder of the embeddings (like 'no_ds')???
+    embeddings_main_folder = os.path.join(config_model.MODEL_OUTPUT_FOLDER, 'embeddings','no_ds') #TODO: need to insert here each time the subfolder of the embeddings (like 'no_ds')???
     
     # Get dataset configs (as to be used in the desired UMAP)
     config_data = load_config_file(config_path_data, 'data') if config_data is None else config_data
@@ -306,7 +307,6 @@ def load_embeddings(config_path_model=None, config_path_data=None,
     
     embedings_data_list, all_labels = [], []
     for marker_folder in marker_folders_to_include:
-        
         embedings_data, labels = _load_stored_embeddings(marker_folder, embeddings_type)
         
         embedings_data_list.append(embedings_data)
