@@ -2,7 +2,7 @@
 .history/
 .vscode/
 .ipynb_checkpoints/
-
+*.csv
 anaconda3/
 logs/
 

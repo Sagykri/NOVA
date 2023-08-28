@@ -119,6 +119,8 @@ class Model():
                                                  load_pretrained_model=False)
             logging.info(f"Copy weights")
             self.__copy_weights(pretrained_trainer.model, trainer.model)
+            logging.info(f"Deleting pretrained trainer")
+            del pretrained_trainer
         
         return trainer
             
@@ -367,8 +369,9 @@ class Model():
         fig.tight_layout()
         
         if savepath is None:
-            savepath = os.path.join(self.conf.MODEL_OUTPUT_FOLDER, self.model.savepath_dict['visualization'], 'reconstructed_images.png')
-        
+            # savepath = os.path.join(self.conf.MODEL_OUTPUT_FOLDER, self.model.savepath_dict['visualization'], 'reconstructed_images.png')
+            savepath = os.path.join(self.conf.MODEL_OUTPUT_FOLDER, 'visualization', 'reconstructed_images.png')
+
         fig.savefig(savepath, dpi=300)
         
         # Calculate MSE

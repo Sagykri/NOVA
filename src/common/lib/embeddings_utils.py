@@ -94,10 +94,12 @@ def load_model_with_dataloader(model, datasets_list):
         logging.info(f"MODEL_PATH and LAST_CHECKPOINT_PATH are None.")
     
     logging.info(f"Loading model with dataloader {model.conf.MODEL_PATH}")
-
-    n_class = 225
-    logging.warning(f"NOTE! Setting len(unique_markers) to {n_class} !!!!")
-    model.unique_markers = np.arange(n_class)
+    
+    __unique_labels_path = os.path.join(model.conf.MODEL_OUTPUT_FOLDER, "unique_labels.npy")
+    if os.path.exists(__unique_labels_path):
+        logging.info(f"unique_labels.npy files has been detected - using it. ({__unique_labels_path})")
+        for dataset in datasets_list:
+            dataset.unique_markers = np.load(__unique_labels_path)
 
     if len(datasets_list)==3:
         # If data was splitted during training to train/val/test
@@ -117,7 +119,6 @@ def save_embeddings_and_labels(embedding_data, embeddings_folders, name):
 
     Args:
         embedding_data (_type_): _description_
-        labels (_type_): _description_
         embeddings_folders (string): the path to the embeddings folder (under model_outputs)
         name (string): "train/val/test/all"
 
@@ -138,11 +139,12 @@ def save_embeddings_and_labels(embedding_data, embeddings_folders, name):
 
 def calc_embeddings(model, datasets_list, embeddings_folder, save=True):
 
-    # Parser to get the image's batch/cell_line/condition/marker
+    # Parser to get the image's batch/cell_line/condition/rep/marker
     def final_save_path(full_path):
         path_list = full_path.split(os.sep)
-        batch_cell_line_condition_marker = os.path.join(*[os.path.join(path_list[i]) for i in range(-5,-1)])
-        return os.path.join(embeddings_folder, batch_cell_line_condition_marker)
+        batch_cell_line_condition_rep_marker_list = [os.path.join(path_list[-1][:4],path_list[i]) if i==-2 else os.path.join(path_list[i]) for i in range(-5,-1)]
+        batch_cell_line_condition_rep_marker = os.path.join(*batch_cell_line_condition_rep_marker_list)
+        return os.path.join(embeddings_folder, batch_cell_line_condition_rep_marker)
     get_save_path = np.vectorize(final_save_path)
     
     def do_embeddings_inference(images_batch, dataset_type):
@@ -150,7 +152,8 @@ def calc_embeddings(model, datasets_list, embeddings_folder, save=True):
         # images_batch is torch.Tensor of size(n_tiles, n_channels, 100, 100)
         embedding_data = model.model.infer_embeddings(images_batch['image'].numpy())  
         if save: save_embeddings_and_labels(embedding_data, save_path, name=dataset_type+str(i))
-
+        return None
+    
     if len(datasets_list)==3:
         
         logging.info("Infer embeddings - train set")
@@ -180,7 +183,7 @@ def calc_embeddings(model, datasets_list, embeddings_folder, save=True):
 # Utils for Load Embeddings (callable function)
 ################################################################ 
 
-def get_embeddings_subfolders_filtered(config_data, embeddings_main_folder, depth=3):
+def get_embeddings_subfolders_filtered(config_data, embeddings_main_folder, depth=4):
     """_summary_
 
     Args:
@@ -208,9 +211,9 @@ def get_embeddings_subfolders_filtered(config_data, embeddings_main_folder, dept
                 #####################################
                 # Extract experimental settings from marker folder path (avoid multiple nested for loops..)
                 marker_name = os.path.basename(marker_folder)
-                condition = marker_folder.split('/')[-2]
-                cell_line = marker_folder.split('/')[-3]
-                
+                rep =  marker_folder.split('/')[-2]
+                condition = marker_folder.split('/')[-3]
+                cell_line = marker_folder.split('/')[-4]
                 #####################################
                 # Filter: cell line
                 if config_data.CELL_LINES is not None and cell_line not in config_data.CELL_LINES:
@@ -219,6 +222,10 @@ def get_embeddings_subfolders_filtered(config_data, embeddings_main_folder, dept
                 # Filter: stress condition
                 if config_data.CONDITIONS is not None and condition not in config_data.CONDITIONS:
                     logging.info(f"Skipping condition (not in conditions list). {condition}")
+                    continue
+                # Filter: rep
+                if config_data.REPS is not None and rep not in config_data.REPS:
+                    logging.info(f"Skipping rep (not in reps list). {rep}")
                     continue
                 # Filter: marker to include
                 if config_data.MARKERS is not None and marker_name not in config_data.MARKERS:
@@ -255,17 +262,18 @@ def _load_stored_embeddings(marker_folder, embeddings_type):
     # Filter npy files by "embeddings_type"
     filtered_emb_filenames = [emb_filename for emb_filename in emb_filenames if embeddings_type in emb_filename]
     
-    logging.info(f"{[os.path.join(marker_folder, emb_filename) for emb_filename in filtered_emb_filenames]}")
-    
+    # Filter 0 size npy files (corrupted emebddings...)
+    filtered_emb_filenames = [emb_filename for emb_filename in filtered_emb_filenames if os.path.getsize(os.path.join(marker_folder, emb_filename))!=0]
+
     # Load all embeddings .npy files into a single numpy array
     embedings_data = np.vstack([np.load(os.path.join(marker_folder, emb_filename)) for emb_filename in filtered_emb_filenames])
 
     # Infer the label 
     path_list = marker_folder.split(os.sep)
-    batch_cell_line_condition_marker = '_'.join([path_list[-1], path_list[-3], path_list[-2]])
-    labels = [batch_cell_line_condition_marker] * embedings_data.shape[0]
+    batch_cell_line_condition_rep_marker = '_'.join(path_list[-5:])
+    labels = [batch_cell_line_condition_rep_marker] * embedings_data.shape[0]
     
-    logging.info(f"[_load_stored_embeddings] Loading stored embeddings of label {batch_cell_line_condition_marker} of shape {embedings_data.shape} ")
+    logging.info(f"[_load_stored_embeddings] Loading stored embeddings of label {batch_cell_line_condition_rep_marker} of shape {embedings_data.shape} ")
     return embedings_data, labels
     
 
@@ -300,7 +308,6 @@ def load_embeddings(config_path_model=None, config_path_data=None,
     
     embedings_data_list, all_labels = [], []
     for marker_folder in marker_folders_to_include:
-        
         embedings_data, labels = _load_stored_embeddings(marker_folder, embeddings_type)
         
         embedings_data_list.append(embedings_data)
