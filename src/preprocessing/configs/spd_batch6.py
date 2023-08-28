@@ -19,4 +19,14 @@ class SPD_Batch6_16bit(SPDPreprocessingConfig):
 
         self.INPUT_FOLDERS = [os.path.join(self.RAW_SUBFOLDER_ROOT, "batch6")]
         self.OUTPUT_FOLDERS = [os.path.join(self.PROCESSED_SUBFOLDER_ROOT, "batch6")]
+
+class SPD_Batch6NODS(SPDPreprocessingConfig):
+    def __init__(self):
+        super().__init__()
         
+        self.INPUT_FOLDERS = [os.path.join(self.RAW_SUBFOLDER_ROOT, "batch6")]
+        self.OUTPUT_FOLDERS = [os.path.join(self.PROCESSED_SUBFOLDER_ROOT, "batch6_16bit_no_downsample")]
+        self.TO_DOWNSAMPLE = False
+        self.TILE_WIDTH = 128 
+        self.TILE_HEIGHT = 128
+        self.LOGS_FOLDER = os.path.join(self.OUTPUTS_SUBSUBFOLDER,'logs',"no_downsample")
