@@ -22,6 +22,7 @@ def generate_embeddings():
     model, config_model =  init_model_for_embeddings(config_path_model=sys.argv[1])
     
     logging.info("---------------Start---------------")
+    logging.info("[Generate embeddings]")
     logging.info("Starting to generate VQVAE2 embeddings...")
     logging.info(f"Is GPU available: {torch.cuda.is_available()}")
     logging.info(f"Num GPUs Available: {torch.cuda.device_count()}")
@@ -29,7 +30,7 @@ def generate_embeddings():
     # Get dataset 
     datasets_list = load_dataset_for_embeddings(config_path_data=sys.argv[2], batch_size=100)
     # Set the output folder (where to save the embeddings)
-    embeddings_folder = os.path.join(config_model.MODEL_OUTPUT_FOLDER, 'embeddings')
+    embeddings_folder = os.path.join(config_model.MODEL_OUTPUT_FOLDER, 'embeddings', 'neurons')
     # Get trained model    
     trained_model = load_model_with_dataloader(model, datasets_list)
     

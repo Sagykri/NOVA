@@ -9,13 +9,13 @@ import numpy as np
 import pandas as pd
 import  torch
 
-from src.common.lib.utils import load_config_file
+from src.common.lib.utils import get_if_exists, load_config_file
 from src.common.lib.model import Model
 from src.common.lib.data_loader import get_dataloader
 from src.datasets.dataset_spd import DatasetSPD
 from src.common.lib.synthetic_multiplexing import multiplex
 
-def eval_model():
+def run_synthetic_multiplexing():
     
     if len(sys.argv) != 3:
         raise ValueError("Invalid config path. Must supply model config and data config.")
@@ -27,6 +27,7 @@ def eval_model():
     config_data = load_config_file(config_path_data, 'data', config_model.CONFIGS_USED_FOLDER)
 
     logging.info("init")
+    logging.info("[Synthetic Multiplexing]")
     
     logging.info(f"Is GPU available: {torch.cuda.is_available()}")
     logging.info(f"Num GPUs Available: {torch.cuda.device_count()}")
@@ -52,8 +53,8 @@ def eval_model():
     model = Model(config_model)
     
     n_class = 225#1311#219#225
-    logging.warning(f"NOTE! Setting len(unique_markers) to {n_class} !!!!")
-    model.unique_markers = np.arange(n_class)
+    logging.warning(f"NOTE! Setting num_class to {n_class} !!!!")
+    model.num_class = n_class
     
     logging.info("Loading model with dataloader")
     model.load_with_dataloader(test_loader=dataloader)
@@ -62,13 +63,19 @@ def eval_model():
     model.load_model()
     
     logging.info("Multiplex!")
-    multiplex(model)
+    embeddings_type = get_if_exists(model.test_loader.dataset.conf,
+                                    'EMBEDDINGS_TYPE_TO_LOAD',
+                                    'testset' if config_data.SPLIT_DATA else 'all')
+
+    multiplex(model,
+              embeddings_type=embeddings_type)#,
+            #   output_layer='vqvec1')
     
 
 if __name__ == "__main__":
-    print("Testing synthetic multiplexing...")
+    print("Running synthetic multiplexing...")
     try:
-        eval_model()
+        run_synthetic_multiplexing()
     except Exception as e:
         logging.exception(str(e))
         raise e
