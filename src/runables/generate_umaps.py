@@ -92,7 +92,7 @@ def __generate_with_load(config_model, config_data, dataset, model, markers, out
     for c in markers:
         logging.info(f"Marker: {c}")
         logging.info(f"[{c}] Selecting indexes of marker")
-        c_indexes = np.where(np.char.startswith(labels.astype(str), f"{c}_"))[0]
+        c_indexes = np.where(np.char.endswith(labels.astype(str), f"_{c}"))[0]
         logging.info(f"[{c}] {len(c_indexes)} indexes have been selected")
 
         if len(c_indexes) == 0:

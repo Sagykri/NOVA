@@ -31,7 +31,7 @@ def multiplex(model: Model, embeddings_type='testset',
     embeddings, labels = __get_embeddings(model, embeddings_type, calc_embeddings, output_layer)
     logging.info(f"[Before concat] Embeddings shape: {embeddings.shape}, Labels shape: {labels.shape}")
     
-    df = __embeddings_to_df(embeddings, labels)
+    df = __embeddings_to_df(embeddings, labels, dataset_conf)
     embeddings, label_data, unique_groups = __get_multiplexed_embeddings(df, random_state=dataset_conf.SEED)
     logging.info(f"[After concat] Embeddings shape: {embeddings.shape}, Labels shape: {label_data.shape}")
     
@@ -76,8 +76,11 @@ def __get_multiplexed_embeddings(embeddings_df, random_state=None):
     
     return embeddings, label_data, unique_groups
 
-def __embeddings_to_df(embeddings, labels):
-    labels_df = pd.DataFrame([s.split('_', 1) for s in labels], columns=['Marker', 'Pheno'])
+def __embeddings_to_df(embeddings, labels, dataset_conf):
+    if dataset_conf.calc_embeddings:
+        labels_df = pd.DataFrame([s.split('_', 1) for s in labels], columns=['Marker', 'Pheno'])
+    else:
+        labels_df = pd.DataFrame([(s.split('_')[-1], '_'.join(s.split('_')[-4:-2 - int(dataset_conf.ADD_REP_TO_LABEL)])) for s in labels], columns=['Marker', 'Pheno'])
     embeddings_series = pd.DataFrame({"Embeddings": [*embeddings]})
     df = pd.merge(labels_df, embeddings_series, left_index=True, right_index=True)
     return df

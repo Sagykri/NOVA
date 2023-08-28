@@ -118,7 +118,7 @@ class DatasetSPD(Dataset):
                     logging.info(f"Skipping condition (not in conditions list). {condition}")
                     continue
                 # cond_folder_fullpath = os.path.join(cell_line_folder_fullpath, condition)
-                    
+                
                 # Filter: marker to include
                 if markers is not None and marker_name not in markers:
                     logging.info(f"Skipping marker (not in markers list). {marker_name}")

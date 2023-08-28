@@ -12,6 +12,7 @@ from src.common.lib.utils import load_config_file, init_logging
 from src.common.lib.model import Model
 from src.common.lib.data_loader import get_dataloader
 from src.datasets.dataset_spd import DatasetSPD
+import re
 
 ###############################################################
 # Utils for Generate Embeddings (run from MOmaps/src/runables/generate_embeddings.py)
@@ -244,7 +245,7 @@ def get_embeddings_subfolders_filtered(config_data, embeddings_main_folder, dept
         return marker_folders_to_include
 
 
-def _load_stored_embeddings(marker_folder, embeddings_type):
+def _load_stored_embeddings(marker_folder, embeddings_type, config_data):
     """Load all pre-stored embeddings (npy files)
 
     Args:
@@ -271,6 +272,10 @@ def _load_stored_embeddings(marker_folder, embeddings_type):
     # Infer the label 
     path_list = marker_folder.split(os.sep)
     batch_cell_line_condition_rep_marker = '_'.join(path_list[-5:])
+    if not config_data.ADD_REP_TO_LABEL:
+        pattern = re.compile(r'_rep\d+')
+        batch_cell_line_condition_rep_marker = re.sub(pattern, '', batch_cell_line_condition_rep_marker)
+        
     labels = [batch_cell_line_condition_rep_marker] * embedings_data.shape[0]
     
     logging.info(f"[_load_stored_embeddings] Loading stored embeddings of label {batch_cell_line_condition_rep_marker} of shape {embedings_data.shape} ")
@@ -299,7 +304,7 @@ def load_embeddings(config_path_model=None, config_path_data=None,
     
     # Get configs of model (trained model) 
     config_model = load_config_file(config_path_model, 'model') if config_model is None else config_model
-    embeddings_main_folder = os.path.join(config_model.MODEL_OUTPUT_FOLDER, 'embeddings', 'neurons')
+    embeddings_main_folder = os.path.join(config_model.MODEL_OUTPUT_FOLDER, 'embeddings', 'no_ds')
     
     # Get dataset configs (as to be used in the desired UMAP)
     config_data = load_config_file(config_path_data, 'data') if config_data is None else config_data
@@ -308,7 +313,7 @@ def load_embeddings(config_path_model=None, config_path_data=None,
     
     embedings_data_list, all_labels = [], []
     for marker_folder in marker_folders_to_include:
-        embedings_data, labels = _load_stored_embeddings(marker_folder, embeddings_type)
+        embedings_data, labels = _load_stored_embeddings(marker_folder, embeddings_type, config_data)
         
         embedings_data_list.append(embedings_data)
         all_labels.extend(labels)

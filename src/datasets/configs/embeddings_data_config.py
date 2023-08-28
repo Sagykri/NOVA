@@ -106,9 +106,9 @@ class EmbeddingsB9NoDownsamplingDatasetConfig(DatasetConfig):
         self.CALCULATE_EMBEDDINGS = False
         self.SPLIT_DATA = False        
         # self.CELL_LINES = ['WT']#, 'FUSHomozygous', 'FUSHeterozygous', 'FUSRevertant']
-        self.CELL_LINES = ['WT']#, 'FUSHeterozygous', 'FUSRevertant', 'TDP43']
-        # self.CONDITIONS = ['Untreated']
-        self.MARKERS = ['G3BP1'] #['NONO', 'G3BP1', 'TOMM20', 'mitotracker', 'FUS'] 
+        self.CELL_LINES = ['WT', 'FUSHeterozygous', 'FUSRevertant', 'TDP43']
+        self.CONDITIONS = ['Untreated']
+        # self.MARKERS = ['G3BP1'] #['NONO', 'G3BP1', 'TOMM20', 'mitotracker', 'FUS'] 
         # self.MARKERS_TO_EXCLUDE = ['TDP43','FUS']
         
 class EmbeddingsOpenCellDatasetConfig(DatasetConfig):
