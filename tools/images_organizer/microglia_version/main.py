@@ -2,7 +2,7 @@ import logging
 import os
 import pandas as pd
 import numpy as np
-from config_np import DST_ROOT_PATH, SRC_ROOT_PATH, CUT_FILES
+from config_microglia import DST_ROOT_PATH, SRC_ROOT_PATH, CUT_FILES
 
 from utils import copy_files, get_expected_number_of_files_to_copy, get_folders_to_handle, init_folders, init_logging
 
@@ -16,7 +16,6 @@ def main():
     
     folders = get_folders_to_handle()
     assert all([os.path.exists(os.path.join(SRC_ROOT_PATH, f)) and os.path.isdir(os.path.join(SRC_ROOT_PATH, f)) for f in folders]), "One or more of the specified folders don't exists (or aren't folders)"
-    
     
     for copy_well_folder in [False, True]:
         for folder in folders:
@@ -40,6 +39,7 @@ def main():
         logging.info(f"{n_copied}{n_total_str} files were copied from {SRC_ROOT_PATH} to {DST_ROOT_PATH}")
 
     logging.info(f"Finished successfully!")
+    
     
 if __name__ == "__main__":
     main()
