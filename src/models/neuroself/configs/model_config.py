@@ -5,6 +5,8 @@ sys.path.insert(1, os.getenv("MOMAPS_HOME"))
 
 from src.models.neuroself.configs.config import NeuroselfConfig
 
+SAGY_OUTPUT = '/home/labs/hornsteinlab/Collaboration/MOmaps_Sagy/MOmaps/outputs/'
+
 class ExampleNeuroselfModelConfig(NeuroselfConfig):
     def __init__(self):
         super().__init__()
@@ -53,9 +55,11 @@ class TLNeuroselfB78NoDSModelConfig(NeuroselfConfig):
     def __init__(self):
         super().__init__()
         
+        self.OUTPUTS_FOLDER = SAGY_OUTPUT ## TODO: remove, temp fix
         self.MODEL_OUTPUT_FOLDER = os.path.join(self.OUTPUTS_FOLDER, 'models_outputs_batch78_nods_tl_ep23')
-        self.LOGS_FOLDER = os.path.join(self.MODEL_OUTPUT_FOLDER, 'logs',"no_ds")
-        self.CONFIGS_USED_FOLDER = os.path.join(self.MODEL_OUTPUT_FOLDER, "configs_used", "no_ds", datetime.datetime.now().strftime("%d%m%y_%H%M%S_%f"))
+        
+        self.LOGS_FOLDER = os.path.join(self.MODEL_OUTPUT_FOLDER, 'logs')
+        self.CONFIGS_USED_FOLDER = os.path.join(self.MODEL_OUTPUT_FOLDER, "configs_used", datetime.datetime.now().strftime("%d%m%y_%H%M%S_%f"))
 
         # Models
         self.PRETRAINED_MODEL_PATH = os.path.join(self.OUTPUTS_FOLDER,"models_outputs_cytoself_qsplit9", "checkpoints", "checkpoint_ep23.chkp") 
