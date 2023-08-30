@@ -28,7 +28,7 @@ class DatasetConfig(BaseConfig):
         self.ADD_LINE_TO_LABEL = True
         self.ADD_TYPE_TO_LABEL = False
         self.ADD_BATCH_TO_LABEL = False
-        self.ADD_REP_TO_LABEL = True
+        self.ADD_REP_TO_LABEL = False
         
         self.SPLIT_BY_SET_FOR = None
         self.SPLIT_BY_SET_FOR_BATCH = None

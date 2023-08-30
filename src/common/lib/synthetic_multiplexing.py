@@ -25,10 +25,8 @@ def multiplex(model: Model, embeddings_type='testset',
     assert model.test_loader is not None, "model.test_loader is None, please first load dataloaders"
     
     dataset_conf = model.test_loader.dataset.conf
-    calc_embeddings = get_if_exists(dataset_conf, 'CALCULATE_EMBEDDINGS', False)
-    logging.info(f"calc_embeddings is set to {calc_embeddings}")
     
-    embeddings, labels = __get_embeddings(model, embeddings_type, calc_embeddings, output_layer)
+    embeddings, labels = __get_embeddings(model, embeddings_type)
     logging.info(f"[Before concat] Embeddings shape: {embeddings.shape}, Labels shape: {labels.shape}")
     
     df = __embeddings_to_df(embeddings, labels, dataset_conf)
@@ -77,24 +75,15 @@ def __get_multiplexed_embeddings(embeddings_df, random_state=None):
     return embeddings, label_data, unique_groups
 
 def __embeddings_to_df(embeddings, labels, dataset_conf):
-    calc_embeddings = get_if_exists(dataset_conf, 'CALCULATE_EMBEDDINGS', False)
-    if calc_embeddings:
-        labels_df = pd.DataFrame([s.split('_', 1) for s in labels], columns=['Marker', 'Pheno'])
-    else:
-        labels_df = pd.DataFrame([(s.split('_')[-1], '_'.join(s.split('_')[-4 + int(not dataset_conf.ADD_REP_TO_LABEL):-1])) for s in labels], columns=['Marker', 'Pheno'])
+    labels_df = pd.DataFrame([(s.split('_')[-1], '_'.join(s.split('_')[-4 + int(not dataset_conf.ADD_REP_TO_LABEL):-1])) for s in labels], columns=['Marker', 'Pheno'])
     embeddings_series = pd.DataFrame({"Embeddings": [*embeddings]})
     df = pd.merge(labels_df, embeddings_series, left_index=True, right_index=True)
     return df
 
-def __get_embeddings(model, embeddings_type, calc_embeddings, output_layer: str = 'vqvec2'):
-    if calc_embeddings:
-        logging.info("Calculating embeddings...")
-        embeddings, labels_ids = model.model.infer_embeddings(model.test_loader, output_layer)
-        labels = model.test_loader.dataset.id2label(labels_ids)
-    else:
-        logging.info("Loading embeddings...")
-        embeddings, labels = model.load_embeddings(embeddings_type)
-        labels = np.asarray(labels).reshape(-1,)
+def __get_embeddings(model, embeddings_type):
+    logging.info("Loading embeddings...")
+    embeddings, labels = model.load_embeddings(embeddings_type)
+    labels = np.asarray(labels).reshape(-1,)
     return embeddings,labels
 
 def __concatenate_embeddings_by_group(group, random_state=None):
