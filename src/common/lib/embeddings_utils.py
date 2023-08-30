@@ -34,7 +34,7 @@ def init_model_for_embeddings(config_path_model):
     logging.info(f"Init model {config_model}")
     return model, config_model
 
-def load_dataset_for_embeddings(config_data, batch_size):
+def load_dataset_for_embeddings(config_data, batch_size, config_model):
     """Returns torch.utils.data.DataLoader objects 
 
     Use the dataset config (src.datasets.configs.train_config) to load the dataset that we want to calc embbedings for
@@ -52,6 +52,14 @@ def load_dataset_for_embeddings(config_data, batch_size):
     # Init dataset
     dataset = DatasetSPD(config_data)
     logging.info(f"Data shape: {dataset.X_paths.shape}, {dataset.y.shape}")
+    
+        
+    __unique_labels_path = os.path.join(config_model.MODEL_OUTPUT_FOLDER, "unique_labels.npy")
+    if os.path.exists(__unique_labels_path):
+        logging.info(f"[load_dataset_for_embeddings] unique_labels.npy files has been detected - using it. ({__unique_labels_path})")
+        dataset.unique_markers = np.load(__unique_labels_path)
+    else:
+        logging.warn(f"[load_dataset_for_embeddings] Couldn't find unique_labels file: {__unique_labels_path}")
     
     # important! we don't want to get the augmented images
     dataset.flip, dataset.rot = False, False
@@ -92,12 +100,6 @@ def load_model_with_dataloader(model, datasets_list):
         logging.info(f"MODEL_PATH and LAST_CHECKPOINT_PATH are None.")
     
     logging.info(f"Loading model with dataloader {model.conf.MODEL_PATH}")
-    
-    __unique_labels_path = os.path.join(model.conf.MODEL_OUTPUT_FOLDER, "unique_labels.npy")
-    if os.path.exists(__unique_labels_path):
-        logging.info(f"unique_labels.npy files has been detected - using it. ({__unique_labels_path})")
-        for dataset in datasets_list:
-            dataset.unique_markers = np.load(__unique_labels_path)
 
     if len(datasets_list)==3:
         # If data was splitted during training to train/val/test

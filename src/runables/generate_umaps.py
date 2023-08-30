@@ -49,6 +49,8 @@ def generate_umaps():
     if os.path.exists(__unique_labels_path):
         logging.info(f"unique_labels.npy files has been detected - using it. ({__unique_labels_path})")
         dataset.unique_markers = np.load(__unique_labels_path)
+    else:
+        logging.warn(f"Couldn't find unique_labels file: {__unique_labels_path}")
     
     dataset.flip, dataset.rot = False, False
     if config_data.SPLIT_DATA:
