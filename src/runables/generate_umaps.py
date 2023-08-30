@@ -67,16 +67,7 @@ def generate_umaps():
     markers = np.unique([m.split('_')[0] if '_' in m else m for m in np.unique(dataset.y)]) 
     logging.info(f"Markers detected: {markers}")
     
-    calc_embeddings = get_if_exists(config_data, 'CALCULATE_EMBEDDINGS', False)
-    
-    # With calc embeddings
-    if calc_embeddings:
-        __generate_with_calc(config_model, dataset, model, markers, output_folder_path)
-        return
-    
-    # else with load embeddings
     __generate_with_load(config_model, config_data, dataset, model, markers, output_folder_path)
-
 
 
 def __generate_with_load(config_model, config_data, dataset, model, markers, output_folder_path):
@@ -119,54 +110,10 @@ def __generate_with_load(config_model, config_data, dataset, model, markers, out
                         colormap='Set1',
                         alpha=0.7,
                         s=0.8,
-                        calc_embeddings=False,
                         reset_umap=True)
         
         logging.info(f"[{c}] UMAP saved successfully to {savepath}")
         
-def __generate_with_calc(config_model, dataset, model, markers, output_folder_path):
-    batch_size = config_model.BATCH_SIZE
-    num_workers = 1 # No need in more since eval takes only the first 10 tiles
-    __now = datetime.datetime.now()
-    
-    for c in markers:
-        logging.info("Clearing cache")
-        torch.cuda.empty_cache()
-        
-        logging.info(f"[{c}]")
-        
-        logging.info(f"[{c}] Selecting indexes of marker")
-        c_indexes = np.where(np.char.startswith(dataset.y.astype(str), f"{c}_"))[0]
-        logging.info(f"[{c}] {len(c_indexes)} indexes have been selected")
-                        
-        logging.info(f"[{c}] Init dataloaders (batch_size: {batch_size}, num_workers: {num_workers})")
-        dataloader = get_dataloader(dataset, batch_size, indexes=c_indexes, num_workers=num_workers)    
-        
-        logging.info(f"[{c}] Loading model with dataloader")
-        model.load_with_dataloader(test_loader=dataloader)
-        
-        logging.info(f"[{c}] Loading analytics..")
-        model.load_analytics()
-        
-        logging.info(f"[{c}] Plot umap...")
-        title = f"{'_'.join([os.path.basename(f) for f in dataset.input_folders])}_{c}"
-        savepath = os.path.join(output_folder_path,\
-                                'UMAPs',\
-                                    f'{__now.strftime("%d%m%y_%H%M%S_%f")}_{os.path.splitext(os.path.basename(config_model.MODEL_PATH))[0]}',\
-                                        f'{title}.png')
-        
-        __savepath_parent = os.path.dirname(savepath)
-        if not os.path.exists(__savepath_parent):
-            os.makedirs(__savepath_parent)
-        
-        model.plot_umap(title=title, savepath=savepath,
-                        colormap='Set1',
-                        alpha=0.7,
-                        s=0.8,
-                        calc_embeddings=True,
-                        id2label=dataloader.dataset.id2label)
-        
-        logging.info(f"[{c}] UMAP saved successfully to {savepath}")
 
 if __name__ == "__main__":
     print("Starting generating umaps...")
