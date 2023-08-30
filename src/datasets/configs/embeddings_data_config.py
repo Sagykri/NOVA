@@ -4,7 +4,6 @@ import sys
 sys.path.insert(1, os.getenv("MOMAPS_HOME"))
 from src.common.configs.dataset_config import DatasetConfig
 
-# TODO: (210823) CLEAN!
 
 class EmbeddingsExampleDatasetConfig(DatasetConfig):
     def __init__(self):
@@ -42,7 +41,9 @@ class EmbeddingsExampleDatasetConfig(DatasetConfig):
         # Should we add rep (rep1/rep2) to the label
         self.ADD_REP_TO_LABEL = False
 
-
+############################################################
+# Neurons
+############################################################        
 class EmbeddingsB78DatasetConfig(DatasetConfig):
     def __init__(self):
         super().__init__()
@@ -60,7 +61,46 @@ class EmbeddingsB9DatasetConfig(DatasetConfig):
                         ["batch9_16bit_no_downsample"]]
         
         self.SPLIT_DATA = False        
+
+class EmbeddingsB6DatasetConfig(DatasetConfig):
+    def __init__(self):
+        super().__init__()
+
+        self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "spd2", "SpinningDisk", f) for f in 
+                        ["batch6_16bit_no_downsample"]]
         
+        self.SPLIT_DATA = False
+
+class EmbeddingsB5DatasetConfig(DatasetConfig):
+    def __init__(self):
+        super().__init__()
+
+        self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "spd2", "SpinningDisk", f) for f in 
+                        ["batch5_16bit_no_downsample"]]
+        
+        self.SPLIT_DATA = False
+
+class EmbeddingsB4DatasetConfig(DatasetConfig):
+    def __init__(self):
+        super().__init__()
+
+        self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "spd2", "SpinningDisk", f) for f in 
+                        ["batch4_16bit_no_downsample"]]
+        
+        self.SPLIT_DATA = False
+
+class EmbeddingsB3DatasetConfig(DatasetConfig):
+    def __init__(self):
+        super().__init__()
+
+        self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "spd2", "SpinningDisk", f) for f in 
+                        ["batch3_16bit_no_downsample"]]
+        
+        self.SPLIT_DATA = False
+        
+############################################################
+# Open Cell (cytoself data)
+############################################################        
 class EmbeddingsOpenCellDatasetConfig(DatasetConfig):
     def __init__(self):
         super().__init__()
@@ -72,6 +112,10 @@ class EmbeddingsOpenCellDatasetConfig(DatasetConfig):
         self.CELL_LINES = ['WT']
         self.CONDITIONS = ['Untreated']
         
+
+############################################################
+# Perturbations 
+############################################################
 class EmbeddingsPertConfocalDatasetConfig(DatasetConfig):
     def __init__(self):
         super().__init__()
@@ -101,7 +145,10 @@ class EmbeddingsPertSPDDatasetConfig(DatasetConfig):
         # self.MARKERS = ['FUS']#, 'FMRP'] 
         
         # self.SAMPLE_PCT = 0.1
-        
+
+############################################################
+# Batch 2 (confocal)        
+############################################################
 class EmbeddingsB2DatasetConfig(DatasetConfig):
     def __init__(self):
         super().__init__()
@@ -132,8 +179,7 @@ class EmbeddingsB25DatasetConfig(DatasetConfig):
         # self.MARKERS = ['G3BP1']
         # self.MARKERS = ['NONO', 'G3BP1', 'TOMM20', 'PURA', 'FUS'] 
         # self.MARKERS_TO_EXCLUDE = ['TDP43','FUS']
-        
-        
+                
 class EmbeddingsB2B25DatasetConfig(DatasetConfig):
     def __init__(self):
         super().__init__()
