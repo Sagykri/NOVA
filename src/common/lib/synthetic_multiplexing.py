@@ -81,7 +81,7 @@ def __embeddings_to_df(embeddings, labels, dataset_conf):
     if calc_embeddings:
         labels_df = pd.DataFrame([s.split('_', 1) for s in labels], columns=['Marker', 'Pheno'])
     else:
-        labels_df = pd.DataFrame([(s.split('_')[-1], '_'.join(s.split('_')[-4:-2 + int(dataset_conf.ADD_REP_TO_LABEL)])) for s in labels], columns=['Marker', 'Pheno'])
+        labels_df = pd.DataFrame([(s.split('_')[-1], '_'.join(s.split('_')[-4 + int(not dataset_conf.ADD_REP_TO_LABEL):-1])) for s in labels], columns=['Marker', 'Pheno'])
     embeddings_series = pd.DataFrame({"Embeddings": [*embeddings]})
     df = pd.merge(labels_df, embeddings_series, left_index=True, right_index=True)
     return df
