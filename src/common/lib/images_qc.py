@@ -749,14 +749,16 @@ def plot_hists(batch_df_raw,batch_df_norm, batch_df_proc, batch_num, plot_sep_by
 
     mean_hist_proc = batch_df_proc.copy()
     mean_hist_proc[batch_df_proc.columns.difference(['site_count'])] = batch_df_proc.drop(columns=['site_count']).div(batch_df_proc['site_count'], axis=0).astype(int)
-    plot_hist_sep_by_type(mean_hist_raw, mean_hist_rescale, mean_hist_proc, batch_num, ncols, nrows)
+#    plot_hist_sep_by_type(mean_hist_raw, mean_hist_rescale, mean_hist_proc, batch_num, ncols, nrows)
+    plot_hist_lines(mean_hist_raw, mean_hist_rescale, mean_hist_proc, batch_num, ncols, nrows)
+
     if plot_sep_by_cell_line:
         plot_hist_sep_by_cell_line(mean_hist_raw, mean_hist_rescale, mean_hist_proc, batch_num)
 
 
 def run_calc_hist_new(batch, cell_lines_for_disp, markers, hist_sample=1, 
                       sample_size_per_markers=200, ncols=3, nrows=3, rep_count=2, cond_count=2):    
-    INPUT_DIR_BATCH_RAW = os.path.join(INPUT_DIR_RAW, batch.replace('_16bit',''))
+    INPUT_DIR_BATCH_RAW = os.path.join(INPUT_DIR_RAW, batch.replace('_16bit','').replace('_no_downsample',''))
     INPUT_DIR_BATCH_PROC = os.path.join(INPUT_DIR_PROC, batch.replace("_sort",""))
 
     images_raw = sample_images_all_markers_all_lines(INPUT_DIR_BATCH_RAW, sample_size_per_markers, _num_markers=len(markers),
@@ -780,6 +782,54 @@ def run_calc_hist_new(batch, cell_lines_for_disp, markers, hist_sample=1,
 
     #plot_hists(batch_df_processed, batch_df_processed, batch_df_processed, batch, ncols=ncols, nrows=nrows)
 
+
+def plot_hist_lines(mean_hist_raw, mean_hist_rescale, mean_hist_proc, batch_num, ncols=7, nrows=4):
+    for hist_df, name in zip([mean_hist_raw, mean_hist_rescale, mean_hist_proc], ['raw', 'rescaled','processed']):
+        fig, axs = plt.subplots(figsize=(15, 8), ncols=ncols, nrows=nrows, sharey=True, dpi=200)
+        fig.subplots_adjust(top=0.85) 
+        plt.rcParams.update({'figure.autolayout': True})
+        for j, (marker, marker_df) in enumerate(hist_df.drop(columns=['site_count']).groupby(level=[1])):
+            df = marker_df.reset_index(level=1, drop=True).T
+            x_ticks = [str(round(idx, 1)) for idx in df.index]
+            x_ticks[-1] = x_ticks[-1] + "\n - 65000" if name=='raw' else x_ticks[-1] + "-1"
+
+            # Generate positions for the bars using numpy.arange
+            bar_positions = list(range(0, df.shape[0]))
+            ax = axs[j//ncols, j%ncols]
+            # Plot each column separately using a different color for each column
+            for col in df.columns:
+                ax.plot(bar_positions, df[col], label=col, linewidth=0.4)
+            xticks_size = 4
+            if name=='raw':
+                bar_positions = bar_positions[0:-1:2] + [bar_positions[-1]]
+                x_ticks = x_ticks[0:-1:2] + [x_ticks[-1]]
+                xticks_size=2.5
+            ax.set_xticks(bar_positions, x_ticks,  fontsize=xticks_size)
+            ax.set_xlabel('Intestiy value', fontsize=8)
+            if j%ncols==0:
+                ax.set_ylabel('Count', fontsize=10)
+                ax.tick_params(axis='y', labelsize=8)
+            ax.set_title(f'{marker}', fontsize=8)
+            ax.grid(False)
+
+        handles, labels = ax.get_legend_handles_labels()
+        #fig.legend(handles, labels, loc='lower center', ncol=13, bbox_to_anchor=(0.5,0), fontsize='xx-small')
+        fig.legend(handles, labels, loc='center right', ncol=1, fontsize=8, bbox_to_anchor=(1.1,0.5))
+        # Create a ScalarMappable object for the entire figure
+        sm = plt.cm.ScalarMappable(cmap='gray')
+        sm.set_array([])  # Dummy array to satisfy the ScalarMappable
+
+        # Add shared colorbar for the entire figure
+        cbar_ax = fig.add_axes([1.11, 0.5, 0.02, 0.2])  # Adjust the position as needed
+        cbar = plt.colorbar(sm, cax=cbar_ax, orientation='vertical')
+        cbar.set_ticks([0, 1])  # Assuming the range of values is from 0 to 1
+        cbar.set_label('Intestiy Colorbar', fontsize=10)
+        cbar.set_ticklabels(['Low', 'High'], fontsize=8)
+        cbar.ax.set_xticklabels(cbar.ax.get_xticklabels(), rotation=90)
+
+        plt.suptitle(f'{name} {batch_num}')
+        plt.tight_layout()
+        plt.show()
 
 def plot_n_valid_tiles_count(df, custom_palette,reps, batch_min=3, batch_max=9):
     if np.unique(df.batch)[0]=='Perturbations':
@@ -819,7 +869,7 @@ def plot_n_valid_tiles_count(df, custom_palette,reps, batch_min=3, batch_max=9):
 
 def plot_p_valid_tiles_count(df, custom_palette,reps, batch_min=3, batch_max=9):
     if np.unique(df.batch)[0]=='Perturbations':
-        g = sns.catplot(kind='box', data=df, y='cell_line', x='n_valid_tiles',height=12, hue='condition')#, palette=batch_palette,
+        g = sns.catplot(kind='box', data=df, y='cell_line', x='p_valid_tiles',height=12, hue='condition')#, palette=batch_palette,
                     #hue_order=batch_palette.keys(), legend=False)
         g.set_axis_labels('valid tiles count', 'cell line')
 
