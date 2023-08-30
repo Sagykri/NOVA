@@ -77,10 +77,11 @@ def __get_multiplexed_embeddings(embeddings_df, random_state=None):
     return embeddings, label_data, unique_groups
 
 def __embeddings_to_df(embeddings, labels, dataset_conf):
-    if dataset_conf.calc_embeddings:
+    calc_embeddings = get_if_exists(dataset_conf, 'CALCULATE_EMBEDDINGS', False)
+    if calc_embeddings:
         labels_df = pd.DataFrame([s.split('_', 1) for s in labels], columns=['Marker', 'Pheno'])
     else:
-        labels_df = pd.DataFrame([(s.split('_')[-1], '_'.join(s.split('_')[-4:-2 - int(dataset_conf.ADD_REP_TO_LABEL)])) for s in labels], columns=['Marker', 'Pheno'])
+        labels_df = pd.DataFrame([(s.split('_')[-1], '_'.join(s.split('_')[-4:-2 + int(dataset_conf.ADD_REP_TO_LABEL)])) for s in labels], columns=['Marker', 'Pheno'])
     embeddings_series = pd.DataFrame({"Embeddings": [*embeddings]})
     df = pd.merge(labels_df, embeddings_series, left_index=True, right_index=True)
     return df
