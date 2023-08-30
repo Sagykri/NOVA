@@ -51,4 +51,6 @@ class LenaDatasetConfig(DatasetConfig):
                         input_folders_names]
         
         self.EMBEDDINGS_LAYER = 'vqvec2'
+        
+        self.EXPERIMENT_TYPE = 'neurons' 
         #####################################

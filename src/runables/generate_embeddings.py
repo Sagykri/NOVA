@@ -35,14 +35,20 @@ def generate_embeddings():
     config_data = load_config_file(config_path_data, 'data') 
     logging.info(f"Init datasets {config_data} from {config_path_data}")
     
+    experiment_type = get_if_exists(config_data, 'EXPERIMENT_TYPE', None)
+    assert experiment_type is not None, "EXPERIMENT_TYPE can't be None"
+    
+    logging.info(f"experiment_type = {experiment_type}")
+    
     # Get dataset 
     datasets_list = load_dataset_for_embeddings(config_data=config_data, batch_size=100)
     # Set the output folder (where to save the embeddings)
-    embeddings_folder = os.path.join(config_model.MODEL_OUTPUT_FOLDER, 'embeddings', 'neurons')
+    embeddings_folder = os.path.join(config_model.MODEL_OUTPUT_FOLDER, 'embeddings', experiment_type)
     # Get trained model    
     trained_model = load_model_with_dataloader(model, datasets_list)
     
     embeddings_layer = get_if_exists(config_data, 'EMBEDDINGS_LAYER', 'vqvec2')
+    logging.info(f"embeddings_layer = {embeddings_layer}")
     
     calc_embeddings(trained_model, datasets_list, embeddings_folder, save=True, embeddings_layer=embeddings_layer)
     

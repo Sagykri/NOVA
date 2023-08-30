@@ -46,6 +46,9 @@ class EmbeddingsExampleDatasetConfig(DatasetConfig):
         # How much percentage to sample from the dataset. Set to 1 or None for taking all dataset.
         # Valid values are: 0<SAMPLE_PCT<=1 or SAMPLE_PCT=None (identical to SAMPLE_PCT=1)
         self.SAMPLE_PCT = 1
+        
+        # Determines the subfolder (inside the embeddings folder) in which the embeddings will be stored
+        self.EXPERIMENT_TYPE = None
 
 ############################################################
 # Neurons
@@ -57,7 +60,8 @@ class EmbeddingsB78DatasetConfig(DatasetConfig):
         self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "spd2", "SpinningDisk", f) for f in 
                         ["batch7_16bit_no_downsample", "batch8_16bit_no_downsample"]]
         
-        self.SPLIT_DATA = True    
+        self.SPLIT_DATA = True
+        self.EXPERIMENT_TYPE = 'neurons'    
 
 class EmbeddingsB9DatasetConfig(DatasetConfig):
     def __init__(self):
@@ -67,6 +71,7 @@ class EmbeddingsB9DatasetConfig(DatasetConfig):
                         ["batch9_16bit_no_downsample"]]
         
         self.SPLIT_DATA = False  
+        self.EXPERIMENT_TYPE = 'neurons'
 
 class EmbeddingsB6DatasetConfig(DatasetConfig):
     def __init__(self):
@@ -76,6 +81,7 @@ class EmbeddingsB6DatasetConfig(DatasetConfig):
                         ["batch6_16bit_no_downsample"]]
         
         self.SPLIT_DATA = False
+        self.EXPERIMENT_TYPE = 'neurons'
 
 class EmbeddingsB5DatasetConfig(DatasetConfig):
     def __init__(self):
@@ -85,6 +91,7 @@ class EmbeddingsB5DatasetConfig(DatasetConfig):
                         ["batch5_16bit_no_downsample"]]
         
         self.SPLIT_DATA = False
+        self.EXPERIMENT_TYPE = 'neurons'
 
 class EmbeddingsB4DatasetConfig(DatasetConfig):
     def __init__(self):
@@ -94,6 +101,7 @@ class EmbeddingsB4DatasetConfig(DatasetConfig):
                         ["batch4_16bit_no_downsample"]]
         
         self.SPLIT_DATA = False
+        self.EXPERIMENT_TYPE = 'neurons'
 
 class EmbeddingsB3DatasetConfig(DatasetConfig):
     def __init__(self):
@@ -103,6 +111,7 @@ class EmbeddingsB3DatasetConfig(DatasetConfig):
                         ["batch3_16bit_no_downsample"]]
         
         self.SPLIT_DATA = False
+        self.EXPERIMENT_TYPE = 'neurons'
         
 ############################################################
 # Open Cell (cytoself data)
@@ -117,6 +126,7 @@ class EmbeddingsOpenCellDatasetConfig(DatasetConfig):
         self.SPLIT_DATA = True        
         self.CELL_LINES = ['WT']
         self.CONDITIONS = ['Untreated']
+        self.EXPERIMENT_TYPE = 'opencell'
         
 
 ############################################################
@@ -136,6 +146,7 @@ class EmbeddingsPertConfocalDatasetConfig(DatasetConfig):
         # self.MARKERS = ['FUS']#, 'FMRP']
         
         # self.SAMPLE_PCT = 0.1 
+        self.EXPERIMENT_TYPE = 'perturbations'
         
 class EmbeddingsPertSPDDatasetConfig(DatasetConfig):
     def __init__(self):
@@ -151,6 +162,7 @@ class EmbeddingsPertSPDDatasetConfig(DatasetConfig):
         # self.MARKERS = ['FUS']#, 'FMRP'] 
         
         # self.SAMPLE_PCT = 0.1
+        self.EXPERIMENT_TYPE = 'perturbations'
 
 ############################################################
 # Batch 2 (confocal)        

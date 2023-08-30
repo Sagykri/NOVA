@@ -142,7 +142,7 @@ def calc_embeddings(model, datasets_list, embeddings_folder, save=True, embeddin
         path_list = full_path.split(os.sep)
         batch_cell_line_condition_rep_marker_list = [os.path.join(path_list[-1][:4],path_list[i]) if i==-2 else os.path.join(path_list[i]) for i in range(-5,-1)]
         batch_cell_line_condition_rep_marker = os.path.join(*batch_cell_line_condition_rep_marker_list)
-        return os.path.join(embeddings_folder, batch_cell_line_condition_rep_marker)
+        return os.path.join(embeddings_folder, embeddings_layer, batch_cell_line_condition_rep_marker)
     get_save_path = np.vectorize(final_save_path)
     
     def do_embeddings_inference(images_batch, dataset_type):
@@ -302,11 +302,17 @@ def load_embeddings(config_path_model=None, config_path_data=None,
     # Get configs of model (trained model) 
     config_model = load_config_file(config_path_model, 'model') if config_model is None else config_model
     
-    embeddings_layer = get_if_exists(config_data, 'EMBEDDINGS_LAYER', 'vqvec2')
-    embeddings_main_folder = os.path.join(config_model.MODEL_OUTPUT_FOLDER, 'embeddings', embeddings_layer)
-    
     # Get dataset configs (as to be used in the desired UMAP)
     config_data = load_config_file(config_path_data, 'data') if config_data is None else config_data
+    
+    experiment_type = get_if_exists(config_data, 'EXPERIMENT_TYPE', None)
+    assert experiment_type is not None, "EXPERIMENT_TYPE can't be None"
+    logging.info(f"[load_embeddings] experiment_type = {experiment_type}")
+    
+    embeddings_layer = get_if_exists(config_data, 'EMBEDDINGS_LAYER', 'vqvec2')
+    logging.info(f"[load_embeddings] embeddings_layer = {embeddings_layer}")
+    
+    embeddings_main_folder = os.path.join(config_model.MODEL_OUTPUT_FOLDER, 'embeddings', experiment_type, embeddings_layer)
     
     marker_folders_to_include = get_embeddings_subfolders_filtered(config_data, embeddings_main_folder)
     
