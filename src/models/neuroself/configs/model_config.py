@@ -5,8 +5,6 @@ sys.path.insert(1, os.getenv("MOMAPS_HOME"))
 
 from src.models.neuroself.configs.config import NeuroselfConfig
 
-# TODO: (210823) Clean!
-
 class ExampleNeuroselfModelConfig(NeuroselfConfig):
     def __init__(self):
         super().__init__()
@@ -28,7 +26,7 @@ class ExampleNeuroselfModelConfig(NeuroselfConfig):
         # Was calculated based in XX images per marker (26) from batch XX
         self.DATA_VAR = 0.01
 
-class TLep23NeuroselfEP18B78ModelConfig(NeuroselfConfig):
+class TLep23NeuroselfB78ModelConfig(NeuroselfConfig):
     def __init__(self):
         super().__init__()
         

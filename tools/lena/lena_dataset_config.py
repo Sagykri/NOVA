@@ -35,7 +35,9 @@ class LenaDatasetConfig(DatasetConfig):
         # Your can set self.REPS to a specific rep or leave it None to load the two reps 
         self.REPS = ['rep1', 'rep2'] # Can be : ['rep1', 'rep2'] or ['rep1'] or ['rep2']
         # You can set this var to True if you want the UMAP to color the reps with different colors
-        self.ADD_REP_TO_LABEL = True
+        self.ADD_REP_TO_LABEL = False
+        # You can set this var to True if you want the UMAP to color the batches with different colors
+        self.ADD_BATCH_TO_LABEL = False
         #######################################
         
         

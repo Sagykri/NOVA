@@ -4,8 +4,6 @@ import sys
 sys.path.insert(1, os.getenv("MOMAPS_HOME"))
 from src.common.configs.dataset_config import DatasetConfig
 
-# TODO: (210823) CLEAN!
-
 class EmbeddingsExampleDatasetConfig(DatasetConfig):
     def __init__(self):
         super().__init__()
@@ -39,8 +37,15 @@ class EmbeddingsExampleDatasetConfig(DatasetConfig):
         # Local/Global embeddings
         self.EMBEDDINGS_LAYER = 'vqvec2'
         
-        # Should we add rep (rep1/rep2) to the label
+        # Should we add rep (rep1/rep2) to the label?
         self.ADD_REP_TO_LABEL = False
+        
+        # Should we add batch to the label?
+        self.ADD_BATCH_TO_LABEL = False
+        
+        # How much percentage to sample from the dataset. Set to 1 or None for taking all dataset.
+        # Valid values are: 0<SAMPLE_PCT<=1 or SAMPLE_PCT=None (identical to SAMPLE_PCT=1)
+        self.SAMPLE_PCT = 1
 
 
 class EmbeddingsB78DatasetConfig(DatasetConfig):
@@ -59,7 +64,7 @@ class EmbeddingsB9DatasetConfig(DatasetConfig):
         self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "spd2", "SpinningDisk", f) for f in 
                         ["batch9_16bit_no_downsample"]]
         
-        self.SPLIT_DATA = False        
+        self.SPLIT_DATA = False
         
 class EmbeddingsOpenCellDatasetConfig(DatasetConfig):
     def __init__(self):

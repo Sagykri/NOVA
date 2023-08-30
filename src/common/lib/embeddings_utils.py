@@ -268,7 +268,7 @@ def _load_stored_embeddings(marker_folder, embeddings_type, config_data):
 
     # Infer the label 
     path_list = marker_folder.split(os.sep)
-    batch_cell_line_condition_rep_marker = '_'.join(path_list[-5:])
+    batch_cell_line_condition_rep_marker = '_'.join(path_list[-4-int(config_data.ADD_BATCH_TO_LABEL):])
     if not config_data.ADD_REP_TO_LABEL:
         pattern = re.compile(r'_rep\d+')
         batch_cell_line_condition_rep_marker = re.sub(pattern, '', batch_cell_line_condition_rep_marker)
