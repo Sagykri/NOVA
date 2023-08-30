@@ -94,7 +94,8 @@ def sample_image_names_per_marker(input_data_dir, sample_size=1, raw=False):
 
     return files_list
 
-def sample_images_all_markers(cell_line_path=None, sample_size_per_markers=1, num_markers=26, depth=2, raw=False):
+def sample_images_all_markers(cell_line_path=None, sample_size_per_markers=1, num_markers=26, depth=2, raw=False, rep_count=2,
+                              cond_count=2):
         """Samples random raw images for a given batch 
 
         Args:
@@ -106,14 +107,16 @@ def sample_images_all_markers(cell_line_path=None, sample_size_per_markers=1, nu
         Returns:
             list: list of paths (strings) 
         """
-        
         sampled_images = []
         sampled_markers = set()
         
         # Get a list of all marker folders
+        exclude_DAPI=raw #skipping DAPI if sampling from raw images!
         if raw:
             depth=4
-        marker_subfolder = find_marker_folders(cell_line_path, depth=depth, exclude_DAPI=False)
+            num_markers*=rep_count*cond_count
+        
+        marker_subfolder = find_marker_folders(cell_line_path, depth=depth, exclude_DAPI=exclude_DAPI)
         # Sample n markers, and for each marker, sample k images (where n=num_markers and k=sample_size_per_markers)
         for marker_folder in marker_subfolder:
             if not os.path.isdir(marker_folder):
@@ -122,7 +125,6 @@ def sample_images_all_markers(cell_line_path=None, sample_size_per_markers=1, nu
             if (len(sampled_markers) < num_markers):
                 
                 if (n_images<sample_size_per_markers):
-            
                     sampled_marker_images = sample_image_names_per_marker(marker_folder,
                                                                           sample_size=sample_size_per_markers, 
                                                                           raw=raw)
@@ -139,31 +141,33 @@ def sample_images_all_markers(cell_line_path=None, sample_size_per_markers=1, nu
         return sampled_images
 
 def sample_images_all_markers_all_lines(input_dir_batch=None, _sample_size_per_markers=150, _num_markers=26, 
-                                        raw=False):
+                                        raw=False, all_conds=False, rep_count=2, cond_count=2):
     
     images_paths = []
     
     if input_dir_batch is None:
         raise Exception(f"input argument input_dir_batch is None. ")
     logging.info(f"\n\n[sample_images_all_markers_all_lines]: input_dir_batch:{input_dir_batch}, _sample_size_per_markers:{_sample_size_per_markers}, _num_markers:{_num_markers}")
-
     
     for cell_line in sorted(os.listdir(input_dir_batch)):
         
         # get the full path of cell line images
         cell_line_path = os.path.join(input_dir_batch, cell_line)
         logging.info(f"\n\ncell_line: {cell_line} {cell_line_path}")
-        if "WT" in cell_line_path and 'deltaNLS' not in cell_line_path:
-            _num_markers *= 2
-        elif 'deltaNLS' in cell_line_path and 'TDP43' in cell_line_path:
-            _num_markers *= 2
-        elif 'NiemannPick' in cell_line_path:
-            _num_markers *= 2
         # Sample markers and then sample images of these markers. The returened value is a list of paths (strings) 
-        paths = sample_images_all_markers(cell_line_path, sample_size_per_markers=_sample_size_per_markers, 
-                                          num_markers=_num_markers, raw=raw)
+        if not all_conds:
+            paths = sample_images_all_markers(cell_line_path, sample_size_per_markers=_sample_size_per_markers, 
+                                          num_markers=_num_markers, raw=raw, rep_count=rep_count, cond_count=cond_count)
+            images_paths.extend(paths)
+
+        else:
+            for cond in os.listdir(cell_line_path):
+                cond_cell_line_path = os.path.join(cell_line_path, cond)
+                paths = sample_images_all_markers(cond_cell_line_path, sample_size_per_markers=_sample_size_per_markers, 
+                                        num_markers=_num_markers, depth=1, raw=raw)
         
-        images_paths.extend(paths)
+                images_paths.extend(paths)
+                
         
     return images_paths
 

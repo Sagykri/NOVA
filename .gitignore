@@ -2,7 +2,7 @@
 .history/
 .vscode/
 .ipynb_checkpoints/
-
+*.csv
 anaconda3/
 logs/
 
@@ -16,6 +16,8 @@ input/images/raw/*
 !input/images/raw/.gitkeep
 input/images/processed/*
 !input/images/processed/.gitkeep
+
+/tools/lena/models_outputs_Lena/embeddings/**/*.npy
 
 tests/**/*.png
 tests/**/*.tif
