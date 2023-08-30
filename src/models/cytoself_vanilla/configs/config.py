@@ -19,7 +19,7 @@ class CytoselfModelConfig(ModelConfig):
                         {'num_embeddings': 2048, 'embedding_dim': 64, 'channel_split':9}]
 
         # Models
-        self.MODEL_PATH = os.path.join(self.MODEL_OUTPUT_FOLDER, "checkpoints", "checkpoint_ep17.chkp")
+        self.MODEL_PATH = os.path.join(self.MODEL_OUTPUT_FOLDER, "checkpoints", "checkpoint_ep23.chkp")
         # Last checkpoint
         self.LAST_CHECKPOINT_PATH = os.path.join(self.MODEL_OUTPUT_FOLDER, "checkpoints")
 

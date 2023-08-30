@@ -35,6 +35,7 @@ def train_with_dataloader():
                                             load_config_file(config_path_val, 'val', config_model.CONFIGS_USED_FOLDER),\
                                             load_config_file(config_path_test, 'test', config_model.CONFIGS_USED_FOLDER)
     logging.info("init")    
+    logging.info("[Training]")    
     
     logging.info(f"Is GPU available: {torch.cuda.is_available()}")
     logging.info(f"Num GPUs Available: {torch.cuda.device_count()}")

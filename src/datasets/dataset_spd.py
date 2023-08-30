@@ -118,7 +118,7 @@ class DatasetSPD(Dataset):
                     logging.info(f"Skipping condition (not in conditions list). {condition}")
                     continue
                 # cond_folder_fullpath = os.path.join(cell_line_folder_fullpath, condition)
-                    
+                
                 # Filter: marker to include
                 if markers is not None and marker_name not in markers:
                     logging.info(f"Skipping marker (not in markers list). {marker_name}")
@@ -137,7 +137,7 @@ class DatasetSPD(Dataset):
                 # Target marker - loop on all sites (single npy files)
                 for target_file in filenames:
                     filename, ext = os.path.splitext(target_file)
-                    if ext == '.npy':
+                    if ext == '.npy' or ext == '.tif_processed':
                         # Hold the full path of a processed image 
                         image_filename = os.path.join(marker_folder, target_file)
                         # Add to list: the full path of the npy file 

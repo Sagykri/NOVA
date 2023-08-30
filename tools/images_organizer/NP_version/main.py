@@ -21,7 +21,7 @@ def main():
     for copy_well_folder in [False, True]:
         for folder in folders:
             #Init
-            if 'well' not in folder == copy_well_folder:
+            if ('well' not in folder) == copy_well_folder:
                 logging.warning(f"skipping folder with wells {folder}")
                 continue
             folder_path, batch, panel, wells = init_folders(folder, replace_wells=copy_well_folder)

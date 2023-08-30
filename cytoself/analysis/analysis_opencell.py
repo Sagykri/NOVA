@@ -15,12 +15,13 @@ import logging
 from cytoself.analysis.base import BaseAnalysis
 from cytoself.analysis.utils.pearson_correlation import selfpearson_multi
 
+# TODO: (210823) Delete is_3d!
 
 class AnalysisOpenCell(BaseAnalysis):
     """
     Analysis class for OpenCell data
     """
-
+    
     def __init__(self, datamanager, trainer, homepath: Optional[str] = None, **kwargs):
         super().__init__(datamanager, trainer, homepath, **kwargs)
         self.feature_spectrum_indices = None
@@ -36,8 +37,8 @@ class AnalysisOpenCell(BaseAnalysis):
         unique_groups: Optional = None,
         group_annotation: Optional = None,
         savepath_embeddings: Optional[str] = 'default',
-        infer_labels: Optional = False,#SAGY
         id2label:Optional=None,#SAGY
+        is_3d:Optional=False,#SAGY
         **kwargs,
     ):
         """
@@ -65,32 +66,34 @@ class AnalysisOpenCell(BaseAnalysis):
             The path to save the computed embeddings in the embeddings folder
 
         """
+        infer_labels = label_data is None
+        
         if data_loader is None:
-            if label_data is None:
+            if infer_labels:
                 raise ValueError('label_data cannot be None. Provide a 2D-array to label_data.')
-        elif not infer_labels and label_data is None:
-            label_data = data_loader.dataset.label
 
         # Get compute umap data from embedding_data
         if umap_data is None:
+            logging.info(f"[plot umap] is_3d={is_3d}")
             umap_data = self.compute_umap(data_loader, embedding_data,
                                           image_data, savepath_embeddings,
+                                          n_components=2 if not is_3d else 3,#SAGY
                                           return_labels=infer_labels, **kwargs)
             #SAGY
             if infer_labels:
                 umap_data, label_data = umap_data
         
-        # Construct group annotation
-        label_converted, unique_groups = self.group_labels(label_data, group_col, unique_groups, group_annotation)
         #SAGY
-        if id2label is not None:
-            unique_groups = id2label(unique_groups)
-            label_converted = id2label(label_converted)
+        if id2label is not None and infer_labels:
+            label_data = id2label(label_data)
+            
+        if unique_groups is None:
+            unique_groups = np.unique(label_data)
             
         logging.info(f"[cytoself, plot_umap] unique groups: {unique_groups}")#SAGY
         # Making the plot
         scatter_kwargs = {a: kwargs[a] for a in inspect.signature(self.plot_umap_by_group).parameters if a in kwargs}
-        self.fig, self.ax = self.plot_umap_by_group(umap_data, label_converted, unique_groups, **scatter_kwargs)
+        self.fig, self.ax = self.plot_umap_by_group(umap_data, label_data, unique_groups, **scatter_kwargs)
 
         return umap_data
 
@@ -256,7 +259,14 @@ class AnalysisOpenCell(BaseAnalysis):
         if unique_groups is None:
             unique_groups = np.unique(label_data)
 
-        fig, ax = plt.subplots(1, figsize=figsize)
+        #SAGY
+        is_3d = umap_data.shape[-1] == 3
+        logging.info(f"is_3d: {is_3d}; umap_data shape: {umap_data.shape}")
+        if is_3d:
+            from mpl_toolkits import mplot3d
+        subplot_kw = {'projection': '3d'} if is_3d else None
+        #
+        fig, ax = plt.subplots(1, figsize=figsize, subplot_kw=subplot_kw)
         i = 0
         for gp in unique_groups:
             if '_others' in colormap and gp == 'others':
@@ -265,15 +275,42 @@ class AnalysisOpenCell(BaseAnalysis):
                 _c = cmap[i % len(cmap)]
                 i += 1
             ind = label_data == gp
-            ax.scatter(
-                umap_data[ind, 0],
-                umap_data[ind, 1],
-                s=s,
-                alpha=alpha,
-                c=np.array(_c).reshape(1, -1),
-                label=gp,
-                zorder=0 if gp == 'others' else len(unique_groups) - i + 1,
-            )
+            ind = ind.reshape(-1,)
+            if is_3d:#SAGY
+                ax.scatter(
+                    umap_data[ind, 0],
+                    umap_data[ind, 1],
+                    umap_data[ind, 2],#SAGY
+                    s=s,
+                    alpha=alpha,
+                    c=np.array(_c).reshape(1, -1),
+                    label=gp,
+                    zorder=0 if gp == 'others' else len(unique_groups) - i + 1,
+                )
+            else:
+                ax.scatter(
+                    umap_data[ind, 0],
+                    umap_data[ind, 1],
+                    s=s,
+                    alpha=alpha,
+                    c=np.array(_c).reshape(1, -1),
+                    label=gp,
+                    zorder=0 if gp == 'others' else len(unique_groups) - i + 1,
+                )
+                # SAGY
+                others_ind = np.where(np.isin(label_data, unique_groups, invert=True))[0]
+                if len(others_ind) > 0:
+                    logging.info(f"len(others_ind) > 0 : {len(others_ind)}")
+                    ax.scatter(
+                            umap_data[others_ind, 0],
+                            umap_data[others_ind, 1],
+                            s=s,
+                            alpha=alpha,
+                            c=np.array(cm.copper(10)).reshape(1, -1),
+                            label='others',
+                            zorder=len(unique_groups) + 1,
+                        )
+                    
         ax.spines['top'].set_visible(False)
         ax.spines['right'].set_visible(False)
         hndls, names = ax.get_legend_handles_labels()

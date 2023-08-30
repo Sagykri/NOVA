@@ -8,10 +8,11 @@ import itertools
 import logging
 
 from src.common.lib.image_sampling_utils import find_marker_folders
-from src.common.lib.utils import load_config_file, init_logging
+from src.common.lib.utils import get_if_exists, load_config_file, init_logging
 from src.common.lib.model import Model
 from src.common.lib.data_loader import get_dataloader
 from src.datasets.dataset_spd import DatasetSPD
+import re
 
 ###############################################################
 # Utils for Generate Embeddings (run from MOmaps/src/runables/generate_embeddings.py)
@@ -33,7 +34,7 @@ def init_model_for_embeddings(config_path_model):
     logging.info(f"Init model {config_model}")
     return model, config_model
 
-def load_dataset_for_embeddings(config_path_data, batch_size):
+def load_dataset_for_embeddings(config_data, batch_size, config_model):
     """Returns torch.utils.data.DataLoader objects 
 
     Use the dataset config (src.datasets.configs.train_config) to load the dataset that we want to calc embbedings for
@@ -41,19 +42,24 @@ def load_dataset_for_embeddings(config_path_data, batch_size):
     If needed, returns the DataLoader with the original train/val/test split
 
     Args:
-        config_path_data (string): Dataset config object (src.datasets.configs.train_config)
+        config_data (Dataset): Dataset config object (src.datasets.configs.train_config)
         batch_size (int): 
 
     Returns:
         torch.utils.data.DataLoader object/s 
     """
     
-    # Get dataset configs (as used in trainig the model)
-    config_data = load_config_file(config_path_data, 'data') 
-    logging.info(f"Init datasets {config_data} from {config_path_data}")
     # Init dataset
     dataset = DatasetSPD(config_data)
     logging.info(f"Data shape: {dataset.X_paths.shape}, {dataset.y.shape}")
+    
+        
+    __unique_labels_path = os.path.join(config_model.MODEL_OUTPUT_FOLDER, "unique_labels.npy")
+    if os.path.exists(__unique_labels_path):
+        logging.info(f"[load_dataset_for_embeddings] unique_labels.npy files has been detected - using it. ({__unique_labels_path})")
+        dataset.unique_markers = np.load(__unique_labels_path)
+    else:
+        logging.warn(f"[load_dataset_for_embeddings] Couldn't find unique_labels file: {__unique_labels_path}")
     
     # important! we don't want to get the augmented images
     dataset.flip, dataset.rot = False, False
@@ -94,11 +100,7 @@ def load_model_with_dataloader(model, datasets_list):
         logging.info(f"MODEL_PATH and LAST_CHECKPOINT_PATH are None.")
     
     logging.info(f"Loading model with dataloader {model.conf.MODEL_PATH}")
-   
-    n_class = 225
-    logging.warning(f"NOTE! Setting len(unique_markers) to {n_class} !!!!")
-    model.unique_markers = np.arange(n_class)
-   
+
     if len(datasets_list)==3:
         # If data was splitted during training to train/val/test
         model.load_with_dataloader(datasets_list[0], datasets_list[1], datasets_list[2])
@@ -135,20 +137,20 @@ def save_embeddings_and_labels(embedding_data, embeddings_folders, name):
         np.save(embeddings_file_name, embedding_data[marker_indexes])
     return None
 
-def calc_embeddings(model, datasets_list, embeddings_folder, save=True):
+def calc_embeddings(model, datasets_list, embeddings_folder, save=True, embeddings_layer='vqvec2'):
 
     # Parser to get the image's batch/cell_line/condition/rep/marker
     def final_save_path(full_path):
         path_list = full_path.split(os.sep)
         batch_cell_line_condition_rep_marker_list = [os.path.join(path_list[-1][:4],path_list[i]) if i==-2 else os.path.join(path_list[i]) for i in range(-5,-1)]
         batch_cell_line_condition_rep_marker = os.path.join(*batch_cell_line_condition_rep_marker_list)
-        return os.path.join(embeddings_folder, batch_cell_line_condition_rep_marker)
+        return os.path.join(embeddings_folder, embeddings_layer, batch_cell_line_condition_rep_marker)
     get_save_path = np.vectorize(final_save_path)
     
     def do_embeddings_inference(images_batch, dataset_type):
         save_path = get_save_path(images_batch['image_path'])
         # images_batch is torch.Tensor of size(n_tiles, n_channels, 100, 100)
-        embedding_data = model.model.infer_embeddings(images_batch['image'].numpy())  
+        embedding_data = model.model.infer_embeddings(images_batch['image'].numpy(), output_layer=embeddings_layer)  
         if save: save_embeddings_and_labels(embedding_data, save_path, name=dataset_type+str(i))
         return None
     
@@ -161,7 +163,7 @@ def calc_embeddings(model, datasets_list, embeddings_folder, save=True):
             
         logging.info("Infer embeddings - val set")
         for i, images_batch in enumerate(datasets_list[1]):
-            do_embeddings_inference(images_batch, dataset_type = 'valtest')
+            do_embeddings_inference(images_batch, dataset_type = 'valset')
         
         logging.info("Infer embeddings - test set")
         for i, images_batch in enumerate(datasets_list[2]):
@@ -206,14 +208,12 @@ def get_embeddings_subfolders_filtered(config_data, embeddings_main_folder, dept
         marker_folders_to_include = []
         
         for marker_folder in marker_subfolders:
-                
                 #####################################
                 # Extract experimental settings from marker folder path (avoid multiple nested for loops..)
                 marker_name = os.path.basename(marker_folder)
                 rep =  marker_folder.split('/')[-2]
                 condition = marker_folder.split('/')[-3]
                 cell_line = marker_folder.split('/')[-4]
-                
                 #####################################
                 # Filter: cell line
                 if config_data.CELL_LINES is not None and cell_line not in config_data.CELL_LINES:
@@ -244,7 +244,7 @@ def get_embeddings_subfolders_filtered(config_data, embeddings_main_folder, dept
         return marker_folders_to_include
 
 
-def _load_stored_embeddings(marker_folder, embeddings_type):
+def _load_stored_embeddings(marker_folder, embeddings_type, config_data):
     """Load all pre-stored embeddings (npy files)
 
     Args:
@@ -262,14 +262,19 @@ def _load_stored_embeddings(marker_folder, embeddings_type):
     # Filter npy files by "embeddings_type"
     filtered_emb_filenames = [emb_filename for emb_filename in emb_filenames if embeddings_type in emb_filename]
     
-    logging.info(f"{[os.path.join(marker_folder, emb_filename) for emb_filename in filtered_emb_filenames]}")
-    
+    # Filter 0 size npy files (corrupted emebddings...)
+    filtered_emb_filenames = [emb_filename for emb_filename in filtered_emb_filenames if os.path.getsize(os.path.join(marker_folder, emb_filename))!=0]
+
     # Load all embeddings .npy files into a single numpy array
     embedings_data = np.vstack([np.load(os.path.join(marker_folder, emb_filename)) for emb_filename in filtered_emb_filenames])
 
     # Infer the label 
     path_list = marker_folder.split(os.sep)
-    batch_cell_line_condition_rep_marker = '_'.join(path_list[-5:])
+    batch_cell_line_condition_rep_marker = '_'.join(path_list[-4-int(config_data.ADD_BATCH_TO_LABEL):])
+    if not config_data.ADD_REP_TO_LABEL:
+        pattern = re.compile(r'_rep\d+')
+        batch_cell_line_condition_rep_marker = re.sub(pattern, '', batch_cell_line_condition_rep_marker)
+        
     labels = [batch_cell_line_condition_rep_marker] * embedings_data.shape[0]
     
     logging.info(f"[_load_stored_embeddings] Loading stored embeddings of label {batch_cell_line_condition_rep_marker} of shape {embedings_data.shape} ")
@@ -298,17 +303,24 @@ def load_embeddings(config_path_model=None, config_path_data=None,
     
     # Get configs of model (trained model) 
     config_model = load_config_file(config_path_model, 'model') if config_model is None else config_model
-    embeddings_main_folder = os.path.join(config_model.MODEL_OUTPUT_FOLDER, 'embeddings', 'no_ds') # NANCY TO DO "no_ds" remove
     
     # Get dataset configs (as to be used in the desired UMAP)
     config_data = load_config_file(config_path_data, 'data') if config_data is None else config_data
+    
+    experiment_type = get_if_exists(config_data, 'EXPERIMENT_TYPE', None)
+    assert experiment_type is not None, "EXPERIMENT_TYPE can't be None"
+    logging.info(f"[load_embeddings] experiment_type = {experiment_type}")
+    
+    embeddings_layer = get_if_exists(config_data, 'EMBEDDINGS_LAYER', 'vqvec2')
+    logging.info(f"[load_embeddings] embeddings_layer = {embeddings_layer}")
+    
+    embeddings_main_folder = os.path.join(config_model.MODEL_OUTPUT_FOLDER, 'embeddings', experiment_type, embeddings_layer)
     
     marker_folders_to_include = get_embeddings_subfolders_filtered(config_data, embeddings_main_folder)
     
     embedings_data_list, all_labels = [], []
     for marker_folder in marker_folders_to_include:
-        
-        embedings_data, labels = _load_stored_embeddings(marker_folder, embeddings_type)
+        embedings_data, labels = _load_stored_embeddings(marker_folder, embeddings_type, config_data)
         
         embedings_data_list.append(embedings_data)
         all_labels.extend(labels)

@@ -17,7 +17,7 @@ def run_preprocessing():
     run_config: PreprocessingConfig = load_config_file(sys.argv[1], '_preprocessing')
     
     logging.info("init")
-    
+    logging.info("[Preprocessing]")
     
     logging.info(f"Importing preprocessor class.. {run_config.PREPROCESSOR_CLASS_PATH}")
     preprocessor_class: Preprocessor = get_class(run_config.PREPROCESSOR_CLASS_PATH)

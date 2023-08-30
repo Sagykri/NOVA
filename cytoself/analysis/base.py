@@ -35,13 +35,18 @@ class BaseAnalysis:
                 os.makedirs(p)
             self.savepath_dict[f] = p
 
-    def _fit_umap(self, data, n_neighbors=15, min_dist=0.1, metric='euclidean', verbose=True, **kwargs):
-        self.reducer = umap.UMAP(n_neighbors=n_neighbors, min_dist=min_dist, metric=metric, verbose=verbose, **kwargs)
+    # SAGY: added n_components
+    def _fit_umap(self, data, n_neighbors=15, min_dist=0.1, metric='euclidean', verbose=True, n_components=2, random_state=None, **kwargs):
+        self.reducer = umap.UMAP(n_neighbors=n_neighbors, min_dist=min_dist, metric=metric,
+                                 verbose=verbose, n_components=n_components, random_state=random_state, **kwargs)
         self.reducer.fit(data.reshape(data.shape[0], -1))
 
-    def _transform_umap(self, data, n_neighbors=15, min_dist=0.1, metric='euclidean', verbose=True, **kwargs):
+    # SAGY: added n_components
+    def _transform_umap(self, data, n_neighbors=15, min_dist=0.1,
+                        metric='euclidean', verbose=True,
+                        n_components=2, random_state=None, **kwargs):
         if self.reducer is None:
-            self._fit_umap(data, n_neighbors, min_dist, metric, verbose, **kwargs)
+            self._fit_umap(data, n_neighbors, min_dist, metric, verbose, n_components, random_state=random_state, **kwargs)
         try:
             return self.reducer.transform(data.reshape(data.shape[0], -1))
         except Exception as e:

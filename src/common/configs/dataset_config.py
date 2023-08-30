@@ -18,6 +18,7 @@ class DatasetConfig(BaseConfig):
         self.MARKERS_TO_EXCLUDE = ['DAPI'] #, 'lysotracker', 'Syto12']
         self.CELL_LINES = None
         self.CONDITIONS = None
+        self.REPS       = None
         self.SPLIT_DATA = True
         self.DATA_SET_TYPE = None # 'train' | 'test' | 'val'
         self.MARKERS_FOR_DOWNSAMPLE = None
@@ -27,6 +28,7 @@ class DatasetConfig(BaseConfig):
         self.ADD_LINE_TO_LABEL = True
         self.ADD_TYPE_TO_LABEL = False
         self.ADD_BATCH_TO_LABEL = False
+        self.ADD_REP_TO_LABEL = False
         
         self.SPLIT_BY_SET_FOR = None
         self.SPLIT_BY_SET_FOR_BATCH = None
@@ -34,3 +36,7 @@ class DatasetConfig(BaseConfig):
         self.AUG_TO_FLIP = True
         self.AUG_TO_ROT = True
         self.IS_AUG_INPLACE = False
+        
+        # How much percentage to sample from the dataset. Set to 1 or None for taking all dataset.
+        # Valid values are: 0<SAMPLE_PCT<=1 or SAMPLE_PCT=None (identical to SAMPLE_PCT=1)
+        self.SAMPLE_PCT = 1
