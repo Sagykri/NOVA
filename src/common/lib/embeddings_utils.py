@@ -200,13 +200,12 @@ def get_embeddings_subfolders_filtered(config_data, embeddings_main_folder, dept
     emb_batch_folders = [os.path.join(embeddings_main_folder, batch) for batch in batch_names]
     
     # For every marker in this batch, get (in lazy manner) list of files that pass filtration
+    marker_folders_to_include = []
     for i, input_folder in enumerate(emb_batch_folders):
         # Get marker folders (last level in folder structure)
         marker_subfolders = find_marker_folders(input_folder, depth=depth, exclude_DAPI=False)
         logging.info(f"Input folder: {input_folder}, depth used: {depth}")
         
-        marker_folders_to_include = []
-
         for marker_folder in marker_subfolders:
                 #####################################
                 # Extract experimental settings from marker folder path (avoid multiple nested for loops..)
@@ -238,10 +237,10 @@ def get_embeddings_subfolders_filtered(config_data, embeddings_main_folder, dept
                 #####################################
                 marker_folders_to_include.append(marker_folder)
 
-        if len(marker_folders_to_include) == 0:
-            logging.warn("[get_embeddings_subfolders_filtered] Couldn't find any embeddings for your data")
+    if len(marker_folders_to_include) == 0:
+        logging.warn("[get_embeddings_subfolders_filtered] Couldn't find any embeddings for your data")
 
-        return marker_folders_to_include
+    return marker_folders_to_include
 
 
 def _load_stored_embeddings(marker_folder, embeddings_type, config_data):
