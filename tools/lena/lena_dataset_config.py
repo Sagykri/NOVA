@@ -31,15 +31,13 @@ class LenaDatasetConfig(DatasetConfig):
         
         # Set this var to True if you 'input_folders_names' contains batches that the model used for training (ex. batch7/batch8), otherwise set to False
         self.SPLIT_DATA = False # True
-        
-        # Set to True if you don't have pre-calculated embeddings for the specified model & input_folders_names
-        # (When set to False the results will arrive much faster)
-        self.CALCULATE_EMBEDDINGS = False # True
-        
+                
         # Your can set self.REPS to a specific rep or leave it None to load the two reps 
-        self.REPS = None
+        self.REPS = ['rep1', 'rep2'] # Can be : ['rep1', 'rep2'] or ['rep1'] or ['rep2']
         # You can set this var to True if you want the UMAP to color the reps with different colors
-        self.ADD_REP_TO_LABEL = True
+        self.ADD_REP_TO_LABEL = False
+        # You can set this var to True if you want the UMAP to color the batches with different colors
+        self.ADD_BATCH_TO_LABEL = False
         #######################################
         
         
@@ -51,4 +49,8 @@ class LenaDatasetConfig(DatasetConfig):
         ########### PLEASE DON'T TOUCH THIS SECTION ##############
         self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "spd2", "SpinningDisk", f) for f in 
                         input_folders_names]
+        
+        self.EMBEDDINGS_LAYER = 'vqvec2'
+        
+        self.EXPERIMENT_TYPE = 'neurons' 
         #####################################

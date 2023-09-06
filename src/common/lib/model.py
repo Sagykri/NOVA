@@ -390,14 +390,14 @@ class Model():
         from src.common.lib import embeddings_utils
         
         if config_data is None:
-            allowed_embeddings_types = ['trainset', 'valtest', 'testset', 'all']
+            allowed_embeddings_types = ['trainset', 'valset', 'testset', 'all']
             assert embeddings_type is not None \
                     and embeddings_type in allowed_embeddings_types,\
                     f"embeddings_type must be one of the following: {allowed_embeddings_types}" 
             
             if embeddings_type == 'trainset':
                 config_data = self.train_loader.dataset.conf
-            elif embeddings_type == 'valtest':
+            elif embeddings_type == 'valset':
                 config_data = self.valid_loader.dataset.conf
             elif embeddings_type == 'testset':
                 config_data = self.test_loader.dataset.conf
@@ -428,7 +428,6 @@ class Model():
         self.model.model.train(train)
     
     def plot_umap(self,
-                  calc_embeddings=False,
                   embeddings_type=None,
                   embedding_data=None,
                   label_data=None,
@@ -444,11 +443,9 @@ class Model():
         Args:
             Plot (and save to file in model_output/umap_figures/{title}.png) a UMAP plot
             data_loader(DataLoader, Optional): The default is self.test_loader
-            calc_embeddings (boolean, Optional): Calculate embeddings (instead of loading them). Defauls to False
             embedding_data (nparray, Optional): Precalculated embeddings.
             label_data (nparray,Optional): Precalculated labels.
-            embeddings_type ('trainset'|'testset'|'valtest'|'all', Optional). Must have if calc_embeddings=False. Defaults to testset.
-            id2label (function(string[])->string[], Optional): Needed if label_data is None to convert labels from onehot index to actual label. Unneeded if calc_embeddings=False. Default to None
+            embeddings_type ('trainset'|'testset'|'valset'|'all', Optional). Defaults to testset.
             
         """
         if self.analytics is None:
@@ -459,25 +456,18 @@ class Model():
 
         if data_loader is None:
             data_loader = self.test_loader
-                
-        logging.info(f"[plot_umap] calc_embeddings={calc_embeddings}")
 
         if embedding_data is None and label_data is None:
-            if not calc_embeddings:
-                if embeddings_type is None:
-                    embeddings_type='testset' if data_loader.dataset.conf.SPLIT_DATA else 'all'
-                    logging.warn("embeddings_type is None. Setting to 'testset' if SPLIT_DATA=True, 'all' otherwise")
+            if embeddings_type is None:
+                embeddings_type='testset' if data_loader.dataset.conf.SPLIT_DATA else 'all'
+                logging.warn("embeddings_type is None. Setting to 'testset' if SPLIT_DATA=True, 'all' otherwise")
 
-                embedding_data, label_data = self.load_embeddings(embeddings_type)
-                
-                if len(embedding_data) == 0:
-                    logging.info("Couldn't find embeddings to load. Calculating them instead. (without saving)")
-                    embedding_data, label_data = None, None
-                    
-            else:
-                logging.warn("embedding_data & labe_data aren't None, but calc_embeddings==True, then calculating new embeddings")
-                embedding_data, label_data = None, None
+            embedding_data, label_data = self.load_embeddings(embeddings_type)
             
+            if len(embedding_data) == 0:
+                logging.warn("Couldn't find embeddings to load")
+                raise Exception("Embeddings are empty!")
+                             
         
         umap_data = self.analytics.plot_umap_of_embedding_vector(
             data_loader=data_loader,
