@@ -73,6 +73,23 @@ class EmbeddingsB9DatasetConfig(DatasetConfig):
         self.SPLIT_DATA = False  
         self.EXPERIMENT_TYPE = 'neurons'
 
+
+class EmbeddingsALLDatasetConfig(DatasetConfig):
+    def __init__(self):
+        super().__init__()
+
+        self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "spd2", "SpinningDisk", f) for f in 
+                        [f"batch{i}_16bit_no_downsample" for i in [3,4,5,6,7,8,9]]]
+        
+        self.SPLIT_DATA = False
+        self.EXPERIMENT_TYPE = 'neurons'
+        self.ADD_REP_TO_LABEL = True
+        self.ADD_BATCH_TO_LABEL = True
+        self.EMBEDDINGS_LAYER = 'vqvec1'
+        # self.CELL_LINES = ['SCNA', 'WT']#, 'FUSHeterozygous', 'FUSRevertant']
+        # self.MARKERS = ['TOMM20','mitotracker','GM130'] #['FUS']
+        self.REPS = ['rep1', 'rep2'] # Can be : ['rep1', 'rep2'] or ['rep1'] or ['rep2']
+
 class EmbeddingsB6DatasetConfig(DatasetConfig):
     def __init__(self):
         super().__init__()
@@ -82,17 +99,25 @@ class EmbeddingsB6DatasetConfig(DatasetConfig):
         
         self.SPLIT_DATA = False
         self.EXPERIMENT_TYPE = 'neurons'
+        self.ADD_REP_TO_LABEL = True
+        self.ADD_BATCH_TO_LABEL = True
+
+        self.CELL_LINES = ['SCNA', 'WT']#, 'FUSHeterozygous', 'FUSRevertant']
+        self.MARKERS = ['TOMM20','mitotracker','GM130'] #['FUS']
+        self.REPS = ['rep1', 'rep2'] # Can be : ['rep1', 'rep2'] or ['rep1'] or ['rep2']
 
 class EmbeddingsB5DatasetConfig(DatasetConfig):
     def __init__(self):
         super().__init__()
 
         self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "spd2", "SpinningDisk", f) for f in 
-                        ["batch5_16bit_no_downsample"]]
+                        ["batch5_16bit_no_downsample","batch6_16bit_no_downsample"]]
         
         self.SPLIT_DATA = False
         self.EXPERIMENT_TYPE = 'neurons'
-
+        self.ADD_REP_TO_LABEL = True
+        self.ADD_BATCH_TO_LABEL = True
+        self.REPS = ['rep1', 'rep2']
 class EmbeddingsB4DatasetConfig(DatasetConfig):
     def __init__(self):
         super().__init__()

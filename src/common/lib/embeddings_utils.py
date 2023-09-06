@@ -1,3 +1,4 @@
+import multiprocessing
 import os
 import sys
 sys.path.insert(1, os.getenv("MOMAPS_HOME"))
@@ -8,7 +9,7 @@ import itertools
 import logging
 
 from src.common.lib.image_sampling_utils import find_marker_folders
-from src.common.lib.utils import get_if_exists, load_config_file, init_logging
+from src.common.lib.utils import get_if_exists, load_config_file, init_logging, flat_list_of_lists
 from src.common.lib.model import Model
 from src.common.lib.data_loader import get_dataloader
 from src.datasets.dataset_spd import DatasetSPD
@@ -200,12 +201,12 @@ def get_embeddings_subfolders_filtered(config_data, embeddings_main_folder, dept
     emb_batch_folders = [os.path.join(embeddings_main_folder, batch) for batch in batch_names]
     
     # For every marker in this batch, get (in lazy manner) list of files that pass filtration
+    marker_folders_to_include = []
     for i, input_folder in enumerate(emb_batch_folders):
         # Get marker folders (last level in folder structure)
         marker_subfolders = find_marker_folders(input_folder, depth=depth, exclude_DAPI=False)
         logging.info(f"Input folder: {input_folder}, depth used: {depth}")
         
-        marker_folders_to_include = []
         
         for marker_folder in marker_subfolders:
                 #####################################
@@ -238,10 +239,10 @@ def get_embeddings_subfolders_filtered(config_data, embeddings_main_folder, dept
                 #####################################
                 marker_folders_to_include.append(marker_folder)
 
-        if len(marker_folders_to_include) == 0:
-            logging.warn("[get_embeddings_subfolders_filtered] Couldn't find any embeddings for your data")
+    if len(marker_folders_to_include) == 0:
+        logging.warn("[get_embeddings_subfolders_filtered] Couldn't find any embeddings for your data")
 
-        return marker_folders_to_include
+    return marker_folders_to_include
 
 
 def _load_stored_embeddings(marker_folder, embeddings_type, config_data):
@@ -318,13 +319,24 @@ def load_embeddings(config_path_model=None, config_path_data=None,
     
     marker_folders_to_include = get_embeddings_subfolders_filtered(config_data, embeddings_main_folder)
     
-    embedings_data_list, all_labels = [], []
-    for marker_folder in marker_folders_to_include:
-        embedings_data, labels = _load_stored_embeddings(marker_folder, embeddings_type, config_data)
+    
+    def __parallel_load(paths, embeddings_type, config_data):
+        num_processes = multiprocessing.cpu_count()
+        logging.info(f"Running in parallel: {num_processes} processes")
+        with multiprocessing.Pool(num_processes) as pool:
+            results = pool.starmap(_load_stored_embeddings, [(path, embeddings_type, config_data) for path in  paths])
         
-        embedings_data_list.append(embedings_data)
-        all_labels.extend(labels)
+        embeddings, labels = zip(*results)
+        labels = flat_list_of_lists(list(labels))
+        return list(embeddings), labels
+    
+    # for marker_folder in marker_folders_to_include:
+    #     embedings_data, labels = _load_stored_embeddings(marker_folder, embeddings_type, config_data)
+        
+    #     embedings_data_list.append(embedings_data)
+    #     all_labels.extend(labels)
 
+    embedings_data_list, all_labels = __parallel_load(marker_folders_to_include, embeddings_type, config_data)
     all_labels = np.asarray(all_labels).reshape(-1,1)
     
     # Combine all markers to single numpy 
