@@ -1,3 +1,4 @@
+import datetime
 import logging
 import sys
 import os
@@ -17,11 +18,15 @@ from src.common.lib.synthetic_multiplexing import multiplex
 
 def run_synthetic_multiplexing():
     
-    if len(sys.argv) != 3:
+    if len(sys.argv) < 3:
         raise ValueError("Invalid config path. Must supply model config and data config.")
     
     config_path_model = sys.argv[1]
     config_path_data = sys.argv[2]
+    output_folder_path = sys.argv[3] if len(sys.argv) > 3 else config_model.MODEL_OUTPUT_FOLDER
+
+    assert os.path.isdir(output_folder_path) and os.path.exists(output_folder_path), f"{output_folder_path} is an invalid output folder path or doesn't exists"
+
 
     config_model = load_config_file(config_path_model, 'model')
     config_data = load_config_file(config_path_data, 'data', config_model.CONFIGS_USED_FOLDER)
@@ -34,6 +39,13 @@ def run_synthetic_multiplexing():
     
     logging.info("Init datasets")
     dataset = DatasetSPD(config_data)
+    
+    __unique_labels_path = os.path.join(config_model.MODEL_OUTPUT_FOLDER, "unique_labels.npy")
+    if os.path.exists(__unique_labels_path):
+        logging.info(f"unique_labels.npy files has been detected - using it. ({__unique_labels_path})")
+        dataset.unique_markers = np.load(__unique_labels_path)
+    else:
+        logging.warn(f"Couldn't find unique_labels file: {__unique_labels_path}")
     
     logging.info(f"Data shape: {dataset.X_paths.shape}, {dataset.y.shape}")
     
@@ -52,10 +64,6 @@ def run_synthetic_multiplexing():
     logging.info("Init model")
     model = Model(config_model)
     
-    n_class = 225#1311#219#225
-    logging.warning(f"NOTE! Setting num_class to {n_class} !!!!")
-    model.num_class = n_class
-    
     logging.info("Loading model with dataloader")
     model.load_with_dataloader(test_loader=dataloader)
     
@@ -67,9 +75,20 @@ def run_synthetic_multiplexing():
                                     'EMBEDDINGS_TYPE_TO_LOAD',
                                     'testset' if config_data.SPLIT_DATA else 'all')
 
+
+    title = f"{'_'.join([os.path.basename(f) for f in dataset.input_folders])}"
+    savepath = os.path.join(output_folder_path,\
+                            'SM_UMAPs',\
+                                f'{datetime.datetime.now().strftime("%d%m%y_%H%M%S_%f")}_{os.path.splitext(os.path.basename(config_model.MODEL_PATH))[0]}',\
+                                    f'{title}.png')
+    
+    __savepath_parent = os.path.dirname(savepath)
+    if not os.path.exists(__savepath_parent):
+        os.makedirs(__savepath_parent)
+
     multiplex(model,
-              embeddings_type=embeddings_type)#,
-            #   output_layer='vqvec1')
+              embeddings_type=embeddings_type,
+              savepath=savepath)
     
 
 if __name__ == "__main__":
