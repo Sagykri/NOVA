@@ -58,7 +58,6 @@ def fetch_saved_embeddings(config_model, config_data, embeddings_type, EMBEDDING
 def create_markers_centroids_df(all_labels, all_embedings_data, EMBEDDINGS_NAMES):
     """Create a pd.DataFrame of centroids embedddings and experimental settings 
     columns are ['batch','cell_line','condition','rep','marker', 'embeddings_centroid'] 
-    where the ndarray embeddings are saved as list
 
     Args:
         all_labels (np.array): array of strings, each row is in a format of "batch_cell_line_condition_rep_marker"
@@ -103,20 +102,6 @@ def create_markers_centroids_df(all_labels, all_embedings_data, EMBEDDINGS_NAMES
     
     return split_embeddings, marker_centroids, within_marker_similaities
 
-# def calc_embeddings_centroids(df, groups_by, agg_func):
-#     """_summary_
-
-#     Args:
-#         df (ps.DataFrame): _description_
-#         groups_by (list): _description_
-#         agg_func (numpy function): np.mean / np.median / etc.
-#     """
-#     groups_series = df.groupby(groups_by)['embeddings'].apply(lambda x: agg_func([*x], axis=0))
-#     group_representatives = pd.DataFrame(groups_series).reset_index()
-#     group_representatives.rename(columns={"embeddings": "embeddings_centroid"}, inplace=True)
-    
-#     return group_representatives
-
 
 def save_excel_with_sheet_name(filename, input_folders, df):
     with pd.ExcelWriter(filename) as writer:
@@ -126,6 +111,8 @@ def save_excel_with_sheet_name(filename, input_folders, df):
 
 
 def average_batches_distances(config_path_model, config_path_data):
+    """ Read distances files that are separated into batches, calculate the average per batch, and save the results
+    """
     # ------------------------------------------------------------------------------------------ 
     # Get configs of model (trained model) 
     config_model = load_config_file(config_path_model, 'model')
@@ -154,9 +141,11 @@ def average_batches_distances(config_path_model, config_path_data):
     all_batches = pd.concat(batches_dfs)   
     batch_mean_between_cell_lines_conds_similarities = all_batches.groupby(['cell_line_condition'])[all_batches.columns.drop('batch').drop('cell_line_condition')].mean().reset_index()
     batch_mean_between_cell_lines_conds_similarities.to_csv(os.path.join(distances_main_folder,'batch_mean_between_cell_lines_conds_similarities.csv'), index=False)
-
+    return None
 
 def calc_embeddings_distances(config_path_model, config_path_data, embeddings_type):
+    """Main function to calculate embeddings distances
+    """
     # ------------------------------------------------------------------------------------------ 
     # Get configs of model (trained model) 
     config_model = load_config_file(config_path_model, 'model')
@@ -283,13 +272,6 @@ def calc_embeddings_distances(config_path_model, config_path_data, embeddings_ty
         save_excel_with_sheet_name(os.path.join(distances_main_folder,'mean_between_cell_lines_conds_similarities.xlsx'), input_folders, mean_between_cell_lines)
 
         logging.info('calculated between cell_lines_conds distances')
-
-    #TODO: need to save different batches in different csv
-    # also, to calc mean similiarty per marker across batches, for:
-    # 1) within_markers, within_reps, between_reps
-    # also: for each pair of cell_line_conds, calc mean similiarty. for example, take SCNA_Untreated and WT_Untreated, we have 25 distances (for each marker) - calc the mean! and save in a new csv. and then calc the mean of those similiarites across batches
-        # # marker_reps.apply(lambda x: pdist(np.array(list(zip(x.x, x.y)))).mean())
-    
     
     return None
     
