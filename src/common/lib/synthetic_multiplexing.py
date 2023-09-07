@@ -46,7 +46,8 @@ def multiplex(model: Model, embeddings_type='testset',
                     title=title if title is not None else __generate_plot_title(model.conf, dataset_conf),
                     unique_groups=unique_groups,
                     embedding_data=embeddings,
-                    output_layer=output_layer)
+                    output_layer=output_layer,
+                    savepath=savepath)
 
 def __generate_plot_title(model_conf, dataset_conf):
     return 'SM_' + f"{'_'.join([os.path.basename(f) for f in dataset_conf.INPUT_FOLDERS])}_{datetime.datetime.now().strftime('%d%m%y_%H%M%S_%f')}_{os.path.splitext(os.path.basename(model_conf.MODEL_PATH))[0]}"
