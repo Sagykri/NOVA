@@ -20,7 +20,8 @@ def multiplex(model: Model, embeddings_type='testset',
                     colormap='Set1',
                     alpha=0.8,
                     s=0.8,
-                    output_layer='vqvec2'):
+                    output_layer='vqvec2',
+                    savepath='default'):
     assert model is not None, "Model is None"
     assert model.test_loader is not None, "model.test_loader is None, please first load dataloaders"
     
