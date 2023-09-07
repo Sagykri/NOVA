@@ -16,15 +16,15 @@ class LenaDatasetConfig(DatasetConfig):
         
         # self.CELL_LINES = ['WT', 'TDP43', 'TBK1', 'FUSHomozygous', 'FUSHeterozygous', 'FUSRevertant', 'SCNA', 'OPTN', ]
         # self.CONDITIONS = ['Untreated', 'stress']
-        # self.MARKERS = ['ANXA11', 'Calreticulin', 'CD41', 'CLTC', 'DAPI', 'DCP1A', 'FMRP', 'FUS', 'G3BP1', GM130, KIF5A, LAMP1,
+        # self.MARKERS = ['ANXA11', 'Calreticulin', 'CD41', 'CLTC', 'DAPI', 'DCP1A', 'FMRP', 'FUS', 'G3BP1', 'GM130', 'KIF5A', 'LAMP1',
         #                 'mitotracker', 'NCL', 'NEMO', 'NONO', 'PEX14', 'Phalloidin', 'PML', 'PSD95', 'PURA', 'SCNA', 'SQSTM1', 'TDP43',
         #                 'TIA1', 'TOMM20']
         # self.REPS = ['rep1', 'rep2']
         
                   
-        self.CELL_LINES = ['WT']#, 'FUSHomozygous', 'FUSHeterozygous', 'FUSRevertant', 'TDP43']
-        self.MARKERS = ['FUS', 'FMRP']#, 'G3BP1', 'PURA', 'TDP43']#['G3BP1', 'PURA', 'FMRP']#, 'Calreticulin', 'SQSTM1']#, 'NCL', 'TDP43', 'mitotracker', 'FMRP'] #['FUS']
-        # self.CONDITIONS = ['Untreated']
+        self.CELL_LINES = ['WT', 'TDP43', 'FUSHeterozygous']#, 'FUSHomozygous', 'FUSHeterozygous', 'FUSRevertant', 'TDP43']
+        self.MARKERS = ['FUS', 'FMRP', 'G3BP1']#, 'G3BP1', 'PURA', 'TDP43']#['G3BP1', 'PURA', 'FMRP']#, 'Calreticulin', 'SQSTM1']#, 'NCL', 'TDP43', 'mitotracker', 'FMRP'] #['FUS']
+        self.CONDITIONS = ['Untreated']
         
         # You can add more folder like this: input_folders_names = ["batch9_16bit", "batch7", "batch6",] 
         input_folders_names = ['batch9_16bit_no_downsample']
@@ -38,6 +38,10 @@ class LenaDatasetConfig(DatasetConfig):
         self.ADD_REP_TO_LABEL = False
         # You can set this var to True if you want the UMAP to color the batches with different colors
         self.ADD_BATCH_TO_LABEL = False
+        # You can set whether to use the global representation (vqvec2) or the local representation (vqvec1)
+        self.EMBEDDINGS_LAYER = 'vqvec2' # 'vqvec1' / 'vqvec2'
+        # You can set from what experiment (the name of the folder) to pull the embeddings
+        self.EXPERIMENT_TYPE = 'neurons' 
         #######################################
         
         
@@ -49,8 +53,4 @@ class LenaDatasetConfig(DatasetConfig):
         ########### PLEASE DON'T TOUCH THIS SECTION ##############
         self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "spd2", "SpinningDisk", f) for f in 
                         input_folders_names]
-        
-        self.EMBEDDINGS_LAYER = 'vqvec2'
-        
-        self.EXPERIMENT_TYPE = 'neurons' 
         #####################################
