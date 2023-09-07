@@ -7,9 +7,12 @@ import numpy as np
 import pandas as pd
 import itertools  
 import logging
+import torch
+from torchvision.transforms import InterpolationMode
+from torchvision.transforms.functional import resize
 
 from src.common.lib.image_sampling_utils import find_marker_folders
-from src.common.lib.utils import get_if_exists, load_config_file, init_logging, flat_list_of_lists
+from src.common.lib.utils import flat_list_of_lists, get_if_exists, load_config_file, init_logging
 from src.common.lib.model import Model
 from src.common.lib.data_loader import get_dataloader
 from src.datasets.dataset_spd import DatasetSPD
@@ -207,7 +210,6 @@ def get_embeddings_subfolders_filtered(config_data, embeddings_main_folder, dept
         marker_subfolders = find_marker_folders(input_folder, depth=depth, exclude_DAPI=False)
         logging.info(f"Input folder: {input_folder}, depth used: {depth}")
         
-        
         for marker_folder in marker_subfolders:
                 #####################################
                 # Extract experimental settings from marker folder path (avoid multiple nested for loops..)
@@ -244,6 +246,61 @@ def get_embeddings_subfolders_filtered(config_data, embeddings_main_folder, dept
 
     return marker_folders_to_include
 
+def __handle_load_stored_embeddings(embeddings_type, experiment_type, config_data, config_model, embeddings_layer):
+    def __get_embeddings_and_labels(embeddings_layer):
+        embeddings_main_folder = os.path.join(config_model.MODEL_OUTPUT_FOLDER, 'embeddings', experiment_type, embeddings_layer)
+        
+        marker_folders_to_include = get_embeddings_subfolders_filtered(config_data, embeddings_main_folder)
+        
+        def __parallel_load(paths, embeddings_type, config_data):
+            num_processes = multiprocessing.cpu_count()
+            logging.info(f"[load_embeddings] Running in parallel: {num_processes} processes")
+            __params = [(path, embeddings_type, config_data) for path in  paths]
+            with multiprocessing.Pool(num_processes) as pool:
+                results = pool.starmap(_load_stored_embeddings, __params)
+            
+            embeddings, labels = zip(*results)
+            labels = flat_list_of_lists(list(labels))
+            return list(embeddings), labels
+        
+        embedings_data_list, all_labels = __parallel_load(marker_folders_to_include, embeddings_type, config_data)
+        all_labels = np.asarray(all_labels).reshape(-1,1)
+        
+        # Combine all markers to single numpy 
+        if len(embedings_data_list) == 0:
+            all_embedings_data = np.asarray([])  
+            logging.warn('[__handle_load_stored_embeddings] 0 embeddings were loaded')  
+        else:
+            all_embedings_data = np.vstack(embedings_data_list)
+            logging.info(f"[__handle_load_stored_embeddings] all_embedings_data: {all_embedings_data.shape} all_labels: {all_labels.shape}")
+        
+        return all_embedings_data, all_labels
+    
+    if embeddings_layer == 'vqvec_both':
+        logging.info(f"embeddings_layer is {embeddings_layer}. Loading (and concatenating) both vqvec1 and vqvec2 embeddings...")
+        logging.info("Loading vqvec1 embeddings...")
+        emb_vq1, labels_vq1 = __get_embeddings_and_labels('vqvec1')
+        logging.info("Loading vqvec2 embeddings...")
+        emb_vq2, labels_vq2 = __get_embeddings_and_labels('vqvec2')
+        
+        assert all(labels_vq1 == labels_vq2), "Labels (vq1, vq2) mismatch"
+        
+        logging.info("Converting vqvec1 and vqvec2 from np arrays to tensors")
+        emb_vq1 = torch.from_numpy(emb_vq1)
+        emb_vq2 = torch.from_numpy(emb_vq2)
+        logging.info("Resizing vqvec2 embeddings")
+        emb_vq2 = resize(emb_vq2, config_model.EMB_SHAPES[0], interpolation=InterpolationMode.NEAREST)
+        logging.info("Concatenating vqvec1 and vqvec2 embeddings")
+        emb_vq_both = torch.cat([emb_vq2, emb_vq1], 1)
+        labels_vq_both = labels_vq1
+        
+        logging.info("Converting final embeddings from tensor to np array")
+        emb_vq_both = emb_vq_both.numpy()
+        logging.info(f"emb_vq_both.shape = {emb_vq_both.shape}, labels_vq_both.shape = {labels_vq_both.shape}")
+        
+        return emb_vq_both, labels_vq_both
+    
+    return __get_embeddings_and_labels(embeddings_layer)
 
 def _load_stored_embeddings(marker_folder, embeddings_type, config_data):
     """Load all pre-stored embeddings (npy files)
