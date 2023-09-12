@@ -115,7 +115,7 @@ class Model():
         if load_pretrained_model and pretrained_model_path is not None and os.path.exists(pretrained_model_path):
             logging.info(f"Loading pretrained model: {pretrained_model_path}")
             pretrained_trainer = self.load_model(pretrained_model_path,
-                                                 num_fc_output_classes=1311,
+                                                 num_fc_output_classes=1311, # 1311 for cytoself / 225 for neuroself
                                                  load_pretrained_model=False)
             logging.info(f"Copy weights")
             self.__copy_weights(pretrained_trainer.model, trainer.model)
