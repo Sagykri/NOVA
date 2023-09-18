@@ -465,12 +465,13 @@ class BaseTrainer:
                         # SAGY
                         logging.info(f"[ep_{current_epoch}] New best! vloss: {_vloss}, (old best: {best_vloss})")
                         best_vloss = _vloss
-                        # Save the best model checkpoint
-                        self.save_checkpoint()
                         
                         # SAGY - Reset counters
                         self.count_lr_no_improve = 0
                         self.count_early_stop = 0
+                        
+                        # Save the best model checkpoint
+                        self.save_checkpoint()
                     else:
                         self.count_lr_no_improve += 1
                         self.count_early_stop += 1
