@@ -461,7 +461,8 @@ class BaseTrainer:
                     _vloss = np.nan_to_num(val_metrics['val_loss'].iloc[-1])
                     # SAGY
                     logging.info(f"[ep_{current_epoch}] vloss: {_vloss}, (best: {best_vloss})")
-                    if _vloss < best_vloss:
+                    _is_improvement = _vloss < best_vloss # SAGY
+                    if _is_improvement: #SAGY
                         # SAGY
                         logging.info(f"[ep_{current_epoch}] New best! vloss: {_vloss}, (old best: {best_vloss})")
                         best_vloss = _vloss
@@ -471,7 +472,7 @@ class BaseTrainer:
                         self.count_early_stop = 0
                         
                         # Save the best model checkpoint
-                        self.save_checkpoint()
+                        self.save_checkpoint(is_improvement=_is_improvement) #SAGY - added is_improvement
                     else:
                         self.count_lr_no_improve += 1
                         self.count_early_stop += 1
@@ -480,6 +481,10 @@ class BaseTrainer:
                     # SAGY
                     self.count_lr_no_improve = self._reduce_lr_on_plateau(self.count_lr_no_improve)
 
+                    # SAGY - Save checkpoint even if there is no improvement
+                    if not _is_improvement:
+                        self.save_checkpoint(is_improvement=_is_improvement) #SAGY 
+                    
                     # Check for early stopping
                     #SAGY
                     if self.count_early_stop >= self.train_args['earlystop_patience']:
@@ -510,7 +515,7 @@ class BaseTrainer:
             self.save_model(self.savepath_dict['homepath'], f'model_{self.current_epoch}.pt')
             self.history.to_csv(join(self.savepath_dict['visualization'], 'training_history.csv'), index=False)
 
-    def save_checkpoint(self, path: Optional[str] = None):
+    def save_checkpoint(self, path: Optional[str] = None, is_improvement=False):
         """
         Save a model checkpoint
 
@@ -522,7 +527,10 @@ class BaseTrainer:
         """
         if path is None:
             path = self.savepath_dict['checkpoints']
-        fpath = join(path, f'checkpoint_ep{self.current_epoch}.chkp')
+        fname = f'checkpoint_ep{self.current_epoch}' #SAGY
+        if is_improvement: #SAGY
+            fname += '_improvement' #SAGY
+        fpath = join(path, f"{fname}.chkp") #SAGY
         torch.save(
             {
                 'epoch': self.current_epoch,
