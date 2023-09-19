@@ -471,10 +471,12 @@ class BaseTrainer:
                         self.count_early_stop = 0
                         
                         # Save the best model checkpoint
-                        self.save_checkpoint()
+                        self.save_checkpoint(is_improvement=True) #SAGY - added is_improvement
                     else:
                         self.count_lr_no_improve += 1
                         self.count_early_stop += 1
+                        
+                        self.save_checkpoint(is_improvement=False) #SAGY
 
                     # Reduce learn rate on plateau
                     # SAGY
@@ -510,7 +512,7 @@ class BaseTrainer:
             self.save_model(self.savepath_dict['homepath'], f'model_{self.current_epoch}.pt')
             self.history.to_csv(join(self.savepath_dict['visualization'], 'training_history.csv'), index=False)
 
-    def save_checkpoint(self, path: Optional[str] = None):
+    def save_checkpoint(self, path: Optional[str] = None, is_improvement=False):
         """
         Save a model checkpoint
 
@@ -522,7 +524,10 @@ class BaseTrainer:
         """
         if path is None:
             path = self.savepath_dict['checkpoints']
-        fpath = join(path, f'checkpoint_ep{self.current_epoch}.chkp')
+        fname = f'checkpoint_ep{self.current_epoch}' #SAGY
+        if is_improvement: #SAGY
+            fname += '_improvement' #SAGY
+        fpath = join(path, f"{fname}.chkp") #SAGY
         torch.save(
             {
                 'epoch': self.current_epoch,
