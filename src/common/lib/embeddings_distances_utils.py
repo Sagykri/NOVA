@@ -143,6 +143,7 @@ def average_batches_distances(config_path_model, config_path_data):
     batch_mean_between_cell_lines_conds_similarities.to_csv(os.path.join(distances_main_folder,'batch_mean_between_cell_lines_conds_similarities.csv'), index=False)
     return None
 
+
 def calc_embeddings_distances(config_path_model, config_path_data, embeddings_type):
     """Main function to calculate embeddings distances
     """
@@ -245,34 +246,56 @@ def calc_embeddings_distances(config_path_model, config_path_data, embeddings_ty
     elif len(cell_lines_conditions) > 1:
         between_cell_lines = pd.DataFrame(columns=['batch','marker','cell_line_condition'] + cell_lines_conditions.tolist())
         for name, group in marker_centroids.groupby(['batch'])[['batch', 'cell_line_condition', 'marker']]:
-                def fetch_centroids(x, centroids_data):
-                    x.drop_duplicates(inplace=True)
-                    batch, cell_line_condition, marker = x['batch'], x['cell_line_condition'], x['marker']
-                    cell_line, condition = cell_line_condition.str.split("_").values[0]
-                    return np.stack(centroids_data.loc[batch, cell_line, condition, marker].values)
-                group_cell_line_condition_centroids = group.groupby(['marker', 'cell_line_condition']).apply(lambda x: fetch_centroids(x, reps_centroids)).reset_index(name='embeddings_centroid')
-                
-                for marker in markers:
-                    cur_marker = group_cell_line_condition_centroids[group_cell_line_condition_centroids['marker']==marker]
-                    if cur_marker.shape[0] < 2:
-                        logging.info(f"Skipping comparison of cell_line_conds for {marker} in {name} since cell_line_conds: {cur_marker.shape[0]}")
-                        continue
-                    x = np.stack(cur_marker['embeddings_centroid'].values, axis=0)[:,0,:]
-                    cell_lines_conds_similarities = pd.DataFrame(1/(1+pairwise_distances(x, metric='euclidean', n_jobs=-1)), 
-                                            columns=cur_marker.cell_line_condition.values, 
-                                            index=cur_marker.cell_line_condition).reset_index()
-                                        
-                    # combine marker similiarites in one df
-                    cell_lines_conds_similarities_for_df = cell_lines_conds_similarities
-                    cell_lines_conds_similarities_for_df['batch'] = name
-                    cell_lines_conds_similarities_for_df['marker'] = marker
-                    between_cell_lines = pd.concat([between_cell_lines, cell_lines_conds_similarities_for_df])
+            def fetch_centroids(x, centroids_data):
+                x.drop_duplicates(inplace=True)
+                batch, cell_line_condition, marker = x['batch'], x['cell_line_condition'], x['marker']
+                cell_line, condition = cell_line_condition.str.split("_").values[0]
+                return np.stack(centroids_data.loc[batch, cell_line, condition, marker].values)
+            group_cell_line_condition_centroids = group.groupby(['marker', 'cell_line_condition']).apply(lambda x: fetch_centroids(x, reps_centroids)).reset_index(name='embeddings_centroid')
+            
+            for marker in markers:
+                cur_marker = group_cell_line_condition_centroids[group_cell_line_condition_centroids['marker']==marker]
+                if cur_marker.shape[0] < 2:
+                    logging.info(f"Skipping comparison of cell_line_conds for {marker} in {name} since cell_line_conds: {cur_marker.shape[0]}")
+                    continue
+                x = np.stack(cur_marker['embeddings_centroid'].values, axis=0)[:,0,:]
+                cell_lines_conds_similarities = pd.DataFrame(1/(1+pairwise_distances(x, metric='euclidean', n_jobs=-1)), 
+                                        columns=cur_marker.cell_line_condition.values, 
+                                        index=cur_marker.cell_line_condition).reset_index()
+                                    
+                # combine marker similiarites in one df
+                cell_lines_conds_similarities_for_df = cell_lines_conds_similarities
+                cell_lines_conds_similarities_for_df['batch'] = name
+                cell_lines_conds_similarities_for_df['marker'] = marker
+                between_cell_lines = pd.concat([between_cell_lines, cell_lines_conds_similarities_for_df])
         save_excel_with_sheet_name(os.path.join(distances_main_folder,'between_cell_lines_conds_similarities.xlsx'), input_folders, between_cell_lines)
         mean_between_cell_lines = between_cell_lines.groupby(['batch', 'cell_line_condition'])[cell_lines_conditions.tolist()].mean().reset_index()
         save_excel_with_sheet_name(os.path.join(distances_main_folder,'mean_between_cell_lines_conds_similarities.xlsx'), input_folders, mean_between_cell_lines)
 
         logging.info('calculated between cell_lines_conds distances')
-    
+
+        ## given batch and rep, how similar are the cell lines?
+        between_cell_lines_sep_batch_rep = pd.DataFrame(columns=['batch','rep','marker','cell_line_condition'] + cell_lines_conditions.tolist())
+        for name, group in marker_centroids.groupby(['batch','rep'])[['cell_line_condition', 'marker','embeddings_centroid']]:
+            for marker in markers: 
+                cur_marker = group[group['marker']==marker]
+                if cur_marker.shape[0] == 0:
+                    logging.info(f"Skipping comparison of cell_line_conds for {marker} in {name} since cell_line_conds: {cur_marker.shape[0]}")
+                    continue
+                x = np.stack(cur_marker['embeddings_centroid'].values, axis=0)
+                cell_lines_conds_similarities = pd.DataFrame(1/(1+pairwise_distances(x, metric='euclidean', n_jobs=-1)), 
+                                                            columns=cur_marker.cell_line_condition.values, 
+                                                            index=cur_marker.cell_line_condition.values).reset_index()
+                
+                # combine marker similiarites in one df
+                cell_lines_conds_similarities_for_df = cell_lines_conds_similarities
+                cell_lines_conds_similarities_for_df['batch'] = name[0]
+                cell_lines_conds_similarities_for_df['rep'] = name[1]
+                cell_lines_conds_similarities_for_df['marker'] = marker
+                between_cell_lines_sep_batch_rep = pd.concat([between_cell_lines_sep_batch_rep, cell_lines_conds_similarities_for_df])
+        save_excel_with_sheet_name(os.path.join(distances_main_folder,'between_cell_lines_conds_similarities_rep_rep.xlsx'), input_folders, between_cell_lines_sep_batch_rep)
+        logging.info('calculated between cell_lines_conds distances separated into reps')
+
     return None
     
 if __name__ == "__main__":

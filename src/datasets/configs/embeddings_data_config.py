@@ -79,13 +79,13 @@ class EmbeddingsALLDatasetConfig(DatasetConfig):
         super().__init__()
 
         self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "spd2", "SpinningDisk", f) for f in 
-                        [f"batch{i}_16bit_no_downsample" for i in [3,4,5,6,7,8,9]]]
+                        [f"batch{i}_16bit_no_downsample" for i in [3,4,5,6,9]]]
         
         self.SPLIT_DATA = False
         self.EXPERIMENT_TYPE = 'neurons'
         self.ADD_REP_TO_LABEL = True
         self.ADD_BATCH_TO_LABEL = True
-        self.EMBEDDINGS_LAYER = 'vqvec1'
+        self.EMBEDDINGS_LAYER = 'vqvec2'
         # self.CELL_LINES = ['SCNA', 'WT']#, 'FUSHeterozygous', 'FUSRevertant']
         # self.MARKERS = ['TOMM20','mitotracker','GM130'] #['FUS']
         self.REPS = ['rep1', 'rep2'] # Can be : ['rep1', 'rep2'] or ['rep1'] or ['rep2']
