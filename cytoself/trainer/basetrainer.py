@@ -470,9 +470,6 @@ class BaseTrainer:
                         # SAGY - Reset counters
                         self.count_lr_no_improve = 0
                         self.count_early_stop = 0
-                        
-                        # Save the best model checkpoint
-                        self.save_checkpoint(is_improvement=_is_improvement) #SAGY - added is_improvement
                     else:
                         self.count_lr_no_improve += 1
                         self.count_early_stop += 1
@@ -480,10 +477,6 @@ class BaseTrainer:
                     # Reduce learn rate on plateau
                     # SAGY
                     self.count_lr_no_improve = self._reduce_lr_on_plateau(self.count_lr_no_improve)
-
-                    # SAGY - Save checkpoint even if there is no improvement
-                    if not _is_improvement:
-                        self.save_checkpoint(is_improvement=_is_improvement) #SAGY 
                     
                     # Check for early stopping
                     #SAGY
@@ -499,6 +492,10 @@ class BaseTrainer:
 
                     # Record metrics
                     self.record_metrics(metrics_all)
+
+                    # Save the best model checkpoint
+                    self.save_checkpoint(is_improvement=_is_improvement) #SAGY - added is_improvement + I moved it here for saving the latest metrics to the checkpoint
+                    
                     # Free mem (for releasing the 'loss' from GPU)
                     for m in metrics_all:
                         del m
