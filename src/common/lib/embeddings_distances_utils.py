@@ -8,8 +8,9 @@ import logging
 from copy import deepcopy
 from multiprocessing.pool import ThreadPool
 from scipy.spatial.distance import cdist, pdist
+from itertools import combinations
 from sklearn.metrics.pairwise import pairwise_distances
-
+from src.common.lib.synthetic_multiplexing import __get_multiplexed_embeddings, __embeddings_to_df
 #from src.common.lib.image_sampling_utils import find_marker_folders
 from src.common.lib.utils import load_config_file, init_logging, get_if_exists
 #from src.common.lib.model import Model
@@ -29,7 +30,7 @@ DISTANCE_METRICS = ['euclidean', 'l2', 'l1', 'manhattan', 'cityblock', 'braycurt
 AGG_FUNCTIONS = [np.mean, np.median]
 ###############################################################
 
-def fetch_saved_embeddings(config_model, config_data, embeddings_type, EMBEDDINGS_NAMES, exclude_DAPI=True):
+def fetch_saved_embeddings(config_model, config_data, embeddings_type):
     """Couple embedding vector with it's corresponding label (label == batch-cellline-condition-rep-marker)
 
     Args:
@@ -44,20 +45,9 @@ def fetch_saved_embeddings(config_model, config_data, embeddings_type, EMBEDDING
         
     all_embedings_data = all_embedings_data.reshape(all_embedings_data.shape[0], -1)
     logging.info(f"[load_embeddings] {all_embedings_data.shape}, {all_labels.shape}")    
-    
-    
-    #marker_centroids_splitted, marker_centroids, within_marker_similaities = create_markers_centroids_df(all_labels, all_embedings_data, EMBEDDINGS_NAMES)
-    marker_centroids = create_markers_centroids_df(all_labels, all_embedings_data, EMBEDDINGS_NAMES)
-
-    del(all_embedings_data)
-    # Exclude embeddings of DAPI marker  
-    if exclude_DAPI:
-        marker_centroids = marker_centroids[marker_centroids['marker']!='DAPI']
-        #within_marker_similaities = within_marker_similaities[within_marker_similaities['marker']!='DAPI']
-        #marker_centroids_splitted = marker_centroids_splitted[marker_centroids_splitted['marker']!='DAPI']
-    return marker_centroids #, within_marker_similaities
-        
-def create_markers_centroids_df(all_labels, all_embedings_data, EMBEDDINGS_NAMES):
+    return all_embedings_data, all_labels
+  
+def create_markers_centroids_df(all_labels, all_embedings_data, EMBEDDINGS_NAMES, exclude_DAPI=True):       
     """Create a pd.DataFrame of centroids embedddings and experimental settings 
     columns are ['batch','cell_line','condition','rep','marker', 'embeddings_centroid'] 
 
@@ -65,7 +55,6 @@ def create_markers_centroids_df(all_labels, all_embedings_data, EMBEDDINGS_NAMES
         all_labels (np.array): array of strings, each row is in a format of "batch_cell_line_condition_rep_marker"
         all_embedings_data (np.ndarray): latent featuers (each row has 9216 columns)
     """
-    
     assert all_labels.shape[0]==all_embedings_data.shape[0]    
     labels_df = pd.DataFrame(data=all_labels, columns=['label'])
     labels_df['label'] = labels_df.label.str.replace('_16bit_no_downsample','')  #TODO: delete workaround since batch folder have "_"
@@ -102,7 +91,12 @@ def create_markers_centroids_df(all_labels, all_embedings_data, EMBEDDINGS_NAMES
     # within_marker_similaities.drop(columns=['label'], inplace=True)
     # within_marker_similaities['marker_similarity'] = similarities
     
-    return marker_centroids #(1)split_embeddings, (3)within_marker_similaities
+    # Exclude embeddings of DAPI marker  
+    if exclude_DAPI:
+        marker_centroids = marker_centroids[marker_centroids['marker']!='DAPI']
+        #within_marker_similaities = within_marker_similaities[within_marker_similaities['marker']!='DAPI']
+        #marker_centroids_splitted = marker_centroids_splitted[marker_centroids_splitted['marker']!='DAPI']
+    return marker_centroids #, within_marker_similaities
 
 
 def save_excel_with_sheet_name(filename, input_folders, df):
@@ -145,6 +139,74 @@ def average_batches_distances(config_path_model, config_path_data):
     batch_mean_between_cell_lines_conds_similarities.to_csv(os.path.join(distances_main_folder,'batch_mean_between_cell_lines_conds_similarities.csv'), index=False)
     return None
 
+def multiplex_embeddings(all_embedings_data, all_labels, dataset_conf):
+    all_labels = np.asarray(all_labels).reshape(-1,)
+    embeddings_df = __embeddings_to_df(all_embedings_data, all_labels, dataset_conf)
+    all_embedings_data, all_labels, unique_groups = __get_multiplexed_embeddings(embeddings_df, random_state=dataset_conf.SEED)
+    return all_embedings_data, all_labels
+
+
+def calc_embeddings_distances_for_SM(config_path_model, config_path_data, embeddings_type):
+    # ------------------------------------------------------------------------------------------ 
+    # Get configs of model (trained model) 
+    config_model = load_config_file(config_path_model, 'model')
+    logging.info('[Calc Embeddings Distances]')
+    # Get dataset configs (as to be used in the desired UMAP)
+    config_data = load_config_file(config_path_data, 'data')
+    
+    experiment_type = get_if_exists(config_data, 'EXPERIMENT_TYPE', None)
+    assert experiment_type is not None, "EXPERIMENT_TYPE can't be None"    
+    embeddings_layer = get_if_exists(config_data, 'EMBEDDINGS_LAYER', 'vqvec2')
+    input_folders = config_data.INPUT_FOLDERS
+    cell_lines = config_data.CELL_LINES
+    distances_main_folder = os.path.join(config_model.MODEL_OUTPUT_FOLDER, 'distances', experiment_type, embeddings_layer, 'SM')
+    os.makedirs(distances_main_folder, exist_ok=True)
+    logging.info(f'Saving results in {distances_main_folder}')
+# ------------------------------------------------------------------------------------------ 
+    # we need to load embeddings of each batch at a time to avoid too much memory usage
+    for input_folder in input_folders:
+        sm_df = pd.DataFrame()
+        for cell_line in cell_lines:
+            batch_name = input_folder.split(os.sep)[-1].replace('_16bit_no_downsample','')
+            cur_config_data = deepcopy(config_data)
+            cur_config_data.INPUT_FOLDERS = [input_folder]
+            cur_config_data.CELL_LINES = [cell_line]
+            # Load saved embeddings
+            #cur_marker_centroids_splitted, cur_marker_centroids, cur_within_marker_similaities = fetch_saved_embeddings(config_model = config_model, config_data = cur_config_data,
+            #                                                                            embeddings_type=embeddings_type, EMBEDDINGS_NAMES=EMBEDDINGS_NAMES, exclude_DAPI=True)
+            all_embedings_data, all_labels = fetch_saved_embeddings(config_model, cur_config_data,embeddings_type)
+            all_embedings_data, all_labels = multiplex_embeddings(all_embedings_data, all_labels, config_data)
+                # all labels = 'FUSHomozygous_Untreated_rep2'
+
+            #cur_marker_centroids = create_markers_centroids_df(all_labels, all_embedings_data, EMBEDDINGS_NAMES, exclude_DAPI=True)
+            cur_df = pd.DataFrame()
+            cur_df['label'] = all_labels.reshape(-1)
+            cur_df['sm_embeddings'] = list(all_embedings_data)
+            del(all_embedings_data)
+
+            logging.info(f'created sm embeddiings for {batch_name}, {cell_line}')
+            sm_df = pd.concat([sm_df, cur_df])
+            del(cur_df)
+
+        # ------------------------------------------------------------------------------------------
+        labels = np.unique(sm_df.label)
+        similarities = pd.DataFrame(index=labels, columns=['batch'] + list(labels))
+        for label_A, label_B in combinations(labels,2):
+            if label_A[:-5] == label_B[:-5]: # if the different is only in the rep, we don't want to calc the similarity
+                continue
+            sm_A = np.stack(sm_df[sm_df.label==label_A].sm_embeddings.values, axis=0)
+            sm_B = np.stack(sm_df[sm_df.label==label_B].sm_embeddings.values, axis=0)
+            cur_similarity = 1/(1+cdist(sm_A, sm_B)).mean()
+            similarities.loc[label_A, label_B] = cur_similarity
+            similarities.loc[label_B, label_A] = cur_similarity
+        similarities = similarities.reset_index(names='label')
+        similarities['batch'] = batch_name
+        similarities.to_csv(os.path.join(distances_main_folder,f'{batch_name}.csv'), index=False)
+
+        # ------------------------------------------------------------------------------------------          
+        
+    return None
+
 
 def calc_embeddings_distances(config_path_model, config_path_data, embeddings_type):
     """Main function to calculate embeddings distances
@@ -178,8 +240,10 @@ def calc_embeddings_distances(config_path_model, config_path_data, embeddings_ty
             # Load saved embeddings
             #cur_marker_centroids_splitted, cur_marker_centroids, cur_within_marker_similaities = fetch_saved_embeddings(config_model = config_model, config_data = cur_config_data,
             #                                                                            embeddings_type=embeddings_type, EMBEDDINGS_NAMES=EMBEDDINGS_NAMES, exclude_DAPI=True)
-            cur_marker_centroids = fetch_saved_embeddings(config_model = config_model, config_data = cur_config_data,
-                                                                                        embeddings_type=embeddings_type, EMBEDDINGS_NAMES=EMBEDDINGS_NAMES, exclude_DAPI=True)
+            all_embedings_data, all_labels = fetch_saved_embeddings(config_model, cur_config_data,embeddings_type)
+            cur_marker_centroids = create_markers_centroids_df(all_labels, all_embedings_data, EMBEDDINGS_NAMES, exclude_DAPI=True)
+            del(all_embedings_data)
+
             logging.info(f'Calculated marker_centroids_vectors for {batch_name}, {cell_line}')
             #marker_centroids_splitted = pd.concat([marker_centroids_splitted, cur_marker_centroids_splitted])
             marker_centroids = pd.concat([marker_centroids, cur_marker_centroids])
@@ -343,12 +407,15 @@ def unite_batches(config_path_model, config_path_data):
 
 if __name__ == "__main__":
     
-    if len(sys.argv) != 4:
-        raise ValueError("Invalid config path. Must supply model config and data config and embedding type.")
+    # if len(sys.argv) != 4:
+    #     raise ValueError("Invalid config path. Must supply model config and data config and embedding type.")
     try:
-        #calc_embeddings_distances(config_path_model= sys.argv[1], config_path_data=sys.argv[2], embeddings_type=sys.argv[3])  
-        unite_batches(config_path_model= sys.argv[1], config_path_data=sys.argv[2])
-        average_batches_distances(config_path_model= sys.argv[1], config_path_data=sys.argv[2])
+        if sys.argv[4]=='True':
+            calc_embeddings_distances_for_SM(config_path_model= sys.argv[1], config_path_data=sys.argv[2], embeddings_type=sys.argv[3])
+        elif sys.argv[4]=='False':
+            calc_embeddings_distances(config_path_model= sys.argv[1], config_path_data=sys.argv[2], embeddings_type=sys.argv[3])  
+        # unite_batches(config_path_model= sys.argv[1], config_path_data=sys.argv[2])
+        # average_batches_distances(config_path_model= sys.argv[1], config_path_data=sys.argv[2])
     except Exception as e:
         logging.exception(str(e))
         raise e
