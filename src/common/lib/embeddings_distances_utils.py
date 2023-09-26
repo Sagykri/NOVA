@@ -175,16 +175,27 @@ def calc_embeddings_distances_for_SM(config_path_model, config_path_data, embedd
             #cur_marker_centroids_splitted, cur_marker_centroids, cur_within_marker_similaities = fetch_saved_embeddings(config_model = config_model, config_data = cur_config_data,
             #                                                                            embeddings_type=embeddings_type, EMBEDDINGS_NAMES=EMBEDDINGS_NAMES, exclude_DAPI=True)
             all_embedings_data, all_labels = fetch_saved_embeddings(config_model, cur_config_data,embeddings_type)
+            if cur_config_data.EXPERIMENT_TYPE == 'neurons':
+                all_labels_df = pd.DataFrame(all_labels, columns=['label'])
+                if batch_name == 'batch6' and cell_line == 'SCNA':
+                    bad_label = 'SCNA_Untreated_rep1'
+                elif batch_name == 'batch9' and cell_line == 'FUSRevertant':
+                    bad_label = 'FUSRevertant_Untreated_rep1'
+                else:
+                    bad_label = None
+                if bad_label is not None:
+                    logging.info(f'Filtering out {bad_label} for {batch_name}, {cell_line}')
+                    filtered = all_labels_df[~all_labels_df.label.str.contains(bad_label)]
+                    all_labels = np.array(filtered)
+                    all_embedings_data = all_embedings_data[filtered.index]
             all_embedings_data, all_labels = multiplex_embeddings(all_embedings_data, all_labels, config_data)
-                # all labels = 'FUSHomozygous_Untreated_rep2'
-
             #cur_marker_centroids = create_markers_centroids_df(all_labels, all_embedings_data, EMBEDDINGS_NAMES, exclude_DAPI=True)
             cur_df = pd.DataFrame()
             cur_df['label'] = all_labels.reshape(-1)
             cur_df['sm_embeddings'] = list(all_embedings_data)
             del(all_embedings_data)
 
-            logging.info(f'created sm embeddiings for {batch_name}, {cell_line}')
+            logging.info(f'created sm embeddings for {batch_name}, {cell_line}')
             sm_df = pd.concat([sm_df, cur_df])
             del(cur_df)
 
@@ -192,8 +203,8 @@ def calc_embeddings_distances_for_SM(config_path_model, config_path_data, embedd
         labels = np.unique(sm_df.label)
         similarities = pd.DataFrame(index=labels, columns=['batch'] + list(labels))
         for label_A, label_B in combinations(labels,2):
-            if label_A[:-5] == label_B[:-5]: # if the different is only in the rep, we don't want to calc the similarity
-                continue
+            # if label_A[:-5] == label_B[:-5]: # if the different is only in the rep, we don't want to calc the similarity
+            #     continue
             sm_A = np.stack(sm_df[sm_df.label==label_A].sm_embeddings.values, axis=0)
             sm_B = np.stack(sm_df[sm_df.label==label_B].sm_embeddings.values, axis=0)
             cur_similarity = 1/(1+cdist(sm_A, sm_B)).mean()
@@ -202,7 +213,7 @@ def calc_embeddings_distances_for_SM(config_path_model, config_path_data, embedd
         similarities = similarities.reset_index(names='label')
         similarities['batch'] = batch_name
         similarities.to_csv(os.path.join(distances_main_folder,f'{batch_name}.csv'), index=False)
-
+        logging.info(f'Calculated similarities for {batch_name}')
         # ------------------------------------------------------------------------------------------          
         
     return None
