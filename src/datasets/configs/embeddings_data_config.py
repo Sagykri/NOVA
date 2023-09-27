@@ -85,7 +85,7 @@ class EmbeddingsALLDatasetConfig(DatasetConfig):
         self.EXPERIMENT_TYPE = 'neurons'
         self.ADD_REP_TO_LABEL = True
         self.ADD_BATCH_TO_LABEL = True
-        self.EMBEDDINGS_LAYER = 'vqvec1'
+        self.EMBEDDINGS_LAYER = 'vqvec2'
         self.CELL_LINES = ['FUSHomozygous', 'TDP43', 'TBK1', 'WT', 'SCNA', 'FUSRevertant','OPTN', 'FUSHeterozygous']
         # self.MARKERS = ['TOMM20','mitotracker','GM130'] #['FUS']
         self.REPS = ['rep1', 'rep2'] # Can be : ['rep1', 'rep2'] or ['rep1'] or ['rep2']
