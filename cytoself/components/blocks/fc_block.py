@@ -45,15 +45,12 @@ class FCblock(nn.Module):
         self.last_activation = last_activation
         self.fc_list = nn.ModuleList()
         for i in range(num_layers):
-            # self.fc_list.append(nn.Dropout(dropout_rate, inplace=False)) # SAGY - Please don't uncomment this
+            self.fc_list.append(nn.Dropout(dropout_rate, inplace=False))
             self.fc_list.append(
                 nn.Linear(in_channels if i == 0 else num_features, num_features if i < num_layers - 1 else out_channels)
             )
             if i < num_layers - 1:
                 self.fc_list.append(act_layer(act))
-                self.fc_list.append(nn.Dropout(dropout_rate, inplace=False)) # SAGY
-
-        self.fc_list.append(act_layer(last_activation)) # SAGY
         
         for m in self.modules():
             if isinstance(m, nn.Linear):
