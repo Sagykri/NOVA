@@ -147,7 +147,7 @@ def calc_embeddings_distances_for_SM(config_model, config_data, distances_main_f
     input_folders = config_data.INPUT_FOLDERS
     cell_lines = config_data.CELL_LINES
     # ------------------------------------------------------------------------------------------ 
-    # we need to load embeddings of each batch at a time to avoid too much memory usage
+    # we need to load embeddings of each batch and each cell line at a time to avoid too much memory usage
     for input_folder in input_folders:
         sm_df = pd.DataFrame()
         for cell_line in cell_lines:
@@ -184,6 +184,7 @@ def calc_embeddings_distances_for_SM(config_model, config_data, distances_main_f
             del(cur_df)
 
         # ------------------------------------------------------------------------------------------
+        # we want to calc similarites on all data from the current batch together 
         labels = np.unique(sm_df.label)
         similarities = pd.DataFrame(index=labels, columns=list(labels))
         for label_A, label_B in combinations(labels,2):
