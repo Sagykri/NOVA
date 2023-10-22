@@ -184,6 +184,88 @@ def calc_embeddings(model, datasets_list, embeddings_folder, save=True, embeddin
         
 
 ###############################################################
+# Utils for Generate spectral features (run from MOmaps/src/runables/generate_spectral_features.py)
+################################################################ 
+
+def calc_spectral_features(model, datasets_list, output_folder, save=True, output_layer = f'vqindhist1'):
+
+    # Parser to get the image's batch/cell_line/condition/rep/marker
+    def final_save_path(full_path):
+        path_list = full_path.split(os.sep)
+        # to create separate batch folders
+        batch = path_list[-5] 
+        # to create labels of each image
+        batch_cell_line_condition_rep_marker_list = [os.path.join(path_list[-1][:4],path_list[i]) if i==-2 else os.path.join(path_list[i]) for i in range(-5,-1)]
+        batch_cell_line_condition_rep_marker = os.path.join(*batch_cell_line_condition_rep_marker_list)
+        return os.path.join(output_folder, output_layer, batch), batch_cell_line_condition_rep_marker
+    get_save_path_and_labels = np.vectorize(final_save_path)
+    
+    
+    def do_embeddings_inference(images_batch, dataset_type, 
+                                images_spectral_features, images_labels, processed_images_path, save_paths):
+        save_path, labels = get_save_path_and_labels(images_batch['image_path'])
+
+        # images_batch is torch.Tensor of size(n_tiles, n_channels, 100, 100) - only because batch_size==1!!!!
+        embedding_data = model.model.infer_embeddings(images_batch['image'].numpy(), output_layer=output_layer)
+        before = len(images_labels)
+        images_labels.extend(labels)
+        logging.info(f"images_labels length before: {before}, adding labels length {len(labels)} = {len(images_labels)}")
+        paths = [f'{path}_{n_tile}' for n_tile, path in enumerate(images_batch['image_path'])]
+        processed_images_path.extend(paths)
+        images_spectral_features.append(embedding_data)
+        save_paths.extend(save_path)
+        return images_spectral_features, images_labels, processed_images_path, save_paths
+    
+    def save(features, labels, paths, output_path, dataset_type):
+        assert np.unique(output_path).size == 1, f" output path has mixed batches {np.unique(output_path)}"
+        output_path = output_path[0]
+        if not os.path.exists(output_path):
+            logging.info(f"Folder {output_path} doesn't exits. Creating it...")
+            os.makedirs(output_path)
+
+        np.save(os.path.join(output_path, f'vqindhist1_{dataset_type}.npy'), features)
+        np.save(os.path.join(output_path, f'vqindhist1_labels_{dataset_type}.npy'), labels)
+        np.save(os.path.join(output_path, f'vqindhist1_paths_{dataset_type}.npy'), paths)
+    
+    if len(datasets_list)==3:
+        
+        logging.info("Infer embeddings - train set")
+        # compute the latent features of a batch of imgaes
+        images_spectral_features, images_labels, processed_images_path, save_paths = [], [], [], []
+        for i, images_batch in enumerate(datasets_list[0]):
+            images_spectral_features, images_labels, processed_images_path, save_paths = do_embeddings_inference(images_batch, 'trainset', images_spectral_features, images_labels, processed_images_path, save_paths)
+        images_spectral_features = np.concatenate(images_spectral_features)
+        save(images_spectral_features, images_labels, processed_images_path, save_paths, "trainset")
+
+        logging.info("Infer embeddings - val set")
+        images_spectral_features, images_labels, processed_images_path, save_paths = [], [], [], []
+        for i, images_batch in enumerate(datasets_list[1]):
+            images_spectral_features, images_labels, processed_images_path, save_paths = do_embeddings_inference(images_batch, 'valset', images_spectral_features, images_labels, processed_images_path, save_paths)
+        images_spectral_features = np.concatenate(images_spectral_features)
+        save(images_spectral_features, images_labels, processed_images_path, save_paths, "valset")
+        
+        logging.info("Infer embeddings - test set")
+        images_spectral_features, images_labels, processed_images_path, save_paths = [], [], [], []
+        for i, images_batch in enumerate(datasets_list[2]):
+            images_spectral_features, images_labels, processed_images_path, save_paths = do_embeddings_inference(images_batch, 'testset', images_spectral_features, images_labels, processed_images_path, save_paths)
+        images_spectral_features = np.concatenate(images_spectral_features)
+        save(images_spectral_features, images_labels, processed_images_path, save_paths, "testset")
+    
+    elif len(datasets_list)==1:
+        logging.info("Infer embeddings -  all data set")
+        images_spectral_features, images_labels, processed_images_path, save_paths = [], [], [], []
+        for i, images_batch in enumerate(datasets_list[0]):
+            images_spectral_features, images_labels, processed_images_path, save_paths = do_embeddings_inference(images_batch, 'all',images_spectral_features, images_labels, processed_images_path, save_paths)
+        images_spectral_features = np.concatenate(images_spectral_features)
+        save(images_spectral_features, images_labels, processed_images_path, save_paths, "all")
+    else:
+        logging.exception("[Generate spectral features] Load model: List of datasets is not supported.")
+    
+    return None
+
+
+
+###############################################################
 # Utils for Load Embeddings (callable function)
 ################################################################ 
 
