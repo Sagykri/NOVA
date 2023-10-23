@@ -217,15 +217,16 @@ def calc_spectral_features(model, datasets_list, output_folder, save=True, outpu
         return images_spectral_features, images_labels, processed_images_path, save_paths
     
     def save(features, labels, paths, output_path, dataset_type):
-        assert np.unique(output_path).size == 1, f" output path has mixed batches {np.unique(output_path)}"
-        output_path = output_path[0]
-        if not os.path.exists(output_path):
-            logging.info(f"Folder {output_path} doesn't exits. Creating it...")
-            os.makedirs(output_path)
-
-        np.save(os.path.join(output_path, f'vqindhist1_{dataset_type}.npy'), features)
-        np.save(os.path.join(output_path, f'vqindhist1_labels_{dataset_type}.npy'), labels)
-        np.save(os.path.join(output_path, f'vqindhist1_paths_{dataset_type}.npy'), paths)
+            unique_output_paths = np.unique(output_path)
+            __dict_temp = {value: [index for index, item in enumerate(output_path) if item == value] for value in unique_output_paths}
+            for batch_save_path, batch_indexes in __dict_temp.items():
+                # create folder if needed
+                os.makedirs(batch_save_path, exist_ok=True)
+                logging.info(f"Saving {len(batch_indexes)} ({dataset_type}) indhists in {batch_save_path}")
+                np.save(os.path.join(batch_save_path, f'vqindhist1_{dataset_type}.npy'), features[batch_indexes])
+                np.save(os.path.join(batch_save_path, f'vqindhist1_labels_{dataset_type}.npy'), labels[batch_indexes])
+                np.save(os.path.join(batch_save_path, f'vqindhist1_paths_{dataset_type}.npy'), paths[batch_indexes])
+            return None
     
     if len(datasets_list)==3:
         
