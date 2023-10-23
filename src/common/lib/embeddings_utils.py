@@ -224,11 +224,17 @@ def calc_spectral_features(model, datasets_list, output_folder, save=True, outpu
                 os.makedirs(batch_save_path, exist_ok=True)
                 logging.info(f"Saving {len(batch_indexes)} ({dataset_type}) indhists in {batch_save_path}")
                 np.save(os.path.join(batch_save_path, f'vqindhist1_{dataset_type}.npy'), features[batch_indexes])
-                np.save(os.path.join(batch_save_path, f'vqindhist1_labels_{dataset_type}.npy'), labels[batch_indexes])
-                np.save(os.path.join(batch_save_path, f'vqindhist1_paths_{dataset_type}.npy'), paths[batch_indexes])
+                np.save(os.path.join(batch_save_path, f'vqindhist1_labels_{dataset_type}.npy'), np.array(labels)[batch_indexes])
+                np.save(os.path.join(batch_save_path, f'vqindhist1_paths_{dataset_type}.npy'), np.array(paths)[batch_indexes])
             return None
     
     if len(datasets_list)==3:
+        logging.info("Infer embeddings - test set")
+        images_spectral_features, images_labels, processed_images_path, save_paths = [], [], [], []
+        for i, images_batch in enumerate(datasets_list[2]):
+            images_spectral_features, images_labels, processed_images_path, save_paths = do_embeddings_inference(images_batch, 'testset', images_spectral_features, images_labels, processed_images_path, save_paths)
+        images_spectral_features = np.concatenate(images_spectral_features)
+        save(images_spectral_features, images_labels, processed_images_path, save_paths, "testset")
         
         logging.info("Infer embeddings - train set")
         # compute the latent features of a batch of imgaes
@@ -245,12 +251,6 @@ def calc_spectral_features(model, datasets_list, output_folder, save=True, outpu
         images_spectral_features = np.concatenate(images_spectral_features)
         save(images_spectral_features, images_labels, processed_images_path, save_paths, "valset")
         
-        logging.info("Infer embeddings - test set")
-        images_spectral_features, images_labels, processed_images_path, save_paths = [], [], [], []
-        for i, images_batch in enumerate(datasets_list[2]):
-            images_spectral_features, images_labels, processed_images_path, save_paths = do_embeddings_inference(images_batch, 'testset', images_spectral_features, images_labels, processed_images_path, save_paths)
-        images_spectral_features = np.concatenate(images_spectral_features)
-        save(images_spectral_features, images_labels, processed_images_path, save_paths, "testset")
     
     elif len(datasets_list)==1:
         logging.info("Infer embeddings -  all data set")
