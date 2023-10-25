@@ -73,6 +73,23 @@ class EmbeddingsB9DatasetConfig(DatasetConfig):
         self.SPLIT_DATA = False  
         self.EXPERIMENT_TYPE = 'neurons'
 
+
+class EmbeddingsALLDatasetConfig(DatasetConfig):
+    def __init__(self):
+        super().__init__()
+
+        self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "spd2", "SpinningDisk", f) for f in 
+                        [f"batch{i}_16bit_no_downsample" for i in [3,4,5,6,7,8,9]]]
+        
+        self.SPLIT_DATA = False
+        self.EXPERIMENT_TYPE = 'neurons'
+        self.ADD_REP_TO_LABEL = True
+        self.ADD_BATCH_TO_LABEL = True
+        self.EMBEDDINGS_LAYER = 'vqvec2'
+        self.CELL_LINES = ['FUSHomozygous', 'TDP43', 'TBK1', 'WT', 'SCNA', 'FUSRevertant','OPTN', 'FUSHeterozygous']
+        # self.MARKERS = ['TOMM20','mitotracker','GM130'] #['FUS']
+        self.REPS = ['rep1', 'rep2'] # Can be : ['rep1', 'rep2'] or ['rep1'] or ['rep2']
+
 class EmbeddingsB6DatasetConfig(DatasetConfig):
     def __init__(self):
         super().__init__()
@@ -82,6 +99,12 @@ class EmbeddingsB6DatasetConfig(DatasetConfig):
         
         self.SPLIT_DATA = False
         self.EXPERIMENT_TYPE = 'neurons'
+        self.ADD_REP_TO_LABEL = True
+        self.ADD_BATCH_TO_LABEL = True
+
+        #self.CELL_LINES = ['SCNA', 'WT']#, 'FUSHeterozygous', 'FUSRevertant']
+        #self.MARKERS = ['TOMM20','mitotracker','GM130'] #['FUS']
+        self.REPS = ['rep1', 'rep2'] # Can be : ['rep1', 'rep2'] or ['rep1'] or ['rep2']
 
 class EmbeddingsB5DatasetConfig(DatasetConfig):
     def __init__(self):
@@ -92,6 +115,9 @@ class EmbeddingsB5DatasetConfig(DatasetConfig):
         
         self.SPLIT_DATA = False
         self.EXPERIMENT_TYPE = 'neurons'
+        self.ADD_REP_TO_LABEL = True
+        self.ADD_BATCH_TO_LABEL = True
+        self.REPS = ['rep1', 'rep2']
 
 class EmbeddingsB4DatasetConfig(DatasetConfig):
     def __init__(self):
@@ -214,3 +240,149 @@ class EmbeddingsB2B25DatasetConfig(DatasetConfig):
         # self.MARKERS = ['NONO', 'G3BP1', 'TOMM20', 'PURA', 'FUS'] 
         # self.MARKERS_TO_EXCLUDE = ['TDP43','FUS']
         
+############################################################
+# NiemannPick     
+############################################################
+class EmbeddingsNPDatasetConfig(DatasetConfig):
+    def __init__(self):
+        super().__init__()
+
+        self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "spd2", "SpinningDisk", "NiemannPick", f) for f in 
+                        [f"batch{i}_16bit_no_downsample" for i in [1,2,3,4]]]#,4,5,6,9]]]
+        
+        self.SPLIT_DATA = False
+        self.EXPERIMENT_TYPE = 'NiemannPick'
+        self.ADD_REP_TO_LABEL = True
+        self.ADD_BATCH_TO_LABEL = True
+        self.EMBEDDINGS_LAYER = 'vqvec2'
+        self.CELL_LINES = ['KO','WT']
+        # self.MARKERS = ['TOMM20','mitotracker','GM130'] #['FUS']
+        self.REPS = ['rep1', 'rep2'] # Can be : ['rep1', 'rep2'] or ['rep1'] or ['rep2']
+
+class EmbeddingsNPB1DatasetConfig(DatasetConfig):
+    def __init__(self):
+        super().__init__()
+
+        self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "spd2", "SpinningDisk", "NiemannPick", f) for f in 
+                        ["batch1_16bit_no_downsample"]]        
+        self.SPLIT_DATA = False
+        self.EXPERIMENT_TYPE = 'NiemannPick'
+        self.ADD_REP_TO_LABEL = True
+        self.ADD_BATCH_TO_LABEL = True
+        self.EMBEDDINGS_LAYER = 'vqvec2'
+        self.CELL_LINES = ['KO','WT']
+        # self.MARKERS = ['TOMM20','mitotracker','GM130'] #['FUS']
+        self.REPS = ['rep1', 'rep2'] # Can be : ['rep1', 'rep2'] or ['rep1'] or ['rep2']
+
+class EmbeddingsNPB2DatasetConfig(DatasetConfig):
+    def __init__(self):
+        super().__init__()
+
+        self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "spd2", "SpinningDisk", "NiemannPick", f) for f in 
+                        ["batch2_16bit_no_downsample"]]        
+        self.SPLIT_DATA = False
+        self.EXPERIMENT_TYPE = 'NiemannPick'
+        self.ADD_REP_TO_LABEL = True
+        self.ADD_BATCH_TO_LABEL = True
+        self.EMBEDDINGS_LAYER = 'vqvec2'
+        self.CELL_LINES = ['KO','WT']
+        # self.MARKERS = ['TOMM20','mitotracker','GM130'] #['FUS']
+        self.REPS = ['rep1', 'rep2'] # Can be : ['rep1', 'rep2'] or ['rep1'] or ['rep2']
+
+class EmbeddingsNPB3DatasetConfig(DatasetConfig):
+    def __init__(self):
+        super().__init__()
+
+        self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "spd2", "SpinningDisk", "NiemannPick", f) for f in 
+                        ["batch3_16bit_no_downsample"]]        
+        
+        self.SPLIT_DATA = False
+        self.EXPERIMENT_TYPE = 'NiemannPick'
+        self.ADD_REP_TO_LABEL = True
+        self.ADD_BATCH_TO_LABEL = True
+        self.EMBEDDINGS_LAYER = 'vqvec2'
+        self.CELL_LINES = ['KO','WT']
+        # self.MARKERS = ['TOMM20','mitotracker','GM130'] #['FUS']
+        self.REPS = ['rep1', 'rep2'] # Can be : ['rep1', 'rep2'] or ['rep1'] or ['rep2']
+
+class EmbeddingsNPB4DatasetConfig(DatasetConfig):
+    def __init__(self):
+        super().__init__()
+
+        self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "spd2", "SpinningDisk", "NiemannPick", f) for f in 
+                        ["batch4_16bit_no_downsample"]]        
+        self.SPLIT_DATA = False
+        self.EXPERIMENT_TYPE = 'NiemannPick'
+        self.ADD_REP_TO_LABEL = True
+        self.ADD_BATCH_TO_LABEL = True
+        self.EMBEDDINGS_LAYER = 'vqvec2'
+        self.CELL_LINES = ['KO','WT']
+        # self.MARKERS = ['TOMM20','mitotracker','GM130'] #['FUS']
+        self.REPS = ['rep1', 'rep2'] # Can be : ['rep1', 'rep2'] or ['rep1'] or ['rep2']
+
+############################################################
+# DeltaNLS     
+############################################################
+class EmbeddingsdNLSB2DatasetConfig(DatasetConfig):
+    def __init__(self):
+        super().__init__()
+
+        self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "spd2", "SpinningDisk", "deltaNLS", f) for f in 
+                        ["batch2_16bit_no_downsample" ]]
+        
+        self.SPLIT_DATA = False
+        self.EXPERIMENT_TYPE = 'deltaNLS'
+        self.ADD_REP_TO_LABEL = True
+        self.ADD_BATCH_TO_LABEL = True
+        self.EMBEDDINGS_LAYER = 'vqvec2'
+        self.CELL_LINES = ['TDP43','WT']
+        # self.MARKERS = ['TOMM20','mitotracker','GM130'] #['FUS']
+        self.REPS = ['rep1', 'rep2'] # Can be : ['rep1', 'rep2'] or ['rep1'] or ['rep2']
+
+class EmbeddingsdNLSB3DatasetConfig(DatasetConfig):
+    def __init__(self):
+        super().__init__()
+
+        self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "spd2", "SpinningDisk", "deltaNLS", f) for f in 
+                        ["batch3_16bit_no_downsample" ]]
+        
+        self.SPLIT_DATA = False
+        self.EXPERIMENT_TYPE = 'deltaNLS'
+        self.ADD_REP_TO_LABEL = True
+        self.ADD_BATCH_TO_LABEL = True
+        self.EMBEDDINGS_LAYER = 'vqvec2'
+        self.CELL_LINES = ['TDP43','WT']
+        # self.MARKERS = ['TOMM20','mitotracker','GM130'] #['FUS']
+        self.REPS = ['rep1', 'rep2'] # Can be : ['rep1', 'rep2'] or ['rep1'] or ['rep2']
+
+class EmbeddingsdNLSB4DatasetConfig(DatasetConfig):
+    def __init__(self):
+        super().__init__()
+
+        self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "spd2", "SpinningDisk", "deltaNLS", f) for f in 
+                        ["batch4_16bit_no_downsample" ]]
+        
+        self.SPLIT_DATA = False
+        self.EXPERIMENT_TYPE = 'deltaNLS'
+        self.ADD_REP_TO_LABEL = True
+        self.ADD_BATCH_TO_LABEL = True
+        self.EMBEDDINGS_LAYER = 'vqvec2'
+        self.CELL_LINES = ['TDP43','WT']
+        # self.MARKERS = ['TOMM20','mitotracker','GM130'] #['FUS']
+        self.REPS = ['rep1', 'rep2'] # Can be : ['rep1', 'rep2'] or ['rep1'] or ['rep2']
+
+class EmbeddingsdNLSB5DatasetConfig(DatasetConfig):
+    def __init__(self):
+        super().__init__()
+
+        self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "spd2", "SpinningDisk", "deltaNLS", f) for f in 
+                        ["batch5_16bit_no_downsample" ]]
+        
+        self.SPLIT_DATA = False
+        self.EXPERIMENT_TYPE = 'deltaNLS'
+        self.ADD_REP_TO_LABEL = True
+        self.ADD_BATCH_TO_LABEL = True
+        self.EMBEDDINGS_LAYER = 'vqvec2'
+        self.CELL_LINES = ['TDP43','WT']
+        # self.MARKERS = ['TOMM20','mitotracker','GM130'] #['FUS']
+        self.REPS = ['rep1', 'rep2'] # Can be : ['rep1', 'rep2'] or ['rep1'] or ['rep2']
