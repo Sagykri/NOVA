@@ -232,7 +232,7 @@ def calc_spectral_features(model, datasets_list, output_folder, save=True, outpu
         logging.info(f"Infer embeddings - {set_type} set")
         images_spectral_features, images_labels, processed_images_path, save_paths = [], [], [], []
         for i, images_batch in enumerate(datasets_list[set_index]):
-            images_spectral_features, images_labels, processed_images_path, save_paths = do_embeddings_inference(images_batch, 'testset', images_spectral_features, images_labels, processed_images_path, save_paths)
+            images_spectral_features, images_labels, processed_images_path, save_paths = do_embeddings_inference(images_batch, images_spectral_features, images_labels, processed_images_path, save_paths)
         images_spectral_features = np.concatenate(images_spectral_features)
         save(images_spectral_features, images_labels, processed_images_path, save_paths, f"{set_type}set")
         return None
