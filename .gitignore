@@ -3,6 +3,7 @@
 .vscode/
 .ipynb_checkpoints/
 *.csv
+*.tiff
 anaconda3/
 logs/
 
@@ -13,6 +14,8 @@ outputs/cell_profiler/*
 input/embeddings/*
 input/gt_tables/*
 input/images/raw/*
+sandbox/figure_1/*
+sandbox/figure_2/*
 !input/images/raw/.gitkeep
 input/images/processed/*
 !input/images/processed/.gitkeep

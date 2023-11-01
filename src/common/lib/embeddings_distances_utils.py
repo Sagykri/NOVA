@@ -351,10 +351,15 @@ def between_cell_lines_sep_rep_dist(marker_centroids, cell_lines_conditions, mar
                     logging.info(f"Skipping comparison of cell_line_conds for {marker} in {name} since cell_line_conds: {cur_marker.shape[0]}")
                     continue
                 x = np.stack(cur_marker['embeddings_centroid'].values, axis=0)
-                cell_lines_conds_similarities = pd.DataFrame(1/(1+dist_func(x, metric='euclidean', n_jobs=-1)), 
+                cell_lines_conds_similarities = pd.DataFrame(dist_func(x, metric='euclidean', n_jobs=-1), 
                                                             columns=cur_marker.cell_line_condition.values, 
                                                             index=cur_marker.cell_line_condition).reset_index()
-                
+                num_rows, _ = cell_lines_conds_similarities.shape
+
+                # Nullify the diagonal elements
+                for i in range(num_rows):
+                    cell_lines_conds_similarities.iat[i, i+1] = np.nan
+
                 # combine marker similiarites in one df
                 cell_lines_conds_similarities_for_df = cell_lines_conds_similarities
                 cell_lines_conds_similarities_for_df['batch'] = name[0]
@@ -412,20 +417,29 @@ def unite_batches(distances_main_folder, input_folders, scale=False, files = ['w
     # ------------------------------------------------------------------------------------------ 
     batches_names = [folder.split(os.sep)[-1].replace('_16bit_no_downsample','') for folder in input_folders]
     for file in files:
-        df, scaled_df = pd.DataFrame(), pd.DataFrame()
+        # old method
+        df = pd.DataFrame()
         for batch in batches_names:
             cur_df = pd.read_csv(os.path.join(distances_main_folder, f'{file}_{batch}.csv'))
             if 'batch' not in cur_df.columns:
                 cur_df['batch'] = batch
-            if scale:
-                numeric_df = cur_df.select_dtypes(include='number')
-                max_ = numeric_df.max().max()
-                min_ = numeric_df.min().min()
-                cur_scaled_df = (numeric_df - min_) / (max_-min_)
-                cur_scaled_df = pd.concat([cur_df.select_dtypes(exclude='number'), cur_scaled_df], axis=1)
-                scaled_df = pd.concat([scaled_df, cur_scaled_df])
             df = pd.concat([df, cur_df])
         save_excel_with_sheet_name(os.path.join(distances_main_folder,f'{file}.xlsx'), input_folders, df)
-        save_excel_with_sheet_name(os.path.join(distances_main_folder,f'{file}_scaled.xlsx'), input_folders, scaled_df)
 
-        
+        new_df = pd.DataFrame()
+        for batch in batches_names:
+            cur_df = pd.read_csv(os.path.join(distances_main_folder, f'{file}_{batch}.csv'))
+            if 'batch' not in cur_df.columns:
+                cur_df['batch'] = batch
+            new_df = pd.concat([new_df, cur_df])
+        new_df.to_csv(os.path.join(distances_main_folder,f'{file}_new.csv'), index=False)
+        if scale: #min max scale for each batch+rep !
+            scaled = pd.DataFrame()
+            for name, group in new_df.groupby(['batch','rep']):
+                numeric_cur = group.select_dtypes(include='number')
+                max_cur = numeric_cur.max().max()
+                min_cur = numeric_cur.min().min()
+                cur_scaled_df = (numeric_cur - min_cur) / (max_cur-min_cur)
+                cur_scaled_df = pd.concat([group.select_dtypes(exclude='number'), cur_scaled_df], axis=1)
+                scaled = pd.concat([scaled, cur_scaled_df])
+        scaled.to_csv(os.path.join(distances_main_folder,f'{file}_new_scaled.csv'), index=False)
