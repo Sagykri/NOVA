@@ -37,18 +37,21 @@ def generate_spectral_features():
     
     experiment_type = get_if_exists(config_data, 'EXPERIMENT_TYPE', None)
     assert experiment_type is not None, "EXPERIMENT_TYPE can't be None"
-    
     logging.info(f"experiment_type = {experiment_type}")
     
+    embedding_layer = get_if_exists(config_data, 'EMBEDDINGS_LAYER', None)
+    assert embedding_layer is not None, "EMBEDDINGS_LAYER can't be None"
+    logging.info(f"embedding_layer = {embedding_layer}")
+
     # Get dataset 
     # ****** IMPORTANT: batch_size==1 !!! to help get correct tile numbers per image ****** 
     datasets_list = load_dataset_for_embeddings(config_data=config_data, batch_size=1, config_model=config_model)
     # Set the output folder (where to save the embeddings)
-    embeddings_folder = os.path.join(config_model.MODEL_OUTPUT_FOLDER, 'vqindhist1', experiment_type)
+    embeddings_folder = os.path.join(config_model.MODEL_OUTPUT_FOLDER, embedding_layer, experiment_type)
     # Get trained model    
     trained_model = load_model_with_dataloader(model, datasets_list)
     
-    calc_spectral_features(trained_model, datasets_list, embeddings_folder, save=True, output_layer='vqindhist1')
+    calc_spectral_features(trained_model, datasets_list, embeddings_folder, save=True, output_layer=embedding_layer)
     
     return None
     
