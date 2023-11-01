@@ -75,3 +75,29 @@ class TLNeuroselfB78NoDSModelConfig(NeuroselfConfig):
         self.DATA_VAR =0.016091262813612773 # 7_16bit_nods: 0.016091262813612773
         # ./bash_commands/run_py.sh ./src/runables/training -g -m 15000 -b 40 -a ./src/models/neuroself/configs/model_config/NeuroselfB7TrainingConfig ./src/datasets/configs/train_config/TrainB7DatasetConfig
         
+
+class TLNeuroselfdeltaNLSB25ModelConfig(NeuroselfConfig):
+    def __init__(self):
+        super().__init__()
+        
+        self.OUTPUTS_FOLDER = MODEL_OUTPUT ## TODO: remove, temp fix
+        self.MODEL_OUTPUT_FOLDER = os.path.join(self.OUTPUTS_FOLDER, 'models_outputs_deltaNLS_tl_neuroself_sep_TDP43')
+        
+        self.LOGS_FOLDER = os.path.join(self.MODEL_OUTPUT_FOLDER, 'logs')
+        self.CONFIGS_USED_FOLDER = os.path.join(self.MODEL_OUTPUT_FOLDER, "configs_used", datetime.datetime.now().strftime("%d%m%y_%H%M%S_%f"))
+
+        # Models
+        self.PRETRAINED_MODEL_PATH = os.path.join(self.OUTPUTS_FOLDER, "models_outputs_batch78_nods_tl_ep23", "model_22.pt") 
+        self.MODEL_PATH = None 
+        self.LAST_CHECKPOINT_PATH = os.path.join(self.MODEL_OUTPUT_FOLDER, 'checkpoints')
+        
+        self.EARLY_STOP_PATIENCE = 10
+        self.LEARN_RATE = 2e-4
+        self.BATCH_SIZE = 4
+        self.MAX_EPOCH = 100
+
+        # batch2 var:  0.0074132928873828965
+        # batch3 var:  0.007107947532662469
+        # batch4 var:  0.0070460634463774836
+        # batch5 var:  0.006884715302232348
+        self.DATA_VAR = 0.00714900409 # the mean of B2 and B5  

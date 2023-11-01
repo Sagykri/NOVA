@@ -271,3 +271,19 @@ class EmbeddingsdNLSDatasetConfig(DatasetConfig):
         self.CELL_LINES = ['TDP43','WT']
         # self.MARKERS = ['TOMM20','mitotracker','GM130'] #['FUS']
         self.REPS = ['rep1', 'rep2'] # Can be : ['rep1', 'rep2'] or ['rep1'] or ['rep2']
+
+class EmbeddingsdNLS25DatasetConfig(DatasetConfig):
+    def __init__(self):
+        super().__init__()
+
+        self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "spd2", "SpinningDisk", "deltaNLS", f) for f in 
+                        [f"batch{i}_16bit_no_downsample" for i in [2,5]]]#,4,5,6,9]]]
+        
+        self.SPLIT_DATA = True
+        self.EXPERIMENT_TYPE = 'deltaNLS'
+        self.ADD_REP_TO_LABEL = True
+        self.ADD_BATCH_TO_LABEL = True
+        self.EMBEDDINGS_LAYER = 'vqvec2'
+        self.CELL_LINES = ['TDP43','WT']
+        # self.MARKERS = ['TOMM20','mitotracker','GM130'] #['FUS']
+        self.REPS = ['rep1', 'rep2'] # Can be : ['rep1', 'rep2'] or ['rep1'] or ['rep2']
