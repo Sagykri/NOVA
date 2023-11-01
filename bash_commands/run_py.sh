@@ -15,7 +15,7 @@ gmem=5
 ngpu=1
 queue=""
 job_name="Run_$py_name"
-
+#wait="done(343509)"
 shift
 
 while getopts "m:ga:b:n:q:j:" opt; do
@@ -55,3 +55,6 @@ then
 else
   bsub -n 1 -q $queue -gpu "num=${ngpu}:gmem=${gmem}G:j_exclusive=yes:aff=yes" -J $job_name -B -R "rusage[mem=$mem] span[hosts=1]" python $py_name.py $args
 fi
+
+
+#  bsub -n 1 -w $wait -q $queue -gpu "num=${ngpu}:gmem=${gmem}G:j_exclusive=yes:aff=yes" -J $job_name -B -R "rusage[mem=$mem] span[hosts=1]" python $py_name.py $args

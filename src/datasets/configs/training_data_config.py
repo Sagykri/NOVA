@@ -53,3 +53,11 @@ class OpenCellTrainDatasetConfig(DatasetConfig):
         self.CELL_LINES = ['WT']
         self.CONDITIONS = ['Untreated']
         ######################
+
+class deltaNLSB25TrainDatasetConfig(DatasetConfig):
+    def __init__(self):
+        super().__init__()
+
+        self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "spd2", "SpinningDisk", 'deltaNLS', f) for f in 
+                        ["batch2_16bit_no_downsample", "batch5_16bit_no_downsample"]]
+        self.SPLIT_DATA = True
