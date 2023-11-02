@@ -62,7 +62,10 @@ class EmbeddingsB78DatasetConfig(DatasetConfig):
         
         self.SPLIT_DATA = True
         self.EXPERIMENT_TYPE = 'neurons'    
-
+        
+        # Local/Global embeddings
+        self.EMBEDDINGS_LAYER = 'vqvec2'
+        
 class EmbeddingsB9DatasetConfig(DatasetConfig):
     def __init__(self):
         super().__init__()
@@ -72,6 +75,26 @@ class EmbeddingsB9DatasetConfig(DatasetConfig):
         
         self.SPLIT_DATA = False  
         self.EXPERIMENT_TYPE = 'neurons'
+        
+        # Local/Global embeddings
+        self.EMBEDDINGS_LAYER = 'vqvec2'
+        
+class EmbeddingsB9SubsetDatasetConfig(DatasetConfig):
+    def __init__(self):
+        super().__init__()
+
+        self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "spd2", "SpinningDisk", f) for f in 
+                        ["batch9_16bit_no_downsample"]]
+        
+        self.SPLIT_DATA = False  
+        self.EXPERIMENT_TYPE = 'neurons'
+        
+        # Local/Global embeddings
+        self.EMBEDDINGS_LAYER = 'vqvec2'
+        
+        self.CELL_LINES = ['WT']#, 'FUSHomozygous', 'FUSHeterozygous', 'FUSRevertant']
+        # self.CONDITIONS = ['Untreated']
+        self.MARKERS = ['G3BP1']
 
 class EmbeddingsB6DatasetConfig(DatasetConfig):
     def __init__(self):
@@ -82,6 +105,9 @@ class EmbeddingsB6DatasetConfig(DatasetConfig):
         
         self.SPLIT_DATA = False
         self.EXPERIMENT_TYPE = 'neurons'
+        
+        # Local/Global embeddings
+        self.EMBEDDINGS_LAYER = 'vqvec2'
 
 class EmbeddingsB5DatasetConfig(DatasetConfig):
     def __init__(self):
@@ -92,6 +118,9 @@ class EmbeddingsB5DatasetConfig(DatasetConfig):
         
         self.SPLIT_DATA = False
         self.EXPERIMENT_TYPE = 'neurons'
+        
+        # Local/Global embeddings
+        self.EMBEDDINGS_LAYER = 'vqvec2'
 
 class EmbeddingsB4DatasetConfig(DatasetConfig):
     def __init__(self):
@@ -102,6 +131,9 @@ class EmbeddingsB4DatasetConfig(DatasetConfig):
         
         self.SPLIT_DATA = False
         self.EXPERIMENT_TYPE = 'neurons'
+        
+        # Local/Global embeddings
+        self.EMBEDDINGS_LAYER = 'vqvec2'
 
 class EmbeddingsB3DatasetConfig(DatasetConfig):
     def __init__(self):
@@ -113,6 +145,112 @@ class EmbeddingsB3DatasetConfig(DatasetConfig):
         self.SPLIT_DATA = False
         self.EXPERIMENT_TYPE = 'neurons'
         
+        # Local/Global embeddings
+        self.EMBEDDINGS_LAYER = 'vqvec2'
+
+############################################################
+# deltaNLS
+############################################################        
+class EmbeddingsDeltaNLSDatasetConfig(DatasetConfig):
+    def __init__(self):
+        super().__init__()
+
+        self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "spd2", "SpinningDisk", 'deltaNLS', f) for f in 
+                        ["batch2_16bit_no_downsample", "batch3_16bit_no_downsample", "batch4_16bit_no_downsample", "batch5_16bit_no_downsample"]]
+                
+        self.SPLIT_DATA = False        
+        self.EXPERIMENT_TYPE = 'deltaNLS'
+        
+        # Local/Global embeddings
+        self.EMBEDDINGS_LAYER = 'vqvec2'
+
+############################################################
+# NiemannPick
+############################################################        
+class EmbeddingsNiemannPickDatasetConfig(DatasetConfig):
+    def __init__(self):
+        super().__init__()
+
+        self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "spd2", "SpinningDisk", 'NiemannPick', f) for f in 
+                        ["batch1_16bit_no_downsample", "batch2_16bit_no_downsample", "batch3_16bit_no_downsample", "batch4_16bit_no_downsample"]]
+                
+        self.SPLIT_DATA = False        
+        self.EXPERIMENT_TYPE = 'NiemannPick'
+        
+        # Local/Global embeddings
+        self.EMBEDDINGS_LAYER = 'vqvec2'
+                
+############################################################
+# Perturbations 
+############################################################
+class EmbeddingsPertConfocalDatasetConfig(DatasetConfig):
+    def __init__(self):
+        super().__init__()
+
+        self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "Confocal", f) for f in 
+                                ["Perturbations_spd_format"]]
+        
+        
+        self.SPLIT_DATA = False        
+        self.CELL_LINES = ['WT', 'TDP43']
+        self.CONDITIONS = ['Untreated', 'DMSO1uM', 'Edavarone', 'Pridopine', 'DMSO100uM', 'Riluzole', 'Tubastatin', 'Chloroquine']
+        self.EXPERIMENT_TYPE = 'perturbations_confocal'
+        
+        # Local/Global embeddings
+        self.EMBEDDINGS_LAYER = 'vqvec1'
+        
+class EmbeddingsPertSPDDatasetConfig(DatasetConfig):
+    def __init__(self):
+        super().__init__()
+
+        self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "spd2", "SpinningDisk", f) for f in 
+                        ["Perturbations_16bit_no_downsample"]]
+                
+
+        self.SPLIT_DATA = False        
+        self.CELL_LINES = ['WT', 'TDP43']
+        self.CONDITIONS = ['Untreated', 'DMSO1uM', 'Edavarone', 'Pridopine', 'DMSO100uM', 'Riluzole', 'Tubastatin', 'Chloroquine']
+        self.EXPERIMENT_TYPE = 'perturbations'
+        
+        # Local/Global embeddings
+        self.EMBEDDINGS_LAYER = 'vqvec2'
+
+############################################################
+# U2OS data
+############################################################        
+class EmbeddingsU2OSDatasetConfig(DatasetConfig):
+    def __init__(self):
+        super().__init__()
+
+        self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "Confocal", f) for f in 
+                        ["U2OS_spd_format"]]
+        
+        self.SPLIT_DATA = False        
+        self.CELL_LINES = ['U2OS']
+        self.EXPERIMENT_TYPE = 'U2OS'
+        self.ADD_REP_TO_LABEL = False
+        self.ADD_BATCH_TO_LABEL = False
+        
+        # Local/Global embeddings
+        self.EMBEDDINGS_LAYER = 'vqindhist1'
+        
+        # Set a function to map the labels, can be None if not needed.
+        # Instructions:
+        # - The function must be given as string!
+        # - Please start with 'lambda self:' and then put your lambda function
+        # - If you need to use a package, use it through import as follows __import__('numpy').array([])
+        # - Example: "lambda self: lambda labels: __import__('numpy').asarray([l.split('_')[-2-int(self.ADD_REP_TO_LABEL)] for l in labels])"
+        self.MAP_LABELS_FUNCTION = "lambda self: lambda labels: __import__('numpy').asarray([l.split('_')[-2-int(self.ADD_REP_TO_LABEL)] for l in labels])"
+
+        # Set the colormap, for example: {"Untreated": "#52C5D5", 'stress': "#F7810F"} 
+        self.COLORMAP = {"Untreated": "#52C5D5", 'stress': "#F7810F"}
+
+        # Set the size of the dots
+        self.SIZE = 6
+        # Set the alpha of the dots (0=max opacity, 1=no opacity)
+        self.ALPHA = 0.7
+        #######################################
+
 ############################################################
 # Open Cell (cytoself data)
 ############################################################        
@@ -128,41 +266,18 @@ class EmbeddingsOpenCellDatasetConfig(DatasetConfig):
         self.CONDITIONS = ['Untreated']
         self.EXPERIMENT_TYPE = 'opencell'
         
-
-############################################################
-# Perturbations 
-############################################################
-class EmbeddingsPertConfocalDatasetConfig(DatasetConfig):
-    def __init__(self):
-        super().__init__()
-
-        self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "Confocal", f) for f in 
-                                ["Perturbations_spd_format"]]
-        
-        
-        self.SPLIT_DATA = False        
-        # self.CELL_LINES = ['WT', 'FUSHomozygous', 'FUSHeterozygous', 'FUSRevertant']
-        self.CONDITIONS = ['Untreated']
-        # self.MARKERS = ['FUS']#, 'FMRP']
-        
-        # self.SAMPLE_PCT = 0.1 
-        self.EXPERIMENT_TYPE = 'perturbations'
-        
-class EmbeddingsPertSPDDatasetConfig(DatasetConfig):
+class EmbeddingsOpenCellSubsetDatasetConfig(DatasetConfig):
     def __init__(self):
         super().__init__()
 
         self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "spd2", "SpinningDisk", f) for f in 
-                        ["Perturbations"]]
-                
-
-        self.SPLIT_DATA = False        
-        # self.CELL_LINES = ['WT', 'FUSHomozygous', 'FUSHeterozygous', 'FUSRevertant']
-        self.CONDITIONS = ['Untreated']
-        # self.MARKERS = ['FUS']#, 'FMRP'] 
+                        ["OpenCell"]]
         
-        # self.SAMPLE_PCT = 0.1
-        self.EXPERIMENT_TYPE = 'perturbations'
+        self.SPLIT_DATA = True        
+        self.CELL_LINES = ['WT']
+        self.CONDITIONS = ['Untreated']
+        self.MARKERS = ['G3BP1']
+        self.EXPERIMENT_TYPE = 'opencell'
 
 ############################################################
 # Batch 2 (confocal)        

@@ -3,6 +3,7 @@ from sklearn.cluster import KMeans
 from sklearn.metrics import silhouette_score, adjusted_rand_score
 import matplotlib.pyplot as plt
 import torch
+import sklearn.cluster as cluster
 
 def calculate_mse(inpt, reconstructed):
   """Calculate MSE
@@ -25,24 +26,33 @@ def calculate_mse(inpt, reconstructed):
       mses[ch] = torch.nn.functional.mse_loss(inpt[:, ii, ...], reconstructed[:, ii, ...])
   return mses
 
-# TODO: Adjust to torch version
-def calc_clustering_validation(X, labels_true, n_clusters=3, seed=1):
-  """Calc metrics (silhouette and ARI)
+def calc_clustering_validation_metric(umap_df, true_labels, metrics=['ARI']):
+        """
+        Give first 2 UMAP components and true labels to calculate a dictionary with clustering metrics
 
-  Args:
-      X (array): The data
-      labels_true ([string]): The true labels
-      n_clusters (int, optional): Number of expected classes. Defaults to 3.
+        Args:
+            umap_df (dataframe): first 2 UMAP components
+            true_labels (array): list of strings 
+            metrics (list, optional): clustering metrics to calculate; defaults to ['ARI'].
 
-  Returns:
-      (ARI, silhouette score): The ARI and silhouette scores
-  """
-  labels_pred = KMeans(n_clusters=n_clusters, random_state=seed).fit_predict(X)  
-  
-  silhouette_score_val = silhouette_score(X, labels_pred)
-  adjusted_rand_score_val = adjusted_rand_score(labels_true=labels_true, labels_pred=labels_pred)
+        Returns:
+            scores (dictionary): dictionary where the key is the name of the metric 
+                                 and the value is the clustering score
+        """
+        scores = {}
+        if 'ARI' in metrics:
+            ###########################
+            ### For ARI calculation ###
+            ###########################
+            
+            # K-means for standard (centroid-based) clustering
+            k = len(true_labels.unique())
+            kmeans_labels = cluster.KMeans(n_clusters=k, n_init=10, random_state=42).fit_predict(umap_df)
+            ARI = adjusted_rand_score(true_labels, kmeans_labels)
 
-  return adjusted_rand_score_val, silhouette_score_val
+            scores['ARI'] = round(ARI, 3)
+            
+        return scores
 
 # TODO: Adjust to torch version
 def plot_metrics(X, labels_true, n_clusters=3,savepath=None):

@@ -13,7 +13,7 @@ import pathlib
 import os
 
 # Global paths
-BATCH_TO_RUN = 'batch8' 
+BATCH_TO_RUN = 'microglia_LPS_sort/batch1' 
 LINE_TO_RUN = 'WT'
 
 BASE_DIR = os.path.join('/home','labs','hornsteinlab','Collaboration','MOmaps')
@@ -85,21 +85,41 @@ def collect_image_names_per_marker(input_data_dir):
         filename, ext = os.path.splitext(file)
         if ext == '.tif':
             image_filename = os.path.join(input_data_dir, file)
-            file_list.append(pathlib.Path(image_filename))    # CP requires absolute file paths
-    
+            #file_list.append(pathlib.Path(image_filename))    # CP requires absolute file paths
+            
+    ###########################################################
+            ### For microglia test: ###
+            Noam_dict = {'panelD/Untreated/rep1/CLTC': ['R11_w3confmCherry_s42.tif', 'R11_w3confmCherry_s79.tif', 'R11_w3confmCherry_s31.tif', 'R11_w3confmCherry_s94.tif'],'panelD/Untreated/rep1/PSD95': ['R11_w2confCy5_s82.tif', 'R11_w2confCy5_s46.tif', 'R11_w2confCy5_s56.tif'],'panelC/LPS/rep1/FMRP': ['R11_w3confmCherry_s1079.tif'],'panelJ/LPS/rep2/pNFKB': ['R11_w3confmCherry_s1108.tif', 'R11_w3confmCherry_s1187.tif', 'R11_w3confmCherry_s1152.tif', 'R11_w3confmCherry_s1124.tif']}
+            corrupted = [f'/home/labs/hornsteinlab/Collaboration/MOmaps/input/images/raw/SpinningDisk/microglia_LPS_sort/batch1/WT/{marker_folder}/{image_name}' for marker_folder in Noam_dict.keys() for image_name in Noam_dict[marker_folder]]
+            
+            if pathlib.Path(image_filename) in corrupted:
+                logging.info(f'image {pathlib.Path(image_filename)} skipped!')
+                continue
+            else:
+                logging.info(f'image {pathlib.Path(image_filename)} included')
+                file_list.append(pathlib.Path(image_filename))    # CP requires absolute file paths
+                site = filename.split('_')[-1]
+                nucleus_folder = os.path.join(rep_dir, "DAPI")
+                nucleus_filepath = glob(f"{nucleus_folder}/*_{site}{ext}")[0]
+                file_list.append(pathlib.Path(nucleus_filepath))
+            
+    files = [file.as_uri() for file in file_list]
+    return files
+    ###########################################################
+            
             #find the right DAPI file to append
-            site = filename.split('_')[-1]
-            nucleus_folder = os.path.join(rep_dir, "DAPI")
-            nucleus_filepath = glob(f"{nucleus_folder}/*_{site}{ext}")[0]
-            file_list.append(pathlib.Path(nucleus_filepath))
+            # site = filename.split('_')[-1]
+            # nucleus_folder = os.path.join(rep_dir, "DAPI")
+            # nucleus_filepath = glob(f"{nucleus_folder}/*_{site}{ext}")[0]
+            # file_list.append(pathlib.Path(nucleus_filepath))
             
             #stop at 50% of the data
-            file_count += 1
-            if file_count == 100:
-                files = [file.as_uri() for file in file_list]
-                return files
-            else:
-                continue
+            # file_count += 1
+            # if file_count == 100:
+            #     files = [file.as_uri() for file in file_list]
+            #     return files
+            # else:
+            #     continue
 
 
 def extract_cell_profilers_features(image_files, pipeline):
