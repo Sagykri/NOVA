@@ -24,7 +24,7 @@ class LenaDatasetConfig(DatasetConfig):
                   
         self.CELL_LINES = ['WT', 'TDP43', 'FUSHeterozygous']#, 'FUSHomozygous', 'FUSHeterozygous', 'FUSRevertant', 'TDP43']
         self.MARKERS = ['FUS', 'FMRP', 'G3BP1']#, 'G3BP1', 'PURA', 'TDP43']#['G3BP1', 'PURA', 'FMRP']#, 'Calreticulin', 'SQSTM1']#, 'NCL', 'TDP43', 'mitotracker', 'FMRP'] #['FUS']
-        self.CONDITIONS = ['Untreated']
+        # self.CONDITIONS = ['Untreated']
         
         # You can add more folder like this: input_folders_names = ["batch9_16bit", "batch7", "batch6",] 
         input_folders_names = ['batch9_16bit_no_downsample']
@@ -38,6 +38,23 @@ class LenaDatasetConfig(DatasetConfig):
         self.ADD_REP_TO_LABEL = False
         # You can set this var to True if you want the UMAP to color the batches with different colors
         self.ADD_BATCH_TO_LABEL = False
+        
+        # Set a function to map the labels, can be None if not needed.
+        # Instructions:
+        # - The function must be given as string!
+        # - Please start with 'lambda self:' and then put your lambda function
+        # - If you need to use a package, use it through import as follows __import__('numpy').array([])
+        # - Example: "lambda self: lambda labels: __import__('numpy').asarray([l.split('_')[-2-int(self.ADD_REP_TO_LABEL)] for l in labels])"
+        self.MAP_LABELS_FUNCTION = "lambda self: lambda labels: __import__('numpy').asarray([l.split('_')[-2-int(self.ADD_REP_TO_LABEL)] for l in labels])"
+        
+        # Set the colormap, for example: {"Untreated": "#52C5D5", 'stress': "#F7810F"} 
+        self.COLORMAP = {"Untreated": "#52C5D5", 'stress': "#F7810F"}
+        
+        # Set the size of the dots
+        self.SIZE = 0.8
+        # Set the alpha of the dots (0=max opacity, 1=no opacity)
+        self.ALPHA = 0.7
+        
         # You can set whether to use the global representation (vqvec2) or the local representation (vqvec1)
         self.EMBEDDINGS_LAYER = 'vqvec2' # 'vqvec1' / 'vqvec2'
         # You can set from what experiment (the name of the folder) to pull the embeddings

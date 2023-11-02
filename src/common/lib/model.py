@@ -438,6 +438,8 @@ class Model():
                   s=0.3,
                   alpha=0.5,
                   reset_umap=False,
+                  map_labels_function=None,
+                  colormap='tab20_others',
                   **kwargs):
         """
         Args:
@@ -469,6 +471,9 @@ class Model():
                 raise Exception("Embeddings are empty!")
                              
         
+        if map_labels_function is not None:
+            label_data = map_labels_function(label_data)
+        
         umap_data = self.analytics.plot_umap_of_embedding_vector(
             data_loader=data_loader,
             id2label=id2label,
@@ -483,6 +488,7 @@ class Model():
             random_state=self.conf.SEED,
             embedding_data=embedding_data,
             label_data=label_data,
+            colormap=colormap,
             **kwargs)
         
         return umap_data
