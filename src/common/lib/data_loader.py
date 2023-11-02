@@ -11,7 +11,7 @@ from src.common.lib.dataset import Dataset
 
 def get_dataloader(dataset, batch_size, indexes=None, num_workers=2):
     __shuffle = True
-    __pin_memory = False
+    __pin_memory = True
     logging.warning(f"Using subset + shuffle={__shuffle} + pin_memory={__pin_memory}")
     
     ds = Dataset.get_subset(dataset, indexes) if indexes is not None else dataset  

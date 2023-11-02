@@ -5,7 +5,7 @@ sys.path.insert(1, os.getenv("MOMAPS_HOME"))
 
 from src.models.neuroself.configs.config import NeuroselfConfig
 
-MOMAPS_OUTPUT = '/home/labs/hornsteinlab/Collaboration/MOmaps/outputs/'
+MODEL_OUTPUT = '/home/labs/hornsteinlab/Collaboration/MOmaps/outputs/'
 
 class ExampleNeuroselfModelConfig(NeuroselfConfig):
     def __init__(self):
@@ -59,7 +59,7 @@ class TLNeuroselfB78NoDSModelConfig(NeuroselfConfig):
     def __init__(self):
         super().__init__()
         
-        self.OUTPUTS_FOLDER = MOMAPS_OUTPUT ## TODO: remove, temp fix
+        self.OUTPUTS_FOLDER = MODEL_OUTPUT 
         self.MODEL_OUTPUT_FOLDER = os.path.join(self.OUTPUTS_FOLDER, 'models_outputs_batch78_nods_tl_ep23')
         
         self.LOGS_FOLDER = os.path.join(self.MODEL_OUTPUT_FOLDER, 'logs')
@@ -67,9 +67,7 @@ class TLNeuroselfB78NoDSModelConfig(NeuroselfConfig):
 
         # Models
         self.PRETRAINED_MODEL_PATH = os.path.join(self.OUTPUTS_FOLDER,"models_outputs_cytoself_qsplit9", "checkpoints", "checkpoint_ep23.chkp") 
-        self.MODEL_PATH = os.path.join(self.MODEL_OUTPUT_FOLDER, 'model_31.pt')
-        #self.MODEL_PATH = os.path.join(self.MODEL_OUTPUT_FOLDER, 'checkpoints', 'checkpoint_ep21.chkp')
-        
+        self.MODEL_PATH = os.path.join(self.MODEL_OUTPUT_FOLDER, 'checkpoints', 'checkpoint_ep21.chkp')
         self.LAST_CHECKPOINT_PATH = os.path.join(self.MODEL_OUTPUT_FOLDER, 'checkpoints')
         
         self.EARLY_STOP_PATIENCE = 10
