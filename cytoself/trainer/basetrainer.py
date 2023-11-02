@@ -477,7 +477,7 @@ class BaseTrainer:
                     # Reduce learn rate on plateau
                     # SAGY
                     self.count_lr_no_improve = self._reduce_lr_on_plateau(self.count_lr_no_improve)
-
+                    
                     # Check for early stopping
                     #SAGY
                     if self.count_early_stop >= self.train_args['earlystop_patience']:
@@ -492,8 +492,9 @@ class BaseTrainer:
 
                     # Record metrics
                     self.record_metrics(metrics_all)
-                    
-                    self.save_checkpoint(is_improvement=_is_improvement) #SAGY I moved it here for saving records after 'record_metrics'
+
+                    # Save the best model checkpoint
+                    self.save_checkpoint(is_improvement=_is_improvement) #SAGY - added is_improvement + I moved it here for saving the latest metrics to the checkpoint
                     
                     # Free mem (for releasing the 'loss' from GPU)
                     for m in metrics_all:
