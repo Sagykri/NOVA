@@ -376,6 +376,9 @@ def calc_embeddings_distances(config_model, config_data, distances_main_folder, 
     """
     # ------------------------------------------------------------------------------------------ 
     embeddings_layer = get_if_exists(config_data, 'EMBEDDINGS_LAYER', 'vqvec2')
+    train_batches = get_if_exists(config_data, 'TRAIN_BATCHES', None)
+    assert train_batches is not None, "train_batches can't be None"    
+
     EMBEDDINGS_SHAPE = 9216 if embeddings_layer == 'vqvec2' else 40000
     EMBEDDINGS_NAMES = [f'embeddings_{i}' for i in range(EMBEDDINGS_SHAPE)]
     input_folders = config_data.INPUT_FOLDERS
@@ -386,7 +389,7 @@ def calc_embeddings_distances(config_model, config_data, distances_main_folder, 
     orig_embeddings_type = embeddings_type
     for input_folder in input_folders:
         batch_name = input_folder.split(os.sep)[-1].replace('_16bit_no_downsample','')
-        if batch_name in ['batch7','batch8']:
+        if batch_name in train_batches:
             embeddings_type = 'testset'
         marker_centroids = load_batch_embeddings(input_folder, cell_lines, config_data, config_model, embeddings_type, batch_name)
         # ------------------------------------------------------------------------------------------  

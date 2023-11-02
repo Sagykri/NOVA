@@ -269,6 +269,7 @@ class EmbeddingsdNLSDatasetConfig(DatasetConfig):
         self.ADD_BATCH_TO_LABEL = True
         self.EMBEDDINGS_LAYER = 'vqvec2'
         self.CELL_LINES = ['TDP43','WT']
+        self.TRAIN_BATCHES = ['batch2','batch5']
         # self.MARKERS = ['TOMM20','mitotracker','GM130'] #['FUS']
         self.REPS = ['rep1', 'rep2'] # Can be : ['rep1', 'rep2'] or ['rep1'] or ['rep2']
 

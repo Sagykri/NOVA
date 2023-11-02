@@ -87,8 +87,8 @@ class TLNeuroselfdeltaNLSB25ModelConfig(NeuroselfConfig):
         self.CONFIGS_USED_FOLDER = os.path.join(self.MODEL_OUTPUT_FOLDER, "configs_used", datetime.datetime.now().strftime("%d%m%y_%H%M%S_%f"))
 
         # Models
-        self.PRETRAINED_MODEL_PATH = os.path.join(self.OUTPUTS_FOLDER, "models_outputs_batch78_nods_tl_ep23", "model_22.pt") 
-        self.MODEL_PATH = None 
+        self.PRETRAINED_MODEL_PATH = os.path.join(self.OUTPUTS_FOLDER, "models_outputs_batch78_nods_tl_ep23", "model_31.pt") 
+        self.MODEL_PATH = os.path.join(self.MODEL_OUTPUT_FOLDER, 'model_22.pt')
         self.LAST_CHECKPOINT_PATH = os.path.join(self.MODEL_OUTPUT_FOLDER, 'checkpoints')
         
         self.EARLY_STOP_PATIENCE = 10
