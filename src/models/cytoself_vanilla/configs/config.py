@@ -31,3 +31,4 @@ class CytoselfModelConfig(ModelConfig):
 
         # Was calculated based 150 images per marker (num_markers=1311) from OpenCell data (Total of 71520 "site" images were sampled). site=16 tiles.
         self.DATA_VAR = 0.007928812876343727
+        
