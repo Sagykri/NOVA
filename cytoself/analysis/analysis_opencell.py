@@ -266,12 +266,12 @@ class AnalysisOpenCell(BaseAnalysis):
         logging.info(f"is_3d: {is_3d}; umap_data shape: {umap_data.shape}")
         if is_3d:
             from mpl_toolkits import mplot3d
-        subplot_kw = {'projection': '3d'} if is_3d else None
+        subplot_kw = {'projection': '3d'} if is_3d else {}
         #
-        fig = plt.figure(figsize=figsize, subplot_kw=subplot_kw)
+        fig = plt.figure(figsize=figsize)
         gs = GridSpec(2,1,height_ratios=[20,1])
         
-        ax = fig.add_subplot(gs[0])
+        ax = fig.add_subplot(gs[0], **subplot_kw)
         i = 0
         for gp in unique_groups:
             ind = label_data == gp
