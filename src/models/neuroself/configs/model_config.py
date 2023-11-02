@@ -87,7 +87,7 @@ class TLNeuroselfdeltaNLSB25ModelConfig(NeuroselfConfig):
     def __init__(self):
         super().__init__()
         
-        self.OUTPUTS_FOLDER = MOMAPS_OUTPUT ## TODO: remove, temp fix
+        self.OUTPUTS_FOLDER = MODEL_OUTPUT
         self.MODEL_OUTPUT_FOLDER = os.path.join(self.OUTPUTS_FOLDER, 'models_outputs_deltaNLS_tl_neuroself_sep_TDP43')
         
         self.LOGS_FOLDER = os.path.join(self.MODEL_OUTPUT_FOLDER, 'logs')
@@ -117,7 +117,7 @@ class TLNeuroselfNiemannPickB14ModelConfig(NeuroselfConfig):
     def __init__(self):
         super().__init__()
         
-        self.OUTPUTS_FOLDER = MOMAPS_OUTPUT ## TODO: remove, temp fix
+        self.OUTPUTS_FOLDER = MODEL_OUTPUT
         self.MODEL_OUTPUT_FOLDER = os.path.join(self.OUTPUTS_FOLDER, 'models_outputs_niemann_pick_tl_neuroself')
         
         self.LOGS_FOLDER = os.path.join(self.MODEL_OUTPUT_FOLDER, 'logs')
