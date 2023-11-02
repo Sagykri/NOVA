@@ -1,3 +1,4 @@
+import multiprocessing
 import os
 import sys
 sys.path.insert(1, os.getenv("MOMAPS_HOME"))
@@ -6,9 +7,12 @@ import numpy as np
 import pandas as pd
 import itertools  
 import logging
+import torch
+from torchvision.transforms import InterpolationMode
+from torchvision.transforms.functional import resize
 
 from src.common.lib.image_sampling_utils import find_marker_folders
-from src.common.lib.utils import get_if_exists, load_config_file, init_logging
+from src.common.lib.utils import flat_list_of_lists, get_if_exists, load_config_file, init_logging
 from src.common.lib.model import Model
 from src.common.lib.data_loader import get_dataloader
 from src.datasets.dataset_spd import DatasetSPD
@@ -180,6 +184,72 @@ def calc_embeddings(model, datasets_list, embeddings_folder, save=True, embeddin
         
 
 ###############################################################
+# Utils for Generate spectral features (run from MOmaps/src/runables/generate_spectral_features.py)
+################################################################ 
+
+def calc_spectral_features(model, datasets_list, output_folder, save=True, output_layer = f'vqindhist1'):
+
+    # Parser to get the image's batch/cell_line/condition/rep/marker
+    def final_save_path(full_path):
+        path_list = full_path.split(os.sep)
+        # to create separate batch folders
+        batch = path_list[-5] 
+        # to create labels of each image
+        batch_cell_line_condition_rep_marker_list = [os.path.join(path_list[-1][:4],path_list[i]) if i==-2 else os.path.join(path_list[i]) for i in range(-5,-1)]
+        batch_cell_line_condition_rep_marker = os.path.join(*batch_cell_line_condition_rep_marker_list)
+        return os.path.join(output_folder, output_layer, batch), batch_cell_line_condition_rep_marker
+    get_save_path_and_labels = np.vectorize(final_save_path)
+    
+    
+    def do_embeddings_inference(images_batch, images_spectral_features, images_labels, 
+                                processed_images_path, save_paths, output_layer):
+        save_path, labels = get_save_path_and_labels(images_batch['image_path'])
+
+        # images_batch is torch.Tensor of size(n_tiles, n_channels, 100, 100) - only because batch_size==1!!!!
+        embedding_data = model.model.infer_embeddings(images_batch['image'].numpy(), output_layer=output_layer)
+        before = len(images_labels)
+        images_labels.extend(labels)
+        logging.info(f"images_labels length before: {before}, adding labels length {len(labels)} = {len(images_labels)}")
+        paths = [f'{path}_{n_tile}' for n_tile, path in enumerate(images_batch['image_path'])]
+        processed_images_path.extend(paths)
+        images_spectral_features.append(embedding_data)
+        save_paths.extend(save_path)
+        return images_spectral_features, images_labels, processed_images_path, save_paths
+    
+    def save(features, labels, paths, output_path, dataset_type, output_layer):
+            unique_output_paths = np.unique(output_path)
+            __dict_temp = {value: [index for index, item in enumerate(output_path) if item == value] for value in unique_output_paths}
+            for batch_save_path, batch_indexes in __dict_temp.items():
+                # create folder if needed
+                os.makedirs(batch_save_path, exist_ok=True)
+                logging.info(f"Saving {len(batch_indexes)} ({dataset_type}) indhists in {batch_save_path}")
+                np.save(os.path.join(batch_save_path, f'{output_layer}_{dataset_type}.npy'), features[batch_indexes])
+                np.save(os.path.join(batch_save_path, f'{output_layer}_labels_{dataset_type}.npy'), np.array(labels)[batch_indexes])
+                np.save(os.path.join(batch_save_path, f'{output_layer}_paths_{dataset_type}.npy'), np.array(paths)[batch_indexes])
+            return None
+    
+    def do_embeddings_inference_for_set(set_type, set_index, datasets_list, output_layer):
+        logging.info(f"Infer embeddings - {set_type} set")
+        images_spectral_features, images_labels, processed_images_path, save_paths = [], [], [], []
+        for i, images_batch in enumerate(datasets_list[set_index]):
+            images_spectral_features, images_labels, processed_images_path, save_paths = do_embeddings_inference(images_batch, images_spectral_features, images_labels, processed_images_path, save_paths, output_layer)
+        images_spectral_features = np.concatenate(images_spectral_features)
+        save(images_spectral_features, images_labels, processed_images_path, save_paths, f"{set_type}set", output_layer)
+        return None
+    
+    if len(datasets_list)==3:
+        do_embeddings_inference_for_set('train', 0 , datasets_list, output_layer)
+        do_embeddings_inference_for_set('val', 1 , datasets_list, output_layer)
+        do_embeddings_inference_for_set('test', 2 , datasets_list, output_layer)
+        
+    elif len(datasets_list)==1:
+        do_embeddings_inference_for_set('all', 0 , datasets_list, output_layer)
+    else:
+        logging.exception("[Generate spectral features] Load model: List of datasets is not supported.")
+    
+    return None
+
+###############################################################
 # Utils for Load Embeddings (callable function)
 ################################################################ 
 
@@ -242,6 +312,61 @@ def get_embeddings_subfolders_filtered(config_data, embeddings_main_folder, dept
 
     return marker_folders_to_include
 
+def __handle_load_stored_embeddings(embeddings_type, experiment_type, config_data, config_model, embeddings_layer):
+    def __get_embeddings_and_labels(embeddings_layer):
+        embeddings_main_folder = os.path.join(config_model.MODEL_OUTPUT_FOLDER, 'embeddings', experiment_type, embeddings_layer)
+        
+        marker_folders_to_include = get_embeddings_subfolders_filtered(config_data, embeddings_main_folder)
+        
+        def __parallel_load(paths, embeddings_type, config_data):
+            num_processes = multiprocessing.cpu_count()
+            logging.info(f"[load_embeddings] Running in parallel: {num_processes} processes")
+            __params = [(path, embeddings_type, config_data) for path in  paths]
+            with multiprocessing.Pool(num_processes) as pool:
+                results = pool.starmap(_load_stored_embeddings, __params)
+            
+            embeddings, labels = zip(*results)
+            labels = flat_list_of_lists(list(labels))
+            return list(embeddings), labels
+        
+        embedings_data_list, all_labels = __parallel_load(marker_folders_to_include, embeddings_type, config_data)
+        all_labels = np.asarray(all_labels).reshape(-1,1)
+        
+        # Combine all markers to single numpy 
+        if len(embedings_data_list) == 0:
+            all_embedings_data = np.asarray([])  
+            logging.warn('[__handle_load_stored_embeddings] 0 embeddings were loaded')  
+        else:
+            all_embedings_data = np.vstack(embedings_data_list)
+            logging.info(f"[__handle_load_stored_embeddings] all_embedings_data: {all_embedings_data.shape} all_labels: {all_labels.shape}")
+        
+        return all_embedings_data, all_labels
+    
+    if embeddings_layer == 'vqvec_both':
+        logging.info(f"embeddings_layer is {embeddings_layer}. Loading (and concatenating) both vqvec1 and vqvec2 embeddings...")
+        logging.info("Loading vqvec1 embeddings...")
+        emb_vq1, labels_vq1 = __get_embeddings_and_labels('vqvec1')
+        logging.info("Loading vqvec2 embeddings...")
+        emb_vq2, labels_vq2 = __get_embeddings_and_labels('vqvec2')
+        
+        assert all(labels_vq1 == labels_vq2), "Labels (vq1, vq2) mismatch"
+        
+        logging.info("Converting vqvec1 and vqvec2 from np arrays to tensors")
+        emb_vq1 = torch.from_numpy(emb_vq1)
+        emb_vq2 = torch.from_numpy(emb_vq2)
+        logging.info("Resizing vqvec2 embeddings")
+        emb_vq2 = resize(emb_vq2, config_model.EMB_SHAPES[0], interpolation=InterpolationMode.NEAREST)
+        logging.info("Concatenating vqvec1 and vqvec2 embeddings")
+        emb_vq_both = torch.cat([emb_vq2, emb_vq1], 1)
+        labels_vq_both = labels_vq1
+        
+        logging.info("Converting final embeddings from tensor to np array")
+        emb_vq_both = emb_vq_both.numpy()
+        logging.info(f"emb_vq_both.shape = {emb_vq_both.shape}, labels_vq_both.shape = {labels_vq_both.shape}")
+        
+        return emb_vq_both, labels_vq_both
+    
+    return __get_embeddings_and_labels(embeddings_layer)
 
 def _load_stored_embeddings(marker_folder, embeddings_type, config_data):
     """Load all pre-stored embeddings (npy files)
@@ -313,26 +438,7 @@ def load_embeddings(config_path_model=None, config_path_data=None,
     embeddings_layer = get_if_exists(config_data, 'EMBEDDINGS_LAYER', 'vqvec2')
     logging.info(f"[load_embeddings] embeddings_layer = {embeddings_layer}")
     
-    embeddings_main_folder = os.path.join(config_model.MODEL_OUTPUT_FOLDER, 'embeddings', experiment_type, embeddings_layer)
-    
-    marker_folders_to_include = get_embeddings_subfolders_filtered(config_data, embeddings_main_folder)
-    
-    embedings_data_list, all_labels = [], []
-    for marker_folder in marker_folders_to_include:
-        embedings_data, labels = _load_stored_embeddings(marker_folder, embeddings_type, config_data)
-        
-        embedings_data_list.append(embedings_data)
-        all_labels.extend(labels)
-
-    all_labels = np.asarray(all_labels).reshape(-1,1)
-    
-    # Combine all markers to single numpy 
-    if len(embedings_data_list) == 0:
-        all_embedings_data = np.asarray([])  
-        logging.warn('[load_embeddings] 0 embeddings were loaded')  
-    else:
-        all_embedings_data = np.vstack(embedings_data_list)
-        logging.info(f"[load_embeddings] all_embedings_data: {all_embedings_data.shape} all_labels: {all_labels.shape}")
+    all_embedings_data, all_labels = __handle_load_stored_embeddings(embeddings_type, experiment_type, config_data, config_model, embeddings_layer)
            
     return all_embedings_data, all_labels
 

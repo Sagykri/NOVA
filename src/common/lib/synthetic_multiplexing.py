@@ -20,7 +20,8 @@ def multiplex(model: Model, embeddings_type='testset',
                     colormap='Set1',
                     alpha=0.8,
                     s=0.8,
-                    output_layer='vqvec2'):
+                    output_layer='vqvec2',
+                    savepath='default'):
     assert model is not None, "Model is None"
     assert model.test_loader is not None, "model.test_loader is None, please first load dataloaders"
     
@@ -45,7 +46,8 @@ def multiplex(model: Model, embeddings_type='testset',
                     title=title if title is not None else __generate_plot_title(model.conf, dataset_conf),
                     unique_groups=unique_groups,
                     embedding_data=embeddings,
-                    output_layer=output_layer)
+                    output_layer=output_layer,
+                    savepath=savepath)
 
 def __generate_plot_title(model_conf, dataset_conf):
     return 'SM_' + f"{'_'.join([os.path.basename(f) for f in dataset_conf.INPUT_FOLDERS])}_{datetime.datetime.now().strftime('%d%m%y_%H%M%S_%f')}_{os.path.splitext(os.path.basename(model_conf.MODEL_PATH))[0]}"

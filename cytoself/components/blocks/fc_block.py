@@ -51,7 +51,7 @@ class FCblock(nn.Module):
             )
             if i < num_layers - 1:
                 self.fc_list.append(act_layer(act))
-
+        
         for m in self.modules():
             if isinstance(m, nn.Linear):
                 init_range = 1.0 / math.sqrt(m.out_features)
