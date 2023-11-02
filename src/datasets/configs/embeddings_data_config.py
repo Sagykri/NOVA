@@ -244,7 +244,7 @@ class EmbeddingsU2OSDatasetConfig(DatasetConfig):
         self.ADD_BATCH_TO_LABEL = False
         
         # Local/Global embeddings
-        self.EMBEDDINGS_LAYER = 'vqindhist1'
+        self.EMBEDDINGS_LAYER = 'vqvec2' # 'vqindhist1'
         
         # Set a function to map the labels, can be None if not needed.
         # Instructions:
