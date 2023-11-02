@@ -10,8 +10,10 @@ from matplotlib import cm
 from numpy.typing import ArrayLike
 from torch.utils.data import DataLoader
 from tqdm import tqdm
+from matplotlib.gridspec import GridSpec
 import logging
 
+from src.common.lib.metrics import get_metrics_figure
 from cytoself.analysis.base import BaseAnalysis
 from cytoself.analysis.utils.pearson_correlation import selfpearson_multi
 
@@ -266,7 +268,10 @@ class AnalysisOpenCell(BaseAnalysis):
             from mpl_toolkits import mplot3d
         subplot_kw = {'projection': '3d'} if is_3d else None
         #
-        fig, ax = plt.subplots(1, figsize=figsize, subplot_kw=subplot_kw)
+        fig = plt.figure(figsize=figsize, subplot_kw=subplot_kw)
+        gs = GridSpec(2,1,height_ratios=[20,1])
+        
+        ax = fig.add_subplot(gs[0])
         i = 0
         for gp in unique_groups:
             ind = label_data == gp
@@ -336,6 +341,12 @@ class AnalysisOpenCell(BaseAnalysis):
         ax.set_title(title)
         ax.set_xticklabels([]) #SAGY
         ax.set_yticklabels([]) #SAGY
+        ax.set_xticks([]) #NOAM
+        ax.set_yticks([]) #NOAM
+        
+        gs_bottom = fig.add_subplot(gs[1])
+        get_metrics_figure(umap_data, label_data, ax=gs_bottom)
+        
         fig.tight_layout()
         if savepath:
             logging.info(f"Saving umap to {savepath}")#SAGY
