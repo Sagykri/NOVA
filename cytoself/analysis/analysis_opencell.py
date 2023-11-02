@@ -269,13 +269,18 @@ class AnalysisOpenCell(BaseAnalysis):
         fig, ax = plt.subplots(1, figsize=figsize, subplot_kw=subplot_kw)
         i = 0
         for gp in unique_groups:
-            if '_others' in colormap and gp == 'others':
-                _c = cm.Greys(25)
-            else:
-                _c = cmap[i % len(cmap)]
-                i += 1
             ind = label_data == gp
             ind = ind.reshape(-1,)
+
+            if isinstance(cmap, dict):#SAGY
+                _c = np.array([cmap[gp]]*sum(ind))#SAGY
+            elif '_others' in colormap and gp == 'others':
+                _c = cm.Greys(25)
+            else:
+                _c = cmap[i % len(cmap)]  #SAGY
+                _c = np.array(_c).reshape(1, -1) #SAGY
+                i += 1
+                
             if is_3d:#SAGY
                 ax.scatter(
                     umap_data[ind, 0],
@@ -283,7 +288,7 @@ class AnalysisOpenCell(BaseAnalysis):
                     umap_data[ind, 2],#SAGY
                     s=s,
                     alpha=alpha,
-                    c=np.array(_c).reshape(1, -1),
+                    c=_c,
                     label=gp,
                     zorder=0 if gp == 'others' else len(unique_groups) - i + 1,
                 )
@@ -293,7 +298,7 @@ class AnalysisOpenCell(BaseAnalysis):
                     umap_data[ind, 1],
                     s=s,
                     alpha=alpha,
-                    c=np.array(_c).reshape(1, -1),
+                    c=_c,
                     label=gp,
                     zorder=0 if gp == 'others' else len(unique_groups) - i + 1,
                 )
@@ -329,8 +334,8 @@ class AnalysisOpenCell(BaseAnalysis):
         ax.set_xlabel(xlabel)
         ax.set_ylabel(ylabel)
         ax.set_title(title)
-        ax.set_xticklabels([])
-        ax.set_yticklabels([])
+        ax.set_xticklabels([]) #SAGY
+        ax.set_yticklabels([]) #SAGY
         fig.tight_layout()
         if savepath:
             logging.info(f"Saving umap to {savepath}")#SAGY
