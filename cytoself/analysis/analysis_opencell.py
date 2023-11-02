@@ -329,6 +329,8 @@ class AnalysisOpenCell(BaseAnalysis):
         ax.set_xlabel(xlabel)
         ax.set_ylabel(ylabel)
         ax.set_title(title)
+        ax.set_xticklabels([])
+        ax.set_yticklabels([])
         fig.tight_layout()
         if savepath:
             logging.info(f"Saving umap to {savepath}")#SAGY
