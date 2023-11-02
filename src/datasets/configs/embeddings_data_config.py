@@ -99,23 +99,6 @@ class EmbeddingsB9DatasetConfig(DatasetConfig):
         self.ALPHA = 0.7
         #######################################
 
-        
-class EmbeddingsALLDatasetConfig(DatasetConfig):
-    def __init__(self):
-        super().__init__()
-
-        self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "spd2", "SpinningDisk", f) for f in 
-                        [f"batch{i}_16bit_no_downsample" for i in [3,4,5,6,7,8,9]]]
-        
-        self.SPLIT_DATA = False
-        self.EXPERIMENT_TYPE = 'neurons'
-        self.ADD_REP_TO_LABEL = True
-        self.ADD_BATCH_TO_LABEL = True
-        self.EMBEDDINGS_LAYER = 'vqvec2'
-        self.CELL_LINES = ['FUSHomozygous', 'TDP43', 'TBK1', 'WT', 'SCNA', 'FUSRevertant','OPTN', 'FUSHeterozygous']
-        # self.MARKERS = ['TOMM20','mitotracker','GM130'] #['FUS']
-        self.REPS = ['rep1', 'rep2'] # Can be : ['rep1', 'rep2'] or ['rep1'] or ['rep2']
-
 class EmbeddingsB6DatasetConfig(DatasetConfig):
     def __init__(self):
         super().__init__()
@@ -245,6 +228,22 @@ class EmbeddingsB3DatasetConfig(DatasetConfig):
         self.ALPHA = 0.7
         #######################################
 
+class EmbeddingsALLDatasetConfig(DatasetConfig):
+    def __init__(self):
+        super().__init__()
+
+        self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "spd2", "SpinningDisk", f) for f in 
+                        [f"batch{i}_16bit_no_downsample" for i in [3,4,5,6,7,8,9]]]
+        
+        self.SPLIT_DATA = False
+        self.EXPERIMENT_TYPE = 'neurons'
+        self.ADD_REP_TO_LABEL = True
+        self.ADD_BATCH_TO_LABEL = True
+        self.EMBEDDINGS_LAYER = 'vqvec2'
+        self.CELL_LINES = ['FUSHomozygous', 'TDP43', 'TBK1', 'WT', 'SCNA', 'FUSRevertant','OPTN', 'FUSHeterozygous']
+        # self.MARKERS = ['TOMM20','mitotracker','GM130'] #['FUS']
+        self.REPS = ['rep1', 'rep2'] # Can be : ['rep1', 'rep2'] or ['rep1'] or ['rep2']
+
 ############################################################
 # deltaNLS
 ############################################################        
@@ -287,13 +286,19 @@ class EmbeddingsNiemannPickDatasetConfig(DatasetConfig):
 
         self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "spd2", "SpinningDisk", 'NiemannPick', f) for f in 
                         [#"batch1_16bit_no_downsample", 
-                         "batch2_16bit_no_downsample", 
+                         #"batch2_16bit_no_downsample", 
                          "batch3_16bit_no_downsample", 
                          #"batch4_16bit_no_downsample"
                          ]]
                 
         self.SPLIT_DATA = False        
         self.EXPERIMENT_TYPE = 'NiemannPick'
+        # Your can set self.REPS to a specific rep or leave it None to load the two reps 
+        self.REPS = ['rep2'] # Can be : ['rep1', 'rep2'] or ['rep1'] or ['rep2']
+        # You can set this var to True if you want the UMAP to color the reps with different colors
+        self.ADD_REP_TO_LABEL = False
+        # You can set this var to True if you want the UMAP to color the batches with different colors
+        self.ADD_BATCH_TO_LABEL = False
         
         # Local/Global embeddings
         self.EMBEDDINGS_LAYER = 'vqvec2'
