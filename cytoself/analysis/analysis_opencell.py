@@ -336,6 +336,8 @@ class AnalysisOpenCell(BaseAnalysis):
         ax.set_title(title)
         ax.set_xticklabels([]) #SAGY
         ax.set_yticklabels([]) #SAGY
+        ax.set_xticks([]) #Noam
+        ax.set_yticks([]) #Noam
         fig.tight_layout()
         if savepath:
             logging.info(f"Saving umap to {savepath}")#SAGY
