@@ -109,7 +109,12 @@ def __concatenate_embeddings_by_group(group, random_state=None):
         subgroup.sort_values('Marker', inplace=True)
         
         __subgroup_embeddings = np.stack(subgroup['Embeddings'].to_numpy(), axis=0)
-        subgroup_embeddings = np.concatenate([e.reshape(-1) for e in __subgroup_embeddings])
+        if len(__subgroup_embeddings.shape) == 3:
+            logging.info("This is a vqvec data (len(__subgroup_embeddings.shape) == 3)")
+            subgroup_embeddings = np.concatenate([np.transpose(e, (1, 2, 0)).reshape(-1) for e in __subgroup_embeddings])
+        else:
+            logging.info("This is a vqindhist data (len(__subgroup_embeddings.shape) != 3)")
+            subgroup_embeddings = np.concatenate([e.reshape(-1) for e in __subgroup_embeddings])
         embeddings.append(subgroup_embeddings)
         
         group_copy.drop(index=subgroup.index, inplace=True)
