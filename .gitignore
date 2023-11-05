@@ -15,6 +15,7 @@ input/gt_tables/*
 input/images/raw/*
 !input/images/raw/.gitkeep
 input/images/processed/*
+data/processed/*
 !input/images/processed/.gitkeep
 
 /tools/lena/models_outputs_Lena/embeddings/**/*.npy

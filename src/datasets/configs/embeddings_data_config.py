@@ -62,7 +62,10 @@ class EmbeddingsB78DatasetConfig(DatasetConfig):
         
         self.SPLIT_DATA = True
         self.EXPERIMENT_TYPE = 'neurons'    
-
+        
+        # Local/Global embeddings
+        self.EMBEDDINGS_LAYER = 'vqvec2'
+        
 class EmbeddingsB9DatasetConfig(DatasetConfig):
     def __init__(self):
         super().__init__()
@@ -72,7 +75,158 @@ class EmbeddingsB9DatasetConfig(DatasetConfig):
         
         self.SPLIT_DATA = False  
         self.EXPERIMENT_TYPE = 'neurons'
+        # Local/Global embeddings
+        self.EMBEDDINGS_LAYER = 'vqvec2'
+        
+        self.CELL_LINES = ['WT']#, 'FUSHomozygous', 'FUSHeterozygous', 'FUSRevertant']
+        # self.CONDITIONS = ['Untreated']
+        #self.MARKERS = ['G3BP1']
+        
+        # Set a function to map the labels, can be None if not needed.
+        # Instructions:
+        # - The function must be given as string!
+        # - Please start with 'lambda self:' and then put your lambda function
+        # - If you need to use a package, use it through import as follows __import__('numpy').array([])
+        # - Example: "lambda self: lambda labels: __import__('numpy').asarray([l.split('_')[-2-int(self.ADD_REP_TO_LABEL)] for l in labels])"
+        self.MAP_LABELS_FUNCTION = "lambda self: lambda labels: __import__('numpy').asarray([l.split('_')[-2-int(self.ADD_REP_TO_LABEL)] for l in labels])"
 
+        # Set the colormap, for example: {"Untreated": "#52C5D5", 'stress': "#F7810F"} 
+        #self.COLORMAP = {"Untreated": "#52C5D5", 'stress': "#F7810F"}
+
+        # Set the size of the dots
+        self.SIZE = 6
+        # Set the alpha of the dots (0=max opacity, 1=no opacity)
+        self.ALPHA = 0.7
+        #######################################
+
+class EmbeddingsB6DatasetConfig(DatasetConfig):
+    def __init__(self):
+        super().__init__()
+
+        self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "spd2", "SpinningDisk", f) for f in 
+                        ["batch6_16bit_no_downsample"]]
+        
+        self.SPLIT_DATA = False
+        self.EXPERIMENT_TYPE = 'neurons'
+        self.ADD_REP_TO_LABEL = True
+        self.ADD_BATCH_TO_LABEL = True
+
+        self.CELL_LINES = ['WT']#, 'FUSHeterozygous', 'FUSRevertant']
+        self.MARKERS = ["G3BP1"] #['FUS']
+        self.REPS = ['rep2'] # Can be : ['rep1', 'rep2'] or ['rep1'] or ['rep2']
+        
+        # Local/Global embeddings
+        self.EMBEDDINGS_LAYER = 'vqvec2'
+        
+        # Set a function to map the labels, can be None if not needed.
+        # Instructions:
+        # - The function must be given as string!
+        # - Please start with 'lambda self:' and then put your lambda function
+        # - If you need to use a package, use it through import as follows __import__('numpy').array([])
+        # - Example: "lambda self: lambda labels: __import__('numpy').asarray([l.split('_')[-2-int(self.ADD_REP_TO_LABEL)] for l in labels])"
+        self.MAP_LABELS_FUNCTION = "lambda self: lambda labels: __import__('numpy').asarray([l.split('_')[-2-int(self.ADD_REP_TO_LABEL)] for l in labels])"
+
+        # Set the colormap, for example: {"Untreated": "#52C5D5", 'stress': "#F7810F"} 
+        #self.COLORMAP = {"Untreated": "#52C5D5", 'stress': "#F7810F"}
+
+        # Set the size of the dots
+        self.SIZE = 6
+        # Set the alpha of the dots (0=max opacity, 1=no opacity)
+        self.ALPHA = 0.7
+        #######################################
+
+class EmbeddingsB5DatasetConfig(DatasetConfig):
+    def __init__(self):
+        super().__init__()
+
+        self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "spd2", "SpinningDisk", f) for f in 
+                        ["batch5_16bit_no_downsample"]]
+        
+        self.SPLIT_DATA = False
+        self.EXPERIMENT_TYPE = 'neurons'
+        self.ADD_REP_TO_LABEL = True
+        self.ADD_BATCH_TO_LABEL = True
+        self.REPS = ['rep1', 'rep2']
+        
+        # Local/Global embeddings
+        self.EMBEDDINGS_LAYER = 'vqvec2'
+        
+        # Set a function to map the labels, can be None if not needed.
+        # Instructions:
+        # - The function must be given as string!
+        # - Please start with 'lambda self:' and then put your lambda function
+        # - If you need to use a package, use it through import as follows __import__('numpy').array([])
+        # - Example: "lambda self: lambda labels: __import__('numpy').asarray([l.split('_')[-2-int(self.ADD_REP_TO_LABEL)] for l in labels])"
+        self.MAP_LABELS_FUNCTION = "lambda self: lambda labels: __import__('numpy').asarray([l.split('_')[-2-int(self.ADD_REP_TO_LABEL)] for l in labels])"
+
+        # Set the colormap, for example: {"Untreated": "#52C5D5", 'stress': "#F7810F"} 
+        #self.COLORMAP = {"Untreated": "#52C5D5", 'stress': "#F7810F"}
+
+        # Set the size of the dots
+        self.SIZE = 6
+        # Set the alpha of the dots (0=max opacity, 1=no opacity)
+        self.ALPHA = 0.7
+        #######################################
+
+class EmbeddingsB4DatasetConfig(DatasetConfig):
+    def __init__(self):
+        super().__init__()
+
+        self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "spd2", "SpinningDisk", f) for f in 
+                        ["batch4_16bit_no_downsample"]]
+        
+        self.SPLIT_DATA = False
+        self.EXPERIMENT_TYPE = 'neurons'
+        
+        # Local/Global embeddings
+        self.EMBEDDINGS_LAYER = 'vqvec2'
+        
+        # Set a function to map the labels, can be None if not needed.
+        # Instructions:
+        # - The function must be given as string!
+        # - Please start with 'lambda self:' and then put your lambda function
+        # - If you need to use a package, use it through import as follows __import__('numpy').array([])
+        # - Example: "lambda self: lambda labels: __import__('numpy').asarray([l.split('_')[-2-int(self.ADD_REP_TO_LABEL)] for l in labels])"
+        self.MAP_LABELS_FUNCTION = "lambda self: lambda labels: __import__('numpy').asarray([l.split('_')[-2-int(self.ADD_REP_TO_LABEL)] for l in labels])"
+
+        # Set the colormap, for example: {"Untreated": "#52C5D5", 'stress': "#F7810F"} 
+        #self.COLORMAP = {"Untreated": "#52C5D5", 'stress': "#F7810F"}
+
+        # Set the size of the dots
+        self.SIZE = 6
+        # Set the alpha of the dots (0=max opacity, 1=no opacity)
+        self.ALPHA = 0.7
+        #######################################
+
+class EmbeddingsB3DatasetConfig(DatasetConfig):
+    def __init__(self):
+        super().__init__()
+
+        self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "spd2", "SpinningDisk", f) for f in 
+                        ["batch3_16bit_no_downsample"]]
+        
+        self.SPLIT_DATA = False
+        self.EXPERIMENT_TYPE = 'neurons'
+        
+        # Local/Global embeddings
+        self.EMBEDDINGS_LAYER = 'vqvec2'
+        
+        # Set a function to map the labels, can be None if not needed.
+        # Instructions:
+        # - The function must be given as string!
+        # - Please start with 'lambda self:' and then put your lambda function
+        # - If you need to use a package, use it through import as follows __import__('numpy').array([])
+        # - Example: "lambda self: lambda labels: __import__('numpy').asarray([l.split('_')[-2-int(self.ADD_REP_TO_LABEL)] for l in labels])"
+        self.MAP_LABELS_FUNCTION = "lambda self: lambda labels: __import__('numpy').asarray([l.split('_')[-2-int(self.ADD_REP_TO_LABEL)] for l in labels])"
+
+        # Set the colormap, for example: {"Untreated": "#52C5D5", 'stress': "#F7810F"} 
+        #self.COLORMAP = {"Untreated": "#52C5D5", 'stress': "#F7810F"}
+
+        # Set the size of the dots
+        self.SIZE = 6
+        # Set the alpha of the dots (0=max opacity, 1=no opacity)
+        self.ALPHA = 0.7
+        #######################################
 
 class EmbeddingsALLDatasetConfig(DatasetConfig):
     def __init__(self):
@@ -90,55 +244,166 @@ class EmbeddingsALLDatasetConfig(DatasetConfig):
         # self.MARKERS = ['TOMM20','mitotracker','GM130'] #['FUS']
         self.REPS = ['rep1', 'rep2'] # Can be : ['rep1', 'rep2'] or ['rep1'] or ['rep2']
 
-class EmbeddingsB6DatasetConfig(DatasetConfig):
+############################################################
+# deltaNLS
+############################################################        
+class EmbeddingsDeltaNLSDatasetConfig(DatasetConfig):
     def __init__(self):
         super().__init__()
 
-        self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "spd2", "SpinningDisk", f) for f in 
-                        ["batch6_16bit_no_downsample"]]
+        self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "spd2", "SpinningDisk", 'deltaNLS', f) for f in 
+                        ["batch2_16bit_no_downsample", "batch3_16bit_no_downsample", "batch4_16bit_no_downsample", "batch5_16bit_no_downsample"]]
+                
+        self.SPLIT_DATA = False        
+        self.EXPERIMENT_TYPE = 'deltaNLS'
         
-        self.SPLIT_DATA = False
-        self.EXPERIMENT_TYPE = 'neurons'
-        self.ADD_REP_TO_LABEL = True
-        self.ADD_BATCH_TO_LABEL = True
+        # Local/Global embeddings
+        self.EMBEDDINGS_LAYER = 'vqvec2'
+        
+############################################################
+# U2OS
+############################################################        
+class EmbeddingsU2OSDatasetConfig(DatasetConfig):
+    def __init__(self):
+        super().__init__()
+        self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "Confocal","U2OS_spd_format")]
+        self.SPLIT_DATA = False        
+        self.CELL_LINES = ['U2OS']
+        self.EXPERIMENT_TYPE = 'U2OS'
+        self.CONDITIONS = ['Untreated','stress']
+        self.EMBEDDINGS_LAYER = 'vqindhist1'
+        #self.markers = ['G3BP1','DAPI','Phalloidin','DCP1A']
+        # Set a function to map the labels, can be None if not needed.
+        # Instructions:
+        # - The function must be given as string!
+        # - Please start with 'lambda self:' and then put your lambda function
+        # - If you need to use a package, use it through import as follows __import__('numpy').array([])
+        # - Example: "lambda self: lambda labels: __import__('numpy').asarray([l.split('_')[-2-int(self.ADD_REP_TO_LABEL)] for l in labels])"
+        self.MAP_LABELS_FUNCTION = "lambda self: lambda labels: __import__('numpy').asarray([l.split('_')[-2-int(self.ADD_REP_TO_LABEL)] for l in labels])"
 
-        self.CELL_LINES = ['WT']#, 'FUSHeterozygous', 'FUSRevertant']
-        self.MARKERS = ["G3BP1"] #['FUS']
+        # Set the colormap, for example: {"Untreated": "#52C5D5", 'stress': "#F7810F"} 
+        #self.COLORMAP = {"Untreated": "#52C5D5", 'stress': "#F7810F"}
+
+        # Set the size of the dots
+        self.SIZE = 6
+        # Set the alpha of the dots (0=max opacity, 1=no opacity)
+        self.ALPHA = 0.7
+        #######################################
+
+############################################################
+# NiemannPick
+############################################################        
+class EmbeddingsNiemannPickDatasetConfig(DatasetConfig):
+    def __init__(self):
+        super().__init__()
+
+        self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "spd2", "SpinningDisk", 'NiemannPick', f) for f in 
+                        [#"batch1_16bit_no_downsample", 
+                         #"batch2_16bit_no_downsample", 
+                         "batch3_16bit_no_downsample", 
+                         #"batch4_16bit_no_downsample"
+                         ]]
+                
+        self.SPLIT_DATA = False        
+        self.EXPERIMENT_TYPE = 'NiemannPick'
+        # Your can set self.REPS to a specific rep or leave it None to load the two reps 
         self.REPS = ['rep2'] # Can be : ['rep1', 'rep2'] or ['rep1'] or ['rep2']
+        # You can set this var to True if you want the UMAP to color the reps with different colors
+        self.ADD_REP_TO_LABEL = False
+        # You can set this var to True if you want the UMAP to color the batches with different colors
+        self.ADD_BATCH_TO_LABEL = False
+        
+        # Local/Global embeddings
+        self.EMBEDDINGS_LAYER = 'vqvec2'
+        
+        # Set a function to map the labels, can be None if not needed.
+        # Instructions:
+        # - The function must be given as string!
+        # - Please start with 'lambda self:' and then put your lambda function
+        # - If you need to use a package, use it through import as follows __import__('numpy').array([])
+        # - Example: "lambda self: lambda labels: __import__('numpy').asarray([l.split('_')[-2-int(self.ADD_REP_TO_LABEL)] for l in labels])"
+        self.MAP_LABELS_FUNCTION = "lambda self: lambda labels: __import__('numpy').asarray([l.split('_')[-2-int(self.ADD_REP_TO_LABEL)] for l in labels])"
 
-class EmbeddingsB5DatasetConfig(DatasetConfig):
+        # Set the colormap, for example: {"Untreated": "#52C5D5", 'stress': "#F7810F"} 
+        #self.COLORMAP = {"Untreated": "#52C5D5", 'stress': "#F7810F"}
+
+        # Set the size of the dots
+        self.SIZE = 6
+        # Set the alpha of the dots (0=max opacity, 1=no opacity)
+        self.ALPHA = 0.7
+        #######################################
+                
+############################################################
+# Perturbations 
+############################################################
+class EmbeddingsPertConfocalDatasetConfig(DatasetConfig):
+    def __init__(self):
+        super().__init__()
+
+        self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "Confocal", f) for f in 
+                                ["Perturbations_spd_format"]]
+        
+        
+        self.SPLIT_DATA = False        
+        self.CELL_LINES = ['WT', 'TDP43']
+        self.CONDITIONS = ['Untreated', 'DMSO1uM', 'Edavarone', 'Pridopine', 'DMSO100uM', 'Riluzole', 'Tubastatin', 'Chloroquine']
+        self.EXPERIMENT_TYPE = 'perturbations_confocal'
+        
+        # Local/Global embeddings
+        self.EMBEDDINGS_LAYER = 'vqvec1'
+        
+class EmbeddingsPertSPDDatasetConfig(DatasetConfig):
     def __init__(self):
         super().__init__()
 
         self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "spd2", "SpinningDisk", f) for f in 
-                        ["batch5_16bit_no_downsample"]]
-        
-        self.SPLIT_DATA = False
-        self.EXPERIMENT_TYPE = 'neurons'
-        self.ADD_REP_TO_LABEL = True
-        self.ADD_BATCH_TO_LABEL = True
-        self.REPS = ['rep1', 'rep2']
+                        ["Perturbations_16bit_no_downsample"]]
+                
 
-class EmbeddingsB4DatasetConfig(DatasetConfig):
+        self.SPLIT_DATA = False        
+        self.CELL_LINES = ['WT', 'TDP43']
+        self.CONDITIONS = ['Untreated', 'DMSO1uM', 'Edavarone', 'Pridopine', 'DMSO100uM', 'Riluzole', 'Tubastatin', 'Chloroquine']
+        self.EXPERIMENT_TYPE = 'perturbations'
+        
+        # Local/Global embeddings
+        self.EMBEDDINGS_LAYER = 'vqvec2'
+
+############################################################
+# U2OS data
+############################################################        
+class EmbeddingsU2OSDatasetConfig(DatasetConfig):
     def __init__(self):
         super().__init__()
 
-        self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "spd2", "SpinningDisk", f) for f in 
-                        ["batch4_16bit_no_downsample"]]
+        self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "Confocal", f) for f in 
+                        ["U2OS_spd_format"]]
         
-        self.SPLIT_DATA = False
-        self.EXPERIMENT_TYPE = 'neurons'
+        self.SPLIT_DATA = False        
+        self.CELL_LINES = ['U2OS']
+        self.EXPERIMENT_TYPE = 'U2OS'
+        self.ADD_REP_TO_LABEL = False
+        self.ADD_BATCH_TO_LABEL = False
+        
+        # Local/Global embeddings
+        self.EMBEDDINGS_LAYER = 'vqvec2' # 'vqindhist1'
+        
+        # Set a function to map the labels, can be None if not needed.
+        # Instructions:
+        # - The function must be given as string!
+        # - Please start with 'lambda self:' and then put your lambda function
+        # - If you need to use a package, use it through import as follows __import__('numpy').array([])
+        # - Example: "lambda self: lambda labels: __import__('numpy').asarray([l.split('_')[-2-int(self.ADD_REP_TO_LABEL)] for l in labels])"
+        self.MAP_LABELS_FUNCTION = "lambda self: lambda labels: __import__('numpy').asarray([l.split('_')[-2-int(self.ADD_REP_TO_LABEL)] for l in labels])"
 
-class EmbeddingsB3DatasetConfig(DatasetConfig):
-    def __init__(self):
-        super().__init__()
+        # Set the colormap, for example: {"Untreated": "#52C5D5", 'stress': "#F7810F"} 
+        self.COLORMAP = {"Untreated": "#52C5D5", 'stress': "#F7810F"}
 
-        self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "spd2", "SpinningDisk", f) for f in 
-                        ["batch3_16bit_no_downsample"]]
-        
-        self.SPLIT_DATA = False
-        self.EXPERIMENT_TYPE = 'neurons'
-        
+        # Set the size of the dots
+        self.SIZE = 6
+        # Set the alpha of the dots (0=max opacity, 1=no opacity)
+        self.ALPHA = 0.7
+        #######################################
+
 ############################################################
 # Open Cell (cytoself data)
 ############################################################        
@@ -154,54 +419,18 @@ class EmbeddingsOpenCellDatasetConfig(DatasetConfig):
         self.CONDITIONS = ['Untreated']
         self.EXPERIMENT_TYPE = 'opencell'
         
-############################################################
-# U2OS
-############################################################        
-class EmbeddingsU2OSDatasetConfig(DatasetConfig):
-    def __init__(self):
-        super().__init__()
-        self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "Confocal","U2OS_spd_format")]
-        self.SPLIT_DATA = False        
-        self.CELL_LINES = ['U2OS']
-        self.EXPERIMENT_TYPE = 'U2OS'
-        self.CONDITIONS = ['Untreated','stress']
-        self.EMBEDDINGS_LAYER = 'vqindhist1'
-        #self.markers = ['G3BP1','DAPI','Phalloidin','DCP1A']
-
-############################################################
-# Perturbations 
-############################################################
-class EmbeddingsPertConfocalDatasetConfig(DatasetConfig):
-    def __init__(self):
-        super().__init__()
-
-        self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "Confocal", f) for f in 
-                                ["Perturbations_spd_format"]]
-        
-        
-        self.SPLIT_DATA = False        
-        # self.CELL_LINES = ['WT', 'FUSHomozygous', 'FUSHeterozygous', 'FUSRevertant']
-        self.CONDITIONS = ['Untreated']
-        # self.MARKERS = ['FUS']#, 'FMRP']
-        
-        # self.SAMPLE_PCT = 0.1 
-        self.EXPERIMENT_TYPE = 'perturbations'
-        
-class EmbeddingsPertSPDDatasetConfig(DatasetConfig):
+class EmbeddingsOpenCellSubsetDatasetConfig(DatasetConfig):
     def __init__(self):
         super().__init__()
 
         self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "spd2", "SpinningDisk", f) for f in 
-                        ["Perturbations"]]
-                
-
-        self.SPLIT_DATA = False        
-        # self.CELL_LINES = ['WT', 'FUSHomozygous', 'FUSHeterozygous', 'FUSRevertant']
-        self.CONDITIONS = ['Untreated']
-        # self.MARKERS = ['FUS']#, 'FMRP'] 
+                        ["OpenCell"]]
         
-        # self.SAMPLE_PCT = 0.1
-        self.EXPERIMENT_TYPE = 'perturbations'
+        self.SPLIT_DATA = True        
+        self.CELL_LINES = ['WT']
+        self.CONDITIONS = ['Untreated']
+        self.MARKERS = ['G3BP1']
+        self.EXPERIMENT_TYPE = 'opencell'
 
 ############################################################
 # Batch 2 (confocal)        
@@ -361,12 +590,29 @@ class EmbeddingsdNLSB3DatasetConfig(DatasetConfig):
         
         self.SPLIT_DATA = False
         self.EXPERIMENT_TYPE = 'deltaNLS'
-        self.ADD_REP_TO_LABEL = True
-        self.ADD_BATCH_TO_LABEL = True
+        self.ADD_REP_TO_LABEL = False
+        self.ADD_BATCH_TO_LABEL = False
         self.EMBEDDINGS_LAYER = 'vqvec2'
         self.CELL_LINES = ['TDP43','WT']
         # self.MARKERS = ['TOMM20','mitotracker','GM130'] #['FUS']
         self.REPS = ['rep1', 'rep2'] # Can be : ['rep1', 'rep2'] or ['rep1'] or ['rep2']
+    
+    
+        # Set a function to map the labels, can be None if not needed.
+        # Instructions:
+        # - The function must be given as string!
+        # - Please start with 'lambda self:' and then put your lambda function
+        # - If you need to use a package, use it through import as follows __import__('numpy').array([])
+        # - Example: "lambda self: lambda labels: __import__('numpy').asarray([l.split('_')[-2-int(self.ADD_REP_TO_LABEL)] for l in labels])"
+        self.MAP_LABELS_FUNCTION = "lambda self: lambda labels: __import__('numpy').asarray([' '.join(l.split('_')[-3-int(self.ADD_REP_TO_LABEL):-1-int(self.ADD_REP_TO_LABEL)]) for l in labels])"
+
+        # Set the colormap, for example: {"Untreated": "#52C5D5", 'stress': "#F7810F"} 
+        self.COLORMAP = {"WT Untreated": "#2FA0C1", 'TDP43 dox': "#90278E", "TDP43 Untreated":"#494CB3"}
+
+        # Set the size of the dots
+        self.SIZE = 6
+        # Set the alpha of the dots (0=max opacity, 1=no opacity)
+        self.ALPHA = 0.7
 
 class EmbeddingsdNLSB4DatasetConfig(DatasetConfig):
     def __init__(self):
@@ -377,8 +623,8 @@ class EmbeddingsdNLSB4DatasetConfig(DatasetConfig):
         
         self.SPLIT_DATA = False
         self.EXPERIMENT_TYPE = 'deltaNLS'
-        self.ADD_REP_TO_LABEL = True
-        self.ADD_BATCH_TO_LABEL = True
+        self.ADD_REP_TO_LABEL = False
+        self.ADD_BATCH_TO_LABEL = False
         self.EMBEDDINGS_LAYER = 'vqvec2'
         self.CELL_LINES = ['TDP43','WT']
         # self.MARKERS = ['TOMM20','mitotracker','GM130'] #['FUS']
