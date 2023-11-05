@@ -334,8 +334,8 @@ class AnalysisOpenCell(BaseAnalysis):
             frameon=False,
         )
         for ll in leg.legendHandles:
-            ll._sizes = [6]
             ll.set_alpha(1)
+            ll.set_sizes([s]) # SAGY
         ax.set_xlabel(xlabel)
         ax.set_ylabel(ylabel)
         ax.set_title(title)
