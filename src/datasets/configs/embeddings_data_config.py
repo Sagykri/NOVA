@@ -485,14 +485,14 @@ class EmbeddingsB2B25DatasetConfig(DatasetConfig):
 ############################################################
 # NiemannPick     
 ############################################################
-class EmbeddingsNPDatasetConfig(DatasetConfig):
+class EmbeddingsNP14DatasetConfig(DatasetConfig):
     def __init__(self):
         super().__init__()
 
         self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "spd2", "SpinningDisk", "NiemannPick", f) for f in 
-                        [f"batch{i}_16bit_no_downsample" for i in [1,2,3,4]]]#,4,5,6,9]]]
+                        [f"batch{i}_16bit_no_downsample" for i in [1,4]]]#,4,5,6,9]]]
         
-        self.SPLIT_DATA = False
+        self.SPLIT_DATA = True
         self.EXPERIMENT_TYPE = 'NiemannPick'
         self.ADD_REP_TO_LABEL = True
         self.ADD_BATCH_TO_LABEL = True
@@ -604,6 +604,8 @@ class EmbeddingsdNLSB3DatasetConfig(DatasetConfig):
         # - Please start with 'lambda self:' and then put your lambda function
         # - If you need to use a package, use it through import as follows __import__('numpy').array([])
         # - Example: "lambda self: lambda labels: __import__('numpy').asarray([l.split('_')[-2-int(self.ADD_REP_TO_LABEL)] for l in labels])"
+
+        #Important: this version of a function gives labels like "cellline_condition": "lambda self: lambda labels: __import__('numpy').asarray([' '.join(l.split('_')[-3-int(self.ADD_REP_TO_LABEL):-1-int(self.ADD_REP_TO_LABEL)]) for l in labels])"
         self.MAP_LABELS_FUNCTION = "lambda self: lambda labels: __import__('numpy').asarray([' '.join(l.split('_')[-3-int(self.ADD_REP_TO_LABEL):-1-int(self.ADD_REP_TO_LABEL)]) for l in labels])"
 
         # Set the colormap, for example: {"Untreated": "#52C5D5", 'stress': "#F7810F"} 
