@@ -20,25 +20,29 @@ def generate_embeddings():
         None
     """
     
-    # Init model and model configuration 
-    model, config_model =  init_model_for_embeddings(config_path_model=sys.argv[1])
-    
-    logging.info("---------------Start---------------")
-    logging.info("[Generate embeddings]")
-    logging.info("Starting to generate VQVAE2 embeddings...")
-    logging.info(f"Is GPU available: {torch.cuda.is_available()}")
-    logging.info(f"Num GPUs Available: {torch.cuda.device_count()}")
-    
-    
+    config_path_model=sys.argv[1]
+
     # Get dataset configs (as used in trainig the model)
     config_path_data = sys.argv[2]
     config_data = load_config_file(config_path_data, 'data') 
+    embeddings_layer = get_if_exists(config_data, 'EMBEDDINGS_LAYER', 'vqvec2')
+
+    logging.info("---------------Start---------------")
+    logging.info("[Generate embeddings]")
+    logging.info(f"Starting to generate {embeddings_layer} embeddings...")
+    logging.info(f"Is GPU available: {torch.cuda.is_available()}")
+    logging.info(f"Num GPUs Available: {torch.cuda.device_count()}")
+
+
+    # Init model and model configuration 
+    model, config_model =  init_model_for_embeddings(config_path_model=config_path_model)
+
     logging.info(f"Init datasets {config_data} from {config_path_data}")
-    
     experiment_type = get_if_exists(config_data, 'EXPERIMENT_TYPE', None)
     assert experiment_type is not None, "EXPERIMENT_TYPE can't be None"
-    
+
     logging.info(f"experiment_type = {experiment_type}")
+    logging.info(f"embeddings_layer = {embeddings_layer}")
     
     # Get dataset 
     datasets_list = load_dataset_for_embeddings(config_data=config_data, batch_size=100, config_model=config_model)
@@ -46,9 +50,6 @@ def generate_embeddings():
     embeddings_folder = os.path.join(config_model.MODEL_OUTPUT_FOLDER, 'embeddings', experiment_type)
     # Get trained model    
     trained_model = load_model_with_dataloader(model, datasets_list)
-    
-    embeddings_layer = get_if_exists(config_data, 'EMBEDDINGS_LAYER', 'vqvec2')
-    logging.info(f"embeddings_layer = {embeddings_layer}")
     
     calc_embeddings(trained_model, datasets_list, embeddings_folder, save=True, embeddings_layer=embeddings_layer)
     

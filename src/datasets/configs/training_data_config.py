@@ -19,8 +19,11 @@ class TrainDatasetConfig(DatasetConfig):
         self.CELL_LINES = ['WT']
         self.CONDITIONS = ['Untreated']
         ######################
-        
-        
+
+############################################################
+# Neurons
+############################################################        
+                
 class B78TrainDatasetConfig(DatasetConfig):
     def __init__(self):
         super().__init__()
@@ -39,6 +42,33 @@ class B78NoDSTrainDatasetConfig(DatasetConfig):
 
         self.SPLIT_DATA = True
 
+
+############################################################
+# NiemannPick
+############################################################        
+
+class NiemannPickB14TrainDatasetConfig(DatasetConfig):
+    def __init__(self):
+        super().__init__()
+        self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "spd2", "SpinningDisk", 'NiemannPick', f) for f in
+                        ["batch1_16bit_no_downsample", "batch4_16bit_no_downsample"]]
+        self.SPLIT_DATA = True
+
+############################################################
+# deltaNLS
+############################################################        
+
+class deltaNLSB25TrainDatasetConfig(DatasetConfig):
+    def __init__(self):
+        super().__init__()
+        self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "spd2", "SpinningDisk", 'deltaNLS', f) for f in
+                        ["batch2_16bit_no_downsample", "batch5_16bit_no_downsample"]]
+        self.SPLIT_DATA = True
+
+############################################################
+# OpenCell
+############################################################        
+
 class OpenCellTrainDatasetConfig(DatasetConfig):
     def __init__(self):
         super().__init__()
@@ -47,7 +77,7 @@ class OpenCellTrainDatasetConfig(DatasetConfig):
                         ["OpenCell"]]
 
         self.SPLIT_DATA = True
-        self.IS_AUG_INPLACE = True
+        # self.IS_AUG_INPLACE = True
 
         ######################
         self.CELL_LINES = ['WT']

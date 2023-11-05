@@ -105,14 +105,22 @@ def __generate_with_load(config_model, config_data, dataset, model, markers, out
         if not os.path.exists(__savepath_parent):
             os.makedirs(__savepath_parent)
         
+        colormap = get_if_exists(config_data, 'COLORMAP', 'Set1')
+        size = get_if_exists(config_data, 'SIZE', 0.8)
+        alpha = get_if_exists(config_data, 'ALPHA', 0.7)
+        map_labels_function = get_if_exists(config_data, 'MAP_LABELS_FUNCTION', None)
+        if map_labels_function is not None:
+            map_labels_function = eval(map_labels_function)(config_data)
+        
         model.plot_umap(embedding_data=embeddings_c,
                         label_data=labels_c,
                         title=title,
                         savepath=savepath,
-                        colormap='Set1',
-                        alpha=0.7,
-                        s=0.8,
-                        reset_umap=True)
+                        colormap=colormap,
+                        alpha=alpha,
+                        s=size,
+                        reset_umap=True,
+                        map_labels_function=map_labels_function)
         
         logging.info(f"[{c}] UMAP saved successfully to {savepath}")
         
