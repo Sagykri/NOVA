@@ -111,9 +111,9 @@ class EmbeddingsB6DatasetConfig(DatasetConfig):
         self.ADD_REP_TO_LABEL = True
         self.ADD_BATCH_TO_LABEL = True
 
-        #self.CELL_LINES = ['SCNA', 'WT']#, 'FUSHeterozygous', 'FUSRevertant']
-        #self.MARKERS = ['TOMM20','mitotracker','GM130'] #['FUS']
-        self.REPS = ['rep1', 'rep2'] # Can be : ['rep1', 'rep2'] or ['rep1'] or ['rep2']
+        self.CELL_LINES = ['WT']#, 'FUSHeterozygous', 'FUSRevertant']
+        self.MARKERS = ["G3BP1"] #['FUS']
+        self.REPS = ['rep2'] # Can be : ['rep1', 'rep2'] or ['rep1'] or ['rep2']
         
         # Local/Global embeddings
         self.EMBEDDINGS_LAYER = 'vqvec2'
@@ -260,6 +260,19 @@ class EmbeddingsDeltaNLSDatasetConfig(DatasetConfig):
         # Local/Global embeddings
         self.EMBEDDINGS_LAYER = 'vqvec2'
         
+############################################################
+# U2OS
+############################################################        
+class EmbeddingsU2OSDatasetConfig(DatasetConfig):
+    def __init__(self):
+        super().__init__()
+        self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "Confocal","U2OS_spd_format")]
+        self.SPLIT_DATA = False        
+        self.CELL_LINES = ['U2OS']
+        self.EXPERIMENT_TYPE = 'U2OS'
+        self.CONDITIONS = ['Untreated','stress']
+        self.EMBEDDINGS_LAYER = 'vqindhist1'
+        #self.markers = ['G3BP1','DAPI','Phalloidin','DCP1A']
         # Set a function to map the labels, can be None if not needed.
         # Instructions:
         # - The function must be given as string!
