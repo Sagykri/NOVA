@@ -111,9 +111,9 @@ class EmbeddingsB6DatasetConfig(DatasetConfig):
         self.ADD_REP_TO_LABEL = True
         self.ADD_BATCH_TO_LABEL = True
 
-        #self.CELL_LINES = ['SCNA', 'WT']#, 'FUSHeterozygous', 'FUSRevertant']
-        #self.MARKERS = ['TOMM20','mitotracker','GM130'] #['FUS']
-        self.REPS = ['rep1', 'rep2'] # Can be : ['rep1', 'rep2'] or ['rep1'] or ['rep2']
+        self.CELL_LINES = ['WT']#, 'FUSHeterozygous', 'FUSRevertant']
+        self.MARKERS = ["G3BP1"] #['FUS']
+        self.REPS = ['rep2'] # Can be : ['rep1', 'rep2'] or ['rep1'] or ['rep2']
         
         # Local/Global embeddings
         self.EMBEDDINGS_LAYER = 'vqvec2'
@@ -260,6 +260,19 @@ class EmbeddingsDeltaNLSDatasetConfig(DatasetConfig):
         # Local/Global embeddings
         self.EMBEDDINGS_LAYER = 'vqvec2'
         
+############################################################
+# U2OS
+############################################################        
+class EmbeddingsU2OSDatasetConfig(DatasetConfig):
+    def __init__(self):
+        super().__init__()
+        self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "Confocal","U2OS_spd_format")]
+        self.SPLIT_DATA = False        
+        self.CELL_LINES = ['U2OS']
+        self.EXPERIMENT_TYPE = 'U2OS'
+        self.CONDITIONS = ['Untreated','stress']
+        self.EMBEDDINGS_LAYER = 'vqindhist1'
+        #self.markers = ['G3BP1','DAPI','Phalloidin','DCP1A']
         # Set a function to map the labels, can be None if not needed.
         # Instructions:
         # - The function must be given as string!
@@ -472,14 +485,14 @@ class EmbeddingsB2B25DatasetConfig(DatasetConfig):
 ############################################################
 # NiemannPick     
 ############################################################
-class EmbeddingsNPDatasetConfig(DatasetConfig):
+class EmbeddingsNP14DatasetConfig(DatasetConfig):
     def __init__(self):
         super().__init__()
 
         self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "spd2", "SpinningDisk", "NiemannPick", f) for f in 
-                        [f"batch{i}_16bit_no_downsample" for i in [1,2,3,4]]]#,4,5,6,9]]]
+                        [f"batch{i}_16bit_no_downsample" for i in [1,4]]]#,4,5,6,9]]]
         
-        self.SPLIT_DATA = False
+        self.SPLIT_DATA = True
         self.EXPERIMENT_TYPE = 'NiemannPick'
         self.ADD_REP_TO_LABEL = True
         self.ADD_BATCH_TO_LABEL = True
@@ -591,6 +604,8 @@ class EmbeddingsdNLSB3DatasetConfig(DatasetConfig):
         # - Please start with 'lambda self:' and then put your lambda function
         # - If you need to use a package, use it through import as follows __import__('numpy').array([])
         # - Example: "lambda self: lambda labels: __import__('numpy').asarray([l.split('_')[-2-int(self.ADD_REP_TO_LABEL)] for l in labels])"
+
+        #Important: this version of a function gives labels like "cellline_condition": "lambda self: lambda labels: __import__('numpy').asarray([' '.join(l.split('_')[-3-int(self.ADD_REP_TO_LABEL):-1-int(self.ADD_REP_TO_LABEL)]) for l in labels])"
         self.MAP_LABELS_FUNCTION = "lambda self: lambda labels: __import__('numpy').asarray([' '.join(l.split('_')[-3-int(self.ADD_REP_TO_LABEL):-1-int(self.ADD_REP_TO_LABEL)]) for l in labels])"
 
         # Set the colormap, for example: {"Untreated": "#52C5D5", 'stress': "#F7810F"} 
