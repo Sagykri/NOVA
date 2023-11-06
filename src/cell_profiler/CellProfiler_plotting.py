@@ -22,7 +22,7 @@ from sklearn.metrics import adjusted_rand_score
 import sklearn.cluster as cluster
 
 # Global paths
-BATCH_TO_RUN = 'batch7' 
+BATCH_TO_RUN = 'batch6_50percent' 
 
 BASE_DIR = os.path.join('/home','labs','hornsteinlab','Collaboration','MOmaps')
 sys.path.insert(1, BASE_DIR)
@@ -112,19 +112,19 @@ def load_data_and_plot_UMAPs(input_path, stress = True):
             
             plot_umap0(df, marker)
             
-            #all_markers_df.append(df)
+            all_markers_df.append(df)
             
             #print(f"After preprocessing: {df.shape}")
             """
             from 358 to 352 columns while only 4 should be dropped?
             """
         
-        # Combine markers
-        # df_all = pd.concat(all_markers_df)
-        # if stress:
-        #     df_all.to_csv(os.path.join(INPUT_DIR_BATCH, f'stress_all_markers_concatenated-by-object-type_{BATCH_TO_RUN}.csv'))
-        # else:
-        #     df_all.to_csv(os.path.join(INPUT_DIR_BATCH, f'all_markers_concatenated-by-object-type_{BATCH_TO_RUN}.csv'))
+        #Combine markers
+        df_all = pd.concat(all_markers_df)
+        if stress:
+            df_all.to_csv(os.path.join(INPUT_DIR_BATCH, f'stress_all_markers_concatenated-by-object-type_{BATCH_TO_RUN}.csv'))
+        else:
+            df_all.to_csv(os.path.join(INPUT_DIR_BATCH, f'all_markers_concatenated-by-object-type_{BATCH_TO_RUN}.csv'))
         
         # Plot UMAP1
         #plot_umap1(df_all)
@@ -185,6 +185,7 @@ def plot_umap0(df, marker,
     #logging.info('%s %s', "\n", df.value_counts(subset=['replicate', 'cell_line', 'marker']))
     
     from src.common.lib.metrics import calc_clustering_validation_metric
+    from src.common.lib.metrics import get_metrics_figure
     
     if stress:
         # keep relevant columns only
@@ -199,17 +200,24 @@ def plot_umap0(df, marker,
         scores = calc_clustering_validation_metric(umaps, true_labels, metrics=['ARI'])
 
         # UMAP plotting
-        color_map = {'Untreated':'cyan', 'stress':'orange'}
+        color_map = {'Untreated':'#52C5D5', 'stress':'#F7810F'} #cyan and orange
         # colors = true_labels.map(color_map)
         df_new = pd.DataFrame(umaps, columns = ['UMAP1', 'UMAP2'], index = true_labels).reset_index()
 
-        ax = sns.scatterplot(data=df_new, x='UMAP1', y='UMAP2', hue='treatment', palette = color_map)
+        ax = sns.scatterplot(data=df_new, x='UMAP1', y='UMAP2', 
+                             hue='treatment', palette = color_map, s = 30)
         ax.legend().set_title('')
-        plt.title(f'{marker} (ARI: {scores["ARI"]})', fontsize=20)
+        ax.set(xticklabels=[])
+        ax.set(yticklabels=[])
+        ax.set_xlabel("UMAP1",fontsize=15)
+        ax.set_ylabel("UMAP2",fontsize=15)
+        ax.tick_params(left=False, bottom=False)
+        gs_bottom = ax.add_subplot(gs[1])
+        get_metrics_figure(umaps, true_labels, ax=gs_bottom)
+        #plt.title(f'{marker} (ARI: {scores["ARI"]})', fontsize=20)
         plt.ylabel("UMAP 2")
         plt.xlabel("UMAP 1")
-        # TO DO: remove tick labels, increase size x and y labels
-        plt.savefig(os.path.join(OUTPUT_DIR, f'UMAP0_{marker}_stress_ARI.pdf'))
+        plt.savefig(os.path.join(OUTPUT_DIR, f'UMAP0_{marker}_stress_ARI.png'))
         plt.clf()
         
         logging.info(f'UMAP0 with ARI of {marker} saved')
