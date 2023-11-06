@@ -10,8 +10,10 @@ from matplotlib import cm
 from numpy.typing import ArrayLike
 from torch.utils.data import DataLoader
 from tqdm import tqdm
+from matplotlib.gridspec import GridSpec
 import logging
 
+from src.common.lib.metrics import get_metrics_figure
 from cytoself.analysis.base import BaseAnalysis
 from cytoself.analysis.utils.pearson_correlation import selfpearson_multi
 
@@ -264,9 +266,12 @@ class AnalysisOpenCell(BaseAnalysis):
         logging.info(f"is_3d: {is_3d}; umap_data shape: {umap_data.shape}")
         if is_3d:
             from mpl_toolkits import mplot3d
-        subplot_kw = {'projection': '3d'} if is_3d else None
+        subplot_kw = {'projection': '3d'} if is_3d else {}
         #
-        fig, ax = plt.subplots(1, figsize=figsize, subplot_kw=subplot_kw)
+        fig = plt.figure(figsize=figsize)
+        gs = GridSpec(2,1,height_ratios=[20,1])
+        
+        ax = fig.add_subplot(gs[0], **subplot_kw)
         i = 0
         for gp in unique_groups:
             ind = label_data == gp
@@ -329,15 +334,19 @@ class AnalysisOpenCell(BaseAnalysis):
             frameon=False,
         )
         for ll in leg.legendHandles:
-            ll._sizes = [6]
             ll.set_alpha(1)
+            ll.set_sizes([max(6, s)]) # SAGY
         ax.set_xlabel(xlabel)
         ax.set_ylabel(ylabel)
         ax.set_title(title)
-        ax.set_xticklabels([]) #SAGY
-        ax.set_yticklabels([]) #SAGY
-        ax.set_xticks([]) #Noam
-        ax.set_yticks([]) #Noam
+        ax.set_xticklabels([]) 
+        ax.set_yticklabels([]) 
+        ax.set_xticks([]) 
+        ax.set_yticks([]) 
+        
+        gs_bottom = fig.add_subplot(gs[1])
+        get_metrics_figure(umap_data, label_data, ax=gs_bottom)
+        
         fig.tight_layout()
         if savepath:
             logging.info(f"Saving umap to {savepath}")#SAGY

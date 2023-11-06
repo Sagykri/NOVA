@@ -87,7 +87,7 @@ class TLNeuroselfdeltaNLSB25ModelConfig(NeuroselfConfig):
     def __init__(self):
         super().__init__()
         
-        self.OUTPUTS_FOLDER = MOMAPS_OUTPUT ## TODO: remove, temp fix
+        self.OUTPUTS_FOLDER = MODEL_OUTPUT ## TODO: remove, temp fix
         self.MODEL_OUTPUT_FOLDER = os.path.join(self.OUTPUTS_FOLDER, 'models_outputs_deltaNLS_tl_neuroself_sep_TDP43')
         
         self.LOGS_FOLDER = os.path.join(self.MODEL_OUTPUT_FOLDER, 'logs')
@@ -117,7 +117,7 @@ class TLNeuroselfNiemannPickB14ModelConfig(NeuroselfConfig):
     def __init__(self):
         super().__init__()
         
-        self.OUTPUTS_FOLDER = MOMAPS_OUTPUT ## TODO: remove, temp fix
+        self.OUTPUTS_FOLDER = MODEL_OUTPUT
         self.MODEL_OUTPUT_FOLDER = os.path.join(self.OUTPUTS_FOLDER, 'models_outputs_niemann_pick_tl_neuroself')
         
         self.LOGS_FOLDER = os.path.join(self.MODEL_OUTPUT_FOLDER, 'logs')
@@ -125,7 +125,7 @@ class TLNeuroselfNiemannPickB14ModelConfig(NeuroselfConfig):
 
         # Models
         self.PRETRAINED_MODEL_PATH = os.path.join(self.OUTPUTS_FOLDER, "models_outputs_batch78_nods_tl_ep23", "checkpoints", "checkpoint_ep21.chkp") 
-        self.MODEL_PATH = None #os.path.join(self.MODEL_OUTPUT_FOLDER, 'checkpoints', 'checkpoint_ep21.chkp')
+        self.MODEL_PATH = os.path.join(self.MODEL_OUTPUT_FOLDER, 'model_21.pt')
         self.LAST_CHECKPOINT_PATH = os.path.join(self.MODEL_OUTPUT_FOLDER, 'checkpoints')
         
         self.EARLY_STOP_PATIENCE = 10
