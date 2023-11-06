@@ -12,7 +12,7 @@ outputs/config_used/*
 outputs/config_used_old/*
 outputs/cell_profiler/*
 outputs/tensorflow/*
-outputs/model_outputs_*
+outputs/models_outputs_*
 input/embeddings/*
 input/gt_tables/*
 input/images/raw/*
