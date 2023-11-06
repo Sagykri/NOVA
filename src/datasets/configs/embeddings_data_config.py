@@ -386,7 +386,7 @@ class EmbeddingsU2OSDatasetConfig(DatasetConfig):
         self.COLORMAP = {"Untreated": "#52C5D5", 'stress': "#F7810F"}
 
         # Set the size of the dots
-        self.SIZE = 6
+        self.SIZE = 30
         # Set the alpha of the dots (0=max opacity, 1=no opacity)
         self.ALPHA = 0.7
         #######################################
