@@ -49,7 +49,6 @@ __pycache__/
 
 core.*
 **/*.h5
-outputs/*
 **/*.tif
 **/*.png
 **/*.czi
