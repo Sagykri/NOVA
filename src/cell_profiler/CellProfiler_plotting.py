@@ -22,7 +22,7 @@ from sklearn.metrics import adjusted_rand_score
 import sklearn.cluster as cluster
 
 # Global paths
-BATCH_TO_RUN = 'batch6_50percent' 
+BATCH_TO_RUN = 'batch9_50percent' 
 
 BASE_DIR = os.path.join('/home','labs','hornsteinlab','Collaboration','MOmaps')
 sys.path.insert(1, BASE_DIR)
@@ -186,6 +186,7 @@ def plot_umap0(df, marker,
     
     from src.common.lib.metrics import calc_clustering_validation_metric
     from src.common.lib.metrics import get_metrics_figure
+    from matplotlib.gridspec import GridSpec
     
     if stress:
         # keep relevant columns only
@@ -197,26 +198,28 @@ def plot_umap0(df, marker,
         umaps = umap.UMAP(random_state=42, n_components=2, n_jobs=1).fit_transform(temp_df)
 
         # calculate clustering scores
-        scores = calc_clustering_validation_metric(umaps, true_labels, metrics=['ARI'])
+        #scores = calc_clustering_validation_metric(umaps, true_labels, metrics=['ARI'])
 
         # UMAP plotting
         color_map = {'Untreated':'#52C5D5', 'stress':'#F7810F'} #cyan and orange
         # colors = true_labels.map(color_map)
         df_new = pd.DataFrame(umaps, columns = ['UMAP1', 'UMAP2'], index = true_labels).reset_index()
 
-        ax = sns.scatterplot(data=df_new, x='UMAP1', y='UMAP2', 
+        fig = plt.figure()
+        gs = GridSpec(2,1,height_ratios=[20,1])
+        ax = fig.add_subplot(gs[0])
+        sns.scatterplot(data=df_new, x='UMAP1', y='UMAP2', ax = ax,
                              hue='treatment', palette = color_map, s = 30)
+        gs_bottom = fig.add_subplot(gs[1])
+        get_metrics_figure(umaps, np.array(true_labels), ax=gs_bottom)
         ax.legend().set_title('')
         ax.set(xticklabels=[])
         ax.set(yticklabels=[])
-        ax.set_xlabel("UMAP1",fontsize=15)
-        ax.set_ylabel("UMAP2",fontsize=15)
+        # ax.set_xlabel("UMAP1",fontsize=15)
+        # ax.set_ylabel("UMAP2",fontsize=15)
         ax.tick_params(left=False, bottom=False)
-        gs_bottom = ax.add_subplot(gs[1])
-        get_metrics_figure(umaps, true_labels, ax=gs_bottom)
-        #plt.title(f'{marker} (ARI: {scores["ARI"]})', fontsize=20)
-        plt.ylabel("UMAP 2")
-        plt.xlabel("UMAP 1")
+        ax.set_title(f'{BATCH_TO_RUN}_{marker}')
+        fig.tight_layout()
         plt.savefig(os.path.join(OUTPUT_DIR, f'UMAP0_{marker}_stress_ARI.png'))
         plt.clf()
         
