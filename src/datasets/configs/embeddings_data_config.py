@@ -565,14 +565,14 @@ class EmbeddingsNPB4DatasetConfig(DatasetConfig):
 ############################################################
 # DeltaNLS     
 ############################################################
-class EmbeddingsdNLSB2DatasetConfig(DatasetConfig):
+class EmbeddingsdNLSB25DatasetConfig(DatasetConfig):
     def __init__(self):
         super().__init__()
 
         self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "spd2", "SpinningDisk", "deltaNLS", f) for f in 
-                        ["batch2_16bit_no_downsample" ]]
+                        ["batch2_16bit_no_downsample",'batch5_16bit_no_downsample' ]]
         
-        self.SPLIT_DATA = False
+        self.SPLIT_DATA = True
         self.EXPERIMENT_TYPE = 'deltaNLS'
         self.ADD_REP_TO_LABEL = True
         self.ADD_BATCH_TO_LABEL = True
@@ -580,6 +580,17 @@ class EmbeddingsdNLSB2DatasetConfig(DatasetConfig):
         self.CELL_LINES = ['TDP43','WT']
         # self.MARKERS = ['TOMM20','mitotracker','GM130'] #['FUS']
         self.REPS = ['rep1', 'rep2'] # Can be : ['rep1', 'rep2'] or ['rep1'] or ['rep2']
+
+        #Important: this version of a function gives labels like "cellline_condition": "lambda self: lambda labels: __import__('numpy').asarray([' '.join(l.split('_')[-3-int(self.ADD_REP_TO_LABEL):-1-int(self.ADD_REP_TO_LABEL)]) for l in labels])"
+        self.MAP_LABELS_FUNCTION = "lambda self: lambda labels: __import__('numpy').asarray([' '.join(l.split('_')[-3-int(self.ADD_REP_TO_LABEL):-1-int(self.ADD_REP_TO_LABEL)]) for l in labels])"
+
+        # Set the colormap, for example: {"Untreated": "#52C5D5", 'stress': "#F7810F"} 
+        self.COLORMAP = {"WT Untreated": "#2FA0C1", 'TDP43 dox': "#90278E", "TDP43 Untreated":"#494CB3"}
+
+        # Set the size of the dots
+        self.SIZE = 30
+        # Set the alpha of the dots (0=max opacity, 1=no opacity)
+        self.ALPHA = 0.7
 
 class EmbeddingsdNLSB3DatasetConfig(DatasetConfig):
     def __init__(self):
@@ -612,7 +623,7 @@ class EmbeddingsdNLSB3DatasetConfig(DatasetConfig):
         self.COLORMAP = {"WT Untreated": "#2FA0C1", 'TDP43 dox': "#90278E", "TDP43 Untreated":"#494CB3"}
 
         # Set the size of the dots
-        self.SIZE = 6
+        self.SIZE = 30
         # Set the alpha of the dots (0=max opacity, 1=no opacity)
         self.ALPHA = 0.7
 
