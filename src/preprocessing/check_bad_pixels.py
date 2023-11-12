@@ -1,3 +1,7 @@
+##########################################
+# Checking all datasets all batches (in multiprocessing) 
+# for pixels with value of 0 or 1
+##########################################
 from multiprocessing import Pool
 import numpy as np
 import os
@@ -87,9 +91,9 @@ if __name__ == '__main__':
     print("\n\n\nStart..")
     
     batches = [
-            # 'batch7', 'batch6', 'batch9', 'batch8', 'batch3', 'batch4', 'batch5',
-            # 'deltaNLS_sort/batch2', 'deltaNLS_sort/batch3', 'deltaNLS_sort/batch4', 'deltaNLS_sort/batch5',
-            # 'NiemannPick_sort/batch1', 'NiemannPick_sort/batch2', 'NiemannPick_sort/batch3', 'NiemannPick_sort/batch4', 
+            'batch7', 'batch6', 'batch9', 'batch8', 'batch3', 'batch4', 'batch5',
+            'deltaNLS_sort/batch2', 'deltaNLS_sort/batch3', 'deltaNLS_sort/batch4', 'deltaNLS_sort/batch5',
+            'NiemannPick_sort/batch1', 'NiemannPick_sort/batch2', 'NiemannPick_sort/batch3', 'NiemannPick_sort/batch4', 
             'microglia_sort/batch2', 'microglia_sort/batch3', 'microglia_sort/batch4',
             'microglia_LPS_sort/batch1', 'microglia_LPS_sort/batch2',
             'Perturbations']
