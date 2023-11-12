@@ -37,7 +37,6 @@ def sample_and_calc_variance(INPUT_DIR, batch, sample_size_per_markers=200, num_
     
     return variance
 
-
 def validate_files_proc(path, batch_df, bad_files, marker_info, cell_lines_for_disp):
     path_split = path.split('/')
     cur_marker = path_split[-1]
@@ -118,8 +117,7 @@ def validate_files_raw(path, batch_df, bad_files, marker_info,cell_lines_for_dis
         if not good_file:
                 bad_files.append(f'{path}, {file}')
     return bad_files, batch_df
-
-                        
+                 
 def validate_folder_structure(root_dir, folder_structure, missing_paths, bad_files, batch_df,
                                marker_info, cell_lines_for_disp, proc=False):
     for name, content in folder_structure.items():
@@ -142,17 +140,12 @@ def validate_folder_structure(root_dir, folder_structure, missing_paths, bad_fil
                 
     return missing_paths, bad_files, batch_df
 
-    
-
-
-
 def display_diff(batches, raws, procs, plot_path, fig_height=8, fig_width=8):
     for batch_proc, batch_raw, batch in zip(procs, raws,batches):
         diff = batch_raw - batch_proc
         print(batch)
         plot_table_diff(diff, plot_path, batch, fig_height, fig_width)
         print('=' * 8)
-
 
 def get_array_sum(array_string):
     # Remove square brackets and split the string into individual elements
@@ -229,7 +222,6 @@ def log_files_qc(LOGS_PATH):
     df['p_valid_tiles'] = df['n_valid_tiles']*100 / df['cells_counts_list'].apply(len)
     return df.sort_values(by=['batch'])
 
-
 def create_folder_structure(folder_type, markers,cell_lines_to_cond, reps, panels):
     folder_structure = {}
     if folder_type == 'processed':
@@ -248,7 +240,6 @@ def create_folder_structure(folder_type, markers,cell_lines_to_cond, reps, panel
     return folder_structure
 
 
-    
 color_light_green = '#8DF980'
 color_yellow = 'yellow'
 color_gray = 'gray'
@@ -388,7 +379,6 @@ def run_validate_folder_structure(root_dir, proc, panels, markers,plot_path, mar
     print('=' * 20)
     return batch_dfs
     
-
 def plot_cell_count(df, order, custom_palette, whole_cells=False, norm=False):
     y = 'site_whole_cells_counts' if whole_cells else 'site_cells_counts'
     if np.unique(df.batch)[0]=="Perturbations":
@@ -529,7 +519,6 @@ def plot_sites_count(df, expected, order, custom_palette, split_to_reps=False):
         plt.suptitle(f'{title}\nexpected count = {expected}', fontsize=20)
         plt.show()
 
-
 def _calc_hist_raw(paths):
     bins_raw = np.concatenate(([0], np.arange(350,1000, 20), [1000, 2**16]))
     bins_rescale = np.arange(0,1.1, 0.1)
@@ -562,7 +551,6 @@ def _calc_hist_proc(paths):
             norm_hist += hist_with_site_count
             
     return norm_hist
-
 
 def create_sublists_by_marker_cell_line(images, raw, n, cell_lines_for_disp):
     sublists_dict = {}
@@ -643,7 +631,6 @@ def multiproc_calc_hists_per_batch_proc(images_paths, batch_df_proc, n, cell_lin
 
     return batch_df_proc
 
-
 def plot_hist_sep_by_type(mean_hist_raw, mean_hist_rescale, mean_hist_proc, batch_num, ncols=3, nrows=3):
     for hist_df, name in zip([mean_hist_raw, mean_hist_rescale, mean_hist_proc], ['raw', 'rescaled','processed']):
         fig, axs = plt.subplots(figsize=(15, 8), ncols=ncols, nrows=nrows, sharey=True, dpi=200)
@@ -687,8 +674,6 @@ def plot_hist_sep_by_type(mean_hist_raw, mean_hist_rescale, mean_hist_proc, batc
         plt.suptitle(f'{name} {batch_num}')
         plt.tight_layout()
         plt.show()
-
-
 
 def plot_hist_sep_by_cell_line(mean_hist_raw, mean_hist_rescale, mean_hist_proc, batch_num):
     mean_hist_raw = (mean_hist_raw/(1024*1024))*100
@@ -737,9 +722,7 @@ def plot_hist_sep_by_cell_line(mean_hist_raw, mean_hist_rescale, mean_hist_proc,
         fig.legend(handles, labels, loc='center right', ncol=1, fontsize=8, bbox_to_anchor=(1.1,0.5))
         plt.tight_layout()
         plt.show()
-        
-        
-
+                
 def plot_hists(batch_df_raw,batch_df_norm, batch_df_proc, batch_num, plot_sep_by_cell_line=False, ncols=3, nrows=3):
     mean_hist_raw = batch_df_raw.copy()
     mean_hist_raw[batch_df_raw.columns.difference(['site_count'])] = batch_df_raw.drop(columns=['site_count']).div(batch_df_raw['site_count'], axis=0).astype(int)
@@ -752,7 +735,6 @@ def plot_hists(batch_df_raw,batch_df_norm, batch_df_proc, batch_num, plot_sep_by
     plot_hist_sep_by_type(mean_hist_raw, mean_hist_rescale, mean_hist_proc, batch_num, ncols, nrows)
     if plot_sep_by_cell_line:
         plot_hist_sep_by_cell_line(mean_hist_raw, mean_hist_rescale, mean_hist_proc, batch_num)
-
 
 def run_calc_hist_new(batch, cell_lines_for_disp, markers, hist_sample=1, 
                       sample_size_per_markers=200, ncols=3, nrows=3, rep_count=2, cond_count=2):    
@@ -779,7 +761,6 @@ def run_calc_hist_new(batch, cell_lines_for_disp, markers, hist_sample=1,
     plot_hists(batch_df_raw.dropna(), batch_df_norm.dropna(), batch_df_processed.dropna(), batch, ncols=ncols, nrows=nrows)
 
     #plot_hists(batch_df_processed, batch_df_processed, batch_df_processed, batch, ncols=ncols, nrows=nrows)
-
 
 def plot_n_valid_tiles_count(df, custom_palette,reps, batch_min=3, batch_max=9):
     if np.unique(df.batch)[0]=='Perturbations':
