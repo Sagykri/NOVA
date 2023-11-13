@@ -9,7 +9,10 @@ logs/
 id_rsa
 id_rsa.pub
 outputs/config_used/*
+outputs/config_used_old/*
 outputs/cell_profiler/*
+outputs/tensorflow/*
+outputs/models_outputs_*
 input/embeddings/*
 input/gt_tables/*
 input/images/raw/*
@@ -49,7 +52,6 @@ __pycache__/
 
 core.*
 **/*.h5
-outputs/*
 **/*.tif
 **/*.png
 **/*.czi

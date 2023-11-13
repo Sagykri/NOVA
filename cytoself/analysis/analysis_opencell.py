@@ -339,10 +339,10 @@ class AnalysisOpenCell(BaseAnalysis):
         ax.set_xlabel(xlabel)
         ax.set_ylabel(ylabel)
         ax.set_title(title)
-        ax.set_xticklabels([]) #SAGY
-        ax.set_yticklabels([]) #SAGY
-        ax.set_xticks([]) #NOAM
-        ax.set_yticks([]) #NOAM
+        ax.set_xticklabels([]) 
+        ax.set_yticklabels([]) 
+        ax.set_xticks([]) 
+        ax.set_yticks([]) 
         
         gs_bottom = fig.add_subplot(gs[1])
         get_metrics_figure(umap_data, label_data, ax=gs_bottom)
