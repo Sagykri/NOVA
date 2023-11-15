@@ -67,7 +67,7 @@ class TLNeuroselfB78NoDSModelConfig(NeuroselfConfig):
 
         # Models
         self.PRETRAINED_MODEL_PATH = os.path.join(self.OUTPUTS_FOLDER,"models_outputs_cytoself_qsplit9", "checkpoints", "checkpoint_ep23.chkp") 
-        self.MODEL_PATH = os.path.join(self.MODEL_OUTPUT_FOLDER, 'checkpoints', 'checkpoint_ep21.chkp')
+        self.MODEL_PATH = os.path.join(self.MODEL_OUTPUT_FOLDER, 'model_31.pt')
         self.LAST_CHECKPOINT_PATH = os.path.join(self.MODEL_OUTPUT_FOLDER, 'checkpoints')
         
         self.EARLY_STOP_PATIENCE = 10

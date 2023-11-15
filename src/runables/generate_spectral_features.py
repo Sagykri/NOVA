@@ -44,8 +44,10 @@ def generate_spectral_features():
     logging.info(f"embedding_layer = {embedding_layer}")
 
     # Get dataset 
-    # ****** IMPORTANT: batch_size==1 !!! to help get correct tile numbers per image ****** 
-    datasets_list = load_dataset_for_embeddings(config_data=config_data, batch_size=1, config_model=config_model)
+    # ****** IMPORTANT: batch_size==1 !!! to help get correct tile numbers per image (each batch is a single image)****** 
+    # ****** IMPORTANT: shuffle=False !!! to help get correct tile numbers per image (avoid shuffling tiles indise a site)****** 
+
+    datasets_list = load_dataset_for_embeddings(config_data=config_data, batch_size=1, config_model=config_model, shuffle=False)
     # Set the output folder (where to save the embeddings)
     embeddings_folder = os.path.join(config_model.MODEL_OUTPUT_FOLDER, 'embeddings', experiment_type, embedding_layer)
      
