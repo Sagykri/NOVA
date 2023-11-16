@@ -46,11 +46,11 @@ def calculate_image_contrast(image):
 Higher Variance: Strong edges and, consequently, a sharper image.
 Lower Variance: The image is blurrier with fewer or softer edges.
 """
-def calculate_image_sharpness(image):
+def calculate_image_sharpness_laplacian(image):
     # Convert image to grayscale
     gray_image = image
     # if len(image.shape) == 3:
-    # gray_image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+    gray_image = cv2.convertScaleAbs(image, alpha=(65535/255))
     
     # Apply Laplacian operator in the image
     laplacian_var = cv2.Laplacian(gray_image, cv2.CV_64F).var()
@@ -65,13 +65,29 @@ def calculate_var(image):
   return np.var(gray_image)
 
 
-
-def calculate_blurness(image):
-  # brenners gradient
+"""
+Low = blur
+High = sharp
+"""
+# TODO: Good one, change its name to calcualte_sharpness
+# TODO: Check Laplacian better (shouldn't be affect by cells count) & fft (shouldn't be affected, more texture) & wavelets (like fft)
+def calculate_image_sharpness_brenner(image):
+  def _brenners_gradient(image):
+    # Calculate the squared difference
+    shift = 2  # Typical distance between pixels for calculation
+    diff = image[:, :-shift] - image[:, shift:]
+    brenner = np.sum(diff ** 2)
+    
+    return brenner
+  
   gray_image = image
   # if len(image.shape) == 3:
   # gray_image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-  return np.sum(np.diff(gray_image, axis=0)**2)
+  rows_brenner = _brenners_gradient(gray_image)
+  cols_brenner = _brenners_gradient(gray_image.T)
+  
+  return rows_brenner + cols_brenner
+
 
 def calculate_blurriness_wavelets(image):
     pass
@@ -102,7 +118,7 @@ def calculate_sigma(image):
 """
 "...if there are a low amount of high frequencies, then the image can be considered blurry." (https://pyimagesearch.com/2015/09/07/blur-detection-with-opencv/)
 """
-def calculate_high_freq_power(image):
+def calculate_high_freq_power(image, threshold=None):
     gray_image = image
     # if len(image.shape) == 3:
     # gray_image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
@@ -112,11 +128,20 @@ def calculate_high_freq_power(image):
 
     # Calculate the average power spectrum in the higher frequency bands
     # This can be tuned depending on the size and characteristics of the images
-    center = tuple(np.array(magnitude_spectrum.shape) // 2)
-    high_freq_power = magnitude_spectrum[center[0]//2:center[0] + center[0]//2, center[1]//2:center[1] + center[1]//2].mean()
+    if threshold is None:
+        center = tuple(np.array(magnitude_spectrum.shape) // 2)
+        threshold = center[0] + center[0] // 2
+    high_freq_power = magnitude_spectrum[threshold:, threshold:].mean()
 
     return high_freq_power
   
+"""
+0 - no blur
+1 - maximal blur
+"""
+def calc_image_blur_effect(image):
+  from skimage.measure import blur_effect
+  return blur_effect(image)
 
 ###############################################################################################
 
@@ -203,13 +228,13 @@ def calculate_high_low_freq_ratio(image, threshold):
 #                                       #
 #########################################
 
-import pywt
 
 def blur_detect(img, threshold):
+    import pywt
     
     # Convert image to grayscale
-    Y = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-    
+    # Y = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    Y = img
     
     M, N = Y.shape
     
@@ -365,5 +390,5 @@ def find_images_haar(images, threshold=35, minZero=0.001):
             blur_images.append(image)
             print(f"{i}: per: {per}, blurext: {blurext}")
     
-    blur_images = np.vstack(blur_images)
+    blur_images = np.stack(blur_images)
     return blur_images
