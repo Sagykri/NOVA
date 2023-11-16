@@ -94,7 +94,7 @@ class EmbeddingsB9DatasetConfig(DatasetConfig):
         #self.COLORMAP = {"Untreated": "#52C5D5", 'stress': "#F7810F"}
 
         # Set the size of the dots
-        self.SIZE = 6
+        self.SIZE = 30
         # Set the alpha of the dots (0=max opacity, 1=no opacity)
         self.ALPHA = 0.7
         #######################################
@@ -130,7 +130,7 @@ class EmbeddingsB6DatasetConfig(DatasetConfig):
         #self.COLORMAP = {"Untreated": "#52C5D5", 'stress': "#F7810F"}
 
         # Set the size of the dots
-        self.SIZE = 6
+        self.SIZE = 30
         # Set the alpha of the dots (0=max opacity, 1=no opacity)
         self.ALPHA = 0.7
         #######################################
@@ -163,7 +163,7 @@ class EmbeddingsB5DatasetConfig(DatasetConfig):
         #self.COLORMAP = {"Untreated": "#52C5D5", 'stress': "#F7810F"}
 
         # Set the size of the dots
-        self.SIZE = 6
+        self.SIZE = 30
         # Set the alpha of the dots (0=max opacity, 1=no opacity)
         self.ALPHA = 0.7
         #######################################
@@ -193,7 +193,7 @@ class EmbeddingsB4DatasetConfig(DatasetConfig):
         #self.COLORMAP = {"Untreated": "#52C5D5", 'stress': "#F7810F"}
 
         # Set the size of the dots
-        self.SIZE = 6
+        self.SIZE = 30
         # Set the alpha of the dots (0=max opacity, 1=no opacity)
         self.ALPHA = 0.7
         #######################################
@@ -223,7 +223,7 @@ class EmbeddingsB3DatasetConfig(DatasetConfig):
         #self.COLORMAP = {"Untreated": "#52C5D5", 'stress': "#F7810F"}
 
         # Set the size of the dots
-        self.SIZE = 6
+        self.SIZE = 30
         # Set the alpha of the dots (0=max opacity, 1=no opacity)
         self.ALPHA = 0.7
         #######################################
@@ -285,7 +285,7 @@ class EmbeddingsU2OSDatasetConfig(DatasetConfig):
         #self.COLORMAP = {"Untreated": "#52C5D5", 'stress': "#F7810F"}
 
         # Set the size of the dots
-        self.SIZE = 6
+        self.SIZE = 30
         # Set the alpha of the dots (0=max opacity, 1=no opacity)
         self.ALPHA = 0.7
         #######################################
@@ -328,7 +328,7 @@ class EmbeddingsNiemannPickDatasetConfig(DatasetConfig):
         #self.COLORMAP = {"Untreated": "#52C5D5", 'stress': "#F7810F"}
 
         # Set the size of the dots
-        self.SIZE = 6
+        self.SIZE = 30
         # Set the alpha of the dots (0=max opacity, 1=no opacity)
         self.ALPHA = 0.7
         #######################################
@@ -343,14 +343,34 @@ class EmbeddingsPertConfocalDatasetConfig(DatasetConfig):
         self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "Confocal", f) for f in 
                                 ["Perturbations_spd_format"]]
         
-        
         self.SPLIT_DATA = False        
         self.CELL_LINES = ['WT', 'TDP43']
-        self.CONDITIONS = ['Untreated', 'DMSO1uM', 'Edavarone', 'Pridopine', 'DMSO100uM', 'Riluzole', 'Tubastatin', 'Chloroquine']
+        #self.CONDITIONS = ['Untreated', 'DMSO1uM', 'Edavarone', 'Pridopine', 'DMSO100uM', 'Riluzole', 'Tubastatin', 'Chloroquine']
+        self.CONDITIONS = ['Untreated', 'Pridopine']
+        self.MARKERS = ['NCL', 'SQSTM1', 'Calreticulin', 'DAPI', 'PURA', 'NONO']
+        # self.REPS = ['rep1', 'rep2']
+        
         self.EXPERIMENT_TYPE = 'perturbations_confocal'
         
         # Local/Global embeddings
-        self.EMBEDDINGS_LAYER = 'vqvec1'
+        self.EMBEDDINGS_LAYER = 'vqvec2' # 'vqindhist1', 'vqvec2'
+        
+        # Set a function to map the labels, can be None if not needed.
+        # Instructions:
+        # - The function must be given as string!
+        # - Please start with 'lambda self:' and then put your lambda function
+        # - If you need to use a package, use it through import as follows __import__('numpy').array([])
+        # - Example: "lambda self: lambda labels: __import__('numpy').asarray([l.split('_')[-2-int(self.ADD_REP_TO_LABEL)] for l in labels])"
+        #self.MAP_LABELS_FUNCTION = "lambda self: lambda labels: __import__('numpy').asarray([l.split('_')[-2-int(self.ADD_REP_TO_LABEL)] for l in labels])"
+
+        # Set the colormap, for example: {"Untreated": "#52C5D5", 'stress': "#F7810F"} 
+        #self.COLORMAP = {"Untreated": "#52C5D5", 'stress': "#F7810F"}
+
+        # Set the size of the dots
+        self.SIZE = 30
+        # Set the alpha of the dots (0=max opacity, 1=no opacity)
+        self.ALPHA = 0.7
+        #######################################
         
 class EmbeddingsPertSPDDatasetConfig(DatasetConfig):
     def __init__(self):
@@ -363,10 +383,30 @@ class EmbeddingsPertSPDDatasetConfig(DatasetConfig):
         self.SPLIT_DATA = False        
         self.CELL_LINES = ['WT', 'TDP43']
         self.CONDITIONS = ['Untreated', 'DMSO1uM', 'Edavarone', 'Pridopine', 'DMSO100uM', 'Riluzole', 'Tubastatin', 'Chloroquine']
+        self.MARKERS = ['NCL', 'SQSTM1', 'Calreticulin', 'DAPI', 'PURA', 'NONO']
+        # self.REPS = ['rep1', 'rep2']
+        
         self.EXPERIMENT_TYPE = 'perturbations'
         
         # Local/Global embeddings
-        self.EMBEDDINGS_LAYER = 'vqvec2'
+        self.EMBEDDINGS_LAYER = 'vqvec2' # 'vqindhist1', 'vqvec2'
+        
+        # Set a function to map the labels, can be None if not needed.
+        # Instructions:
+        # - The function must be given as string!
+        # - Please start with 'lambda self:' and then put your lambda function
+        # - If you need to use a package, use it through import as follows __import__('numpy').array([])
+        # - Example: "lambda self: lambda labels: __import__('numpy').asarray([l.split('_')[-2-int(self.ADD_REP_TO_LABEL)] for l in labels])"
+        #self.MAP_LABELS_FUNCTION = "lambda self: lambda labels: __import__('numpy').asarray([l.split('_')[-2-int(self.ADD_REP_TO_LABEL)] for l in labels])"
+
+        # Set the colormap, for example: {"Untreated": "#52C5D5", 'stress': "#F7810F"} 
+        #self.COLORMAP = {"Untreated": "#52C5D5", 'stress': "#F7810F"}
+
+        # Set the size of the dots
+        self.SIZE = 30
+        # Set the alpha of the dots (0=max opacity, 1=no opacity)
+        self.ALPHA = 0.7
+        #######################################
 
 ############################################################
 # U2OS data
@@ -565,14 +605,14 @@ class EmbeddingsNPB4DatasetConfig(DatasetConfig):
 ############################################################
 # DeltaNLS     
 ############################################################
-class EmbeddingsdNLSB2DatasetConfig(DatasetConfig):
+class EmbeddingsdNLSB25DatasetConfig(DatasetConfig):
     def __init__(self):
         super().__init__()
 
         self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "spd2", "SpinningDisk", "deltaNLS", f) for f in 
-                        ["batch2_16bit_no_downsample" ]]
+                        ["batch2_16bit_no_downsample",'batch5_16bit_no_downsample' ]]
         
-        self.SPLIT_DATA = False
+        self.SPLIT_DATA = True
         self.EXPERIMENT_TYPE = 'deltaNLS'
         self.ADD_REP_TO_LABEL = True
         self.ADD_BATCH_TO_LABEL = True
@@ -580,6 +620,17 @@ class EmbeddingsdNLSB2DatasetConfig(DatasetConfig):
         self.CELL_LINES = ['TDP43','WT']
         # self.MARKERS = ['TOMM20','mitotracker','GM130'] #['FUS']
         self.REPS = ['rep1', 'rep2'] # Can be : ['rep1', 'rep2'] or ['rep1'] or ['rep2']
+
+        #Important: this version of a function gives labels like "cellline_condition": "lambda self: lambda labels: __import__('numpy').asarray([' '.join(l.split('_')[-3-int(self.ADD_REP_TO_LABEL):-1-int(self.ADD_REP_TO_LABEL)]) for l in labels])"
+        self.MAP_LABELS_FUNCTION = "lambda self: lambda labels: __import__('numpy').asarray([' '.join(l.split('_')[-3-int(self.ADD_REP_TO_LABEL):-1-int(self.ADD_REP_TO_LABEL)]) for l in labels])"
+
+        # Set the colormap, for example: {"Untreated": "#52C5D5", 'stress': "#F7810F"} 
+        self.COLORMAP = {"WT Untreated": "#2FA0C1", 'TDP43 dox': "#90278E", "TDP43 Untreated":"#494CB3"}
+
+        # Set the size of the dots
+        self.SIZE = 30
+        # Set the alpha of the dots (0=max opacity, 1=no opacity)
+        self.ALPHA = 0.7
 
 class EmbeddingsdNLSB3DatasetConfig(DatasetConfig):
     def __init__(self):
@@ -612,7 +663,7 @@ class EmbeddingsdNLSB3DatasetConfig(DatasetConfig):
         self.COLORMAP = {"WT Untreated": "#2FA0C1", 'TDP43 dox': "#90278E", "TDP43 Untreated":"#494CB3"}
 
         # Set the size of the dots
-        self.SIZE = 6
+        self.SIZE = 30
         # Set the alpha of the dots (0=max opacity, 1=no opacity)
         self.ALPHA = 0.7
 
@@ -644,6 +695,22 @@ class EmbeddingsdNLSB5DatasetConfig(DatasetConfig):
         self.ADD_REP_TO_LABEL = True
         self.ADD_BATCH_TO_LABEL = True
         self.EMBEDDINGS_LAYER = 'vqvec2'
+        self.CELL_LINES = ['TDP43','WT']
+        # self.MARKERS = ['TOMM20','mitotracker','GM130'] #['FUS']
+        self.REPS = ['rep1', 'rep2'] # Can be : ['rep1', 'rep2'] or ['rep1'] or ['rep2']
+
+class EmbeddingsdNLSB25DatasetConfig(DatasetConfig):
+    def __init__(self):
+        super().__init__()
+
+        self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "spd2", "SpinningDisk", "deltaNLS", f) for f in 
+                        ["batch2_16bit_no_downsample","batch5_16bit_no_downsample" ]]
+        
+        self.SPLIT_DATA = True
+        self.EXPERIMENT_TYPE = 'deltaNLS'
+        self.ADD_REP_TO_LABEL = True
+        self.ADD_BATCH_TO_LABEL = True
+        self.EMBEDDINGS_LAYER = 'vqindhist1'
         self.CELL_LINES = ['TDP43','WT']
         # self.MARKERS = ['TOMM20','mitotracker','GM130'] #['FUS']
         self.REPS = ['rep1', 'rep2'] # Can be : ['rep1', 'rep2'] or ['rep1'] or ['rep2']
