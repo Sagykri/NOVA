@@ -88,7 +88,9 @@ def filter_invalid_tiles(file_name, img, nucleus_diameter=100, cellprob_threshol
                         [tile_w-min_edge_distance,min_edge_distance]])
         
         # Is there any nuclues inside the image boundries?
-        is_covered = [p.covered_by(img_edges) for p in polys_nuclei]
+        logging.warn(f"[NOTE] Check 100% coverd by to 80% !!!")
+        logging.warn(f"[NOTE] Much more complicated since we don't have the entire cell so we can only check whether the 80% of the fraction within the image is covered")
+        is_covered = [p.coverd_by(img_edges) for p in polys_nuclei]
         is_valid = any(is_covered)
 
         #####################################################################
