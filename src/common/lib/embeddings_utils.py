@@ -38,7 +38,7 @@ def init_model_for_embeddings(config_path_model):
     logging.info(f"Init model {config_model}")
     return model, config_model
 
-def load_dataset_for_embeddings(config_data, batch_size, config_model):
+def load_dataset_for_embeddings(config_data, batch_size, config_model, shuffle=True):
     """Returns torch.utils.data.DataLoader objects 
 
     Use the dataset config (src.datasets.configs.train_config) to load the dataset that we want to calc embbedings for
@@ -74,16 +74,16 @@ def load_dataset_for_embeddings(config_data, batch_size, config_model):
         # Get numeric indexes of train, val and test sets
         train_indexes, val_indexes, test_indexes = dataset.split()
         # Get loaders
-        dataloader_train, dataloader_val, dataloader_test = get_dataloader(dataset, batch_size, indexes=train_indexes, num_workers=2),\
-                                                            get_dataloader(dataset, batch_size, indexes=val_indexes, num_workers=2),\
-                                                            get_dataloader(dataset, batch_size, indexes=test_indexes, num_workers=2)
+        dataloader_train, dataloader_val, dataloader_test = get_dataloader(dataset, batch_size, indexes=train_indexes, num_workers=2, shuffle=shuffle),\
+                                                            get_dataloader(dataset, batch_size, indexes=val_indexes, num_workers=2, shuffle=shuffle),\
+                                                            get_dataloader(dataset, batch_size, indexes=test_indexes, num_workers=2, shuffle=shuffle)
         
         return [dataloader_train, dataloader_val, dataloader_test]
     
     else:
         # Load the data
         # Include all the data by using "indexes=None"
-        dataloader = get_dataloader(dataset, batch_size, indexes=None, num_workers=2)    
+        dataloader = get_dataloader(dataset, batch_size, indexes=None, num_workers=2, shuffle=shuffle)    
     
         return [dataloader]
     
