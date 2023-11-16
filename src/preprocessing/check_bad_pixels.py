@@ -25,8 +25,8 @@ def check_batch(batch_name, sample_size_per_markers=200, num_markers=36):
     images = sample_images_all_markers_all_lines(INPUT_DIR_BATCH, 
                                                  sample_size_per_markers, 
                                                  num_markers,
-                                                 raw=True,
-                                                 rep_count=2, cond_count=8)
+                                                 raw=True, all_conds=True,
+                                                 rep_count=2, cond_count=2, exclude_DAPI=False)
     
     results = _multiproc_check_batch(images_paths=images)
     

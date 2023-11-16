@@ -742,7 +742,7 @@ def run_calc_hist_new(batch, cell_lines_for_disp, markers, hist_sample=1,
     INPUT_DIR_BATCH_PROC = os.path.join(INPUT_DIR_PROC, batch.replace("_sort",""))
 
     images_raw = sample_images_all_markers_all_lines(INPUT_DIR_BATCH_RAW, sample_size_per_markers, _num_markers=len(markers),
-                                                     raw=True, all_conds=False, rep_count=rep_count, cond_count=cond_count)
+                                                     raw=True, all_conds=False, rep_count=rep_count, cond_count=cond_count, exclude_DAPI=True)
     images_proc = sample_images_all_markers_all_lines(INPUT_DIR_BATCH_PROC, _sample_size_per_markers=sample_size_per_markers,#*2, 
                                                  _num_markers=len(markers), raw=False, all_conds=True)
     cell_lines_for_df = [cell_line for cell_line in cell_lines_for_disp.values() for _ in range(len(markers))]
