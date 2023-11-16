@@ -8,7 +8,7 @@ logs/
 
 id_rsa
 id_rsa.pub
-outputs/figures/*.eps
+outputs/figures/**/*.eps
 outputs/config_used/*
 outputs/config_used_old/*
 outputs/cell_profiler/*
