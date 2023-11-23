@@ -17,6 +17,7 @@ from src.common.lib.model import Model
 from src.common.lib.data_loader import get_dataloader
 from src.datasets.dataset_spd import DatasetSPD
 import re
+from src.feature_spectra_utils import *
 
 ###############################################################
 # Utils for Generate Embeddings (run from MOmaps/src/runables/generate_embeddings.py)
@@ -201,7 +202,7 @@ def calc_spectral_features(model, datasets_list, output_folder, save=True, outpu
     get_save_path_and_labels = np.vectorize(final_save_path)
     
     
-    def do_embeddings_inference(images_batch, images_spectral_features, images_labels, 
+    def do_indhist_inference(images_batch, images_spectral_features, images_labels, 
                                 processed_images_path, save_paths, output_layer, output_folder):
         save_path, labels = get_save_path_and_labels(images_batch['image_path'], output_folder)
 
@@ -228,26 +229,97 @@ def calc_spectral_features(model, datasets_list, output_folder, save=True, outpu
                 np.save(os.path.join(batch_save_path, f'{output_layer}_paths_{dataset_type}.npy'), np.array(paths)[batch_indexes])
             return None
     
-    def do_embeddings_inference_for_set(set_type, set_index, datasets_list, output_layer, output_folder):
+    def do_indhist_inference_for_set(set_type, set_index, datasets_list, output_layer, output_folder):
         logging.info(f"Infer embeddings - {set_type} set")
         images_spectral_features, images_labels, processed_images_path, save_paths = [], [], [], []
         for i, images_batch in enumerate(datasets_list[set_index]):
-            images_spectral_features, images_labels, processed_images_path, save_paths = do_embeddings_inference(images_batch, images_spectral_features, images_labels, processed_images_path, save_paths, output_layer,output_folder)
+            images_spectral_features, images_labels, processed_images_path, save_paths = do_indhist_inference(images_batch, images_spectral_features, images_labels, processed_images_path, save_paths, output_layer,output_folder)
         images_spectral_features = np.concatenate(images_spectral_features)
         save(images_spectral_features, images_labels, processed_images_path, save_paths, f"{set_type}set", output_layer)
         return None
     
     if len(datasets_list)==3:
-        do_embeddings_inference_for_set('train', 0 , datasets_list, output_layer, output_folder)
-        do_embeddings_inference_for_set('val', 1 , datasets_list, output_layer, output_folder)
-        do_embeddings_inference_for_set('test', 2 , datasets_list, output_layer, output_folder)
+        do_indhist_inference_for_set('train', 0 , datasets_list, output_layer, output_folder)
+        do_indhist_inference_for_set('val', 1 , datasets_list, output_layer, output_folder)
+        do_indhist_inference_for_set('test', 2 , datasets_list, output_layer, output_folder)
         
     elif len(datasets_list)==1:
-        do_embeddings_inference_for_set('all', 0 , datasets_list, output_layer, output_folder)
+        do_indhist_inference_for_set('all', 0 , datasets_list, output_layer, output_folder)
     else:
         logging.exception("[Generate spectral features] Load model: List of datasets is not supported.")
     
     return None
+
+###############################################################
+# Utils for Load vqindhist (callable function)
+################################################################ 
+def load_indhists(config_path_model=None, config_path_data=None,
+                    config_model=None, config_data=None, embeddings_type='valset'):
+    """Loads the indhist vectors 
+
+    Args:
+        config_path_model (string): full path to trained model config file 
+        config_path_data (string): full path to dataset config file
+        embeddings_type (string): which part of the dataset to fetch "trainset"/"testset"/"valset"/"allset"
+    """
+    if config_path_model is None and config_model is None:
+        raise ValueError("Invalid config (path). Must supply model config.")
+    if config_path_data is None and config_data is None:
+        raise ValueError("Invalid config (path). Must supply dataset config.")
+    if embeddings_type not in ["trainset", "testset", "valset", "all"]:
+        raise ValueError(f"Invalid embeddings_type. Must supply 'trainset' / 'testset' / 'valset' / 'allset'. ")
+    
+    logging.info(f"[load_indhists] Model: {config_path_model if config_path_model is not None else 'preloaded'}\
+                    Dataset: {config_path_data if config_path_data is not None else 'preloaded'},\
+                        embeddings_type: {embeddings_type}")
+    
+    # Get configs of model (trained model) 
+    config_model = load_config_file(config_path_model, 'model') if config_model is None else config_model
+    
+    # Get dataset configs (as to be used in the desired UMAP)
+    config_data = load_config_file(config_path_data, 'data') if config_data is None else config_data
+    
+    experiment_type = get_if_exists(config_data, 'EXPERIMENT_TYPE', None)
+    assert experiment_type is not None, "EXPERIMENT_TYPE can't be None"
+    logging.info(f"[load_indhists] experiment_type = {experiment_type}")
+    
+    embeddings_layer = get_if_exists(config_data, 'EMBEDDINGS_LAYER', None)
+    assert embeddings_layer is not None, "EMBEDDINGS_LAYER can't be None"
+    logging.info(f"[load_indhists] embeddings_layer = {embeddings_layer}")
+    
+    model_output_folder = get_if_exists(config_model, 'MODEL_OUTPUT_FOLDER', None)
+    assert model_output_folder is not None, "MODEL_OUTPUT_FOLDER can't be None"
+    logging.info(f"[load_indhists] model_output_folder = {model_output_folder}")
+
+    input_folders = get_if_exists(config_data, 'INPUT_FOLDERS', None)
+    assert input_folders is not None, "INPUT_FOLDERS can't be None"
+    logging.info(f"[load_indhists] input_folders = {input_folders}")
+
+    cell_lines_conds = get_if_exists(config_data, 'CELL_LINES_CONDS', None)
+    logging.info(f"[load_indhists] cell_lines_conds = {cell_lines_conds}")
+
+    markers_to_exclude = get_if_exists(config_data, 'MARKERS_TO_EXCLUDE', None)
+    logging.info(f"[load_indhists] markers_to_exclude = {markers_to_exclude}")
+
+    batches = [folder.split(os.sep)[-1].split("_")[0].replace('batch','') for folder in input_folders]
+    embeddnigs_folder = os.path.join(model_output_folder, 'embeddings', 
+                                     experiment_type, embeddings_layer)
+    vqindhist, labels, paths = load_multiple_vqindhists(batches = batches,
+                                                        embeddings_folder = embeddnigs_folder,
+                                                        datasets = [embeddings_type])
+    
+    hist_df, _ = create_vqindhists_df(vqindhist, labels, paths)
+    if cell_lines_conds:
+        hist_df = hist_df[hist_df.label.str.contains('|'.join(cell_lines_conds), regex=True)]
+    if markers_to_exclude:
+        hist_df = hist_df[~hist_df.label.str.contains('|'.join(markers_to_exclude), regex=True)]
+
+    all_embedings_data = np.array(hist_df.drop(columns='label'))
+    logging.info(f'all_embedings_data shape: {all_embedings_data.shape}')
+    all_labels = np.array(hist_df['label'])
+    logging.info(f'all_labels shape: {all_labels.shape}')
+           
+    return all_embedings_data, all_labels
 
 ###############################################################
 # Utils for Load Embeddings (callable function)
