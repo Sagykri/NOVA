@@ -975,3 +975,33 @@ def plot_hm(df, split_by, rows, columns):
             #ax2.axhline(-0.5, color='black', linewidth=2)
             fig.subplots_adjust(wspace=0)
             plt.show()
+
+
+def plot_hm_combine_batches(df,  batches, reps, rows, columns):
+    fig, axs = plt.subplots(figsize=(24, 7), ncols=4, sharey=True, sharex=False,
+                            gridspec_kw={'width_ratios': [0.8, 0.8, 0.8, 1]})
+    for i, (batch, rep) in enumerate([(x, y) for x in batches for y in reps]):
+        cur_df = df[(df['batch'] == batch) & (df['rep'] == rep)]
+        a = pd.crosstab(cur_df[rows], cur_df[columns], 
+                        values=cur_df['whole_cells_count_in_valid_tiles_mean'], aggfunc=np.mean)
+        vmin = 1
+        vmax = 3
+        heatmap = sns.heatmap(a, annot=True, cmap="flare", linewidths=1, linecolor='gray', 
+                        cbar=False, ax=axs[i], vmin=vmin, vmax=vmax,annot_kws={"fontsize": 12})
+
+        heatmap.set_xlabel(rep, fontsize=24, color="navy")
+        heatmap.axvline(a.shape[1], color='black', linewidth=2)
+        heatmap.set_ylabel('')
+        if i==0:
+            heatmap.set_ylabel(rows.replace("_", " "), fontsize=24, color="navy")
+            cbar = heatmap.figure.colorbar(heatmap.collections[0])
+            cbar.ax.tick_params(labelsize=16)
+            axs[i].text(0.9, -0.3, batch,transform=axs[i].transAxes, fontsize=30)
+        else:
+            heatmap.axvline(0, color='black', linewidth=2)
+        if i==2:
+            axs[i].text(0.8, -0.3, batch,transform=axs[i].transAxes, fontsize=30)
+
+    fig.subplots_adjust(wspace=0)
+    plt.suptitle('Mean of whole cells count in valid tiles', fontsize=20, color="navy")
+    plt.show()
