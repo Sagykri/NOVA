@@ -17,7 +17,7 @@ from src.common.lib.model import Model
 from src.common.lib.data_loader import get_dataloader
 from src.datasets.dataset_spd import DatasetSPD
 import re
-from src.feature_spectra_utils import *
+from src.common.lib.feature_spectra_utils import *
 
 ###############################################################
 # Utils for Generate Embeddings (run from MOmaps/src/runables/generate_embeddings.py)
