@@ -321,11 +321,9 @@ def find_rep_per_cluster(corr_with_clusters, hist_df_with_path, save_path, to_sa
     hist_per_cluster.label = hist_df_with_path.label
     hist_per_cluster.path = hist_df_with_path.path
 
-    # for each cluster, get the indices and calc the sum of the histogram
+    # for each cluster, get the indices and calc the sum of the histogram, then normalize by the cluster size
     for cluster_label, cluster_group in corr_with_clusters.groupby('cluster'):
-        hist_per_cluster[cluster_label] = hist_df_with_path[cluster_group.index].sum(axis=1) / 625 #cluster_group.index.size# 
-
-    #hist_per_cluster['max_cluster'] = hist_per_cluster.idxmax(axis=1, numeric_only=True)
+        hist_per_cluster[cluster_label] = hist_df_with_path[cluster_group.index].sum(axis=1) / (cluster_group.index.size) #625 
     # Find the two largest values and corresponding columns (clusters) for each row
     top_clusters = hist_per_cluster.drop(['label', 'path'], axis=1).apply(lambda row: row.nlargest(2).index, axis=1)
 
@@ -370,10 +368,12 @@ def find_rep_per_cluster(corr_with_clusters, hist_df_with_path, save_path, to_sa
                 cell_line = cell_line[:6]
             rep = split_path[-1].split("_")[0]
             label = f"{cell_line}_{condition}_\n{marker}_{rep}"
-            ax.text(60,95,label, color='yellow', fontsize=6)
             if not save_together and to_save:
                 os.makedirs(os.path.join(save_path, 'separated_images'), exist_ok=True)
-                plt.savefig(os.path.join(save_path, 'separated_images',f'{max_cluster_column}_{j}_{filename}'), bbox_inches='tight')
+                label = label.replace("\n","")
+                plt.savefig(os.path.join(save_path, 'separated_images',f'{max_cluster_column}_{j}_{label}.eps'), 
+                            bbox_inches='tight')
+            ax.text(60,95,label, color='yellow', fontsize=6)
             if j==0:
                 ax.text(-50,100, max_cluster_column, fontsize=15)
         if save_together and max_tiles_paths.size < top_images: # if found less then 4, add empty plots
