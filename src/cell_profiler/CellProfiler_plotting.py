@@ -1,23 +1,32 @@
 ## Plot UMAPs from CellProfiler output
 
 #Packages
-import pandas as pd 
-import os
 from datetime import datetime
+import pandas as pd 
+import numpy as np
 import logging
+import os
+import seaborn as sns
+import sys
+
+import matplotlib.backends.backend_pdf as bpdf
+import matplotlib.patches as mpatches
 import matplotlib.pyplot as plt
+
 import umap     #installation of umap-learn is required
 import umap.plot
-import matplotlib.patches as mpatches
-import numpy as np
-import matplotlib.backends.backend_pdf as bpdf
+
 from random import shuffle
 from collections import defaultdict
+from sklearn.metrics import adjusted_rand_score
+import sklearn.cluster as cluster
 
 # Global paths
 BATCH_TO_RUN = 'batch9_50percent' 
 
 BASE_DIR = os.path.join('/home','labs','hornsteinlab','Collaboration','MOmaps')
+sys.path.insert(1, BASE_DIR)
+
 INPUT_DIR = os.path.join(BASE_DIR, 'outputs','cell_profiler')
 INPUT_DIR_BATCH = os.path.join(INPUT_DIR, BATCH_TO_RUN, 'combined')
 OUTPUT_DIR = os.path.join(INPUT_DIR, BATCH_TO_RUN, 'plots')
@@ -32,7 +41,7 @@ def set_logging(log_file_path, level=logging.INFO, format=' INFO: %(message)s'):
     logging.info(__doc__)
 
 
-def load_data_and_plot_UMAPs(input_path, stress = False):
+def load_data_and_plot_UMAPs(input_path, stress = True):
      with os.scandir(input_path) as input_data_folder:
         # We loop on all markers, plot single marker UMAPs (AKA UMAP0), 
         # but also keep the marker data for later UMAP1 (of all markers in one plot)
@@ -110,12 +119,12 @@ def load_data_and_plot_UMAPs(input_path, stress = False):
             from 358 to 352 columns while only 4 should be dropped?
             """
         
-        # Combine markers
-        #df_all = pd.concat(all_markers_df)
-        # if stress:
-        #     df_all.to_csv(os.path.join(INPUT_DIR_BATCH, f'stress_all_markers_concatenated-by-object-type_{BATCH_TO_RUN}.csv'))
-        # else:
-        #     df_all.to_csv(os.path.join(INPUT_DIR_BATCH, f'all_markers_concatenated-by-object-type_{BATCH_TO_RUN}.csv'))
+        #Combine markers
+        df_all = pd.concat(all_markers_df)
+        if stress:
+            df_all.to_csv(os.path.join(INPUT_DIR_BATCH, f'stress_all_markers_concatenated-by-object-type_{BATCH_TO_RUN}.csv'))
+        else:
+            df_all.to_csv(os.path.join(INPUT_DIR_BATCH, f'all_markers_concatenated-by-object-type_{BATCH_TO_RUN}.csv'))
         
         # Plot UMAP1
         #plot_umap1(df_all)
@@ -123,7 +132,7 @@ def load_data_and_plot_UMAPs(input_path, stress = False):
         return None
                   
             
-def preprocessing(features_df, use_condition='Untreated', exclude_cols=['Parent_Nucleus', 'object_type', 'Unnamed: 0_PrimaryObject1', 'Unnamed: 0_PrimaryObject2', 'Unnamed: 0_SecondaryObject']):
+def preprocessing(features_df, use_condition='stress', exclude_cols=['Parent_Nucleus', 'object_type', 'Unnamed: 0_PrimaryObject1', 'Unnamed: 0_PrimaryObject2', 'Unnamed: 0_SecondaryObject']):
     """
     Prepare the data for clustering
     - Included desired condition
@@ -135,12 +144,19 @@ def preprocessing(features_df, use_condition='Untreated', exclude_cols=['Parent_
     exclude_cols = [col for col in exclude_cols if col in df.columns]
     
     # Drop SCNA line because too many missing values
-    df = df[df['cell_line'].isin(['WT', 'TDP43', 'TBK1', 'OPTN', 'FUSRevertant', 'FUSHomozygous', 'FUSHeterozygous'])]
+    #df = df[df['cell_line'].isin(['WT', 'TDP43', 'TBK1', 'OPTN', 'FUSRevertant', 'FUSHomozygous', 'FUSHeterozygous'])]
     
+    # Microglia test:
+    #df = df[df['cell_line'].isin(['WT', 'TDP43', 'TBK1', 'FUSHomozygous'])]
+
     # Take the desired condition and corresponding columns
     if use_condition == 'stress':
         df = df.loc[df['cell_line'] == 'WT'] #shortcut now because only WT has stress / no stress
         df.drop(exclude_cols, axis = 1, inplace=True)
+    elif use_condition == 'LPS':
+        df = df.loc[df['treatment'] == use_condition]
+        df.drop(exclude_cols, axis=1, inplace=True)
+        df.drop('treatment', axis=1, inplace=True)
     elif use_condition == 'Untreated':
         df = df.loc[df['treatment'] == use_condition]
         df.drop(exclude_cols, axis=1, inplace=True)
@@ -157,32 +173,73 @@ def preprocessing(features_df, use_condition='Untreated', exclude_cols=['Parent_
 
 def plot_umap0(df, marker, 
                color_map = {'WT': 1, 'TDP43': 2, 'TBK1': 3, 'OPTN': 4, 'FUSRevertant': 5, 'FUSHomozygous': 6, 'FUSHeterozygous': 7},
-               stress = False, customized = False):
+               stress = True, customized = False):
     """
+    MICROGLIA TEST: change color_map:
+    color_map = {'WT': 1, 'TDP43': 2, 'TBK1': 3, 'FUSHomozygous': 4},
+
     Remember to change the use_condition variable in preprocessing as well when plotting stress
     """
     
     logging.info(f"Starting plot_umap0() of marker {marker}...\n")
     #logging.info('%s %s', "\n", df.value_counts(subset=['replicate', 'cell_line', 'marker']))
     
+    from src.common.lib.metrics import calc_clustering_validation_metric
+    from src.common.lib.metrics import get_metrics_figure
+    from matplotlib.gridspec import GridSpec
+    
     if stress:
-        umap_df = df.drop(['replicate', 'marker', 'cell_line'], axis=1, inplace=False)
-        umap_df.set_index('treatment', inplace=True)
-        indices = umap_df.index
-        embedding = umap.UMAP(random_state=42, n_jobs=1).fit_transform(umap_df)
-        
-        color_map = {'Untreated':'cyan', 'stress':'orange'}
-        colors = indices.map(color_map)
-        scatter = plt.scatter(embedding[:,0], embedding[:,1], c=colors)
-        legend_handles = [mpatches.Patch(color=color, label=index) for index, color in color_map.items()]
-        legend_handles.sort(key=lambda patch: patch.get_label())
-        plt.legend(handles=legend_handles, bbox_to_anchor=(0, 0, 1, 1))
-        plt.title(f'{marker}', fontsize=22)
-        plt.ylabel("UMAP 2")
-        plt.xlabel("UMAP 1")
-        plt.savefig(os.path.join(OUTPUT_DIR, f'UMAP0_{marker}_stress.pdf'))
+        # keep relevant columns only
+        temp_df = df.drop(['replicate', 'marker', 'cell_line'], axis=1, inplace=False)
+        temp_df.set_index('treatment', inplace=True)
+        # get true labels
+        true_labels = temp_df.index
+        # calculate first 2 UMAP components
+        umaps = umap.UMAP(random_state=42, n_components=2, n_jobs=1).fit_transform(temp_df)
+
+        # calculate clustering scores
+        #scores = calc_clustering_validation_metric(umaps, true_labels, metrics=['ARI'])
+
+        # UMAP plotting
+        color_map = {'Untreated':'#52C5D5', 'stress':'#F7810F'} #cyan and orange
+        # colors = true_labels.map(color_map)
+        df_new = pd.DataFrame(umaps, columns = ['UMAP1', 'UMAP2'], index = true_labels).reset_index()
+
+        fig = plt.figure()
+        gs = GridSpec(2,1,height_ratios=[20,1])
+        ax = fig.add_subplot(gs[0])
+        sns.scatterplot(data=df_new, x='UMAP1', y='UMAP2', ax = ax,
+                             hue='treatment', palette = color_map, s = 30)
+        gs_bottom = fig.add_subplot(gs[1])
+        get_metrics_figure(umaps, np.array(true_labels), ax=gs_bottom)
+        ax.legend().set_title('')
+        ax.set(xticklabels=[])
+        ax.set(yticklabels=[])
+        # ax.set_xlabel("UMAP1",fontsize=15)
+        # ax.set_ylabel("UMAP2",fontsize=15)
+        ax.tick_params(left=False, bottom=False)
+        ax.set_title(f'{BATCH_TO_RUN}_{marker}')
+        fig.tight_layout()
+        plt.savefig(os.path.join(OUTPUT_DIR, f'UMAP0_{marker}_stress_ARI.png'))
         plt.clf()
-        logging.info(f'UMAP0 of {marker} saved')
+        
+        logging.info(f'UMAP0 with ARI of {marker} saved')
+        
+        """
+        for name, score in scores.items():
+            plt.annotate(f'{name}: {score}',  # Your string
+            # The point that we'll place the text in relation to 
+            xy=(0.5, 0), 
+            # Interpret the x as axes coords, and the y as figure coords
+            xycoords=('axes fraction', 'figure fraction'),
+            # The distance from the point that the text will be at
+            xytext=(0, 5),  
+            # Interpret `xytext` as an offset in points...
+            textcoords='offset points',
+            # Any other text parameters we'd like
+            size=14, ha='center', va='bottom')
+        """
+        
     else:
         # UMAP0 - population: all cell lines and a single marker, color by: cell line
         umap_df1 = df.drop(['replicate', 'marker'], axis=1, inplace=False)

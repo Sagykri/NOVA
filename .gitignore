@@ -10,7 +10,10 @@ logs/
 id_rsa
 id_rsa.pub
 outputs/config_used/*
+outputs/config_used_old/*
 outputs/cell_profiler/*
+outputs/tensorflow/*
+outputs/models_outputs_*
 input/embeddings/*
 input/gt_tables/*
 input/images/raw/*
@@ -18,6 +21,7 @@ sandbox/figure_1/*
 sandbox/figure_2/*
 !input/images/raw/.gitkeep
 input/images/processed/*
+data/processed/*
 !input/images/processed/.gitkeep
 
 /tools/lena/models_outputs_Lena/embeddings/**/*.npy
@@ -51,7 +55,6 @@ __pycache__/
 
 core.*
 **/*.h5
-outputs/*
 **/*.tif
 **/*.png
 **/*.czi

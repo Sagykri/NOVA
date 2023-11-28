@@ -70,8 +70,8 @@ def filter_invalid_tiles(file_name, img, nucleus_diameter=100, cellprob_threshol
         
         if show_plot:
             _, ax = plt.subplots(1,2)
-            ax[0].imshow(tiles[i,...,0])
-            ax[1].imshow(tiles[i,...,1])
+            ax[0].imshow(tiles[i,...,0], vmin=0, vmax=1)
+            ax[1].imshow(tiles[i,...,1], vmin=0, vmax=1)
             plt.show()
 
         """
@@ -330,7 +330,6 @@ def preprocess_image_pipeline(img, save_path, n_channels=2,
         logging.info(f"Saved to {save_path}_processed.npy")
 
     return image_downsampled_tiles
-
 
 def preprocess_panel(slf, panel, input_folder_root,
                      output_folder_root, input_folder_root_cell_line, cp_model, raw_f, cell_line,

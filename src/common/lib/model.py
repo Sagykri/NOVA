@@ -360,10 +360,10 @@ class Model():
             for i, im in enumerate(reconstructed[:10, ii, ...]):
                 i0, i1 = np.unravel_index(i, (2, 5))
                 t1[i0 * 100 : (i0 + 1) * 100, i1 * 100 : (i1 + 1) * 100] = im
-            ax[0, ii].imshow(t0, cmap='gray')
+            ax[0, ii].imshow(t0, cmap='gray', vmin=0, vmax=1)
             ax[0, ii].axis('off')
             ax[0, ii].set_title('input ' + ch)
-            ax[1, ii].imshow(t1, cmap='gray')
+            ax[1, ii].imshow(t1, cmap='gray', vmin=0, vmax=1)
             ax[1, ii].axis('off')
             ax[1, ii].set_title('output ' + ch)
         fig.tight_layout()
@@ -438,6 +438,8 @@ class Model():
                   s=0.3,
                   alpha=0.5,
                   reset_umap=False,
+                  map_labels_function=None,
+                  colormap='tab20_others',
                   **kwargs):
         """
         Args:
@@ -467,7 +469,9 @@ class Model():
             if len(embedding_data) == 0:
                 logging.warn("Couldn't find embeddings to load")
                 raise Exception("Embeddings are empty!")
-                             
+
+        if map_labels_function is not None:
+            label_data = map_labels_function(label_data)                        
         
         umap_data = self.analytics.plot_umap_of_embedding_vector(
             data_loader=data_loader,
@@ -483,6 +487,7 @@ class Model():
             random_state=self.conf.SEED,
             embedding_data=embedding_data,
             label_data=label_data,
+            colormap=colormap,
             **kwargs)
         
         return umap_data
