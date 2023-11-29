@@ -47,6 +47,42 @@ def fetch_saved_embeddings(config_model, config_data, embeddings_type):
     logging.info(f"[load_embeddings] {all_embedings_data.shape}, {all_labels.shape}")    
     return all_embedings_data, all_labels
 
+def calc_cellprofiler_distances(scale=True):
+    #load labels and features
+    cellprofiler_features_folder = "/home/labs/hornsteinlab/Collaboration/MOmaps/outputs/cell_profiler"
+    batches_folders = ['batch6_50percent','batch7','batch8','batch9_50percent']
+    batch_labels, batch_features = [],[]
+    for batch in batches_folders:
+        batch_df = pd.read_csv(os.path.join(cellprofiler_features_folder, batch, 'combined', f'stress_all_markers_concatenated-by-object-type_{batch}.csv'))
+        batch_features.append(batch_df.drop(columns=['marker','replicate','treatment','cell_line','Unnamed: 0']))
+        cur_batch_labels = batch_df[['cell_line','treatment','replicate','marker']]
+        cur_batch_labels['batch'] = batch
+        cur_batch_labels = cur_batch_labels[['batch','cell_line','treatment','replicate','marker']]
+        batch_labels.append(cur_batch_labels)
+    batch_labels = pd.concat(batch_labels)
+    batch_features = pd.concat(batch_features)
+    features = np.array(batch_features)
+    labels = np.array(batch_labels.apply(lambda row: '_'.join(map(str, row)), axis=1))
+    marker_centroids = create_markers_centroids_df(labels, features)
+    markers = marker_centroids['marker'].unique()
+    reps = marker_centroids['rep'].unique()
+    marker_centroids['cell_line_condition'] = marker_centroids['cell_line'] + '_' + marker_centroids['condition']
+    cell_lines_conditions = marker_centroids['cell_line_condition'].unique()
+    output_folder = "/home/labs/hornsteinlab/Collaboration/MOmaps_Noam/MOmaps/"
+    between_cell_lines_sep_batch_rep = between_cell_lines_sep_rep_dist(marker_centroids, cell_lines_conditions, markers, distances_main_folder=output_folder, batch_name="all?")
+
+
+    if scale: #min max scale for each batch+rep !
+        scaled = pd.DataFrame()
+        for name, group in between_cell_lines_sep_batch_rep.groupby(['batch','rep']):
+            numeric_cur = group.select_dtypes(include='number')
+            max_cur = numeric_cur.max().max()
+            min_cur = numeric_cur.min().min()
+            cur_scaled_df = (numeric_cur - min_cur) / (max_cur-min_cur)
+            cur_scaled_df = pd.concat([group.select_dtypes(exclude='number'), cur_scaled_df], axis=1)
+            scaled = pd.concat([scaled, cur_scaled_df])
+    scaled.to_csv(os.path.join(output_folder,f'scaled.csv'), index=False)
+
 def create_markers_centroids_df(all_labels, all_embedings_data, exclude_DAPI=True):  
     """Create a pd.DataFrame of centroids embedddings and experimental settings 
     columns are ['batch','cell_line','condition','rep','marker', 'embeddings_centroid'] 
@@ -58,7 +94,7 @@ def create_markers_centroids_df(all_labels, all_embedings_data, exclude_DAPI=Tru
     assert all_labels.shape[0]==all_embedings_data.shape[0]    
     labels_df = pd.DataFrame(data=all_labels, columns=['label'])
     labels_df['label'] = labels_df.label.str.replace('_16bit_no_downsample','')  #TODO: delete workaround since batch folder have "_"
-    
+    labels_df['label'] = labels_df.label.str.replace('_50percent','')  
     # Calculate embeddings centroids (a numpy matrix) + within marker similarities
     marker_centroids = pd.DataFrame()
     #within_marker_similaities = pd.DataFrame()
@@ -363,7 +399,7 @@ def between_cell_lines_sep_rep_dist(marker_centroids, cell_lines_conditions, mar
         #save_excel_with_sheet_name(os.path.join(distances_main_folder,'between_cell_lines_conds_similarities_rep_rep.xlsx'), input_folders, between_cell_lines_sep_batch_rep)
         between_cell_lines_sep_batch_rep.to_csv(os.path.join(distances_main_folder,f'between_cell_lines_conds_similarities_rep_{batch_name}.csv'), index=False)
         logging.info(f'calculated between cell_lines_conds distances separated into reps for {batch_name}')
-        return None
+        return between_cell_lines_sep_batch_rep
 
 def calc_embeddings_distances(config_model, config_data, distances_main_folder, embeddings_type):
     """Main function to calculate embeddings distances
@@ -441,15 +477,15 @@ def unite_batches(distances_main_folder, input_folders, scale=False, files = ['w
     return None
 
 if __name__ == "__main__":
-    
-    if len(sys.argv) != 4:
-        raise ValueError("Invalid config path. Must supply model config and data config and embedding type.")
-    try:
-        calc_embeddings_distances(config_path_model= sys.argv[1], config_path_data=sys.argv[2], embeddings_type=sys.argv[3])  
-        average_batches_distances(config_path_model= sys.argv[1], config_path_data=sys.argv[2])
-    except Exception as e:
-        logging.exception(str(e))
-        raise e
-    logging.info("Done!")
+    calc_cellprofiler_distances()
+    # if len(sys.argv) != 4:
+    #     raise ValueError("Invalid config path. Must supply model config and data config and embedding type.")
+    # try:
+    #     calc_embeddings_distances(config_path_model= sys.argv[1], config_path_data=sys.argv[2], embeddings_type=sys.argv[3])  
+    #     average_batches_distances(config_path_model= sys.argv[1], config_path_data=sys.argv[2])
+    # except Exception as e:
+    #     logging.exception(str(e))
+    #     raise e
+    # logging.info("Done!")
         
 # ./bash_commands/run_py.sh ./src/common/lib/embeddings_distances_utils -m 40000 -a ./src/models/neuroself/configs/model_config/TLNeuroselfB78NoDSModelConfig ./src/datasets/configs/embeddings_data_config/EmbeddingsB9DatasetConfig all        
