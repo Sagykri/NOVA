@@ -16,7 +16,7 @@ from src.common.lib.utils import get_if_exists, load_config_file
 from src.common.lib.model import Model
 from src.common.lib.data_loader import get_dataloader
 from src.datasets.dataset_spd import DatasetSPD
-
+from src.common.lib.feature_spectra_utils import *
 
 def generate_umaps():
     
@@ -66,6 +66,14 @@ def generate_umaps():
     
     __generate_with_load(config_model, config_data, dataset, model, output_folder_path)
     return None
+
+def generate_deltas(embeddings, labels):
+    df, _ = create_vqindhists_df([embeddings], [labels], [labels])
+    df['label'] = df['label'].str.split("_").str[2:4].apply(lambda x: '_'.join(x[::-1])) # merging different batches and reps -> label == marker_cond
+    total_spectra_per_marker_ordered = df.groupby('label').mean()
+    total_spectra_per_marker_ordered['marker'] = total_spectra_per_marker_ordered.index.str.split('_').str[0]
+    return total_spectra_per_marker_ordered.groupby('marker').diff(axis=0).dropna()
+
 
 def __generate_with_load(config_model, config_data, dataset, model, output_folder_path):
     logging.info("Clearing cache")
