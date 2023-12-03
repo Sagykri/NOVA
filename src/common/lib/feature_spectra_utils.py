@@ -25,7 +25,7 @@ def load_multiple_vqindhists(batches, embeddings_folder, datasets = ['trainset',
             paths.append(cur_paths)   
     return vqindhist, labels, paths
 
-def create_vqindhists_df(vqindhist, labels, paths):
+def create_vqindhists_df(vqindhist, labels, paths, arange_labels=True):
     vqindhist = np.concatenate(vqindhist)
     labels = np.concatenate(labels)
     paths = np.concatenate(paths)
@@ -40,7 +40,8 @@ def create_vqindhists_df(vqindhist, labels, paths):
         parts = s.split('_')
         return f"{parts[4]}_{parts[1]}_{parts[2]}_{parts[0]}_{parts[3]}"
 
-    hist_df['label'] = hist_df['label'].apply(rearrange_string)
+    if arange_labels:
+        hist_df['label'] = hist_df['label'].apply(rearrange_string)
     hist_df_with_path = hist_df.copy()
     hist_df_with_path['path'] = paths
     

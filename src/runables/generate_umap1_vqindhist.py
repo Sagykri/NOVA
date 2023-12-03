@@ -1,7 +1,5 @@
 import os
 import sys
-
-
 sys.path.insert(1, os.getenv("MOMAPS_HOME"))
 print(f"MOMAPS_HOME: {os.getenv('MOMAPS_HOME')}")
 
@@ -67,15 +65,52 @@ def generate_umaps():
     __generate_with_load(config_model, config_data, dataset, model, output_folder_path)
     return None
 
-def generate_deltas(embeddings, labels):
-    df, _ = create_vqindhists_df([embeddings], [labels], [labels])
-    df['label'] = df['label'].str.split("_").str[2:4].apply(lambda x: '_'.join(x[::-1])) # merging different batches and reps -> label == marker_cond
+def calculate_difference(group, first_cond = 'stress', second_cond='Untreated'):
+	# Separate the DataFrame into stress and untreated groups
+	first_df = group[group['label'].str.endswith(f'_{first_cond}')]
+	second_df = group[group['label'].str.endswith(f'_{second_cond}')]
+	# Randomly sort the DataFrames
+	first_df = first_df.sample(frac=1).reset_index(drop=True)
+	second_df = second_df.sample(frac=1).reset_index(drop=True)
+    # remove labels columns
+	first_df.drop(columns=['label','marker'], inplace=True)
+	second_df.drop(columns=['label','marker'], inplace=True)
+	# Cut the DataFrames to have the same size
+	min_size = min(len(first_df), len(second_df))
+	first_df = first_df.head(min_size)
+	second_df = second_df.head(min_size)
+	# Calculate the difference and save it
+	delta = first_df - second_df
+	return delta
+
+def generate_deltas(embeddings, labels, first_cond = 'stress', second_cond='Untreated'):
+    df, _ = create_vqindhists_df([embeddings], [labels], [labels], arange_labels=False)
+    df['label'] = df['label'].str.split("_").str[0:3:2].apply(lambda x: '_'.join(x)) # merging different batches and reps -> label == marker_cond
+    # first, create the mean deltas for ref
     total_spectra_per_marker_ordered = df.groupby('label').mean()
     total_spectra_per_marker_ordered['marker'] = total_spectra_per_marker_ordered.index.str.split('_').str[0]
-    return total_spectra_per_marker_ordered.groupby('marker').diff(axis=0).dropna()
+    average_deltas = total_spectra_per_marker_ordered.groupby('marker').diff(axis=0).dropna()
+    mean_embeddings = np.array(average_deltas)
+    mean_labels = average_deltas.index.str.split('_').str[0].to_list()
+    mean_labels = np.array([label + "_mean" for label in mean_labels])
+
+    # now, we want to randomly choose couples from the same marker and to diff them
+    df['marker'] = df.label.str.split('_').str[0]
+    deltas = []
+    for marker, marker_group in df.groupby('marker'):
+        cur_delta = calculate_difference(marker_group, first_cond = first_cond, second_cond=second_cond)
+        cur_delta['marker'] = marker
+        deltas.append(cur_delta)
+    deltas = pd.concat(deltas)
+    deltas_embeddings = np.array(deltas.drop(columns=['marker']))
+    deltas_labels = np.array(deltas.marker)
+    embeddings = np.concatenate((mean_embeddings, deltas_embeddings))
+    labels = np.concatenate((mean_labels, deltas_labels))
+
+    return embeddings, labels
 
 
-def __generate_with_load(config_model, config_data, dataset, model, output_folder_path):
+def __generate_with_load(config_model, config_data, dataset, model, output_folder_path, delta=True):
     logging.info("Clearing cache")
     torch.cuda.empty_cache()
     
@@ -85,8 +120,10 @@ def __generate_with_load(config_model, config_data, dataset, model, output_folde
     embeddings, labels = model.load_indhists(embeddings_type='testset' if config_data.SPLIT_DATA else 'all',
                                                config_data=config_data)
     logging.info(f'[__generate_with_load]: embeddings shape: {embeddings.shape}, labels shape: {labels.shape}')
+    if delta:
+        embeddings, labels = generate_deltas(embeddings, labels)   
+        logging.info(f'[__generate_with_load]: doing deltas: embeddings shape: {embeddings.shape}, labels shape: {labels.shape}, unique labels: {np.unique(labels)}')
 
-        
     logging.info(f"Plot umap...")
     title = f"{'_'.join([os.path.basename(f) for f in dataset.input_folders])}"
     savepath = os.path.join(output_folder_path,\

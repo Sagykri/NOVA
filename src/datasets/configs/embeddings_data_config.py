@@ -66,13 +66,23 @@ class EmbeddingsB78DatasetConfig(DatasetConfig):
         self.EXPERIMENT_TYPE = 'neurons'    
         
         # Local/Global embeddings
-        self.EMBEDDINGS_LAYER = 'vqvec2'
+        #self.EMBEDDINGS_LAYER = 'vqvec2'
 
         # for umap1 vqindhist:
-        # self.EMBEDDINGS_LAYER = 'vqindhist1'
-        # self.CELL_LINES_CONDS = ['WT_Untreated']
-        # self.MAP_LABELS_FUNCTION = "lambda self: lambda labels: __import__('numpy').asarray([l.split('_')[0] for l in labels])"
-        # self.COLORMAP = sns.color_palette(cc.glasbey, n_colors=24)
+        self.EMBEDDINGS_LAYER = 'vqindhist1'
+        self.CELL_LINES_CONDS = ['WT_Untreated','WT_stress']
+        #self.MAP_LABELS_FUNCTION = "lambda self: lambda labels: __import__('numpy').asarray([l.split('_')[0] for l in labels])"
+        #self.COLORMAP = sns.color_palette(cc.glasbey, n_colors=24)
+        # for delta vqindhist umap1:
+        # markers = ['ANXA11', 'CD41', 'CLTC', 'Calreticulin', 'DCP1A', 'FMRP', 'FUS','G3BP1', 'GM130', 'KIF5A', 'LAMP1', 'NCL','NEMO', 'NONO', 'PEX14',
+        #             'PML', 'PSD95', 'PURA', 'Phalloidin', 'SCNA', 'SQSTM1', 'TDP43', 'TOMM20', 'mitotracker']
+        # colormap = {marker:color for marker, color in zip(markers, sns.color_palette(cc.glasbey, n_colors=24))}
+        # new_colormap = {}
+        # for key, value in colormap.items():
+        #     new_colormap[key] = value
+        #     new_colormap[key + '_mean'] = tuple(max(0, min(1, v - 0.1)) for v in value)
+
+        # self.COLORMAP = new_colormap
         # self.MARKERS_TO_EXCLUDE = ['TIA1','DAPI']
 
 class EmbeddingsB9DatasetConfig(DatasetConfig):
