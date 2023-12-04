@@ -401,6 +401,20 @@ def find_rep_per_cluster(corr_with_clusters, hist_df_with_path, save_path, to_sa
     df_pivot = stack.pivot(index='max_cluster', columns='short_label', values='label_count').fillna(0)
     ax=df_pivot.plot(kind='bar', stacked=True, cmap = colors)
     ax.set_xticklabels(ax.get_xticklabels(), rotation=0)
+    for i, (index, row) in enumerate(df_pivot.iterrows()):
+        total_height = 0
+        for value, color in zip(row, ax.patches[i::len(df_pivot)]):
+            if round(value,0) == 0:
+                continue
+            ax.text(
+                color.get_x() + color.get_width() / 2,
+                total_height + value / 2,
+                f'{round(value)}%',  # Format the value as needed
+                ha='center',
+                va='center',
+                color='white' if value < 0.5 * max(row) else 'black'  # Choose text color based on value
+            )
+            total_height += value
     plt.legend(title='Labels', bbox_to_anchor=(1.05, 1), loc='upper left',
             borderaxespad=-0.5, fontsize='x-small')
     plt.title('Stacked Bar Plot of Labels per Cluster')
