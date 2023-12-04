@@ -389,17 +389,19 @@ def find_rep_per_cluster(corr_with_clusters, hist_df_with_path, save_path, to_sa
     plt.show()
 
     # plot stacked bar plot of lables in each cluster
-    colors = ListedColormap(sns.color_palette(cc.glasbey, n_colors=24))
+    colors = ListedColormap(sns.color_palette(cc.glasbey, n_colors=24)) #used for when we have 24 markers
 
-    hist_per_cluster['short_label'] = hist_per_cluster.label.str.split('_').str[0]
+    hist_per_cluster['short_label'] = hist_per_cluster.label.str.split('_').str[0:3:2].apply(lambda x: "_".join(x)) #include also condition in the label
     label_per_cluster = hist_per_cluster[['short_label','max_cluster']]
     stack=pd.DataFrame(label_per_cluster.groupby(['max_cluster','short_label']).short_label.count() *100 / label_per_cluster.groupby(['max_cluster']).short_label.count())
     stack = stack.rename(columns={'short_label': 'label_count'})
     stack = stack.reset_index()
     stack = stack.sort_values(by='max_cluster')
-
     df_pivot = stack.pivot(index='max_cluster', columns='short_label', values='label_count').fillna(0)
-    ax=df_pivot.plot(kind='bar', stacked=True, cmap = colors)
+    base_cmap = plt.cm.get_cmap('Paired', 12) #used for when we have 3 markers and 2 conds
+    cmap = ListedColormap([base_cmap(i) for i in range(0, len(df_pivot.columns))])
+
+    ax=df_pivot.plot(kind='bar', stacked=True, cmap = cmap)
     ax.set_xticklabels(ax.get_xticklabels(), rotation=0)
     for i, (index, row) in enumerate(df_pivot.iterrows()):
         total_height = 0
