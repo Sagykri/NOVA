@@ -26,8 +26,8 @@ def generate_umaps():
 
     config_model = load_config_file(config_path_model, 'model')
     config_data = load_config_file(config_path_data, 'data', config_model.CONFIGS_USED_FOLDER)
-    output_folder_path = sys.argv[3] if len(sys.argv) > 3 else config_model.MODEL_OUTPUT_FOLDER
-
+    output_folder_path = sys.argv[3] #if len(sys.argv) > 3 else config_model.MODEL_OUTPUT_FOLDER
+    delta = True if len(sys.argv)>4 else False
     assert os.path.isdir(output_folder_path) and os.path.exists(output_folder_path), f"{output_folder_path} is an invalid output folder path or doesn't exists"
 
     logging.info("init")
@@ -62,7 +62,7 @@ def generate_umaps():
     logging.info(f"Loading model (Path: {config_model.MODEL_PATH})")
     model.load_model(num_fc_output_classes=len(dataset.unique_markers))
     
-    __generate_with_load(config_model, config_data, dataset, model, output_folder_path)
+    __generate_with_load(config_model, config_data, dataset, model, output_folder_path, delta)
     return None
 
 def calculate_difference(group, first_cond = 'stress', second_cond='Untreated'):
@@ -86,13 +86,13 @@ def calculate_difference(group, first_cond = 'stress', second_cond='Untreated'):
 def generate_deltas(embeddings, labels, first_cond = 'stress', second_cond='Untreated'):
     df, _ = create_vqindhists_df([embeddings], [labels], [labels], arange_labels=False)
     df['label'] = df['label'].str.split("_").str[0:3:2].apply(lambda x: '_'.join(x)) # merging different batches and reps -> label == marker_cond
-    # first, create the mean deltas for ref
-    total_spectra_per_marker_ordered = df.groupby('label').mean()
-    total_spectra_per_marker_ordered['marker'] = total_spectra_per_marker_ordered.index.str.split('_').str[0]
-    average_deltas = total_spectra_per_marker_ordered.groupby('marker').diff(axis=0).dropna()
-    mean_embeddings = np.array(average_deltas)
-    mean_labels = average_deltas.index.str.split('_').str[0].to_list()
-    mean_labels = np.array([label + "_mean" for label in mean_labels])
+    # # first, create the mean deltas for ref
+    # total_spectra_per_marker_ordered = df.groupby('label').mean()
+    # total_spectra_per_marker_ordered['marker'] = total_spectra_per_marker_ordered.index.str.split('_').str[0]
+    # average_deltas = total_spectra_per_marker_ordered.groupby('marker').diff(axis=0).dropna()
+    # mean_embeddings = np.array(average_deltas)
+    # mean_labels = average_deltas.index.str.split('_').str[0].to_list()
+    # mean_labels = np.array([label + "_mean" for label in mean_labels])
 
     # now, we want to randomly choose couples from the same marker and to diff them
     df['marker'] = df.label.str.split('_').str[0]
@@ -104,13 +104,13 @@ def generate_deltas(embeddings, labels, first_cond = 'stress', second_cond='Untr
     deltas = pd.concat(deltas)
     deltas_embeddings = np.array(deltas.drop(columns=['marker']))
     deltas_labels = np.array(deltas.marker)
-    embeddings = np.concatenate((mean_embeddings, deltas_embeddings))
-    labels = np.concatenate((mean_labels, deltas_labels))
+    embeddings = deltas_embeddings #np.concatenate((mean_embeddings, deltas_embeddings))
+    labels = deltas_labels #np.concatenate((mean_labels, deltas_labels))
 
     return embeddings, labels
 
 
-def __generate_with_load(config_model, config_data, dataset, model, output_folder_path, delta=True):
+def __generate_with_load(config_model, config_data, dataset, model, output_folder_path, delta=False):
     logging.info("Clearing cache")
     torch.cuda.empty_cache()
     

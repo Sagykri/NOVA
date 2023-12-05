@@ -70,9 +70,29 @@ class EmbeddingsB78DatasetConfig(DatasetConfig):
 
         # for umap1 vqindhist:
         self.EMBEDDINGS_LAYER = 'vqindhist1'
-        self.CELL_LINES_CONDS = ['WT_Untreated','WT_stress']
-        #self.MAP_LABELS_FUNCTION = "lambda self: lambda labels: __import__('numpy').asarray([l.split('_')[0] for l in labels])"
-        #self.COLORMAP = sns.color_palette(cc.glasbey, n_colors=24)
+        self.CELL_LINES_CONDS = ['WT_Untreated']#,'WT_stress']
+        self.MAP_LABELS_FUNCTION = "lambda self: lambda labels: __import__('numpy').asarray([l.split('_')[0] for l in labels])"
+        spectral_cmap = sns.color_palette('Spectral', n_colors=24)
+        # self.COLORMAP = {'ANXA11':spectral_cmap[0], 'NONO':spectral_cmap[1], 'TDP43':spectral_cmap[2],
+        #                  'NCL':spectral_cmap[3],'FUS':spectral_cmap[4], 'PML':spectral_cmap[5],
+        #                  'PEX14':spectral_cmap[6],'Calreticulin':spectral_cmap[7],
+        #                  'Phalloidin':spectral_cmap[8],'mitotracker':spectral_cmap[9], 'TOMM20':spectral_cmap[10],
+        #                  'PURA':spectral_cmap[11],'CLTC':spectral_cmap[12],'KIF5A':spectral_cmap[13],
+        #                  'SCNA':spectral_cmap[14],'CD41':spectral_cmap[15],'SQSTM1':spectral_cmap[16], 
+        #                  'FMRP':spectral_cmap[17], 'G3BP1':spectral_cmap[18],'GM130':spectral_cmap[19],
+        #                  'LAMP1':spectral_cmap[20],'DCP1A':spectral_cmap[21], 'NEMO':spectral_cmap[22], 'PSD95':spectral_cmap[23]}
+        self.COLORMAP = {'FUS':'salmon','NCL':'red', 'PML':'darkred',
+                        'ANXA11':'darkorange', 'NONO':'orange', 'TDP43':'gold',
+                    
+                    'PEX14':'black','Calreticulin':'saddlebrown',
+
+
+                    'Phalloidin':'darkviolet','mitotracker':'pink', 'TOMM20':'palevioletred',
+                    'PURA':'deeppink','CLTC':'magenta','KIF5A':'darkmagenta',
+                    'SCNA':'navy','CD41':'royalblue','SQSTM1':'deepskyblue', 
+                    'FMRP':'mediumaquamarine', 'G3BP1':'olive','GM130':'olivedrab',
+                    'LAMP1':'lime','DCP1A':'seagreen', 'NEMO':'darkgreen', 'PSD95':'green'}
+        # self.COLORMAP = sns.color_palette(cc.glasbey, n_colors=24)
         # for delta vqindhist umap1:
         # markers = ['ANXA11', 'CD41', 'CLTC', 'Calreticulin', 'DCP1A', 'FMRP', 'FUS','G3BP1', 'GM130', 'KIF5A', 'LAMP1', 'NCL','NEMO', 'NONO', 'PEX14',
         #             'PML', 'PSD95', 'PURA', 'Phalloidin', 'SCNA', 'SQSTM1', 'TDP43', 'TOMM20', 'mitotracker']
@@ -83,7 +103,8 @@ class EmbeddingsB78DatasetConfig(DatasetConfig):
         #     new_colormap[key + '_mean'] = tuple(max(0, min(1, v - 0.1)) for v in value)
 
         # self.COLORMAP = new_colormap
-        # self.MARKERS_TO_EXCLUDE = ['TIA1','DAPI']
+
+        self.MARKERS_TO_EXCLUDE = ['TIA1','DAPI']
 
 class EmbeddingsB9DatasetConfig(DatasetConfig):
     def __init__(self):

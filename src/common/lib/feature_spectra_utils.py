@@ -133,7 +133,7 @@ def create_codebook_heatmap(hist_df, save_path=None, to_save=False, filename=Non
     return clustermap, corr
 
 def plot_histograms(axs, cur_groups, first_cond, second_cond, total_spectra_per_marker_ordered, div, 
-                    color_by_cond, colors, max_per_condition, cluster_counts, plot_delta):
+                    color_by_cond, colors, max_per_condition, cluster_counts, plot_delta, plot_cluster_lines=True, linewidth=1, show_yscale=True, scale_max=True):
     # plot the histograms
     for i, label in enumerate(cur_groups[::-1]):
         if plot_delta:
@@ -149,18 +149,18 @@ def plot_histograms(axs, cur_groups, first_cond, second_cond, total_spectra_per_
                 d = d1 - d2
         else:
             d = total_spectra_per_marker_ordered.loc[label, :]
-        
         if color_by_cond:
             if first_cond in label: 
                 cur_color = colors[first_cond]
             else:
                 cur_color = colors[second_cond]
-            axs[i].fill_between(range(len(d)), d, color=cur_color, label=label, linewidth=1)
-            # Set same y label limit for pairs to be compared
-            max_limit = max_per_condition.loc[max_per_condition['label']==label, 'max'].values[0]
-            axs[i].set_ylim(0, max_limit+(0.25*max_limit))
+            
+            axs[i].fill_between(range(len(d)), d, color=cur_color, label=label, linewidth=linewidth)
+            if scale_max:# Set same y label limit for pairs to be compared
+                max_limit = max_per_condition.loc[max_per_condition['label']==label, 'max'].values[0]
+                axs[i].set_ylim(0, max_limit+(0.25*max_limit))
         else:
-            axs[i].fill_between(range(len(d)), d, color=colors[i], label=label, linewidth=1)
+            axs[i].fill_between(range(len(d)), d, color=colors[i], label=label, linewidth=linewidth)
         
         if div:
             axs[i].set_ylim(-4,6)
@@ -168,11 +168,12 @@ def plot_histograms(axs, cur_groups, first_cond, second_cond, total_spectra_per_
             axs[i].margins(y=0.25)
         axs[i].set_xticklabels([])
         axs[i].set_xticks([])
-        # axs[i].set_yticklabels([])
-        # axs[i].set_yticks([])
+        if not show_yscale:
+            axs[i].set_yticklabels([])
+            axs[i].set_yticks([])
         axs[i].tick_params(axis='y', labelsize=4, length=0, pad=0.1)
         #splitted_label = label.split(sep)
-        label_for_plot = label #'' # comment out - old label editing, when label had also batch, rep, cell line..
+        label_for_plot = label.replace('_', ' ')#'' # comment out - old label editing, when label had also batch, rep, cell line..
         # if len(cur_cell_lines)>1:
         #     label_for_plot+= f'{splitted_label[-4]}_'        
         # if len(cur_conditions)>1:
@@ -187,17 +188,18 @@ def plot_histograms(axs, cur_groups, first_cond, second_cond, total_spectra_per_
         #     label_for_plot = label_for_plot[:-1]
         axs[i].text(1.02, 0.5, label_for_plot, transform=axs[i].transAxes,
                     rotation=0, va='center', ha='left')
-        # add cluster lines to histograms
-        prev_count = 0
-        for j, cluster in enumerate(cluster_counts.cluster):
-            cur_count = cluster_counts.iloc[j]['count']
-            cluster_end = cur_count + prev_count
+        if plot_cluster_lines:
+            # add cluster lines to histograms
+            prev_count = 0
+            for j, cluster in enumerate(cluster_counts.cluster):
+                cur_count = cluster_counts.iloc[j]['count']
+                cluster_end = cur_count + prev_count
 
-            if cur_count < 15:
+                if cur_count < 15:
+                    prev_count = cluster_end
+                    continue
+                axs[i].axvline(x=cluster_end, color='black',linestyle="--", linewidth=0.4)
                 prev_count = cluster_end
-                continue
-            axs[i].axvline(x=cluster_end, color='black',linestyle="--", linewidth=0.4)
-            prev_count = cluster_end
 
         axs[i].spines['bottom'].set_color('lightgray')
         axs[i].spines['top'].set_color('lightgray')
@@ -208,7 +210,7 @@ def plot_histograms(axs, cur_groups, first_cond, second_cond, total_spectra_per_
 
 def plot_heatmap_with_clusters_and_histograms(corr_with_clusters, hist_df, labels, save_path=None, to_save=False, color_by_cond=False,
                                               plot_delta=False, div=False, sep_histograms = False,
-                                              sep = "_", colormap_name = "viridis", 
+                                              sep = "_", colormap_name = "viridis", plot_hists=True,
                                              filename="codeword_idx_heatmap_and_histograms.tiff",
                                              colors = {"Untreated": "#52C5D5", 'stress': "#F7810F"},
                                              first_cond='stress',second_cond='Untreated',
@@ -261,23 +263,23 @@ def plot_heatmap_with_clusters_and_histograms(corr_with_clusters, hist_df, label
     cluster_counts.sort_values(by='cluster', inplace=True)
     # cluster_positions = clustermap.ax_col_dendrogram.get_position()
     # num_samples = len(clustermap.dendrogram_col.data)
+    if plot_hists:
+        # make room for the histograms in the plot
+        hist_height = 0.05
+        clustermap.fig.subplots_adjust(top=hist_height*len(cur_groups)+1, bottom=hist_height*len(cur_groups))
+        
+        # add axes for the histograms
+        axs=[]
+        for i, label in enumerate(cur_groups):
+            axs.append(clustermap.fig.add_axes([clustermap.ax_heatmap.get_position().x0, 0+i*hist_height, clustermap.ax_heatmap.get_position().width, hist_height]))
 
-    # make room for the histograms in the plot
-    hist_height = 0.05
-    clustermap.fig.subplots_adjust(top=hist_height*len(cur_groups)+1, bottom=hist_height*len(cur_groups))
-
-    # add axes for the histograms
-    axs=[]
-    for i, label in enumerate(cur_groups):
-        axs.append(clustermap.fig.add_axes([clustermap.ax_heatmap.get_position().x0, 0+i*hist_height, clustermap.ax_heatmap.get_position().width, hist_height]))
-
-    if not color_by_cond:
-        # create colors
-        colors = sns.color_palette(colormap_name, n_colors=len(cur_groups))
-    
-    ### PLOT THE HISTOGRAMS ###
-    axs = plot_histograms(axs, cur_groups, first_cond, second_cond, total_spectra_per_marker_ordered, div, 
-                    color_by_cond, colors, max_per_condition, cluster_counts, plot_delta)
+        if not color_by_cond:
+            # create colors
+            colors = sns.color_palette(colormap_name, n_colors=len(cur_groups))
+        
+        ### PLOT THE HISTOGRAMS ###
+        axs = plot_histograms(axs, cur_groups, first_cond, second_cond, total_spectra_per_marker_ordered, div, 
+                        color_by_cond, colors, max_per_condition, cluster_counts, plot_delta)
     
     # fix the cbar appearance 
     clustermap.ax_cbar.set_position([clustermap.ax_col_dendrogram.get_position().x1+0.01, # x location 
@@ -315,6 +317,164 @@ def plot_heatmap_with_clusters_and_histograms(corr_with_clusters, hist_df, label
             fig.savefig(os.path.join(save_path, "only_histograms_" + filename),bbox_inches='tight', dpi=300)
     
     return None
+
+
+def plot_hists_supp_1A(hist_df, labels, corr_with_clusters, hierarchical_order=None, sort=False, color_by_cond=False, plot_delta=False, 
+                       to_save=False, colormap_name='viridis',figsize=(5,5), first_cond='stress', second_cond='Untreated', 
+                       save_path=None, filename=None, colors = {"Untreated": "#52C5D5", 'stress': "#F7810F"}, to_mean=True, plot_cluster_lines=True, scale_max=False):
+    real_labels = []
+    for label in labels:
+        if label not in np.unique(hist_df.label):
+            real_labels += [real_label for real_label in np.unique(hist_df.label) if label in real_label]
+        else:
+            real_labels.append(label)
+    hist_df_cur = hist_df[hist_df.label.isin(real_labels)]
+    cur_groups = real_labels
+
+    # Mean the histograms by labels 
+    total_spectra_per_marker_ordered = hist_df_cur.copy()
+    total_spectra_per_marker_ordered.set_index('label', inplace=True)
+    if to_mean:
+        total_spectra_per_marker_ordered = hist_df_cur.groupby('label').mean()
+
+    #re-order by the indices order
+    if sort:
+        total_spectra_per_marker_ordered=total_spectra_per_marker_ordered[hierarchical_order]
+
+    if color_by_cond and scale_max:
+        # Set same y label limit for pairs to be compared
+        tmp1 = pd.DataFrame(total_spectra_per_marker_ordered.max(axis=1)).reset_index()
+        tmp1.columns = ['label', 'max']
+        tmp1['label_s'] = tmp1['label'].str.split("_").str[0]
+        tmp2 = tmp1.groupby('label_s').max()
+        tmp2.columns = ['label', 'max']
+        max_per_condition = tmp1[['label', 'label_s']].merge(tmp2['max'], right_index=True, left_on='label_s')
+    else:
+        max_per_condition = None
+    if plot_delta:
+        # Pairs to be compared
+        cur_groups = labels
+    
+    # calc clusters locations
+    cluster_counts = pd.DataFrame(corr_with_clusters.cluster.value_counts()).reset_index()
+    cluster_counts.cluster = cluster_counts.cluster.str.replace('C','').astype('int')
+    cluster_counts.sort_values(by='cluster', inplace=True)
+
+
+    if to_mean:
+        fig, axs = plt.subplots(nrows = len(cur_groups), figsize=figsize)
+        if plot_delta:
+            colors = sns.color_palette(colormap_name, n_colors=len(cur_groups)*2)[0::3]
+        elif not color_by_cond:
+            # create colors
+            colors = [ListedColormap([colormap_name])(0)]*len(cur_groups)
+        axs = plot_histograms(axs[::-1], cur_groups, first_cond, second_cond, total_spectra_per_marker_ordered, False, 
+                    color_by_cond, colors, max_per_condition, cluster_counts, plot_delta, plot_cluster_lines, linewidth=2, show_yscale=False, scale_max=False)
+    else:
+        fig, axs = plt.subplots(nrows = len(cur_groups)*2, figsize=figsize)
+        if not color_by_cond:
+            # create colors
+            colors = [ListedColormap([colormap_name])(0)]*len(cur_groups)*2
+        axs = plot_histograms_not_mean(axs[::-1], cur_groups, first_cond, second_cond,total_spectra_per_marker_ordered,
+                                 color_by_cond, colors, max_per_condition, cluster_counts, plot_cluster_lines, show_yscale=False)
+    
+    fig.subplots_adjust(hspace=0)
+    if to_save:
+        fig.savefig(os.path.join(save_path, filename),bbox_inches='tight', dpi=300)
+
+def plot_histograms_not_mean(axs, cur_groups, first_cond, second_cond, total_spectra_per_marker_ordered, 
+                    color_by_cond, colors, max_per_condition, cluster_counts, plot_cluster_lines=True, show_yscale=True):
+    # plot the histograms
+    for i, label in enumerate(cur_groups[::-1]):
+        d = total_spectra_per_marker_ordered.loc[label, :]
+        for j in range(d.shape[0]):
+            cur_d = d.iloc[j,:]
+            ax = axs[i*d.shape[0] + j]
+            if color_by_cond:
+                if first_cond in label: 
+                    cur_color = colors[first_cond]
+                else:
+                    cur_color = colors[second_cond]
+                ax.fill_between(range(len(cur_d)), cur_d, color=cur_color, label=label, linewidth=2)
+                # Set same y label limit for pairs to be compared
+                # max_limit = max_per_condition.loc[max_per_condition['label']==label, 'max'].values[0]
+                # ax.set_ylim(0, max_limit+(0.25*max_limit))
+            else:
+                ax.fill_between(range(len(cur_d)), cur_d, color=colors[i], label=label, linewidth=2)
+        
+            ax.margins(y=0.25)
+            ax.set_xticklabels([])
+            ax.set_xticks([])
+            ax.tick_params(axis='y', labelsize=4, length=0, pad=0.1)
+            ax.text(1.02, 0.5, label.replace('_', ' '), transform=ax.transAxes,
+                    rotation=0, va='center', ha='left')
+            if plot_cluster_lines:
+                # add cluster lines to histograms
+                prev_count = 0
+                for j, cluster in enumerate(cluster_counts.cluster):
+                    cur_count = cluster_counts.iloc[j]['count']
+                    cluster_end = cur_count + prev_count
+
+                    if cur_count < 15:
+                        prev_count = cluster_end
+                        continue
+                    ax.axvline(x=cluster_end, color='black',linestyle="--", linewidth=1)
+                    prev_count = cluster_end
+
+            ax.spines['bottom'].set_color('lightgray')
+            ax.spines['top'].set_color('lightgray')
+            ax.spines['right'].set_color('lightgray')
+            ax.spines['left'].set_color('lightgray')
+            ax.margins(x=0)
+            if not show_yscale:
+                ax.set_yticklabels([])
+                ax.set_yticks([])
+    return axs
+
+def plot_heatmap_with_clusters_supp_1A(corr_with_clusters, save_path=None, to_save=False,                                            
+                                             filename="codeword_idx_heatmap_and_histograms.tiff",
+                                             figsize=(9,3), cmap=None):
+    col_colors_df = {'C1': 'olivedrab', 'C2': 'teal', 'C3': 'goldenrod','C4':'purple'}
+    # create the heatmap and dendrogram
+    kws = dict(cbar_kws=dict(ticks=[-1,0,1]))
+    clustermap = sns.clustermap(corr_with_clusters.drop(columns=['cluster']), center=0, cmap=cmap, vmin=-1, vmax=1, 
+                                figsize=figsize, xticklabels=False, yticklabels=False, col_colors=corr_with_clusters['cluster'].map(col_colors_df), **kws)
+    clustermap.ax_row_dendrogram.set_visible(False)
+
+    # calc clusters locations
+    cluster_counts = pd.DataFrame(corr_with_clusters.cluster.value_counts()).reset_index()
+    cluster_counts.cluster = cluster_counts.cluster.str.replace('C','').astype('int')
+    cluster_counts.sort_values(by='cluster', inplace=True)
+    
+    # fix the cbar appearance 
+    clustermap.ax_cbar.set_position([clustermap.ax_col_dendrogram.get_position().x1+0.01, # x location 
+                                     clustermap.ax_col_dendrogram.get_position().y0+0.01, # y location
+                                     0.01,                                                # width
+                                     clustermap.ax_col_dendrogram.get_position().height-0.05]) #height
+    clustermap.ax_cbar.set_title('Pearson r',fontsize=6)
+    clustermap.cax.tick_params(axis='y', labelsize=6, length=0, pad=0.1)
+   
+    # add cluster lines to the heatmap
+    prev_count = 0
+    for j, cluster in enumerate(cluster_counts.cluster):
+        cur_count = cluster_counts.iloc[j]['count']
+
+        cluster_end = cur_count + prev_count
+        
+        if cur_count < 15:
+            prev_count = cluster_end
+            continue
+        # clustermap.ax_heatmap.axvline(x=cluster_end, color='black',linestyle="--", linewidth=1)
+        clustermap.ax_heatmap.plot([cluster_end,cluster_end], [prev_count,cluster_end], color='black',linestyle="--", linewidth=1)
+        clustermap.ax_heatmap.plot([prev_count,cluster_end], [cluster_end,cluster_end], color='black',linestyle="--", linewidth=1)
+        clustermap.ax_heatmap.plot([prev_count,prev_count], [prev_count,cluster_end], color='black',linestyle="--", linewidth=1)
+        clustermap.ax_heatmap.plot([prev_count,cluster_end], [prev_count,prev_count], color='black',linestyle="--", linewidth=1)
+        clustermap.ax_col_colors.text(x=cluster_end-(cur_count/2), y=0.8, s=cluster, fontsize=6)
+        prev_count = cluster_end
+
+    if to_save:
+        clustermap.figure.savefig(os.path.join(save_path, filename),bbox_inches='tight', dpi=300)
+    return clustermap.dendrogram_col.reordered_ind
 
 def find_rep_per_cluster(corr_with_clusters, hist_df_with_path, save_path, to_save=False, save_together = True,
                          filename="representative_images_per_cluster.eps", figsize=(4,32), use_second_max=False, top_images = 4):
