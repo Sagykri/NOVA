@@ -47,12 +47,8 @@ class DatasetSPD(Dataset):
                     
                 # if that's a marker directory
                 elif depth==0: 
-                    marker_name = os.path.basename(entry.path)
-                    if marker_name=='DAPI':
-                        continue
-                    else:
-                        # This is a list of arguments, used as the input of analyze_marker()
-                        yield entry.path
+                    # This is a list of arguments, used as the input of analyze_marker()
+                    yield entry.path
                         
     def _load_data_paths(self):
         """ Return processed images (paths to npy files) from given folders 
