@@ -49,7 +49,8 @@ class Dataset(torch.utils.data.Dataset ,metaclass=ABCMeta):
         self.to_split_data = conf.SPLIT_DATA
         self.data_set_type = conf.DATA_SET_TYPE
         self.is_aug_inplace = conf.IS_AUG_INPLACE
-        
+        self.reps = conf.REPS
+
         self.conf = conf
         
         self.X_paths, self.y, self.unique_markers = self._load_data_paths()  
