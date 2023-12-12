@@ -45,7 +45,8 @@ def generate_embeddings():
     logging.info(f"embeddings_layer = {embeddings_layer}")
     
     # Get dataset 
-    datasets_list = load_dataset_for_embeddings(config_data=config_data, batch_size=100, config_model=config_model)
+    # Note: batch_size is set to 1 to make sure each embeddings npy file is corresponding to a single site npy file
+    datasets_list = load_dataset_for_embeddings(config_data=config_data, batch_size=1, config_model=config_model)
     # Set the output folder (where to save the embeddings)
     embeddings_folder = os.path.join(config_model.MODEL_OUTPUT_FOLDER, 'embeddings', experiment_type)
     # Get trained model    

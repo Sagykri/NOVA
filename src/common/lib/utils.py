@@ -48,11 +48,7 @@ def xy_to_tuple(xy_arr):
 
 def flat_list_of_lists(l):
     return [item for sublist in l for item in sublist]
-
-
-def generate_confusion_matrix(model):
     pass
-
 
 def get_colors_dict(labels, colors_dict):
     """Get mapping between the given colors and labels
@@ -74,8 +70,7 @@ def get_colors_dict(labels, colors_dict):
             label = labels_unique[i]
             colors[label] = color
     return colors
-
-    
+  
 def load_config_file(path:string, custom_filename:string=None, savefolder:string=None):
     """Load config file (and save it to file for documentation)
 
@@ -147,8 +142,6 @@ def init_logging(path:string):
                         ])
     
 
-
-
 def gpuinfo(gpuidx):
     """
     Get GPU information
@@ -182,7 +175,6 @@ def gpuinfo(gpuidx):
     except Exception as e:
         print(e)
     return out_dict
-
 
 def getfreegpumem(gpuidx):
     """
