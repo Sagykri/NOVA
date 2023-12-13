@@ -177,9 +177,10 @@ class BaseConfig():
     
         self.__LOGS_FOLDER = path
         __now = datetime.datetime.now()
-        log_file_path = os.path.join(self.__LOGS_FOLDER, __now.strftime("%d%m%y_%H%M%S_%f") + '.log')
+        jobid = os.getenv('LSB_JOBID')
+        log_file_path = os.path.join(self.__LOGS_FOLDER, __now.strftime("%d%m%y_%H%M%S_%f") + f'_{jobid}.log')
         if not os.path.exists(self.__LOGS_FOLDER):
             os.makedirs(self.__LOGS_FOLDER)
         init_logging(log_file_path)
-        logging.info(f"[{self.__class__.__name__}] Init (log path: {log_file_path})")
+        logging.info(f"[{self.__class__.__name__}] Init (log path: {log_file_path}; JOBID: {jobid})")
         logging.info(f"[{self.__class__.__name__}] MOMAPS_HOME={self.HOME_FOLDER}, MOMAPS_DATA_HOME={self.HOME_DATA_FOLDER}")

@@ -301,9 +301,10 @@ class AnalysisOpenCell(BaseAnalysis):
                 ax.scatter(
                     umap_data[ind, 0],
                     umap_data[ind, 1],
-                    s=s,
-                    alpha=alpha,
+                    s=s if 'mean' not in gp else 5,
+                    alpha=alpha if 'mean' not in gp else 1,
                     c=_c,
+                    marker = 'o' if 'mean' not in gp else "*", 
                     label=gp,
                     zorder=0 if gp == 'others' else len(unique_groups) - i + 1,
                 )

@@ -59,11 +59,10 @@ class LenaDatasetConfig(DatasetConfig):
         # Your can set self.REPS to a specific rep or leave it None to load the two reps 
         self.REPS = ['rep2'] # Can be : ['rep1', 'rep2'] or ['rep1'] or ['rep2']
         # You can set this var to True if you want the UMAP to color the reps with different colors
-        self.ADD_REP_TO_LABEL = False
+        self.ADD_REP_TO_LABEL = False#True
         # You can set this var to True if you want the UMAP to color the batches with different colors
-        self.ADD_BATCH_TO_LABEL = False
-        # You can set whether to use the global representation (vqvec2) or the local representation (vqvec1)
-        self.EMBEDDINGS_LAYER = 'vqvec2' # 'vqvec1' / 'vqvec2' / 'vqvec_both'
+        self.ADD_BATCH_TO_LABEL = False#True
+        
         # You can set from what experiment (the name of the folder) to pull the embeddings
         self.EXPERIMENT_TYPE = 'neurons' 
         

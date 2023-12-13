@@ -47,12 +47,8 @@ class DatasetSPD(Dataset):
                     
                 # if that's a marker directory
                 elif depth==0: 
-                    marker_name = os.path.basename(entry.path)
-                    if marker_name=='DAPI':
-                        continue
-                    else:
-                        # This is a list of arguments, used as the input of analyze_marker()
-                        yield entry.path
+                    # This is a list of arguments, used as the input of analyze_marker()
+                    yield entry.path
                         
     def _load_data_paths(self):
         """ Return processed images (paths to npy files) from given folders 
@@ -79,7 +75,8 @@ class DatasetSPD(Dataset):
         cell_lines_include      =   self.cell_lines
         conds_include           =   self.conditions
         depth                   =   self.markers_folders_depth
-        
+        reps_include            =   self.reps
+
         labels_changepoints = [0]
         labels = []
         # List of strings, each element in the list is marker name (e.g., "NONO")
@@ -138,6 +135,14 @@ class DatasetSPD(Dataset):
                 for target_file in filenames:
                     filename, ext = os.path.splitext(target_file)
                     if ext == '.npy' or ext == '.tif_processed':
+                        
+                        # Filter: rep to include
+                        if reps_include is not None:
+                            filename_rep = filename.split('_',1)[0]
+                            if filename_rep not in reps_include:
+                                logging.info(f"Skipping rep (not in reps list). {filename_rep}")
+                                continue
+                        
                         # Hold the full path of a processed image 
                         image_filename = os.path.join(marker_folder, target_file)
                         # Add to list: the full path of the npy file 
