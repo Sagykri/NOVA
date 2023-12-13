@@ -112,7 +112,7 @@ class EmbeddingsB6DatasetConfig(DatasetConfig):
         self.ADD_BATCH_TO_LABEL = True
 
         self.CELL_LINES = ['WT']#, 'FUSHeterozygous', 'FUSRevertant']
-        self.MARKERS = ["G3BP1"] #['FUS']
+        #self.MARKERS = ["G3BP1"] #['FUS']
         self.REPS = ['rep2'] # Can be : ['rep1', 'rep2'] or ['rep1'] or ['rep2']
         
         # Local/Global embeddings
@@ -127,7 +127,7 @@ class EmbeddingsB6DatasetConfig(DatasetConfig):
         self.MAP_LABELS_FUNCTION = "lambda self: lambda labels: __import__('numpy').asarray([l.split('_')[-2-int(self.ADD_REP_TO_LABEL)] for l in labels])"
 
         # Set the colormap, for example: {"Untreated": "#52C5D5", 'stress': "#F7810F"} 
-        #self.COLORMAP = {"Untreated": "#52C5D5", 'stress': "#F7810F"}
+        self.COLORMAP = {"Untreated": "#52C5D5", 'stress': "#F7810F"}
 
         # Set the size of the dots
         self.SIZE = 30
@@ -146,7 +146,7 @@ class EmbeddingsB5DatasetConfig(DatasetConfig):
         self.EXPERIMENT_TYPE = 'neurons'
         self.ADD_REP_TO_LABEL = True
         self.ADD_BATCH_TO_LABEL = True
-        self.REPS = ['rep1', 'rep2']
+        # self.REPS = ['rep1', 'rep2']
         
         # Local/Global embeddings
         self.EMBEDDINGS_LAYER = 'vqvec2'
@@ -177,6 +177,8 @@ class EmbeddingsB4DatasetConfig(DatasetConfig):
         
         self.SPLIT_DATA = False
         self.EXPERIMENT_TYPE = 'neurons'
+        self.ADD_REP_TO_LABEL = True
+        self.ADD_BATCH_TO_LABEL = True
         
         # Local/Global embeddings
         self.EMBEDDINGS_LAYER = 'vqvec2'
@@ -207,6 +209,8 @@ class EmbeddingsB3DatasetConfig(DatasetConfig):
         
         self.SPLIT_DATA = False
         self.EXPERIMENT_TYPE = 'neurons'
+        self.ADD_REP_TO_LABEL = True
+        self.ADD_BATCH_TO_LABEL = True
         
         # Local/Global embeddings
         self.EMBEDDINGS_LAYER = 'vqvec2'

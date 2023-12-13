@@ -89,7 +89,7 @@ def get_metrics_figure(X, labels_true, savepath=None, ax=None):
     cb = plt.colorbar(sm, cax=cax, orientation='horizontal', pad=0.25)
     cb.set_ticks([score])
     cb.ax.tick_params(labelsize=12)
-    cb.ax.set_title(titles[i], fontsize=16)
+    cb.ax.set_title(titles[i], fontsize=16) # Nancy for figure 2A - remove "ARI" text from scale bar
     cb.ax.plot([score]*2, [vmin,vmax], linecolor, linewidth=linewidth)
   
   if savepath is not None:

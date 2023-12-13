@@ -24,6 +24,7 @@
 # ./bash_commands/run_py.sh ./src/runables/generate_spectral_features -g -m 40000 -b 40 -a ./src/models/neuroself/configs/model_config/TLNeuroselfNiemannPickB14ModelConfig ./src/datasets/configs/embeddings_data_config/EmbeddingsNPB3DatasetConfig -j indhist_NP_3 -q high_gpu_gsla
 
 # Generate UMAP0s
+# ./bash_commands/run_py.sh ./src/runables/generate_umaps -g -m 40000 -b 10 -a ./src/models/neuroself/configs/model_config/TLNeuroselfB78NoDSModelConfig ./src/datasets/configs/embeddings_data_config/EmbeddingsB6DatasetConfig /home/labs/hornsteinlab/Collaboration/MOmaps/outputs/figures/manuscript/fig2/neuroself/ -j gen_umaps_b6_stress
 # ./bash_commands/run_py.sh ./src/runables/generate_umaps -g -m 40000 -b 10 -q high_gpu_gsla -a ./src/models/cytoself_vanilla/configs/config/CytoselfModelConfig ./src/datasets/configs/embeddings_data_config/EmbeddingsU2OSDatasetConfig /home/labs/hornsteinlab/Collaboration/MOmaps/outputs/figures/U2OS -j gen_umaps
 
 # Generate UMAP2s - Synthetic Multiplexing

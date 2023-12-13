@@ -15,48 +15,49 @@ class LenaDatasetConfig(DatasetConfig):
         # OPTIONAL configuration to use:
         
         #self.CELL_LINES = ['WT', 'TDP43', 'TBK1', 'FUSHomozygous', 'FUSHeterozygous', 'FUSRevertant', 'OPTN']# ['WT', 'TDP43', 'TBK1', 'FUSHomozygous', 'FUSHeterozygous', 'FUSRevertant', 'SCNA', 'OPTN', ]
-        self.CELL_LINES = ['WT', 'FUSHomozygous', 'FUSHeterozygous', 'FUSRevertant']# 
+        self.CELL_LINES = ['WT']#, 'FUSHomozygous', 'FUSHeterozygous', 'FUSRevertant']# 
         ##self.CELL_LINES =  ['WT', 'TDP43', 'TBK1', 'FUSHomozygous', 'FUSHeterozygous', 'FUSRevertant', 'SCNA', 'OPTN', ]
-        self.CONDITIONS = ['Untreated'] # ['Untreated', 'stress']
-        self.MARKERS = ['ANXA11',
-                        'Calreticulin', 
-                        'CD41', 
-                        'CLTC', 
-                        'DAPI', 
-                        'DCP1A',
-                        'FMRP', 
-                        #'FUS', 
-                        'G3BP1',
-                        'GM130', 
-                        'KIF5A', 
-                        'LAMP1',  
-                        'mitotracker', 
-                        'NCL', 
-                        'NEMO', 
-                        'NONO', 
-                        'PEX14', 
-                        'Phalloidin', 
-                        'PML', 
-                        'PSD95', 
-                        'PURA', 
-                        'SCNA', 
-                        'SQSTM1', 
-                        'TDP43', 
-                        'TIA1', 
-                        'TOMM20'
-                        ]
+        self.CONDITIONS = ['Untreated', 'stress'] # ['Untreated', 'stress']
+        self.MARKERS = ["DAPI", "DCP1A", "G3BP1", "Phalloidin"]
+        # self.MARKERS = ['ANXA11',
+        #                 'Calreticulin', 
+        #                 'CD41', 
+        #                 'CLTC', 
+        #                 'DAPI', 
+        #                 'DCP1A',
+        #                 'FMRP', 
+        #                 #'FUS', 
+        #                 'G3BP1',
+        #                 'GM130', 
+        #                 'KIF5A', 
+        #                 'LAMP1',  
+        #                 'mitotracker', 
+        #                 'NCL', 
+        #                 'NEMO', 
+        #                 'NONO', 
+        #                 'PEX14', 
+        #                 'Phalloidin', 
+        #                 'PML', 
+        #                 'PSD95', 
+        #                 'PURA', 
+        #                 'SCNA', 
+        #                 'SQSTM1', 
+        #                 'TDP43', 
+        #                 'TIA1', 
+        #                 'TOMM20'
+        #                 ]
         
         # self.CELL_LINES = ['WT', 'KO'] 
         # self.CONDITIONS = ['Untreated']
         # self.MARKERS = ['LAMP1', 'FUS', 'PML']
-        
+        self.MARKERS_TO_EXCLUDE = []
         # running
         #
         # Set this var to True if you 'input_folders_names' contains batches that the model used for training (ex. batch7/batch8), otherwise set to False
         self.SPLIT_DATA = False # True
                 
         # Your can set self.REPS to a specific rep or leave it None to load the two reps 
-        self.REPS = ['rep1'] # Can be : ['rep1', 'rep2'] or ['rep1'] or ['rep2']
+        self.REPS = ['rep2'] # Can be : ['rep1', 'rep2'] or ['rep1'] or ['rep2']
         # You can set this var to True if you want the UMAP to color the reps with different colors
         self.ADD_REP_TO_LABEL = False
         # You can set this var to True if you want the UMAP to color the batches with different colors
@@ -78,14 +79,14 @@ class LenaDatasetConfig(DatasetConfig):
         self.COLORMAP = {"Untreated": "#52C5D5", 'stress': "#F7810F"}
 
         # Set the size of the dots
-        self.SIZE = 0.8
+        self.SIZE = 30
         # Set the alpha of the dots (0=max opacity, 1=no opacity)
         self.ALPHA = 0.7
         #######################################
         
         
         # You can add more folder like this: input_folders_names = ["batch9_16bit", "batch7", "batch6",] 
-        input_folders_names = ['batch3_16bit_no_downsample']
+        input_folders_names = ['batch6_16bit_no_downsample']
         # 
         # ['batch7_16bit_no_downsample', 'batch8_16bit_no_downsample'], 
         # ['OpenCell'] 

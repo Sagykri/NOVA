@@ -99,7 +99,7 @@ def __generate_with_load(config_model, config_data, dataset, model, markers, out
         savepath = os.path.join(output_folder_path,\
                                 'UMAPs',\
                                     f'{__now.strftime("%d%m%y_%H%M%S_%f")}_{os.path.splitext(os.path.basename(config_model.MODEL_PATH))[0]}',\
-                                        f'{title}.eps')
+                                        f'{title}.eps') # NANCY
         
         __savepath_parent = os.path.dirname(savepath)
         if not os.path.exists(__savepath_parent):
@@ -114,7 +114,7 @@ def __generate_with_load(config_model, config_data, dataset, model, markers, out
         
         model.plot_umap(embedding_data=embeddings_c,
                         label_data=labels_c,
-                        title=title,
+                        title=title, #NANCY - comment this for fig 2
                         savepath=savepath,
                         colormap=colormap,
                         alpha=alpha,

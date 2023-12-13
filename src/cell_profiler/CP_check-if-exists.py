@@ -9,7 +9,7 @@ import pathlib
 import os
 
 # Global paths
-BATCH_TO_RUN = 'batch8' 
+BATCH_TO_RUN = 'batch3' 
 LINE_TO_RUN = 'WT'
 
 BASE_DIR = os.path.join('/home','labs','hornsteinlab','Collaboration','MOmaps')

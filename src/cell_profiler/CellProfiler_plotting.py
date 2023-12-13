@@ -22,7 +22,7 @@ from sklearn.metrics import adjusted_rand_score
 import sklearn.cluster as cluster
 
 # Global paths
-BATCH_TO_RUN = 'batch9_50percent' 
+BATCH_TO_RUN = 'batch9' 
 
 BASE_DIR = os.path.join('/home','labs','hornsteinlab','Collaboration','MOmaps')
 sys.path.insert(1, BASE_DIR)
