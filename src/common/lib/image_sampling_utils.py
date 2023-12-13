@@ -95,7 +95,7 @@ def sample_image_names_per_marker(input_data_dir, sample_size=1, raw=False):
     return files_list
 
 def sample_images_all_markers(cell_line_path=None, sample_size_per_markers=1, num_markers=26, depth=2, raw=False, rep_count=2,
-                              cond_count=2, exclude_DAPI=False):
+                              cond_count=2, exclude_DAPI=False, markers_to_include=None):
         """Samples random raw images for a given batch 
 
         Args:
@@ -120,6 +120,9 @@ def sample_images_all_markers(cell_line_path=None, sample_size_per_markers=1, nu
         for marker_folder in marker_subfolder:
             if not os.path.isdir(marker_folder):
                 continue
+            if markers_to_include:
+                if os.path.basename(marker_folder) not in markers_to_include:
+                    continue
             n_images = 0
             if (len(sampled_markers) < num_markers):
                 
@@ -142,7 +145,7 @@ def sample_images_all_markers(cell_line_path=None, sample_size_per_markers=1, nu
         return sampled_images
 
 def sample_images_all_markers_all_lines(input_dir_batch=None, _sample_size_per_markers=150, _num_markers=26, 
-                                        raw=False, all_conds=False, rep_count=2, cond_count=2, exclude_DAPI=False):
+                                        raw=False, all_conds=False, rep_count=2, cond_count=2, exclude_DAPI=False, markers_to_include=None):
     
     images_paths = []
     
@@ -158,14 +161,14 @@ def sample_images_all_markers_all_lines(input_dir_batch=None, _sample_size_per_m
         # Sample markers and then sample images of these markers. The returened value is a list of paths (strings) 
         if not all_conds:
             paths = sample_images_all_markers(cell_line_path, sample_size_per_markers=_sample_size_per_markers, 
-                                          num_markers=_num_markers, raw=raw, rep_count=rep_count, cond_count=cond_count, exclude_DAPI=exclude_DAPI)
+                                          num_markers=_num_markers, raw=raw, rep_count=rep_count, cond_count=cond_count, exclude_DAPI=exclude_DAPI, markers_to_include=markers_to_include)
             images_paths.extend(paths)
 
         else:
             for cond in os.listdir(cell_line_path):
                 cond_cell_line_path = os.path.join(cell_line_path, cond)
                 paths = sample_images_all_markers(cond_cell_line_path, sample_size_per_markers=_sample_size_per_markers, 
-                                        num_markers=_num_markers, depth=1, raw=raw, exclude_DAPI=exclude_DAPI)
+                                        num_markers=_num_markers, depth=1, raw=raw, exclude_DAPI=exclude_DAPI, markers_to_include=markers_to_include)
         
                 images_paths.extend(paths)
                 
