@@ -1,0 +1,2 @@
+batch3_16bit_no_downsample/rep2: 0.011%
+batch9_16bit_no_downsample/rep2: 0.001%

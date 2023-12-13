@@ -260,14 +260,14 @@ def load_indhists(config_path_model=None, config_path_data=None,
     Args:
         config_path_model (string): full path to trained model config file 
         config_path_data (string): full path to dataset config file
-        embeddings_type (string): which part of the dataset to fetch "trainset"/"testset"/"valset"/"allset"
+        embeddings_type (string): which part of the dataset to fetch "trainset"/"testset"/"valset"/"all"
     """
     if config_path_model is None and config_model is None:
         raise ValueError("Invalid config (path). Must supply model config.")
     if config_path_data is None and config_data is None:
         raise ValueError("Invalid config (path). Must supply dataset config.")
     if embeddings_type not in ["trainset", "testset", "valset", "all"]:
-        raise ValueError(f"Invalid embeddings_type. Must supply 'trainset' / 'testset' / 'valset' / 'allset'. ")
+        raise ValueError(f"Invalid embeddings_type. Must supply 'trainset' / 'testset' / 'valset' / 'all'. ")
     
     logging.info(f"[load_indhists] Model: {config_path_model if config_path_model is not None else 'preloaded'}\
                     Dataset: {config_path_data if config_path_data is not None else 'preloaded'},\
@@ -297,22 +297,34 @@ def load_indhists(config_path_model=None, config_path_data=None,
 
     cell_lines_conds = get_if_exists(config_data, 'CELL_LINES_CONDS', None)
     logging.info(f"[load_indhists] cell_lines_conds = {cell_lines_conds}")
+    
+    cell_lines = get_if_exists(config_data, 'CELL_LINES', None)
+    logging.info(f"[load_indhists] cell_lines = {cell_lines}")
 
     markers_to_exclude = get_if_exists(config_data, 'MARKERS_TO_EXCLUDE', None)
     logging.info(f"[load_indhists] markers_to_exclude = {markers_to_exclude}")
+    
+    markers = get_if_exists(config_data, 'MARKERS', None)
+    logging.info(f"[load_indhists] markers = {markers}")
 
     batches = [folder.split(os.sep)[-1].split("_")[0].replace('batch','') for folder in input_folders]
     embeddnigs_folder = os.path.join(model_output_folder, 'embeddings', 
                                      experiment_type, embeddings_layer)
     vqindhist, labels, paths = load_multiple_vqindhists(batches = batches,
                                                         embeddings_folder = embeddnigs_folder,
-                                                        datasets = [embeddings_type])
+                                                        datasets = [embeddings_type],
+                                                        embeddings_layer = embeddings_layer)
     
     hist_df, _ = create_vqindhists_df(vqindhist, labels, paths)
     if cell_lines_conds:
         hist_df = hist_df[hist_df.label.str.contains('|'.join(cell_lines_conds), regex=True)]
     if markers_to_exclude:
-        hist_df = hist_df[~hist_df.label.str.contains('|'.join(markers_to_exclude), regex=True)]
+        hist_df = hist_df[~hist_df.label.str.startswith(tuple(markers_to_exclude))]
+    if markers:
+        hist_df = hist_df[hist_df.label.str.startswith(tuple(markers))]
+    if cell_lines:
+        hist_df = hist_df[hist_df['label'].str.split('_', expand=True)[1].isin(cell_lines)]
+
 
     all_embedings_data = np.array(hist_df.drop(columns='label'))
     logging.info(f'all_embedings_data shape: {all_embedings_data.shape}')

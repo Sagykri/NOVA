@@ -12,13 +12,13 @@ import scipy
 from collections import defaultdict
 import networkx as nx
 
-def load_multiple_vqindhists(batches, embeddings_folder, datasets = ['trainset','valset','testset']):
+def load_multiple_vqindhists(batches, embeddings_folder, datasets = ['trainset','valset','testset'], embeddings_layer='vqindhist1'):
     vqindhist, labels, paths = [] , [], []
     for batch in batches:
         for dataset_type in datasets:
-            cur_vqindhist, cur_labels, cur_paths = np.load(os.path.join(embeddings_folder, f"batch{batch}_16bit_no_downsample/vqindhist1_{dataset_type}.npy")),\
-                    np.load(os.path.join(embeddings_folder, f"batch{batch}_16bit_no_downsample/vqindhist1_labels_{dataset_type}.npy")),\
-                    np.load(os.path.join(embeddings_folder, f"batch{batch}_16bit_no_downsample/vqindhist1_paths_{dataset_type}.npy"))
+            cur_vqindhist, cur_labels, cur_paths = np.load(os.path.join(embeddings_folder, f"batch{batch}_16bit_no_downsample/{embeddings_layer}_{dataset_type}.npy")),\
+                    np.load(os.path.join(embeddings_folder, f"batch{batch}_16bit_no_downsample/{embeddings_layer}_labels_{dataset_type}.npy")),\
+                    np.load(os.path.join(embeddings_folder, f"batch{batch}_16bit_no_downsample/{embeddings_layer}_paths_{dataset_type}.npy"))
             cur_vqindhist = cur_vqindhist.reshape(cur_vqindhist.shape[0], -1)
             vqindhist.append(cur_vqindhist)
             labels.append(cur_labels)

@@ -24,6 +24,7 @@ def run_synthetic_multiplexing():
     config_path_model = sys.argv[1]
     config_path_data = sys.argv[2]
     output_folder_path = sys.argv[3] if len(sys.argv) > 3 else config_model.MODEL_OUTPUT_FOLDER
+    jobid = os.getenv('LSB_JOBID')
 
     assert os.path.isdir(output_folder_path) and os.path.exists(output_folder_path), f"{output_folder_path} is an invalid output folder path or doesn't exists"
 
@@ -31,7 +32,7 @@ def run_synthetic_multiplexing():
     config_model = load_config_file(config_path_model, 'model')
     config_data = load_config_file(config_path_data, 'data', config_model.CONFIGS_USED_FOLDER)
 
-    logging.info("init")
+    logging.info(f"init - jobid: {jobid}")
     logging.info("[Synthetic Multiplexing]")
     
     logging.info(f"Is GPU available: {torch.cuda.is_available()}")
@@ -74,13 +75,16 @@ def run_synthetic_multiplexing():
     embeddings_type = get_if_exists(model.test_loader.dataset.conf,
                                     'EMBEDDINGS_TYPE_TO_LOAD',
                                     'testset' if config_data.SPLIT_DATA else 'all')
+    
+    embeddings_layer = get_if_exists(config_data, 'EMBEDDINGS_LAYER', None)
 
+    logging.info(f"Embeddings layer: {embeddings_layer}")
 
     title = f"{'_'.join([os.path.basename(f) for f in dataset.input_folders])}"
     savepath = os.path.join(output_folder_path,\
                             'SM_UMAPs',\
-                                f'{datetime.datetime.now().strftime("%d%m%y_%H%M%S_%f")}_{os.path.splitext(os.path.basename(config_model.MODEL_PATH))[0]}',\
-                                    f'{title}.png')
+                                f'{datetime.datetime.now().strftime("%d%m%y_%H%M%S_%f")}_{jobid}_{os.path.splitext(os.path.basename(config_model.MODEL_PATH))[0]}',\
+                                    f'{title}.eps')
     
     __savepath_parent = os.path.dirname(savepath)
     if not os.path.exists(__savepath_parent):
@@ -88,7 +92,11 @@ def run_synthetic_multiplexing():
 
     multiplex(model,
               embeddings_type=embeddings_type,
-              savepath=savepath)
+              savepath=savepath,
+              dataloader=dataloader, #Sagy 041223
+              colormap='Set1',
+              output_layer=embeddings_layer,
+              alpha=0.5)
     
 
 if __name__ == "__main__":

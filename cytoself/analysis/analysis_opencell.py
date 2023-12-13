@@ -253,7 +253,7 @@ class AnalysisOpenCell(BaseAnalysis):
 
         """
         if savepath == 'default':
-            savepath = join(self.savepath_dict['umap_figures'], title + '.png')
+            savepath = join(self.savepath_dict['umap_figures'], title + '.eps')
         if isinstance(colormap, str):
             cmap = cm.get_cmap(colormap.replace('_others', '')).colors
         else:
@@ -351,7 +351,8 @@ class AnalysisOpenCell(BaseAnalysis):
         fig.tight_layout()
         if savepath:
             logging.info(f"Saving umap to {savepath}")#SAGY
-            fig.savefig(savepath, dpi=dpi, format='eps')
+            fig.savefig(savepath, dpi=dpi, format='eps')# eps
+
         return fig, ax
 
     def calculate_cellid_ondim0_vqidx_ondim1(

@@ -35,7 +35,6 @@ class B78TrainDatasetConfig(DatasetConfig):
         self.SPLIT_DATA = True
         self.MARKERS_TO_EXCLUDE = self.MARKERS_TO_EXCLUDE + ['DAPI']
 
-
 class B78NoDSTrainDatasetConfig(DatasetConfig):
     def __init__(self):
         super().__init__()
@@ -45,7 +44,6 @@ class B78NoDSTrainDatasetConfig(DatasetConfig):
 
         self.SPLIT_DATA = True
         self.MARKERS_TO_EXCLUDE = self.MARKERS_TO_EXCLUDE + ['DAPI']
-
 
 ############################################################
 # NiemannPick
@@ -70,7 +68,7 @@ class deltaNLSB25TrainDatasetConfig(DatasetConfig):
                         ["batch2_16bit_no_downsample", "batch5_16bit_no_downsample"]]
         self.SPLIT_DATA = True
         self.MARKERS_TO_EXCLUDE = self.MARKERS_TO_EXCLUDE + ['DAPI']
-
+        
 ############################################################
 # OpenCell
 ############################################################        

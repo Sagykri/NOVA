@@ -1,0 +1,12 @@
+batch3_16bit_no_downsample/FUSHeterozygous/Untreated/rep1/FUS: 0.208%
+batch3_16bit_no_downsample/FUSHomozygous/Untreated/rep1/NCL: 0.415%
+batch3_16bit_no_downsample/WT/Untreated/rep1/ANXA11: 0.208%
+batch4_16bit_no_downsample/FUSHomozygous/Untreated/rep2/CLTC: 1.973%
+batch4_16bit_no_downsample/OPTN/Untreated/rep2/G3BP1: 19.211%
+batch4_16bit_no_downsample/TBK1/Untreated/rep1/FMRP: 32.191%
+batch4_16bit_no_downsample/TBK1/Untreated/rep2/PURA: 0.312%
+batch4_16bit_no_downsample/WT/Untreated/rep1/FMRP: 44.86%
+batch5_16bit_no_downsample/FUSHeterozygous/Untreated/rep1/PURA: 0.312%
+batch5_16bit_no_downsample/TBK1/Untreated/rep1/KIF5A: 0.104%
+batch6_16bit_no_downsample/FUSHeterozygous/Untreated/rep1/CD41: 0.104%
+batch9_16bit_no_downsample/OPTN/Untreated/rep1/PML: 0.104%
