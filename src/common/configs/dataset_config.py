@@ -15,7 +15,7 @@ class DatasetConfig(BaseConfig):
         
         self.MARKERS = None
 
-        self.MARKERS_TO_EXCLUDE = []
+        self.MARKERS_TO_EXCLUDE = ['TIA1'] #, 'lysotracker', 'Syto12']
         self.CELL_LINES = None
         self.CONDITIONS = None
         self.REPS       = None

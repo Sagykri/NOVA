@@ -24,7 +24,6 @@ def run_synthetic_multiplexing():
     config_path_model = sys.argv[1]
     config_path_data = sys.argv[2]
     output_folder_path = sys.argv[3] if len(sys.argv) > 3 else config_model.MODEL_OUTPUT_FOLDER
-    calc_emb = sys.argv[4].lower() == 'true' if len(sys.argv) > 4 else False
     jobid = os.getenv('LSB_JOBID')
 
     assert os.path.isdir(output_folder_path) and os.path.exists(output_folder_path), f"{output_folder_path} is an invalid output folder path or doesn't exists"
@@ -76,7 +75,10 @@ def run_synthetic_multiplexing():
     embeddings_type = get_if_exists(model.test_loader.dataset.conf,
                                     'EMBEDDINGS_TYPE_TO_LOAD',
                                     'testset' if config_data.SPLIT_DATA else 'all')
+    
+    embeddings_layer = get_if_exists(config_data, 'EMBEDDINGS_LAYER', None)
 
+    logging.info(f"Embeddings layer: {embeddings_layer}")
 
     title = f"{'_'.join([os.path.basename(f) for f in dataset.input_folders])}"
     savepath = os.path.join(output_folder_path,\
@@ -93,7 +95,7 @@ def run_synthetic_multiplexing():
               savepath=savepath,
               dataloader=dataloader, #Sagy 041223
               colormap='Set1',
-              calc_emb=calc_emb,
+              output_layer=embeddings_layer,
               alpha=0.5)
     
 

@@ -21,20 +21,13 @@ def multiplex(model: Model, embeddings_type='testset',
                     alpha=0.8,
                     s=0.8,
                     output_layer='vqvec2',
-                    savepath='default',
-                    calc_emb=False,
-                    dataloader=None):
+                    savepath='default'):
     assert model is not None, "Model is None"
     assert model.test_loader is not None, "model.test_loader is None, please first load dataloaders"
     
     dataset_conf = model.test_loader.dataset.conf
-    
-    if calc_emb:
-        if dataloader is None:
-            raise "dataloader must be set when calc_emb=True"
-        embeddings, labels = __calc_embeddings(model, dataset_conf, dataloader)
-    else:
-        embeddings, labels = __get_embeddings(model, embeddings_type, config_data=dataset_conf, vq_type=output_layer)
+
+    embeddings, labels = __get_embeddings(model, embeddings_type, config_data=dataset_conf, vq_type=output_layer)
     logging.info(f"[Before concat] Embeddings shape: {embeddings.shape}, Labels shape: {labels.shape}")
     
     df = __embeddings_to_df(embeddings, labels, dataset_conf,  vq_type=output_layer)
@@ -55,13 +48,6 @@ def multiplex(model: Model, embeddings_type='testset',
                     embedding_data=embeddings,
                     output_layer=output_layer,
                     savepath=savepath)
-
-def __calc_embeddings(model, dataset_conf, dataloader):
-    logging.info("Calculating embeddings...")
-        
-    embeddings, labels = model.model.infer_embeddings(dataloader, output_layer=dataset_conf.EMBEDDINGS_LAYER)  
-    labels = np.asarray(labels).reshape(-1,)
-    return embeddings, labels
 
 def __generate_plot_title(model_conf, dataset_conf):
     return 'SM_' + f"{'_'.join([os.path.basename(f) for f in dataset_conf.INPUT_FOLDERS])}_{datetime.datetime.now().strftime('%d%m%y_%H%M%S_%f')}_{os.path.splitext(os.path.basename(model_conf.MODEL_PATH))[0]}"
@@ -90,7 +76,7 @@ def __get_multiplexed_embeddings(embeddings_df, random_state=None):
     
     return embeddings, label_data, unique_groups
 
-def __format_labels_to_marker_and_pheno(label, config_data, vq_type):
+def __format_labels_to_marker_and_pheno(label, config_data, vq_type):        
     if vq_type in ['vqindhist1', 'vqindhist2']:
         return (label.split('_')[0], '_'.join(label.split('_')[-4 :-2]))
     if vq_type in ['vqvec1', 'vqvec2']:
@@ -115,7 +101,7 @@ def __get_embeddings(model, embeddings_type, config_data, vq_type='vqvec2'):
     else:
         raise f"Invalid vq type {vq_type} [The options are: 'vqvec1', 'vqvec2', 'vqindhist1', 'vqindhist2']"
     
-    embeddings, labels = loading_func
+    embeddings, labels = loading_func()
     labels = np.asarray(labels).reshape(-1,)
     return embeddings,labels
 

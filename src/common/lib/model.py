@@ -423,6 +423,12 @@ class Model():
 
         
         return embeddings, labels
+    def load_indhists(self, embeddings_type='testset', config_data=None):
+        from src.common.lib import embeddings_utils      
+        embeddings, labels = embeddings_utils.load_indhists(config_model=self.conf,
+                                                            config_data=config_data,
+                                                            embeddings_type=embeddings_type)       
+        return embeddings, labels
     
     def set_mode(self, train):
         self.model.model.train(train)
