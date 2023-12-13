@@ -426,6 +426,9 @@ def preprocess_panel(slf, panel, input_folder_root,
                 if slf.markers_to_include is not None and marker not in slf.markers_to_include:
                     logging.info(f"Skipping {marker}")
                     continue
+                if marker == 'DAPI':
+                    logging.info("Skipping DAPI as a target")
+                    continue
                         
                 input_subfolder = os.path.join(input_folder, marker)
                 output_subfolder = os.path.join(output_folder, marker)
