@@ -32,7 +32,7 @@ def crop_frame(original_image, w=12,h=12):
     return cropped_image
 
 def filter_invalid_tiles(file_name, img, nucleus_diameter=100, cellprob_threshold=0,\
-                          flow_threshold=0.7, cell_inclusion_prct = 0.9, tile_w=100,tile_h=100,
+                          flow_threshold=0.7, cell_inclusion_prct = 0.85, tile_w=100,tile_h=100,
                           calculate_nucleus_distance=False,
                           cp_model=None, show_plot=True, return_counts=False, brenner_bounds=None):
     """
@@ -74,6 +74,9 @@ def filter_invalid_tiles(file_name, img, nucleus_diameter=100, cellprob_threshol
         nucleus_distance = cv2.distanceTransform(masks.astype('uint8'), cv2.DIST_L2,0)
     else:
         nucleus_distance = None
+
+    # Calculate cells per site
+    n_cells_per_site = np.max(masks)
 
     # Crop masks
     masked_tiles = [masks[w:w+tile_w, h:h+tile_h] for w in range(0, masks.shape[0], tile_w) for h in range(0, masks.shape[1], tile_h)]
@@ -144,7 +147,7 @@ def filter_invalid_tiles(file_name, img, nucleus_diameter=100, cellprob_threshol
     logging.info(f"#ALL {n_masked_tiles}, #Passed {tiles_passed_indexes.shape[0]}")
     
     if return_counts:
-        return tiles_passed_indexes, n_cells_per_tile, n_whole_cells_per_tile, nucleus_distance
+        return tiles_passed_indexes, n_cells_per_tile, n_whole_cells_per_tile, nucleus_distance, n_cells_per_site
     
     return tiles_passed_indexes
 
@@ -499,18 +502,18 @@ def preprocess_panel(slf, panel, input_folder_root,
                         
                         # Filter invalid tiles (keep tiles with at least one full nuclues (nuclues border is not overlapping image edges))
                         logging.info("Filtering bad tiles in DAPI (cellpose + Brenner)")
-                        current_valid_tiles_indexes, n_cells_per_tile, n_whole_cells_per_tile, nucleus_distance = filter_invalid_tiles(nucleus_filepath,
-                                                                                                                    img_nucleus,
-                                                                                                                    nucleus_diameter=nucleus_diameter, 
-                                                                                                                    cellprob_threshold=cellprob_threshold,
-                                                                                                                    flow_threshold=flow_threshold, 
-                                                                                                                    cell_inclusion_prct = cell_inclusion_prct,
-                                                                                                                    tile_w=tile_width, tile_h=tile_height, 
-                                                                                                                    cp_model=cp_model,
-                                                                                                                    calculate_nucleus_distance=with_nucelus_distance,
-                                                                                                                    show_plot=to_show,
-                                                                                                                    return_counts=True,
-                                                                                                                    brenner_bounds=brenner_bounds)
+                        current_valid_tiles_indexes, n_cells_per_tile, n_whole_cells_per_tile, nucleus_distance, n_cells_per_site = filter_invalid_tiles(nucleus_filepath,
+                                                                                                                                        img_nucleus,
+                                                                                                                                        nucleus_diameter=nucleus_diameter, 
+                                                                                                                                        cellprob_threshold=cellprob_threshold,
+                                                                                                                                        flow_threshold=flow_threshold, 
+                                                                                                                                        cell_inclusion_prct = cell_inclusion_prct,
+                                                                                                                                        tile_w=tile_width, tile_h=tile_height, 
+                                                                                                                                        cp_model=cp_model,
+                                                                                                                                        calculate_nucleus_distance=with_nucelus_distance,
+                                                                                                                                        show_plot=to_show,
+                                                                                                                                        return_counts=True,
+                                                                                                                                        brenner_bounds=brenner_bounds)
                         
                         logging.info(f"[{nucleus_filepath}] {len(current_valid_tiles_indexes)}")# out of {len(nucleus_image_tiles)} passed ({len(nucleus_image_tiles)-len(current_valid_tiles_indexes)} invalid)")
                         
@@ -527,7 +530,8 @@ def preprocess_panel(slf, panel, input_folder_root,
                                             round(np.mean(n_cells_per_tile), 2), round(np.std(n_cells_per_tile), 2),
                                             n_whole_cells_per_tile,
                                             round(np.mean(n_whole_cells_per_tile), 2), round(np.std(n_whole_cells_per_tile), 2),
-                                            len(current_valid_tiles_indexes)]
+                                            len(current_valid_tiles_indexes),
+                                            n_cells_per_site]
                                             
                         
                         if len(current_valid_tiles_indexes) > 0:
@@ -572,7 +576,8 @@ def preprocess_panel(slf, panel, input_folder_root,
                                         None, None,
                                         None,
                                         None, None,
-                                        len(target_valid_tiles)]
+                                        len(target_valid_tiles),
+                                        None]
                                         
                     to_log += [None]*4
                         

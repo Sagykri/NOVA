@@ -83,8 +83,6 @@ class OpenCellTrainDatasetConfig(DatasetConfig):
         self.SPLIT_DATA = True
         self.MARKERS_TO_EXCLUDE = self.MARKERS_TO_EXCLUDE + ['DAPI']
         # self.IS_AUG_INPLACE = True
-        self.MARKERS_TO_EXCLUDE = self.MARKERS_TO_EXCLUDE + ['DAPI']
-
 
         ######################
         self.CELL_LINES = ['WT']

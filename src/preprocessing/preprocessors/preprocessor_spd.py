@@ -71,7 +71,9 @@ class SPDPreprocessor(Preprocessor):
                                     
                                     "cells_count_mean", "cells_count_std",
                                     "whole_cells_counts", "whole_cells_count_mean", "whole_cells_count_std",
-                                    "n_valid_tiles", "cells_count_in_valid_tiles_mean", "cells_count_in_valid_tiles_std",
+                                    "n_valid_tiles", 
+                                    "site_cell_count",
+                                    "cells_count_in_valid_tiles_mean", "cells_count_in_valid_tiles_std",
                                     "whole_cells_count_in_valid_tiles_mean", "whole_cells_count_in_valid_tiles_std"],
                            filename_prefix="cell_count_stats_")
         
