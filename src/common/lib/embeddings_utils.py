@@ -266,7 +266,7 @@ def load_indhists(config_path_model=None, config_path_data=None,
         raise ValueError("Invalid config (path). Must supply model config.")
     if config_path_data is None and config_data is None:
         raise ValueError("Invalid config (path). Must supply dataset config.")
-    if embeddings_type not in ["trainset", "testset", "valset", "all"]:
+    if embeddings_type not in ["trainset", "testset", "valset", "allset"]:
         raise ValueError(f"Invalid embeddings_type. Must supply 'trainset' / 'testset' / 'valset' / 'allset'. ")
     
     logging.info(f"[load_indhists] Model: {config_path_model if config_path_model is not None else 'preloaded'}\
@@ -306,7 +306,8 @@ def load_indhists(config_path_model=None, config_path_data=None,
                                      experiment_type, embeddings_layer)
     vqindhist, labels, paths = load_multiple_vqindhists(batches = batches,
                                                         embeddings_folder = embeddnigs_folder,
-                                                        datasets = [embeddings_type])
+                                                        datasets = [embeddings_type],
+                                                        embeddings_layer=embeddings_layer)
     
     hist_df, _ = create_vqindhists_df(vqindhist, labels, paths)
     if cell_lines_conds:

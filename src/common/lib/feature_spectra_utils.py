@@ -12,13 +12,13 @@ import scipy
 from collections import defaultdict
 import networkx as nx
 
-def load_multiple_vqindhists(batches, embeddings_folder, datasets = ['trainset','valset','testset']):
+def load_multiple_vqindhists(batches, embeddings_folder, datasets = ['trainset','valset','testset'], embeddings_layer = 'vqindhist1'):
     vqindhist, labels, paths = [] , [], []
     for batch in batches:
         for dataset_type in datasets:
-            cur_vqindhist, cur_labels, cur_paths = np.load(os.path.join(embeddings_folder, f"batch{batch}_16bit_no_downsample/vqindhist1_{dataset_type}.npy")),\
-                    np.load(os.path.join(embeddings_folder, f"batch{batch}_16bit_no_downsample/vqindhist1_labels_{dataset_type}.npy")),\
-                    np.load(os.path.join(embeddings_folder, f"batch{batch}_16bit_no_downsample/vqindhist1_paths_{dataset_type}.npy"))
+            cur_vqindhist, cur_labels, cur_paths = np.load(os.path.join(embeddings_folder, f"batch{batch}_16bit_no_downsample/{embeddings_layer}_{dataset_type}.npy")),\
+                    np.load(os.path.join(embeddings_folder, f"batch{batch}_16bit_no_downsample/{embeddings_layer}_labels_{dataset_type}.npy")),\
+                    np.load(os.path.join(embeddings_folder, f"batch{batch}_16bit_no_downsample/{embeddings_layer}_paths_{dataset_type}.npy"))
             cur_vqindhist = cur_vqindhist.reshape(cur_vqindhist.shape[0], -1)
             vqindhist.append(cur_vqindhist)
             labels.append(cur_labels)
@@ -49,44 +49,48 @@ def create_vqindhists_df(vqindhist, labels, paths, arange_labels=True):
 
 def cut_dendrogram_get_clusters(clustermap, corr, cutoff = 14.2): ## Cut the dendrogram to get indices clusters
     
-    fig, axs = plt.subplots(nrows=1, ncols=2, figsize=(8,4))
+    fig, axs = plt.subplots(nrows=1, ncols=2, figsize=(20,4))
     den = scipy.cluster.hierarchy.dendrogram(clustermap.dendrogram_col.linkage,
                                              labels = corr.index,
                                              color_threshold=cutoff,
                                              no_labels=True,
-                                             ax=axs[0])
+                                             ax=axs[0],
+                                             distance_sort = False)
+            # count_sort and dist_sort in dendrogram: affect the sorting of the clusters!
+
     axs[0].axhline(cutoff, c='black', linestyle="-")
     #return den
     
-    def get_cluster_classes(den):
-        cluster_classes = defaultdict(list)
-        seen = []
+    # to support more than 10 unique clusters:
+    def get_cluster_extend(den):
+        index_to_cluster = defaultdict(list)
         cur_cluster = 1
         last_color = den['leaves_color_list'][0]
-        for label, color in zip(den['ivl'], den['leaves_color_list']):
+        max_color = np.max([int(x.replace("C","")) for x in den['leaves_color_list']])
+        
+        # Find indices of 'C0' in the list
+        indices_to_replace = [i for i, x in enumerate(den['leaves_color_list']) if x == 'C0']
+        # Replace 'C0' with unique names
+        for index, replacement in zip(indices_to_replace, range(max_color, max_color + len(indices_to_replace))):
+            den['leaves_color_list'][index] = f'C{replacement}'
+        
+        for index, color in zip(den['ivl'], den['leaves_color_list']):
             if color != last_color:
                 cur_cluster += 1
                 last_color = color
-            cluster_classes[cur_cluster].append(label)     
-        return cluster_classes
+            index_to_cluster[index] = cur_cluster    
+        return index_to_cluster
 
-    clusters = get_cluster_classes(den)
-    cluster = []
-    corr_with_clusters = corr.copy()
+    index_to_cluster = get_cluster_extend(den)
+    new_cluster_id = []
+    #corr_with_clusters = corr.copy()
 
-    for i in corr_with_clusters.index:
-        included=False
-        for j in clusters.keys():
-            if i in clusters[j]:
-                cluster.append(j)
-                included=True
-        if not included:
-            cluster.append(None)
+    for i in corr.index:
+        new_cluster_id.append(index_to_cluster[i])
 
-    corr_with_clusters["cluster"] = cluster
-
+    corr["cluster"] = new_cluster_id
     # visualize the cluster counts
-    sns.countplot(data=corr_with_clusters.sort_values(by='cluster'), x='cluster', palette='coolwarm', ax=axs[1])
+    sns.countplot(data=corr.sort_values(by='cluster'), x='cluster', palette='coolwarm', ax=axs[1])
 
     # Add labels and title
     axs[1].set_xlabel('Cluster')
@@ -94,31 +98,39 @@ def cut_dendrogram_get_clusters(clustermap, corr, cutoff = 14.2): ## Cut the den
     axs[1].set_title('Indices Counts per Cluster')
 
     plt.tight_layout()
-    # Show
+    # # Show
     plt.show()
-    corr_with_clusters['cluster'] = corr_with_clusters['cluster'].astype(str)
-    corr_with_clusters['cluster'] = 'C' + corr_with_clusters['cluster']
-    return corr_with_clusters
+    corr['cluster'] = corr['cluster'].astype(str)
+    corr['cluster'] = 'C' + corr['cluster']
+    return corr
 
 def add_condition_to_label(label, condition):
     l = label.split("_")
     l.insert(2, condition)
     return '_'.join(l)
     
-def create_codebook_heatmap(hist_df, save_path=None, to_save=False, filename=None):
+def create_codebook_heatmap(hist_df, save_path=None, to_save=False, filename=None, method='pearson', calc_linkage=False, linkage_method='average'):
     ## Average the histograms per each label and save in a new dataframe (mean_spectra_per_marker)
     mean_spectra_per_marker = hist_df.groupby('label').mean()
-    
+    # print(f"Averging {mean_spectra_per_marker.index.size} labels:")
+    # print(mean_spectra_per_marker.index)
     ## Correlate the indices histograms    
-    corr = mean_spectra_per_marker.corr()
+    corr = mean_spectra_per_marker.corr(method=method)
     
     # remove columns or rows that are all nan (which can happen when the data is constant before the correlation)
     corr.dropna(axis=0, how='all', inplace=True)
     corr.dropna(axis=1, how='all', inplace=True)
     
+    # calculate linkage matrix
+    if calc_linkage:
+        linkage = scipy.cluster.hierarchy.linkage(corr, method=linkage_method, metric='euclidean', optimal_ordering=True)
+        # methods = single complete average weighted centroid median ward
+    else:
+        linkage=None
     ## Plot correlation heatmap
     kws = dict(cbar_kws=dict(ticks=[-1,0,1]))
-    clustermap = sns.clustermap(corr, center=0, cmap='bwr', vmin=-1, vmax=1, figsize=(12,7), xticklabels=False, **kws)
+    clustermap = sns.clustermap(corr, center=0, cmap='bwr', vmin=-1, vmax=1, row_linkage=linkage, col_linkage=linkage,
+                                figsize=(5,5), xticklabels=False, col_cluster=True, row_cluster=True, **kws)
     clustermap.ax_row_dendrogram.set_visible(False)
     clustermap.ax_cbar.set_position([clustermap.ax_col_dendrogram.get_position().x1+0.01, # x location 
                                      clustermap.ax_col_dendrogram.get_position().y0+0.01, # y location
@@ -503,8 +515,8 @@ def find_rep_per_cluster(corr_with_clusters, hist_df_with_path, save_path, to_sa
         max_cluster_group = hist_per_cluster[hist_per_cluster.max_cluster==cluster]
         max_cluster_column = f"C{cluster}"
         max_tiles_paths = max_cluster_group[[max_cluster_column,'path']].sort_values(by=max_cluster_column,ascending=False)[:top_images].path
-        if max_tiles_paths.size == 0:
-            if use_second_max:
+        if max_tiles_paths.size == 0: # if no tile is using this cluster as max
+            if use_second_max: 
                 max_cluster_group = hist_per_cluster[hist_per_cluster.second_max_cluster == cluster]
                 max_tiles_paths = max_cluster_group[[max_cluster_column,'path']].sort_values(by=max_cluster_column,ascending=False)[:top_images].path
                 print(f'using second max cluster for {max_cluster_column}')
@@ -563,20 +575,20 @@ def find_rep_per_cluster(corr_with_clusters, hist_df_with_path, save_path, to_sa
 
     ax=df_pivot.plot(kind='bar', stacked=True, cmap = cmap)
     ax.set_xticklabels(ax.get_xticklabels(), rotation=0)
-    for i, (index, row) in enumerate(df_pivot.iterrows()):
-        total_height = 0
-        for value, color in zip(row, ax.patches[i::len(df_pivot)]):
-            if round(value,0) == 0:
-                continue
-            ax.text(
-                color.get_x() + color.get_width() / 2,
-                total_height + value / 2,
-                f'{round(value)}%',  # Format the value as needed
-                ha='center',
-                va='center',
-                color='white' if value < 0.5 * max(row) else 'black'  # Choose text color based on value
-            )
-            total_height += value
+    # for i, (index, row) in enumerate(df_pivot.iterrows()):
+    #     total_height = 0
+    #     for value, color in zip(row, ax.patches[i::len(df_pivot)]):
+    #         if round(value,0) == 0:
+    #             continue
+    #         ax.text(
+    #             color.get_x() + color.get_width() / 2,
+    #             total_height + value / 2,
+    #             f'{round(value)}%',  # Format the value as needed
+    #             ha='center',
+    #             va='center',
+    #             color='white' if value < 0.5 * max(row) else 'black'  # Choose text color based on value
+    #         )
+    #         total_height += value
     plt.legend(title='Labels', bbox_to_anchor=(1.05, 1), loc='upper left',
             borderaxespad=-0.5, fontsize='x-small')
     plt.title('Stacked Bar Plot of Labels per Cluster')
