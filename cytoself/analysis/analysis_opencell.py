@@ -344,6 +344,7 @@ class AnalysisOpenCell(BaseAnalysis):
         ax.set_xticks([]) 
         ax.set_yticks([]) 
         
+        # logging.warning("NOTICE!!! ARI ISN'T BEING CALCULATED RIGHT NOW!")
         gs_bottom = fig.add_subplot(gs[1])
         get_metrics_figure(umap_data, label_data, ax=gs_bottom)
         
@@ -351,6 +352,7 @@ class AnalysisOpenCell(BaseAnalysis):
         if savepath:
             logging.info(f"Saving umap to {savepath}")#SAGY
             fig.savefig(savepath, dpi=dpi, format='eps')#SAGY (eps)
+
         return fig, ax
 
     def calculate_cellid_ondim0_vqidx_ondim1(

@@ -5,10 +5,6 @@ from skimage.restoration import estimate_sigma
 from skimage.measure import shannon_entropy
   
 def calculate_snr(image):    
-  # Convert image to grayscale if it's not already    
-  # if len(image.shape) == 3:
-  # image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-  
   # Signal is the mean value of the image
   signal = np.mean(image)
   
@@ -18,59 +14,32 @@ def calculate_snr(image):
   # Calculate SNR
   snr = signal / noise
   
-  # Convert SNR to decibels (dB)
-  snr_db = 20 * np.log10(snr)
-  
-  return snr_db
+  return snr
 
-"""
-0 - Completely uniform
-1 - Maximum contrast
-"""
-def calculate_image_contrast(image):
-    # Convert image to grayscale
-    gray_image = image
-    # if len(image.shape) == 3:
-    # gray_image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-    
-    # Get the maximum and minimum pixel intensities
-    min_intensity = np.min(gray_image)
-    max_intensity = np.max(gray_image)
-    
-    # Calculate Michelson contrast
-    contrast = (max_intensity - min_intensity) / (max_intensity + min_intensity)
-    
-    return contrast
+
 
 """
 Higher Variance: Strong edges and, consequently, a sharper image.
 Lower Variance: The image is blurrier with fewer or softer edges.
 """
 def calculate_image_sharpness_laplacian(image):
+    from scipy import ndimage
     # Convert image to grayscale
-    gray_image = image
-    # if len(image.shape) == 3:
-    gray_image = cv2.convertScaleAbs(image, alpha=(65535/255))
+
+    laplacian_var = ndimage.laplace(image).var()
     
-    # Apply Laplacian operator in the image
-    laplacian_var = cv2.Laplacian(gray_image, cv2.CV_64F).var()
     
     return laplacian_var
 
 def calculate_var(image):
-  gray_image = image
-  # if len(image.shape) == 3:
-  # gray_image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
   
-  return np.var(gray_image)
+  return np.var(image)
 
 
 """
 Low = blur
 High = sharp
 """
-# TODO: Good one, change its name to calcualte_sharpness
-# TODO: Check Laplacian better (shouldn't be affect by cells count) & fft (shouldn't be affected, more texture) & wavelets (like fft)
 def calculate_image_sharpness_brenner(image):
   def _brenners_gradient(image):
     # Calculate the squared difference
@@ -80,38 +49,25 @@ def calculate_image_sharpness_brenner(image):
     
     return brenner
   
-  gray_image = image
-  # if len(image.shape) == 3:
-  # gray_image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-  rows_brenner = _brenners_gradient(gray_image)
-  cols_brenner = _brenners_gradient(gray_image.T)
+  rows_brenner = _brenners_gradient(image)
+  cols_brenner = _brenners_gradient(image.T)
   
   return rows_brenner + cols_brenner
 
-
-def calculate_blurriness_wavelets(image):
-    pass
 
 """
 High = Noise
 Low = Structure
 """
 def calculate_entropy(image):
-  gray_image = image
-  # if len(image.shape) == 3:
-  # gray_image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-  entropy_value = shannon_entropy(gray_image)
+  entropy_value = shannon_entropy(image)
   
   return entropy_value
 
 
 
 def calculate_sigma(image):
-  
-  gray_image = image
-  # if len(image.shape) == 3:
-  # gray_image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-  ret = estimate_sigma(gray_image)
+  ret = estimate_sigma(image)
   
   return ret
 
@@ -119,10 +75,7 @@ def calculate_sigma(image):
 "...if there are a low amount of high frequencies, then the image can be considered blurry." (https://pyimagesearch.com/2015/09/07/blur-detection-with-opencv/)
 """
 def calculate_high_freq_power(image, threshold=None):
-    gray_image = image
-    # if len(image.shape) == 3:
-    # gray_image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-    f = np.fft.fft2(gray_image)
+    f = np.fft.fft2(image)
     fshift = np.fft.fftshift(f)
     magnitude_spectrum = 20*np.log(np.abs(fshift))
 

@@ -8,7 +8,7 @@ from datetime import datetime
 import logging
 
 # Global paths
-BATCH_TO_RUN = 'microglia_LPS_sort/batch1' 
+BATCH_TO_RUN = 'batch8' 
 
 BASE_DIR = os.path.join('/home','labs','hornsteinlab','Collaboration','MOmaps')
 INPUT_DIR = os.path.join(BASE_DIR, 'outputs','cell_profiler')

@@ -38,12 +38,19 @@ class SPDPreprocessor(Preprocessor):
         self.to_normalize = get_if_exists(conf, 'TO_NORMALIZE')
         self.cellprob_threshold = get_if_exists(conf, 'CELLPROB_THRESHOLD')
         self.flow_threshold = get_if_exists(conf, 'FLOW_THRESHOLD')
-        self.min_edge_distance = get_if_exists(conf, 'MIN_EDGE_DISTANCE')
+        self.cell_inclusion_prct = get_if_exists(conf, 'CELL_INCLUSION_PRCT')
         self.to_denoise = get_if_exists(conf, 'TO_DENOISE')
+        self.crop_frame_size = get_if_exists(conf, 'CROP_FRAME_SIZE')
         self.conf = conf
         
         if self.conf.SELECTIVE_INPUT_PATHS is not None:
             logging.info(f"SELECTIVE_INPUT_PATHS is ON. Processing only these files: {self.conf.SELECTIVE_INPUT_PATHS}")
+            
+        self.brenner_bounds_path = get_if_exists(conf, 'BRENNER_BOUNDS_PATH')
+        self.brenner_bounds = None
+        if self.brenner_bounds_path is not None:
+            logging.info(f"Brenner bounds have been detected: {self.brenner_bounds_path}. Loading the file...")
+            self.brenner_bounds = pd.read_csv(self.brenner_bounds_path, index_col=0)
     
     
     def preprocess_images(self, **kwargs):
@@ -58,7 +65,11 @@ class SPDPreprocessor(Preprocessor):
         logging_df = LogDF(self.conf.LOGS_FOLDER, 
                            columns=["DATETIME", "filename", "batch", "cell_line", "panel",
                                     "condition", "rep", "marker",
-                                    "cells_counts", "cells_count_mean", "cells_count_std",
+                                    "cells_counts", 
+                                    
+                                    'valid_tiles_indexes', # SAGY 201123
+                                    
+                                    "cells_count_mean", "cells_count_std",
                                     "whole_cells_counts", "whole_cells_count_mean", "whole_cells_count_std",
                                     "n_valid_tiles", "cells_count_in_valid_tiles_mean", "cells_count_in_valid_tiles_std",
                                     "whole_cells_count_in_valid_tiles_mean", "whole_cells_count_in_valid_tiles_std"],
@@ -126,11 +137,24 @@ class SPDPreprocessor(Preprocessor):
         to_denoise          = self.to_denoise
         to_show             = self.to_show
         tiles_indexes       = get_if_exists(kwargs, 'tiles_indexes')
+        crop_frame_size     = self.crop_frame_size
+        brenner_bounds      = self.brenner_bounds
         
         # Changing from skimage.load to cv2.load (with grayscale flag) -> changed to IMREAD_ANYDEPTH to read in 16bit format
         img_target = cv2.imread(file_path, cv2.IMREAD_ANYDEPTH) #used to be IMREAD_GRAYSCALE
+        ############################
+        # SAGY 041223
+        logging.info(f"Cropping the target site by ({crop_frame_size[0]}, {crop_frame_size[1]}) for (w,h)")
+        img_target = preprocessing_utils.crop_frame(img_target, crop_frame_size[0], crop_frame_size[1]) 
+        ############################
+        
         if img_nucleus is None:
             img_nucleus = cv2.imread(nucleus_file, cv2.IMREAD_ANYDEPTH) #used to be IMREAD_GRAYSCALE
+            ############################
+            # SAGY 041223
+            logging.info(f"Cropping the dapi site by ({crop_frame_size[0]}, {crop_frame_size[1]}) for (w,h)")
+            img_nucleus = preprocessing_utils.crop_frame(img_nucleus, crop_frame_size[0], crop_frame_size[1])
+            ############################
         
         # Check if files are corrputed
         if img_target is None or np.size(img_target) == 0:
@@ -156,7 +180,8 @@ class SPDPreprocessor(Preprocessor):
                                                                         to_downsample=to_downsample,
                                                                         to_denoise=to_denoise, 
                                                                         to_normalize=to_normalize, 
-                                                                        to_show=to_show)
+                                                                        to_show=to_show,
+                                                                        brenner_bounds=brenner_bounds)
         
         return processed_images
 

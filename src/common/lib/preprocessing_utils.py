@@ -3,6 +3,9 @@ import glob
 import os
 import sys
 import timeit
+
+import pandas as pd
+
 sys.path.insert(1, os.getenv("MOMAPS_HOME"))
 
 import logging
@@ -11,6 +14,7 @@ import numpy as np
 from skimage import transform
 from skimage.measure import block_reduce
 from src.common.lib.utils import xy_to_tuple
+from src.common.lib.image_metrics import calculate_image_sharpness_brenner, calculate_var
 import cv2
 import cellpose
 from cellpose import models
@@ -19,10 +23,18 @@ from skimage import io
 import skimage.exposure
 from pathlib import Path
 
+def crop_frame(original_image, w=12,h=12):
+
+    # Crop the image by removing a 12-pixel frame from each side
+
+    cropped_image = original_image[w:-w, h:-h] 
+
+    return cropped_image
+
 def filter_invalid_tiles(file_name, img, nucleus_diameter=100, cellprob_threshold=0,\
-                          flow_threshold=0.7, min_edge_distance = 2, tile_w=100,tile_h=100,
+                          flow_threshold=0.7, cell_inclusion_prct = 0.9, tile_w=100,tile_h=100,
                           calculate_nucleus_distance=False,
-                          cp_model=None, show_plot=True, return_counts=False):
+                          cp_model=None, show_plot=True, return_counts=False, brenner_bounds=None):
     """
     Filter invalid tiles (leave only tiles with #nuclues (not touching the edges) == 1)
     This function also segment the cells on the whole image and returns the indexes for the valid tiles
@@ -30,6 +42,18 @@ def filter_invalid_tiles(file_name, img, nucleus_diameter=100, cellprob_threshol
     
     tiles_passed_indexes = []
     n_cells_per_tile, n_whole_cells_per_tile = [], []
+    
+    # If site doesn't pass Brenner's thresholds - filter it out
+    if brenner_bounds is not None and not __is_site_brenner_valid(img, 'DAPI', brenner_bounds):
+        logging.warning(f"Nothing is valid due to Brenner bounds")
+        tiles_passed_indexes = np.asarray(tiles_passed_indexes)
+        
+        if return_counts:
+            n_cells_per_tile = np.asarray(n_cells_per_tile)
+            n_whole_cells_per_tile = np.asarray(n_whole_cells_per_tile)
+            return tiles_passed_indexes, n_cells_per_tile, n_whole_cells_per_tile, None
+    
+        return tiles_passed_indexes
 
     # From 1/None channels to 2 for cellpose (with some adjustments cellpose might work with single channel as well)
     img = np.stack([img, img], axis=-1)
@@ -61,6 +85,8 @@ def filter_invalid_tiles(file_name, img, nucleus_diameter=100, cellprob_threshol
     if show_plot:
         tiles = crop_to_tiles(tile_w, tile_h, img)
     
+    hist, bins = np.histogram(masks, bins=range(masks.max()+2))
+    value_counts_dict = dict(zip(bins[:-1], hist))
     
     for i in range(n_masked_tiles):
         mask = masked_tiles[i]
@@ -70,39 +96,44 @@ def filter_invalid_tiles(file_name, img, nucleus_diameter=100, cellprob_threshol
         
         if show_plot:
             _, ax = plt.subplots(1,2)
-            ax[0].imshow(tiles[i,...,0])
-            ax[1].imshow(tiles[i,...,1])
+            ax[0].imshow(tiles[i,...,0], vmin=0, vmax=1)
+            ax[1].imshow(tiles[i,...,1], vmin=0, vmax=1)
             plt.show()
 
         """
         Filter tiles with no nuclues
         """
+        is_valid = False
+        cur_n_whole_cells = 0
+        current_nucs = np.unique(mask)
+        if current_nucs.size == 1: # no object found in this tile but background (by cellpose)
+            n_cells_per_tile.append(0)
+            n_whole_cells_per_tile.append(0)
+            continue
+
+        for current_nuc in current_nucs:
+            if current_nuc == 0 :
+                continue
+
+            current_nuc_count = np.count_nonzero(mask == current_nuc)
+            if (current_nuc_count / value_counts_dict[current_nuc]) >= cell_inclusion_prct:
+                is_valid = True
+                cur_n_whole_cells+=1
+        
         outlines = cellpose.utils.outlines_list(mask)
         polys_nuclei = [Polygon(xy_to_tuple(o)) for o in outlines]
         
-
-        # Build polygon of image's edges
-        img_edges = Polygon([[min_edge_distance,min_edge_distance],\
-                        [min_edge_distance,tile_h-min_edge_distance],\
-                        [tile_w-min_edge_distance,tile_h-min_edge_distance],\
-                        [tile_w-min_edge_distance,min_edge_distance]])
-        
-        # Is there any nuclues inside the image boundries?
-        is_covered = [p.covered_by(img_edges) for p in polys_nuclei]
-        is_valid = any(is_covered)
-
         #####################################################################
         ############# 210722: New constraint - only 1-5 nuclei per tile #####
         is_valid = is_valid and (len(polys_nuclei) >= 1 and len(polys_nuclei) <= 5)
         #####################################################################
 
-        n_cells_per_tile.append(len(polys_nuclei))
-        n_whole_cells = sum(np.asarray(is_covered)) if len(is_covered) > 0 else 0
-        n_whole_cells_per_tile.append(n_whole_cells)
+        n_cells_per_tile.append(len(current_nucs)-1)
+        n_whole_cells_per_tile.append(cur_n_whole_cells)
 
         if is_valid:
             tiles_passed_indexes.append(i)
-
+        
     n_cells_per_tile = np.asarray(n_cells_per_tile)
     n_whole_cells_per_tile = np.asarray(n_whole_cells_per_tile)
     tiles_passed_indexes = np.asarray(tiles_passed_indexes)
@@ -272,10 +303,29 @@ def segment(img, model, channels=None,
 
   return masks, flows, styles, diams
 
+def __is_site_brenner_valid(img, marker_name, site_brenner_bounds):
+    logging.info(f"marker_name: {marker_name}")
+    if marker_name not in site_brenner_bounds.index:
+        logging.info(f"Marker couldn't be found in the brenner bounds file. Passing it..")
+        return True
+    
+    img_brenner = calculate_image_sharpness_brenner(img)
+    marker_brenner_bounds = site_brenner_bounds.loc[marker_name]
+    lower_bound = marker_brenner_bounds['Site_brenner_lower_bound']
+    upper_bound = marker_brenner_bounds['Site_brenner_upper_bound']
+    logging.info(f"Site's Brenner's gradient value: {img_brenner}; bounds for marker {marker_name}: ({lower_bound},{upper_bound})")
+    if img_brenner < lower_bound or img_brenner > upper_bound:
+        logging.info(f"Outlier site detected, Brenner's gradient {img_brenner} is outside of bounds ({lower_bound},{upper_bound}) for marker {marker_name}")
+        return False
+    
+    logging.info(f"The site (for marker {marker_name}) has passed the Brenner test")
+    
+    return True
+    
 def preprocess_image_pipeline(img, save_path, n_channels=2,
                                   tiles_indexes=None,
                                   tile_width=100, tile_height=100, to_downsample=True,
-                                  to_denoise=False, to_normalize=True, to_show=False):
+                                  to_denoise=False, to_normalize=True, to_show=False, brenner_bounds=None):
     """
         Run the image preprocessing pipeline for spinning disk (spd) images
     """
@@ -297,6 +347,16 @@ def preprocess_image_pipeline(img, save_path, n_channels=2,
         
     logging.info(f"Image (post image processing) shape {img_processed.shape}")
 
+
+    ############################
+    # SAGY 041223
+    # Filter bad sites using Brenner gradient
+    marker_name = save_path.split(os.sep)[-2]
+    if brenner_bounds is not None and not __is_site_brenner_valid(img_processed[...,0], marker_name, brenner_bounds):
+        return []
+    
+    ############################
+    
     # Crop 1024x1024 image to 16 tiles, each of 256x256
     image_processed_tiles = crop_to_tiles(tile_width, tile_height, img_processed)
     
@@ -317,7 +377,12 @@ def preprocess_image_pipeline(img, save_path, n_channels=2,
             if tile_current_channel.shape[1] != 100:
                 # Resize from 128x128 to 100x100
                 tile_current_channel = transform.resize(tile_current_channel, (100, 100), anti_aliasing=True)
-                
+            
+            # Min max scaling
+            tile_min = np.min(tile_current_channel, axis=None)
+            tile_current_channel = (tile_current_channel - tile_min) / (np.max(tile_current_channel, axis=None) - tile_min)
+            logging.info(f"Tile (c) min, max: {np.min(tile_current_channel)}, {np.max(tile_current_channel)}")
+                        
             if tile_processed is None:
                 tile_processed = tile_current_channel
             else:
@@ -330,7 +395,6 @@ def preprocess_image_pipeline(img, save_path, n_channels=2,
         logging.info(f"Saved to {save_path}_processed.npy")
 
     return image_downsampled_tiles
-
 
 def preprocess_panel(slf, panel, input_folder_root,
                      output_folder_root, input_folder_root_cell_line, cp_model, raw_f, cell_line,
@@ -410,46 +474,61 @@ def preprocess_panel(slf, panel, input_folder_root,
                     logging.info(f"{target_filepath}, {nucleus_filepath}")
                                         
                     if site not in valid_tiles_indexes:
+                        nucleus_diameter        = slf.nucleus_diameter
+                        tile_width              = slf.tile_width
+                        tile_height             = slf.tile_height
+                        cellprob_threshold      = slf.cellprob_threshold
+                        flow_threshold          = slf.flow_threshold
+                        cell_inclusion_prct     = slf.cell_inclusion_prct
+                        to_show                 = slf.to_show
+                        with_nucelus_distance   = slf.conf.WITH_NUCLEUS_DISTANCE
+                        crop_frame_size         = slf.crop_frame_size
+                        brenner_bounds          = slf.brenner_bounds
 
                         # Crop DAPI tiles
                         img_nucleus = cv2.imread(nucleus_filepath, cv2.IMREAD_ANYDEPTH) #used to be IMREAD_GRAYSCALE
+                        
+                        ############################
+                        # SAGY 041223
+                        logging.info(f"Cropping DAPI by ({crop_frame_size[0]}, {crop_frame_size[1]}) for (w,h)")
+                        img_nucleus = crop_frame(img_nucleus, crop_frame_size[0], crop_frame_size[1]) 
+                        ############################
+                        
+                        logging.info("Rescaling intensity of DAPI")
                         img_nucleus = rescale_intensity(img_nucleus)
                         
-                        nucleus_diameter    = slf.nucleus_diameter
-                        tile_width          = slf.tile_width
-                        tile_height         = slf.tile_height
-                        cellprob_threshold  = slf.cellprob_threshold
-                        flow_threshold      = slf.flow_threshold
-                        min_edge_distance   = slf.min_edge_distance
-                        to_show             = slf.to_show
-                        with_nucelus_distance = slf.conf.WITH_NUCLEUS_DISTANCE
-                        
                         # Filter invalid tiles (keep tiles with at least one full nuclues (nuclues border is not overlapping image edges))
+                        logging.info("Filtering bad tiles in DAPI (cellpose + Brenner)")
                         current_valid_tiles_indexes, n_cells_per_tile, n_whole_cells_per_tile, nucleus_distance = filter_invalid_tiles(nucleus_filepath,
                                                                                                                     img_nucleus,
                                                                                                                     nucleus_diameter=nucleus_diameter, 
                                                                                                                     cellprob_threshold=cellprob_threshold,
                                                                                                                     flow_threshold=flow_threshold, 
-                                                                                                                    min_edge_distance = min_edge_distance,
+                                                                                                                    cell_inclusion_prct = cell_inclusion_prct,
                                                                                                                     tile_w=tile_width, tile_h=tile_height, 
                                                                                                                     cp_model=cp_model,
                                                                                                                     calculate_nucleus_distance=with_nucelus_distance,
                                                                                                                     show_plot=to_show,
-                                                                                                                    return_counts=True)
+                                                                                                                    return_counts=True,
+                                                                                                                    brenner_bounds=brenner_bounds)
                         
                         logging.info(f"[{nucleus_filepath}] {len(current_valid_tiles_indexes)}")# out of {len(nucleus_image_tiles)} passed ({len(nucleus_image_tiles)-len(current_valid_tiles_indexes)} invalid)")
                         
                         # Save the indexes of the valid tiles for current site
                         valid_tiles_indexes[site] = current_valid_tiles_indexes
-                        
-                        logging.info(f"[{nucleus_filepath}] Saving stats to file {logging_df.path}")
+                                                
+                        logging.info(f"[{nucleus_filepath}] Saving DAPI stats to file {logging_df.path}")
                         to_log = [datetime.datetime.now().strftime("%d%m%y_%H%M%S"), filename, raw_f, cell_line,
                                             panel, condition, rep, "DAPI",
                                             n_cells_per_tile,
+                                            
+                                            current_valid_tiles_indexes, # SAGY 201123 
+                                            
                                             round(np.mean(n_cells_per_tile), 2), round(np.std(n_cells_per_tile), 2),
                                             n_whole_cells_per_tile,
                                             round(np.mean(n_whole_cells_per_tile), 2), round(np.std(n_whole_cells_per_tile), 2),
                                             len(current_valid_tiles_indexes)]
+                                            
                         
                         if len(current_valid_tiles_indexes) > 0:
                             to_log += [round(np.mean(n_cells_per_tile[current_valid_tiles_indexes]), 2),
@@ -462,8 +541,7 @@ def preprocess_panel(slf, panel, input_folder_root,
                         logging_df.write(to_log)
                         
                     else:
-                        logging.info(f"[Marker {marker}, Site: {site}] Valid tiles have already been calculated ({valid_tiles_indexes[site]})")
-                                                            
+                        logging.info(f"[Marker {marker}, Site: {site}] Valid tiles have already been calculated ({valid_tiles_indexes[site]})")    
                 
                     logging.info(output_subfolder)
                     if not os.path.exists(output_subfolder):
@@ -476,12 +554,29 @@ def preprocess_panel(slf, panel, input_folder_root,
                         logging.warning(f"No valid tiles for {os.path.join(input_subfolder, f)}")
                         continue
 
-                    slf.preprocess_image(target_filepath, save_path,
-                                            nucleus_file=nucleus_filepath,
-                                            img_nucleus=nucleus_distance,
-                                            tiles_indexes=tiles_indexes,
-                                            show=slf.to_show,
-                                            flow_threshold=slf.flow_threshold)
+                    processed_images = slf.preprocess_image(target_filepath, save_path,
+                                                nucleus_file=nucleus_filepath,
+                                                img_nucleus=nucleus_distance,
+                                                tiles_indexes=tiles_indexes,
+                                                show=slf.to_show,
+                                                flow_threshold=slf.flow_threshold)
+                    target_valid_tiles = tiles_indexes if len(processed_images) > 0 else []
+                    
+                    logging.info(f"[{nucleus_filepath}] Saving target stats to file {logging_df.path}")
+                    to_log = [datetime.datetime.now().strftime("%d%m%y_%H%M%S"), filename, raw_f, cell_line,
+                                        panel, condition, rep, marker,
+                                        None,
+                                        
+                                        target_valid_tiles, # SAGY 201123 
+                                        
+                                        None, None,
+                                        None,
+                                        None, None,
+                                        len(target_valid_tiles)]
+                                        
+                    to_log += [None]*4
+                        
+                    logging_df.write(to_log)
                     
             elapsed_time = timeit.default_timer() - start_time
             logging.info(f"[{raw_f}, {cell_line}, {panel}, {condition}, {rep}] Saving timing to file {timing_df.path}")

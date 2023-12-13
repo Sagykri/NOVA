@@ -38,7 +38,7 @@ def init_model_for_embeddings(config_path_model):
     logging.info(f"Init model {config_model}")
     return model, config_model
 
-def load_dataset_for_embeddings(config_data, batch_size, config_model):
+def load_dataset_for_embeddings(config_data, batch_size, config_model, shuffle=True):
     """Returns torch.utils.data.DataLoader objects 
 
     Use the dataset config (src.datasets.configs.train_config) to load the dataset that we want to calc embbedings for
@@ -74,16 +74,16 @@ def load_dataset_for_embeddings(config_data, batch_size, config_model):
         # Get numeric indexes of train, val and test sets
         train_indexes, val_indexes, test_indexes = dataset.split()
         # Get loaders
-        dataloader_train, dataloader_val, dataloader_test = get_dataloader(dataset, batch_size, indexes=train_indexes, num_workers=2),\
-                                                            get_dataloader(dataset, batch_size, indexes=val_indexes, num_workers=2),\
-                                                            get_dataloader(dataset, batch_size, indexes=test_indexes, num_workers=2)
+        dataloader_train, dataloader_val, dataloader_test = get_dataloader(dataset, batch_size, indexes=train_indexes, num_workers=2, shuffle=shuffle),\
+                                                            get_dataloader(dataset, batch_size, indexes=val_indexes, num_workers=2, shuffle=shuffle),\
+                                                            get_dataloader(dataset, batch_size, indexes=test_indexes, num_workers=2, shuffle=shuffle)
         
         return [dataloader_train, dataloader_val, dataloader_test]
     
     else:
         # Load the data
         # Include all the data by using "indexes=None"
-        dataloader = get_dataloader(dataset, batch_size, indexes=None, num_workers=2)    
+        dataloader = get_dataloader(dataset, batch_size, indexes=None, num_workers=2, shuffle=shuffle)    
     
         return [dataloader]
     
@@ -190,20 +190,20 @@ def calc_embeddings(model, datasets_list, embeddings_folder, save=True, embeddin
 def calc_spectral_features(model, datasets_list, output_folder, save=True, output_layer = f'vqindhist1'):
 
     # Parser to get the image's batch/cell_line/condition/rep/marker
-    def final_save_path(full_path):
+    def final_save_path(full_path, output_folder):
         path_list = full_path.split(os.sep)
         # to create separate batch folders
         batch = path_list[-5] 
         # to create labels of each image
         batch_cell_line_condition_rep_marker_list = [os.path.join(path_list[-1][:4],path_list[i]) if i==-2 else os.path.join(path_list[i]) for i in range(-5,-1)]
         batch_cell_line_condition_rep_marker = os.path.join(*batch_cell_line_condition_rep_marker_list)
-        return os.path.join(output_folder, output_layer, batch), batch_cell_line_condition_rep_marker
+        return os.path.join(output_folder, batch), batch_cell_line_condition_rep_marker
     get_save_path_and_labels = np.vectorize(final_save_path)
     
     
     def do_embeddings_inference(images_batch, images_spectral_features, images_labels, 
-                                processed_images_path, save_paths, output_layer):
-        save_path, labels = get_save_path_and_labels(images_batch['image_path'])
+                                processed_images_path, save_paths, output_layer, output_folder):
+        save_path, labels = get_save_path_and_labels(images_batch['image_path'], output_folder)
 
         # images_batch is torch.Tensor of size(n_tiles, n_channels, 100, 100) - only because batch_size==1!!!!
         embedding_data = model.model.infer_embeddings(images_batch['image'].numpy(), output_layer=output_layer)
@@ -228,22 +228,22 @@ def calc_spectral_features(model, datasets_list, output_folder, save=True, outpu
                 np.save(os.path.join(batch_save_path, f'{output_layer}_paths_{dataset_type}.npy'), np.array(paths)[batch_indexes])
             return None
     
-    def do_embeddings_inference_for_set(set_type, set_index, datasets_list, output_layer):
+    def do_embeddings_inference_for_set(set_type, set_index, datasets_list, output_layer, output_folder):
         logging.info(f"Infer embeddings - {set_type} set")
         images_spectral_features, images_labels, processed_images_path, save_paths = [], [], [], []
         for i, images_batch in enumerate(datasets_list[set_index]):
-            images_spectral_features, images_labels, processed_images_path, save_paths = do_embeddings_inference(images_batch, images_spectral_features, images_labels, processed_images_path, save_paths, output_layer)
+            images_spectral_features, images_labels, processed_images_path, save_paths = do_embeddings_inference(images_batch, images_spectral_features, images_labels, processed_images_path, save_paths, output_layer,output_folder)
         images_spectral_features = np.concatenate(images_spectral_features)
         save(images_spectral_features, images_labels, processed_images_path, save_paths, f"{set_type}set", output_layer)
         return None
     
     if len(datasets_list)==3:
-        do_embeddings_inference_for_set('train', 0 , datasets_list, output_layer)
-        do_embeddings_inference_for_set('val', 1 , datasets_list, output_layer)
-        do_embeddings_inference_for_set('test', 2 , datasets_list, output_layer)
+        do_embeddings_inference_for_set('train', 0 , datasets_list, output_layer, output_folder)
+        do_embeddings_inference_for_set('val', 1 , datasets_list, output_layer, output_folder)
+        do_embeddings_inference_for_set('test', 2 , datasets_list, output_layer, output_folder)
         
     elif len(datasets_list)==1:
-        do_embeddings_inference_for_set('all', 0 , datasets_list, output_layer)
+        do_embeddings_inference_for_set('all', 0 , datasets_list, output_layer, output_folder)
     else:
         logging.exception("[Generate spectral features] Load model: List of datasets is not supported.")
     

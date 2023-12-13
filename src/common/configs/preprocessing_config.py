@@ -31,6 +31,7 @@ class PreprocessingConfig(BaseConfig):
         self.TO_NORMALIZE = True
         self.CELLPROB_THRESHOLD = 0
         self.FLOW_THRESHOLD = 0.4
-        self.MIN_EDGE_DISTANCE = 2
+        self.CELL_INCLUSION_PRCT = 0.85 # Changed from 0.9 to 0.85 at 071223 10:50
+        self.CROP_FRAME_SIZE = (12,12)
         self.TO_DENOISE = False    
         self.WITH_NUCLEUS_DISTANCE = False

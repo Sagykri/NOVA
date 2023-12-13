@@ -21,16 +21,23 @@ def multiplex(model: Model, embeddings_type='testset',
                     alpha=0.8,
                     s=0.8,
                     output_layer='vqvec2',
-                    savepath='default'):
+                    savepath='default',
+                    calc_emb=False,
+                    dataloader=None):
     assert model is not None, "Model is None"
     assert model.test_loader is not None, "model.test_loader is None, please first load dataloaders"
     
     dataset_conf = model.test_loader.dataset.conf
     
-    embeddings, labels = __get_embeddings(model, embeddings_type)
+    if calc_emb:
+        if dataloader is None:
+            raise "dataloader must be set when calc_emb=True"
+        embeddings, labels = __calc_embeddings(model, dataset_conf, dataloader)
+    else:
+        embeddings, labels = __get_embeddings(model, embeddings_type, config_data=dataset_conf, vq_type=output_layer)
     logging.info(f"[Before concat] Embeddings shape: {embeddings.shape}, Labels shape: {labels.shape}")
     
-    df = __embeddings_to_df(embeddings, labels, dataset_conf)
+    df = __embeddings_to_df(embeddings, labels, dataset_conf,  vq_type=output_layer)
     embeddings, label_data, unique_groups = __get_multiplexed_embeddings(df, random_state=dataset_conf.SEED)
     logging.info(f"[After concat] Embeddings shape: {embeddings.shape}, Labels shape: {label_data.shape}")
     
@@ -48,6 +55,13 @@ def multiplex(model: Model, embeddings_type='testset',
                     embedding_data=embeddings,
                     output_layer=output_layer,
                     savepath=savepath)
+
+def __calc_embeddings(model, dataset_conf, dataloader):
+    logging.info("Calculating embeddings...")
+        
+    embeddings, labels = model.model.infer_embeddings(dataloader, output_layer=dataset_conf.EMBEDDINGS_LAYER)  
+    labels = np.asarray(labels).reshape(-1,)
+    return embeddings, labels
 
 def __generate_plot_title(model_conf, dataset_conf):
     return 'SM_' + f"{'_'.join([os.path.basename(f) for f in dataset_conf.INPUT_FOLDERS])}_{datetime.datetime.now().strftime('%d%m%y_%H%M%S_%f')}_{os.path.splitext(os.path.basename(model_conf.MODEL_PATH))[0]}"
@@ -76,15 +90,32 @@ def __get_multiplexed_embeddings(embeddings_df, random_state=None):
     
     return embeddings, label_data, unique_groups
 
-def __embeddings_to_df(embeddings, labels, dataset_conf):
-    labels_df = pd.DataFrame([(s.split('_')[-1], '_'.join(s.split('_')[-4 + int(not dataset_conf.ADD_REP_TO_LABEL):-1])) for s in labels], columns=['Marker', 'Pheno'])
+def __format_labels_to_marker_and_pheno(label, config_data, vq_type):
+    if vq_type in ['vqindhist1', 'vqindhist2']:
+        return (label.split('_')[0], '_'.join(label.split('_')[-4 :-2]))
+    if vq_type in ['vqvec1', 'vqvec2']:
+        return (label.split('_')[-1], '_'.join(label.split('_')[-4 + int(not config_data.ADD_REP_TO_LABEL):-1]))
+    
+    raise f"Invalid vq type {vq_type} [The options are: 'vqvec1', 'vqvec2', 'vqindhist1', 'vqindhist2']"
+
+
+def __embeddings_to_df(embeddings, labels, dataset_conf, vq_type='vqvec2'):
+    labels_df = pd.DataFrame([__format_labels_to_marker_and_pheno(s, dataset_conf, vq_type) for s in labels], columns=['Marker', 'Pheno'])
     embeddings_series = pd.DataFrame({"Embeddings": [*embeddings]})
     df = pd.merge(labels_df, embeddings_series, left_index=True, right_index=True)
     return df
 
-def __get_embeddings(model, embeddings_type):
-    logging.info("Loading embeddings...")
-    embeddings, labels = model.load_embeddings(embeddings_type)
+def __get_embeddings(model, embeddings_type, config_data, vq_type='vqvec2'):
+    logging.info(f"Loading embeddings... (vq type: {vq_type})")
+    
+    if vq_type in ['vqindhist1', 'vqindhist2']:
+        loading_func = lambda: model.load_indhists(embeddings_type, config_data)
+    elif vq_type in ['vqvec1', 'vqvec2']:
+        loading_func = lambda: model.load_embeddings(embeddings_type)
+    else:
+        raise f"Invalid vq type {vq_type} [The options are: 'vqvec1', 'vqvec2', 'vqindhist1', 'vqindhist2']"
+    
+    embeddings, labels = loading_func
     labels = np.asarray(labels).reshape(-1,)
     return embeddings,labels
 
@@ -122,101 +153,3 @@ def __concatenate_embeddings_by_group(group, random_state=None):
         'Pheno': pheno, 
         'Embeddings': embeddings
     })
-
-def old_calc_bootstrapping(model:Model, groups_terms, n_runs=1000, save_folder=None):
-    """Calculate metrics (ARI and silhouette) with bootstrapping
-
-    Args:
-        model (Model): The model
-        groups_terms ([string]): list of terms to group by
-        n_runs (int, optional): Number of repeated runs in the bootstrapping. Defaults to 1000.
-        save_folder (string, optional): Where to save the results. Defaults to None.
-
-    Returns:
-        _type_: (Scores for random matching, Scores for actual matching)
-    """
-
-    X                   = model.test_data
-    y                   = model.test_label
-    markers             = model.markers
-    markers_order       = model.test_markers_order
-    analytics           = model.analytics
-    
-    
-    n_clusters = 2
-    reset_embvec = False
-    metrics_random = []
-    metrics_match = []
-    
-    if not os.path.exists(save_folder):
-        logging.info(f"{save_folder} wasn't found. Creating it..")
-        os.makedirs(save_folder)
-
-    for i in range(n_runs):
-        logging.info(f"{i}/{(n_runs-1)}")
-        data, labels = multiplex(analytics, X=X,
-                                y=y, markers_order=markers_order, groups_terms=groups_terms,
-                                markers = markers, show2=False,
-                                match=False,reset_embvec=(reset_embvec & (i==0))
-                                )
-
-        adjusted_rand_score_val_j, silhouette_score_val_j = calc_clustering_validation(data, labels.reshape(-1,), n_clusters=n_clusters)
-
-        metrics_random.append([adjusted_rand_score_val_j, silhouette_score_val_j])
-
-        if i == 0:
-            data, labels = multiplex(analytics, X=X,
-                                    y=y, markers_order=markers_order, groups_terms=groups_terms,
-                                    markers = markers,show2=False,
-                                        match=True,reset_embvec=False
-                                    )
-
-            adjusted_rand_score_val_j, silhouette_score_val_j = calc_clustering_validation(data, labels.reshape(-1,), n_clusters=n_clusters)
-
-            metrics_match[i].append([adjusted_rand_score_val_j, silhouette_score_val_j])
-
-        if i % 10 == 0:
-            logging.info(f"Saving {i}")
-            with open(os.path.join(save_folder,'scores_random-{i}.npy'), 'wb') as f:
-                np.save(f, np.array(metrics_random))
-
-            with open(os.path.join(save_folder,'scores_match-{i}.npy'), 'wb') as f:
-                np.save(f, np.array(metrics_match))
-            
-    logging.info(f"Saving Final")
-    with open(model.conf.METRICS_RANDOM_PATH, 'wb') as f:
-        np.save(f, np.array(metrics_random))
-
-    with open(model.conf.METRICS_MATCH_PATH, 'wb') as f:
-        np.save(f, np.array(metrics_match))
-
-    return np.array(metrics_random), np.array(metrics_match)
-
-def old_plot_boostrapping(metrics_random=None, metrics_match=None, metrics_random_path=None, metrics_match_path=None):
-    """Plot bootstrapping results
-
-    Args:
-        metrics_random (list, optional): The metrics for random matching. Defaults to None.
-        metrics_match (list, optional): The metrics for actual matching. Defaults to None.
-        metrics_random_path (int, optional): Path to the file holds the metrics from random matching. Defaults to None.
-        metrics_match_path (string, optional): Path to the file holds the metrics from actual matching. Defaults to None.
-    """
-    
-    metrics_random = metrics_random if metrics_random is not None else np.load(metrics_random_path)
-    metrics_match = metrics_match if metrics_match is not None else np.load(metrics_match_path)
-    
-    n_runs = len(metrics_random)
-    
-    plt.title("Bootstrapping")
-    plt.plot(np.arange(n_runs), [metrics_match[0,0]]*len(metrics_random), color='red')
-    plt.scatter(np.arange(n_runs), metrics_random[:,0], c='grey')
-    plt.xlabel("Bootstrap sample")
-    plt.ylabel("ARI")
-    plt.show()
-
-    plt.title("Bootstrapping")
-    plt.plot(np.arange(n_runs), [metrics_match[0,1]]*len(metrics_random), color='red')
-    plt.scatter(np.arange(n_runs), metrics_random[:,1], c='grey')
-    plt.xlabel("Bootstrap sample")
-    plt.ylabel("Silhouette")
-    plt.show()

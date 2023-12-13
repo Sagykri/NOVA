@@ -14,3 +14,14 @@ class SPD_Batch4(SPDPreprocessingConfig):
         self.OUTPUT_FOLDERS = [os.path.join(self.PROCESSED_SUBFOLDER_ROOT, "batch4")]
          
         self.WITH_NUCLEUS_DISTANCE = False
+
+class SPD_Batch4New(SPDPreprocessingConfig):
+    def __init__(self):
+        super().__init__()
+        
+        self.INPUT_FOLDERS = [os.path.join(self.RAW_SUBFOLDER_ROOT, "batch4")]
+        self.OUTPUT_FOLDERS = [os.path.join(self.PROCESSED_SUBFOLDER_ROOT, "batch4")]
+        self.TO_DOWNSAMPLE = False
+        self.TILE_WIDTH = 100
+        self.TILE_HEIGHT = 100
+        self.LOGS_FOLDER = os.path.join(self.OUTPUTS_SUBSUBFOLDER, 'logs', "preprocessing_Dec2023")        
