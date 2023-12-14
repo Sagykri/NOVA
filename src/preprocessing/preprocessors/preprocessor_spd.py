@@ -51,6 +51,9 @@ class SPDPreprocessor(Preprocessor):
         if self.brenner_bounds_path is not None:
             logging.info(f"Brenner bounds have been detected: {self.brenner_bounds_path}. Loading the file...")
             self.brenner_bounds = pd.read_csv(self.brenner_bounds_path, index_col=0)
+            
+        if self.markers_to_include is not None:
+            logging.info(f"Markers to include = {self.markers_to_include}")
     
     
     def preprocess_images(self, **kwargs):

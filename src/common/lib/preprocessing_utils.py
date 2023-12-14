@@ -426,9 +426,6 @@ def preprocess_panel(slf, panel, input_folder_root,
                 if slf.markers_to_include is not None and marker not in slf.markers_to_include:
                     logging.info(f"Skipping {marker}")
                     continue
-                if marker == 'DAPI':
-                    logging.info("Skipping DAPI as a target")
-                    continue
                         
                 input_subfolder = os.path.join(input_folder, marker)
                 output_subfolder = os.path.join(output_folder, marker)
@@ -565,7 +562,7 @@ def preprocess_panel(slf, panel, input_folder_root,
                                                 show=slf.to_show,
                                                 flow_threshold=slf.flow_threshold)
                     
-                    if len(processed_images) > 0:
+                    if len(processed_images) > 0 and marker != 'DAPI':
                         logging.info(f"[{nucleus_filepath}] Saving target stats to file {logging_df.path}")
                         to_log = [datetime.datetime.now().strftime("%d%m%y_%H%M%S"), filename, raw_f, cell_line,
                                             panel, condition, rep, marker,
