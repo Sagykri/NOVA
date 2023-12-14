@@ -176,7 +176,7 @@ def log_files_qc(LOGS_PATH):
         print(f"reading logs of {batch_folder}")
         for file in os.listdir(os.path.join(LOGS_PATH, batch_folder)):
             # Take only "cell_count_stats" CSV files
-            if file.endswith(".csv") and file.startswith("cell_count_stats") and '1312' in file:
+            if file.endswith(".csv") and file.startswith("cell_count_stats"):
 
                 # Load each CSV
                 df = pd.read_csv(os.path.join(LOGS_PATH,batch_folder,file), 
