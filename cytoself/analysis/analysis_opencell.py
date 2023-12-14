@@ -215,7 +215,7 @@ class AnalysisOpenCell(BaseAnalysis):
         ylabel: str = 'umap2',
         savepath: str = 'default',
         dpi: int = 300,
-        figsize: tuple[float, float] = (6, 6),
+        figsize: tuple[float, float] = (6, 5), # Nancy for figure 2A
     ):
         """
         Plot a UMAP by annotating groups in different colors
@@ -253,7 +253,7 @@ class AnalysisOpenCell(BaseAnalysis):
 
         """
         if savepath == 'default':
-            savepath = join(self.savepath_dict['umap_figures'], title + '.png')
+            savepath = join(self.savepath_dict['umap_figures'], title + '.eps') # Nancy for figure 2A (TO change UMAP format)
         if isinstance(colormap, str):
             cmap = cm.get_cmap(colormap.replace('_others', '')).colors
         else:
@@ -301,9 +301,10 @@ class AnalysisOpenCell(BaseAnalysis):
                 ax.scatter(
                     umap_data[ind, 0],
                     umap_data[ind, 1],
-                    s=s,
-                    alpha=alpha,
+                    s=s if 'mean' not in gp else 5,
+                    alpha=alpha if 'mean' not in gp else 1,
                     c=_c,
+                    marker = 'o' if 'mean' not in gp else "*", 
                     label=gp,
                     zorder=0 if gp == 'others' else len(unique_groups) - i + 1,
                 )
@@ -324,7 +325,10 @@ class AnalysisOpenCell(BaseAnalysis):
         ax.spines['top'].set_visible(False)
         ax.spines['right'].set_visible(False)
         hndls, names = ax.get_legend_handles_labels()
-        leg = ax.legend(
+        # -----------------------
+        # Nancy for figure 2A - remove legend
+        # -----------------------
+        leg = ax.legend( 
             hndls,
             names,
             prop={'size': 6},
@@ -336,13 +340,29 @@ class AnalysisOpenCell(BaseAnalysis):
         for ll in leg.legendHandles:
             ll.set_alpha(1)
             ll.set_sizes([max(6, s)]) # SAGY
-        ax.set_xlabel(xlabel)
-        ax.set_ylabel(ylabel)
-        ax.set_title(title)
+        # -----------------------
+        # Nancy for figure 2A - remove legend
+        # -----------------------
+        
+        ax.set_xlabel(xlabel) # Nancy for figure 2A - remove axis label
+        ax.set_ylabel(ylabel) # Nancy for figure 2A - remove axis label
+        ax.set_title(title) # Nancy for figure 2A - remove tile
+        
         ax.set_xticklabels([]) 
         ax.set_yticklabels([]) 
         ax.set_xticks([]) 
         ax.set_yticks([]) 
+        
+        # -----------------------
+        # Nancy for figure 2A
+        # -----------------------
+        # increase tick width
+        # for axis in ['bottom','left']:
+        #     ax.spines[axis].set_linewidth(4)
+        # ax.tick_params(width=4)
+        # -----------------------
+        # Nancy for figure 2A
+        # -----------------------
         
         gs_bottom = fig.add_subplot(gs[1])
         get_metrics_figure(umap_data, label_data, ax=gs_bottom)
@@ -350,7 +370,7 @@ class AnalysisOpenCell(BaseAnalysis):
         fig.tight_layout()
         if savepath:
             logging.info(f"Saving umap to {savepath}")#SAGY
-            fig.savefig(savepath, dpi=dpi, format='eps')
+            fig.savefig(savepath, dpi=dpi, format='eps') # # Nancy for figure 2A (TO change UMAP format)
         return fig, ax
 
     def calculate_cellid_ondim0_vqidx_ondim1(

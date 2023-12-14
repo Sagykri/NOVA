@@ -8,7 +8,7 @@ from datetime import datetime
 import logging
 
 # Global paths
-BATCH_TO_RUN = 'batch8' 
+BATCH_TO_RUN = 'batch9' 
 
 BASE_DIR = os.path.join('/home','labs','hornsteinlab','Collaboration','MOmaps')
 INPUT_DIR = os.path.join(BASE_DIR, 'outputs','cell_profiler')
@@ -78,7 +78,7 @@ def retrieve_features(input_path):
     return marker_dict
         
               
-def find_marker_folders(batch_path, depth=5):
+def find_marker_folders_output(batch_path, depth=5):
     """ 
     For a given batch (defined by "batch_path") it "walks" to its subfolders (until "depth" is reached) 
     and returns for every marker a list of relevant paths (AKA, [input_path, output_path] )
@@ -99,7 +99,7 @@ def find_marker_folders(batch_path, depth=5):
             
             # if that's not a marker directory, recursion...
             if entry.is_dir() and depth > 0:
-                yield from find_marker_folders(entry.path, depth)
+                yield from find_marker_folders_output(entry.path, depth)
             
             # if that's a marker directory
             elif depth==0: 
@@ -157,7 +157,7 @@ def combine_markers(files_path):
         
 def main():
     logging.info(f"\n\nStarting to combine Cell Profiler output of batch: {INPUT_DIR_BATCH}")
-    for sub_folder in find_marker_folders(batch_path=INPUT_DIR_BATCH, depth=5):
+    for sub_folder in find_marker_folders_output(batch_path=INPUT_DIR_BATCH, depth=5):
        results = retrieve_features(sub_folder)
 
     concatenate_features(results, OUTPUT_DIR)

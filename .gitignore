@@ -26,7 +26,7 @@ data/processed/*
 
 tests/**/*.png
 tests/**/*.tif
-
+*.tiff
 Anaconda3-2023.03-Linux-x86_64.sh
 
 *.h5

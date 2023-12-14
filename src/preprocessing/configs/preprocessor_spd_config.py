@@ -17,7 +17,9 @@ class SPDPreprocessingConfig(PreprocessingConfig):
         self.PROCESSED_SUBFOLDER_ROOT = os.path.join(self.PROCESSED_FOLDER_ROOT, "spd2", "SpinningDisk")
         self.OUTPUTS_SUBSUBFOLDER = os.path.join(self.OUTPUTS_SUBFOLDER, "spd")
         self.PREPROCESSOR_CLASS_PATH = os.path.join("src", "preprocessing", "preprocessors", "preprocessor_spd", "SPDPreprocessor")
-        self.TO_DOWNSAMPLE = True
-        self.TILE_WIDTH = 256 
-        self.TILE_HEIGHT = 256
+        self.TO_DOWNSAMPLE = False
+        self.TILE_WIDTH = 100 
+        self.TILE_HEIGHT = 100
         self.WITH_NUCLEUS_DISTANCE = False
+        
+        self.BRENNER_BOUNDS_PATH =  os.path.join(os.getenv("MOMAPS_HOME"), 'src', 'preprocessing', 'sites_validity_bounds.csv')

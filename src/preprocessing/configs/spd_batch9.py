@@ -24,3 +24,26 @@ class SPD_Batch9NODS(SPDPreprocessingConfig):
         self.TILE_WIDTH = 128 
         self.TILE_HEIGHT = 128
         self.LOGS_FOLDER = os.path.join(self.OUTPUTS_SUBSUBFOLDER, 'logs', "no_downsample")
+        
+class SPD_Batch9New(SPDPreprocessingConfig):
+    def __init__(self):
+        super().__init__()
+        
+        self.INPUT_FOLDERS = [os.path.join(self.RAW_SUBFOLDER_ROOT, "batch9")]
+        self.OUTPUT_FOLDERS = [os.path.join(self.PROCESSED_SUBFOLDER_ROOT, "batch9_new2")]
+        self.TO_DOWNSAMPLE = False
+        self.TILE_WIDTH = 100
+        self.TILE_HEIGHT = 100
+        self.LOGS_FOLDER = os.path.join(self.OUTPUTS_SUBSUBFOLDER, 'logs', "preprocessing_Dec2023_new2")
+        
+class SPD_Batch9NewTest(SPDPreprocessingConfig):
+    def __init__(self):
+        super().__init__()
+        
+        self.INPUT_FOLDERS = [os.path.join(self.RAW_SUBFOLDER_ROOT, "batch9")]
+        self.OUTPUT_FOLDERS = [os.path.join(self.PROCESSED_SUBFOLDER_ROOT, "batch9_test")]
+        self.TO_DOWNSAMPLE = False
+        self.TILE_WIDTH = 100
+        self.TILE_HEIGHT = 100
+        self.LOGS_FOLDER = os.path.join(self.OUTPUTS_SUBSUBFOLDER, 'logs', "preprocessing_Dec2023_test")
+        self.MARKERS_TO_INCLUDE = ['G3BP1', 'PURA'] 
