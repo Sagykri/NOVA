@@ -306,6 +306,9 @@ def load_indhists(config_path_model=None, config_path_data=None,
     
     markers = get_if_exists(config_data, 'MARKERS', None)
     logging.info(f"[load_indhists] markers = {markers}")
+    
+    reps = get_if_exists(config_data, 'REPS', None)
+    logging.info(f"[load_indhists] reps = {reps}")
 
     batches = [folder.split(os.sep)[-1].split("_")[0].replace('batch','') for folder in input_folders]
     embeddnigs_folder = os.path.join(model_output_folder, 'embeddings', 
@@ -324,7 +327,8 @@ def load_indhists(config_path_model=None, config_path_data=None,
         hist_df = hist_df[hist_df.label.str.startswith(tuple(markers))]
     if cell_lines:
         hist_df = hist_df[hist_df['label'].str.split('_', expand=True)[1].isin(cell_lines)]
-
+    if reps:
+        hist_df = hist_df[hist_df['label'].str.contains('|'.join(reps), regex=True)]
 
     all_embedings_data = np.array(hist_df.drop(columns='label'))
     logging.info(f'all_embedings_data shape: {all_embedings_data.shape}')

@@ -77,10 +77,16 @@ def __get_multiplexed_embeddings(embeddings_df, random_state=None):
     return embeddings, label_data, unique_groups
 
 def __format_labels_to_marker_and_pheno(label, config_data, vq_type):        
+    label_split = label.split('_')
+    
     if vq_type in ['vqindhist1', 'vqindhist2']:
-        return (label.split('_')[0], '_'.join(label.split('_')[-4 :-2]))
+        pheno = label_split[-4 :-2 + int(config_data.ADD_BATCH_TO_LABEL)]
+        if config_data.ADD_REP_TO_LABEL:
+            pheno += [label_split[-1]]
+        return (label_split[0], '_'.join(pheno))
+    
     if vq_type in ['vqvec1', 'vqvec2']:
-        return (label.split('_')[-1], '_'.join(label.split('_')[-4 + int(not config_data.ADD_REP_TO_LABEL):-1]))
+        return (label_split[-1], '_'.join(label_split[-4 + int(not config_data.ADD_REP_TO_LABEL):-1]))
     
     raise f"Invalid vq type {vq_type} [The options are: 'vqvec1', 'vqvec2', 'vqindhist1', 'vqindhist2']"
 
