@@ -93,7 +93,6 @@ def run_synthetic_multiplexing():
     multiplex(model,
               embeddings_type=embeddings_type,
               savepath=savepath,
-              dataloader=dataloader, #Sagy 041223
               colormap='Set1',
               output_layer=embeddings_layer,
               alpha=0.5)
