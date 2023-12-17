@@ -5,6 +5,7 @@ sys.path.insert(1, os.getenv("MOMAPS_HOME"))
 import numpy as np
 import seaborn as sns
 import matplotlib.pyplot as plt
+from matplotlib.ticker import MultipleLocator
 import random
 import cv2
 from src.common.lib.preprocessing_utils import rescale_intensity
@@ -235,6 +236,7 @@ def log_files_qc(LOGS_PATH):
     df['site_cell_count_sum'] = df['cells_counts'].apply(get_array_sum)
     df['site_whole_cells_counts_sum'] = df['whole_cells_counts'].apply(get_array_sum)
     df['cells_counts_list']=df['cells_counts'].apply(convert_to_list)
+
     #df['p_valid_tiles'] = df['n_valid_tiles']*100 / df['cells_counts_list'].apply(len) not relevant since total tiles=100!
 
     
@@ -295,11 +297,82 @@ def apply_color_diff(value):
     else:
         return color_gray
 
+def custom_fmt(value):
+    # Custom function to format the annotation text with a "/"
+    return f'/{value:.0f}'
+
+def plot_filtering_heatmap(filtered, extra_index, xlabel='', figsize=(5,5), second=None, vmin=0, vmax=100, show_sum=False):
+    for batch, batch_data in filtered.groupby('batch'):
+        p = batch_data.pivot_table(index=['rep', extra_index],
+                                    columns='cell_line_cond',
+                                    values='index')
+        p = p.sort_values(by=extra_index)
+
+        fig, ax = plt.subplots(figsize=figsize)
+        sns.heatmap(data=p, ax=ax,
+                            yticklabels=p.index, cmap='RdYlGn',annot=True,
+                            vmin=vmin, vmax=vmax, cbar=False,annot_kws={'fontsize': 5, 'ha':'right'},fmt=".0f")
+        ax.set_yticklabels(ax.get_yticklabels(), fontsize=8)
+        ax.xaxis.tick_top()
+        ax.set_xlabel(xlabel)
+        ax.set_ylabel(batch)
+        ax.set_xticklabels(ax.get_xticklabels(), rotation=45, ha='left', fontsize=8)
+        cbar_ax = ax.figure.add_axes([0.03, 0.9, 0.02, 0.06])
+        cbar = ax.figure.colorbar(ax.collections[0], cax=cbar_ax)
+        cbar.ax.tick_params(labelsize=8) 
+
+        if show_sum:
+            p['Total'] = p.sum(axis=1)
+            p.loc['Total'] = p.sum(axis=0)
+            fig, axs = plt.subplots(ncols=2, figsize= (10,7))
+            marker_total = p[['Total']].drop(index='Total')
+            cell_line_total = pd.DataFrame(p.loc['Total']).drop(index='Total')
+            sns.barplot(data=marker_total, y=marker_total.index, x='Total', ax=axs[0])
+            axs[0].set_xlim(marker_total.min().min()-0.1*marker_total.min().min(), marker_total.max().max())
+            axs[0].xaxis.set_major_locator(MultipleLocator(1000))
+            axs[0].tick_params(axis='x', labelsize=10)
+            axs[0].set_ylabel(batch)
+            sns.barplot(data=cell_line_total, y=cell_line_total.index, x='Total', ax=axs[1])
+            axs[1].set_xlim(cell_line_total.min().min()-0.1*cell_line_total.min().min(), cell_line_total.max().max())
+            axs[1].xaxis.set_major_locator(MultipleLocator(10000))
+            axs[1].tick_params(axis='x', labelsize=10)
+            axs[1].set_ylabel('')
+
+            for ax in axs:
+                ax.set_xlabel(xlabel)
+                ax.set_yticklabels(ax.get_yticklabels(), fontsize=6)
+            plt.tight_layout()
+            plt.show()
+
+        if second is not None:
+            ax2 = ax.twinx()  # Create a twin Axes sharing the xaxis
+            second_data = second[second.batch==batch]
+            second_p = second_data.pivot_table(index=['rep', extra_index],
+                                    columns='cell_line_cond',
+                                    values='index')
+            second_p = second_p.sort_values(by=extra_index)
+            sns.heatmap(second_p, annot=False,
+                         cbar=False, ax=ax2, alpha=0)
+            for y, (rep, value) in enumerate(second_p.iterrows()):
+                for x, val in enumerate(value):
+                    if val is None:
+                        continue
+                    if val != p.iloc[y,x]:
+                        ax2.annotate(f' ({val:.0f})', xy=(x+0.5, y+0.5), va='center', fontsize=5, c='white')
+
+            # Customize the y-axis of the second heatmap
+            ax2.set_yticks([])  # Hide the y-axis ticks
+            ax2.set_ylabel('')  # Hide the y-axis label
+        plt.show()
+
 
 def plot_filtering_table(filtered, extra_index, width=8, height=8):
     p = filtered.pivot_table(index=['batch', 'rep', extra_index],
                             columns='cell_line_cond',
                             values='index')
+    # p=p.astype('Int64')
+    p=p.applymap(lambda x: int(x) if not pd.isna(x) else x)
+
     p=p.sort_values(by=['batch',extra_index])
     color_p = p.applymap(apply_color)
 
@@ -420,7 +493,7 @@ def run_validate_folder_structure(root_dir, proc, panels, markers,plot_path, mar
             for path in missing_paths:
                 print(path)
         if len(bad_files) == 0:
-            print('All files exists.')
+            print('No bad files are found.')
         else:
             print('Some files are bad:')
             for file in bad_files:
