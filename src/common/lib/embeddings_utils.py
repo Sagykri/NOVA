@@ -235,13 +235,13 @@ def calc_spectral_features(model, datasets_list, output_folder, save=True, outpu
         for i, images_batch in enumerate(datasets_list[set_index]):
             images_spectral_features, images_labels, processed_images_path, save_paths = do_indhist_inference(images_batch, images_spectral_features, images_labels, processed_images_path, save_paths, output_layer,output_folder)
         images_spectral_features = np.concatenate(images_spectral_features)
-        save(images_spectral_features, images_labels, processed_images_path, save_paths, f"{set_type}set", output_layer)
+        save(images_spectral_features, images_labels, processed_images_path, save_paths, set_type, output_layer)
         return None
     
     if len(datasets_list)==3:
-        do_indhist_inference_for_set('train', 0 , datasets_list, output_layer, output_folder)
-        do_indhist_inference_for_set('val', 1 , datasets_list, output_layer, output_folder)
-        do_indhist_inference_for_set('test', 2 , datasets_list, output_layer, output_folder)
+        do_indhist_inference_for_set('trainset', 0 , datasets_list, output_layer, output_folder)
+        do_indhist_inference_for_set('valset', 1 , datasets_list, output_layer, output_folder)
+        do_indhist_inference_for_set('testset', 2 , datasets_list, output_layer, output_folder)
         
     elif len(datasets_list)==1:
         do_indhist_inference_for_set('all', 0 , datasets_list, output_layer, output_folder)
