@@ -297,9 +297,18 @@ def load_indhists(config_path_model=None, config_path_data=None,
 
     cell_lines_conds = get_if_exists(config_data, 'CELL_LINES_CONDS', None)
     logging.info(f"[load_indhists] cell_lines_conds = {cell_lines_conds}")
+    
+    cell_lines = get_if_exists(config_data, 'CELL_LINES', None)
+    logging.info(f"[load_indhists] cell_lines = {cell_lines}")
 
     markers_to_exclude = get_if_exists(config_data, 'MARKERS_TO_EXCLUDE', None)
     logging.info(f"[load_indhists] markers_to_exclude = {markers_to_exclude}")
+    
+    markers = get_if_exists(config_data, 'MARKERS', None)
+    logging.info(f"[load_indhists] markers = {markers}")
+    
+    reps = get_if_exists(config_data, 'REPS', None)
+    logging.info(f"[load_indhists] reps = {reps}")
 
     batches = [folder.split(os.sep)[-1] for folder in input_folders]
     embeddnigs_folder = os.path.join(model_output_folder, 'embeddings', 
@@ -307,13 +316,19 @@ def load_indhists(config_path_model=None, config_path_data=None,
     vqindhist, labels, paths = load_multiple_vqindhists(batches = batches,
                                                         embeddings_folder = embeddnigs_folder,
                                                         datasets = [embeddings_type],
-                                                        embeddings_layer=embeddings_layer)
+                                                        embeddings_layer = embeddings_layer)
     
     hist_df, _ = create_vqindhists_df(vqindhist, labels, paths)
     if cell_lines_conds:
         hist_df = hist_df[hist_df.label.str.contains('|'.join(cell_lines_conds), regex=True)]
     if markers_to_exclude:
-        hist_df = hist_df[~hist_df.label.str.contains('|'.join(markers_to_exclude), regex=True)]
+        hist_df = hist_df[~hist_df.label.str.startswith(tuple(markers_to_exclude))]
+    if markers:
+        hist_df = hist_df[hist_df.label.str.startswith(tuple(markers))]
+    if cell_lines:
+        hist_df = hist_df[hist_df['label'].str.split('_', expand=True)[1].isin(cell_lines)]
+    if reps:
+        hist_df = hist_df[hist_df['label'].str.contains('|'.join(reps), regex=True)]
 
     all_embedings_data = np.array(hist_df.drop(columns='label'))
     logging.info(f'all_embedings_data shape: {all_embedings_data.shape}')
