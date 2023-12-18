@@ -260,14 +260,14 @@ def load_indhists(config_path_model=None, config_path_data=None,
     Args:
         config_path_model (string): full path to trained model config file 
         config_path_data (string): full path to dataset config file
-        embeddings_type (string): which part of the dataset to fetch "trainset"/"testset"/"valset"/"allset"
+        embeddings_type (string): which part of the dataset to fetch "trainset"/"testset"/"valset"/"all"
     """
     if config_path_model is None and config_model is None:
         raise ValueError("Invalid config (path). Must supply model config.")
     if config_path_data is None and config_data is None:
         raise ValueError("Invalid config (path). Must supply dataset config.")
-    if embeddings_type not in ["trainset", "testset", "valset", "allset"]:
-        raise ValueError(f"Invalid embeddings_type. Must supply 'trainset' / 'testset' / 'valset' / 'allset'. ")
+    if embeddings_type not in ["trainset", "testset", "valset", "all"]:
+        raise ValueError(f"Invalid embeddings_type. Must supply 'trainset' / 'testset' / 'valset' / 'all'. ")
     
     logging.info(f"[load_indhists] Model: {config_path_model if config_path_model is not None else 'preloaded'}\
                     Dataset: {config_path_data if config_path_data is not None else 'preloaded'},\
