@@ -28,7 +28,7 @@ INPUT_DIR = os.path.join(BASE_DIR, 'input','images', 'raw', 'SpinningDisk')
 INPUT_DIR_BATCH = os.path.join(INPUT_DIR, BATCH_TO_RUN)
 OUTPUT_DIR = os.path.join(BASE_DIR, 'outputs','cell_profiler', 'ANXA11')
 OUTPUT_DIR_BATCH = os.path.join(OUTPUT_DIR, BATCH_TO_RUN)
-OUTPUT_DIR_PLOTS = os.path.join(OUTPUT_DIR_BATCH, 'plots')
+OUTPUT_DIR_PLOTS = os.path.join(OUTPUT_DIR, BATCH_TO_RUN, 'plots')
 
 LOG_DIR_PATH = os.path.join(BASE_DIR, 'outputs','cell_profiler','logs')
 
@@ -37,7 +37,7 @@ marker_dict = {f'{MARKER}':[]}
 
 def get_measurements(input_path, marker = MARKER):
     
-    logging.info(f'Collecting object measurements for marker: {input_path}')
+    logging.info(f'Collecting object measurements for marker: {MARKER}, {input_path}')
     
     # collect labels
     rep_dir = pathlib.Path(input_path).parent.resolve()
@@ -56,10 +56,10 @@ def get_measurements(input_path, marker = MARKER):
         
         else:
             file_full_name = os.path.join(input_path, file) 
-            print(file, file_full_name)
-            matrix = pd.read_csv(file_full_name, sep='\t')
-            print(len(matrix))
-            print(matrix.keys())
+            logging.info(f'Reading {file_full_name}')
+            matrix = pd.read_csv(file_full_name)
+            logging.info(f'\n length {len(matrix)} \n')
+            logging.info(f'matrix keys {matrix.keys()} \n')
             #average object measurements per image
             matrix = matrix.groupby(['ImageNumber']).mean()
             #add labels
@@ -80,11 +80,12 @@ def plot_CP_features(file_path):
     
     logging.info(f'Starting to plot CP features of {INPUT_DIR_BATCH}')
     matrix = pd.read_csv(file_path)
-    matrix = matrix[matrix['cell_line'] == 'WT' & matrix['cell_line'] == 'FUSHomozygous']
+    matrix = matrix.loc[matrix['treatment'] == 'Untreated'] 
+    matrix = matrix.loc[(matrix['cell_line'] == 'WT') | (matrix['cell_line'] == 'FUSHomozygous') | (matrix['cell_line'] == 'FUSHeterozygous') | (matrix['cell_line'] == 'FUSRevertant')]
     
     # Choose and change the features you want to plot
-    features_to_plot = ['Intensity_MeanIntensity_ANXA11_object', 
-                        'Texture_Contrast_ANXA11_object_3_00_256', 'Texture_Contrast_ANXA11_object_3_01_256']
+    features_to_plot = ['Intensity_MeanIntensity_ANXA11', 'RadialDistribution_FracAtD_ANXA11_1of4',
+                        'Texture_Contrast_ANXA11_3_00_256', 'Texture_Contrast_ANXA11_3_01_256']
     
     for feature in features_to_plot:
         fig = plt.figure()
@@ -156,34 +157,30 @@ def plot_CP_features_deltaNLS(file_path):
 
 
 def main():
-    logging.info(f"\n\nStarting individual Cell Profiler of {MARKER} analysis on batch: {INPUT_DIR_BATCH}")
-    
-    pipeline_path = os.path.join(BASE_DIR,'src','cell_profiler','pipelines','231210_ANXA11_CP_analysis.cppipe')
-    #results = pool.starmap(process_data, zip(generate_iterable(), [constant_string]*len(generate_iterable())))
+    # logging.info(f"\n\nStarting individual Cell Profiler of {MARKER} analysis on batch: {INPUT_DIR_BATCH}")
 
-    with Pool(5) as pool:
-        
-        # TO DO: output dir is not properly created
-        
-        # call the analyze_marker() function for each marker folder in parallel
-        results = pool.map(partial(analyze_marker, pipeline_path=pipeline_path), find_marker_folders(batch_path=INPUT_DIR_BATCH, depth=5, individual = True))
-        for result in results:
-            logging.info(result)
-    
-    logging.info("Terminating the java utils and process pool (killing all tasks...)")
-    # # stop java                
-    cellprofiler_core.utilities.java.stop_java()
-    # # forcefully terminate the process pool and kill all tasks
-    pool.terminate()        
+    # pipeline_path = os.path.join(BASE_DIR,'src','cell_profiler','pipelines','231210_ANXA11_CP_analysis.cppipe')
 
-    logging.info("Starting to collect and combine data")
-    for sub_folder in find_marker_folders(batch_path=INPUT_DIR_BATCH, depth=5):
-       results = get_measurements(sub_folder)
-    concatenate_features(results, OUTPUT_DIR_BATCH)
-    logging.info('Finished combining output measurements for ')
+    # with Pool(5) as pool:
+    #     # call the analyze_marker() function for each marker folder in parallel
+    #     results = pool.map(partial(analyze_marker, pipeline_path=pipeline_path), find_marker_folders(batch_path=INPUT_DIR_BATCH, output_dir = OUTPUT_DIR, individual = True, depth=5))
+    #     for result in results:
+    #         logging.info(result)
+    
+    # logging.info("Terminating the java utils and process pool (killing all tasks...)")
+    # # # stop java                
+    # cellprofiler_core.utilities.java.stop_java()
+    # # # forcefully terminate the process pool and kill all tasks
+    # pool.terminate()        
+
+    # logging.info("Starting to collect and combine data")
+    # for sub_folder in find_marker_folders_output(batch_path=OUTPUT_DIR_BATCH, depth=5):
+    #    results = get_measurements(sub_folder)
+    # concatenate_features(results, os.path.join(OUTPUT_DIR_BATCH, 'combined'))
+    # logging.info('Finished combining output measurements for ')
     
     logging.info("Starting to plot data")
-    plot_CP_features(os.path.join(OUTPUT_DIR_BATCH, f'{MARKER}_all.csv'))
+    plot_CP_features(os.path.join(OUTPUT_DIR_BATCH, 'combined', f'{MARKER}_all.csv'))
     logging.info(f'Finished plotting features of {INPUT_DIR_BATCH}')
 
 if __name__ == '__main__':
