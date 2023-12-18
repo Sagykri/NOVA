@@ -41,6 +41,7 @@ class SPDPreprocessor(Preprocessor):
         self.cell_inclusion_prct = get_if_exists(conf, 'CELL_INCLUSION_PRCT')
         self.to_denoise = get_if_exists(conf, 'TO_DENOISE')
         self.crop_frame_size = get_if_exists(conf, 'CROP_FRAME_SIZE')
+        self.cell_lines_to_include = get_if_exists(conf, 'CELL_LINES_TO_INCLUDE')
         self.conf = conf
         
         if self.conf.SELECTIVE_INPUT_PATHS is not None:
@@ -95,9 +96,13 @@ class SPDPreprocessor(Preprocessor):
                 logging.info(f"[{raw_f}] Skipping non-folder")
                 continue
             
-            cell_lines = [f for f in sorted(os.listdir(input_folder_root)) if os.path.isdir(os.path.join(input_folder_root, f))]
 
-            # logging.warning("\n\n\n\n NOTE!! WARNING!! TAKING ONLY WT!! :O :O :O\n\n\n")
+            if self.cell_lines_to_include is None or len(self.cell_lines_to_include) == 0:
+                logging.info("CELL_LINES_TO_INCLUDE doesn't exist in config. Taking all cell lines detected")
+                cell_lines = [f for f in sorted(os.listdir(input_folder_root)) if os.path.isdir(os.path.join(input_folder_root, f))]
+            else:
+                cell_lines = self.cell_lines_to_include
+
             logging.info(f"[{raw_f}] Cell line detected: {cell_lines}")
 
             for cell_line in cell_lines:
