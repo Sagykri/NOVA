@@ -360,10 +360,10 @@ class Model():
             for i, im in enumerate(reconstructed[:10, ii, ...]):
                 i0, i1 = np.unravel_index(i, (2, 5))
                 t1[i0 * 100 : (i0 + 1) * 100, i1 * 100 : (i1 + 1) * 100] = im
-            ax[0, ii].imshow(t0, cmap='gray')
+            ax[0, ii].imshow(t0, cmap='gray', vmin=0, vmax=1)
             ax[0, ii].axis('off')
             ax[0, ii].set_title('input ' + ch)
-            ax[1, ii].imshow(t1, cmap='gray')
+            ax[1, ii].imshow(t1, cmap='gray', vmin=0, vmax=1)
             ax[1, ii].axis('off')
             ax[1, ii].set_title('output ' + ch)
         fig.tight_layout()

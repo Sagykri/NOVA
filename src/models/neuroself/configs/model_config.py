@@ -32,29 +32,6 @@ class ExampleNeuroselfModelConfig(NeuroselfConfig):
 # Neuroself - TLNeuroselfB78NoDSModelConfig
 ############################################################        
 
-
-class TLep23NeuroselfB78ModelConfig(NeuroselfConfig):
-    def __init__(self):
-        super().__init__()
-        
-        self.MODEL_OUTPUT_FOLDER = os.path.join(self.OUTPUTS_FOLDER, 'models_outputs_batch78_tl_ep23')
-        self.LOGS_FOLDER = os.path.join(self.MODEL_OUTPUT_FOLDER, 'logs')
-        self.CONFIGS_USED_FOLDER = os.path.join(self.MODEL_OUTPUT_FOLDER, "configs_used", datetime.datetime.now().strftime("%d%m%y_%H%M%S_%f"))
-
-        # Models
-        self.PRETRAINED_MODEL_PATH = os.path.join(self.OUTPUTS_FOLDER, "models_outputs_cytoself_qsplit9", "checkpoints", "checkpoint_ep23.chkp") 
-        self.MODEL_PATH = os.path.join(self.MODEL_OUTPUT_FOLDER, 'checkpoints', 'checkpoint_ep18.chkp')
-        self.LAST_CHECKPOINT_PATH = os.path.join(self.MODEL_OUTPUT_FOLDER, 'checkpoints')
-        
-        self.EARLY_STOP_PATIENCE = 10
-        self.LEARN_RATE = 2e-4
-        self.BATCH_SIZE = 4
-        self.MAX_EPOCH = 100
-
-        # Was calculated based on 200 images per marker (26) from batch8 # Total of 40162 images were sampled. Variance: 0.011433005990307048
-        self.DATA_VAR = 0.00939656708666626 # 7_16bit: 0.00939656708666626
-        # ./bash_commands/run_py.sh ./src/runables/training -g -m 15000 -b 40 -a ./src/models/neuroself/configs/model_config/NeuroselfB7TrainingConfig ./src/datasets/configs/train_config/TrainB7DatasetConfig
-
 class TLNeuroselfB78NoDSModelConfig(NeuroselfConfig):
     def __init__(self):
         super().__init__()
@@ -87,7 +64,7 @@ class TLNeuroselfdeltaNLSB25ModelConfig(NeuroselfConfig):
     def __init__(self):
         super().__init__()
         
-        self.OUTPUTS_FOLDER = MODEL_OUTPUT
+        self.OUTPUTS_FOLDER = MODEL_OUTPUT ## TODO: remove, temp fix
         self.MODEL_OUTPUT_FOLDER = os.path.join(self.OUTPUTS_FOLDER, 'models_outputs_deltaNLS_tl_neuroself_sep_TDP43')
         
         self.LOGS_FOLDER = os.path.join(self.MODEL_OUTPUT_FOLDER, 'logs')
