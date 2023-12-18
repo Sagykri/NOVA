@@ -21,6 +21,8 @@ import pathlib
 from src.common.lib.qc_config_tmp import *
 from src.common.lib.calc_dataset_variance import _multiproc_calc_variance
 import re
+import warnings
+
 
 MOMAPS_HOME = '/home/labs/hornsteinlab/Collaboration/MOmaps/'
 BASE_DIR = os.path.join('/home','labs','hornsteinlab','Collaboration','MOmaps')
@@ -301,14 +303,15 @@ def custom_fmt(value):
     # Custom function to format the annotation text with a "/"
     return f'/{value:.0f}'
 
-def plot_filtering_heatmap(filtered, extra_index, xlabel='', figsize=(5,5), second=None, vmin=0, vmax=100, show_sum=False):
+def plot_filtering_heatmap(filtered, extra_index, xlabel='', figsize=(5,5), second=None, vmin=0, vmax=100, 
+                           show_sum=False, cbar_values = [0.15, 0.82, 0.02, 0.1]):
     for batch, batch_data in filtered.groupby('batch'):
         p = batch_data.pivot_table(index=['rep', extra_index],
                                     columns='cell_line_cond',
                                     values='index')
         p = p.sort_values(by=extra_index)
 
-        fig, ax = plt.subplots(figsize=figsize)
+        fig, ax = plt.subplots(figsize=figsize, dpi=150)
         sns.heatmap(data=p, ax=ax,
                             yticklabels=p.index, cmap='RdYlGn',annot=True,
                             vmin=vmin, vmax=vmax, cbar=False,annot_kws={'fontsize': 5, 'ha':'right'},fmt=".0f")
@@ -317,14 +320,34 @@ def plot_filtering_heatmap(filtered, extra_index, xlabel='', figsize=(5,5), seco
         ax.set_xlabel(xlabel)
         ax.set_ylabel(batch)
         ax.set_xticklabels(ax.get_xticklabels(), rotation=45, ha='left', fontsize=8)
-        cbar_ax = ax.figure.add_axes([0.03, 0.9, 0.02, 0.06])
+        cbar_ax = ax.figure.add_axes(cbar_values)
         cbar = ax.figure.colorbar(ax.collections[0], cax=cbar_ax)
         cbar.ax.tick_params(labelsize=8) 
+        if second is not None:
+            ax2 = ax.twinx()  # Create a twin Axes sharing the xaxis
+            second_data = second[second.batch==batch]
+            second_p = second_data.pivot_table(index=['rep', extra_index],
+                                    columns='cell_line_cond',
+                                    values='index')
+            second_p = second_p.sort_values(by=extra_index)
+            sns.heatmap(second_p, annot=False,
+                         cbar=False, ax=ax2, alpha=0)
+            for y, (rep, value) in enumerate(second_p.iterrows()):
+                for x, val in enumerate(value):
+                    if pd.isna(val):
+                        continue
+                    if val != p.iloc[y,x]:
+                        ax2.annotate(f' ({val:.0f})', xy=(x+0.5, y+0.46),fontsize=5, c='white', va='center')
 
+            # Customize the y-axis of the second heatmap
+            ax2.set_yticks([])  # Hide the y-axis ticks
+            ax2.set_ylabel('')  # Hide the y-axis label
+        plt.show()
+        
         if show_sum:
             p['Total'] = p.sum(axis=1)
             p.loc['Total'] = p.sum(axis=0)
-            fig, axs = plt.subplots(ncols=2, figsize= (10,7))
+            fig, axs = plt.subplots(ncols=2, figsize= (10,6), dpi=150)
             marker_total = p[['Total']].drop(index='Total')
             cell_line_total = pd.DataFrame(p.loc['Total']).drop(index='Total')
             sns.barplot(data=marker_total, y=marker_total.index, x='Total', ax=axs[0])
@@ -341,29 +364,10 @@ def plot_filtering_heatmap(filtered, extra_index, xlabel='', figsize=(5,5), seco
             for ax in axs:
                 ax.set_xlabel(xlabel)
                 ax.set_yticklabels(ax.get_yticklabels(), fontsize=6)
-            plt.tight_layout()
+            with warnings.catch_warnings():
+                warnings.simplefilter("ignore", category=UserWarning)
+                plt.tight_layout()
             plt.show()
-
-        if second is not None:
-            ax2 = ax.twinx()  # Create a twin Axes sharing the xaxis
-            second_data = second[second.batch==batch]
-            second_p = second_data.pivot_table(index=['rep', extra_index],
-                                    columns='cell_line_cond',
-                                    values='index')
-            second_p = second_p.sort_values(by=extra_index)
-            sns.heatmap(second_p, annot=False,
-                         cbar=False, ax=ax2, alpha=0)
-            for y, (rep, value) in enumerate(second_p.iterrows()):
-                for x, val in enumerate(value):
-                    if val is None:
-                        continue
-                    if val != p.iloc[y,x]:
-                        ax2.annotate(f' ({val:.0f})', xy=(x+0.5, y+0.5), va='center', fontsize=5, c='white')
-
-            # Customize the y-axis of the second heatmap
-            ax2.set_yticks([])  # Hide the y-axis ticks
-            ax2.set_ylabel('')  # Hide the y-axis label
-        plt.show()
 
 
 def plot_filtering_table(filtered, extra_index, width=8, height=8):
@@ -865,14 +869,63 @@ def plot_hists(batch_df_raw,batch_df_norm, batch_df_proc, batch_num, plot_sep_by
 
     mean_hist_proc = batch_df_proc.copy()
     mean_hist_proc[batch_df_proc.columns.difference(['site_count'])] = batch_df_proc.drop(columns=['site_count']).div(batch_df_proc['site_count'], axis=0).astype(int)
-    plot_hist_sep_by_type(mean_hist_raw, mean_hist_rescale, mean_hist_proc, batch_num, ncols, nrows)
+    # plot_hist_sep_by_type(mean_hist_raw, mean_hist_rescale, mean_hist_proc, batch_num, ncols, nrows)
+    plot_hist_lines(mean_hist_raw, mean_hist_rescale, mean_hist_proc, batch_num, ncols, nrows)
     if plot_sep_by_cell_line:
         plot_hist_sep_by_cell_line(mean_hist_raw, mean_hist_rescale, mean_hist_proc, batch_num)
 
 
+def plot_hist_lines(mean_hist_raw, mean_hist_rescale, mean_hist_proc, batch_num, ncols=7, nrows=4):
+    for hist_df, name in zip([mean_hist_raw, mean_hist_rescale, mean_hist_proc], ['raw', 'rescaled','processed']):
+        fig, axs = plt.subplots(figsize=(15, 8), ncols=ncols, nrows=nrows, sharey=True, dpi=200)
+        fig.subplots_adjust(top=0.85) 
+        plt.rcParams.update({'figure.autolayout': True})
+        for j, (marker, marker_df) in enumerate(hist_df.drop(columns=['site_count']).groupby(level=[1])):
+            df = marker_df.reset_index(level=1, drop=True).T
+            x_ticks = [str(round(idx, 1)) for idx in df.index]
+            x_ticks[-1] = x_ticks[-1] + "\n - 65000" if name=='raw' else x_ticks[-1] + "-1"
+
+            # Generate positions for the bars using numpy.arange
+            bar_positions = list(range(0, df.shape[0]))
+            ax = axs[j//ncols, j%ncols]
+            # Plot each column separately using a different color for each column
+            for col in df.columns:
+                ax.plot(bar_positions, df[col], label=col, linewidth=0.4)
+            xticks_size = 4
+            if name=='raw':
+                bar_positions = bar_positions[0:-1:2] + [bar_positions[-1]]
+                x_ticks = x_ticks[0:-1:2] + [x_ticks[-1]]
+                xticks_size=2.5
+            ax.set_xticks(bar_positions, x_ticks,  fontsize=xticks_size)
+            ax.set_xlabel('Intestiy value', fontsize=8)
+            if j%ncols==0:
+                ax.set_ylabel('Count', fontsize=10)
+                ax.tick_params(axis='y', labelsize=8)
+            ax.set_title(f'{marker}', fontsize=8)
+            ax.grid(False)
+
+        handles, labels = ax.get_legend_handles_labels()
+        #fig.legend(handles, labels, loc='lower center', ncol=13, bbox_to_anchor=(0.5,0), fontsize='xx-small')
+        fig.legend(handles, labels, loc='center right', ncol=1, fontsize=8, bbox_to_anchor=(1.1,0.5))
+        # Create a ScalarMappable object for the entire figure
+        sm = plt.cm.ScalarMappable(cmap='gray')
+        sm.set_array([])  # Dummy array to satisfy the ScalarMappable
+
+        # Add shared colorbar for the entire figure
+        cbar_ax = fig.add_axes([1.11, 0.5, 0.02, 0.2])  # Adjust the position as needed
+        cbar = plt.colorbar(sm, cax=cbar_ax, orientation='vertical')
+        cbar.set_ticks([0, 1])  # Assuming the range of values is from 0 to 1
+        cbar.set_label('Intestiy Colorbar', fontsize=10)
+        cbar.set_ticklabels(['Low', 'High'], fontsize=8)
+        cbar.ax.set_xticklabels(cbar.ax.get_xticklabels(), rotation=90)
+
+        plt.suptitle(f'{name} {batch_num}')
+        plt.tight_layout()
+        plt.show()
+
 def run_calc_hist_new(batch, cell_lines_for_disp, markers, hist_sample=1, 
                       sample_size_per_markers=200, ncols=3, nrows=3, rep_count=2, cond_count=2):    
-    INPUT_DIR_BATCH_RAW = os.path.join(INPUT_DIR_RAW, batch.replace('_16bit',''))
+    INPUT_DIR_BATCH_RAW = os.path.join(INPUT_DIR_RAW, batch.replace('_16bit','').replace('_no_downsample',''))
     INPUT_DIR_BATCH_PROC = os.path.join(INPUT_DIR_PROC, batch.replace("_sort",""))
 
     images_raw = sample_images_all_markers_all_lines(INPUT_DIR_BATCH_RAW, sample_size_per_markers, _num_markers=len(markers),
@@ -1093,3 +1146,37 @@ def plot_hm(df, split_by, rows, columns):
             #ax2.axhline(-0.5, color='black', linewidth=2)
             fig.subplots_adjust(wspace=0)
             plt.show()
+
+def plot_hm_combine_batches(df,  batches, reps, rows, columns):
+    fig, axs = plt.subplots(figsize=(24, 7), ncols=4, sharey=False, sharex=False,
+                            gridspec_kw={'width_ratios': [0.8, 0.8, 0.8, 1]})
+    for i, (batch, rep) in enumerate([(x, y) for x in batches for y in reps]):
+        cur_df = df[(df['batch'] == batch) & (df['rep'] == rep)]
+        a = pd.crosstab(cur_df[rows], cur_df[columns], 
+                        values=cur_df['whole_cells_count_in_valid_tiles_mean'], aggfunc=np.mean)
+        vmin = 1
+        vmax = 2
+        ytick_labels = [f'cell line {i}' for i in range(1, a.shape[0] + 1)]
+        heatmap = sns.heatmap(a, annot=True, cmap="flare", linewidths=1, linecolor='gray', 
+                        cbar=False, ax=axs[i], vmin=vmin, vmax=vmax,annot_kws={"fontsize": 12}, yticklabels=ytick_labels)
+
+        heatmap.set_xlabel(f'{batch}\n{rep}', fontsize=24, color="navy")
+        heatmap.axvline(a.shape[1], color='black', linewidth=2)
+        heatmap.set_ylabel('')
+        if i==0:
+            heatmap.set_ylabel(rows.replace("_", " "), fontsize=24, color="navy")
+            # axs[i].set_yticklabels(ytick_labels, fontsize=12, rotate=90)
+            heatmap.set_yticklabels(ytick_labels, rotation=0)
+            cbar = heatmap.figure.colorbar(heatmap.collections[0])
+            cbar.ax.tick_params(labelsize=16)
+            # axs[i].text(0.9, -0.3, batch,transform=axs[i].transAxes, fontsize=30)
+        else:
+            heatmap.axvline(0, color='black', linewidth=2)
+            axs[i].set_yticklabels('')
+            axs[i].set_yticks([])
+        # if i==2:
+        #     axs[i].text(0.8, -0.3, batch,transform=axs[i].transAxes, fontsize=30)
+
+    fig.subplots_adjust(wspace=0)
+    plt.suptitle('Mean of whole cells count in valid tiles', fontsize=20, color="navy")
+    plt.show()
