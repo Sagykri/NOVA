@@ -13,12 +13,13 @@ from collections import defaultdict
 import networkx as nx
 
 def load_multiple_vqindhists(batches, embeddings_folder, datasets = ['trainset','valset','testset'], embeddings_layer = 'vqindhist1'):
+    # batches: list of batch folder names (like: [batch6] or [batch6_16bit_no_downsample])
     vqindhist, labels, paths = [] , [], []
     for batch in batches:
         for dataset_type in datasets:
-            cur_vqindhist, cur_labels, cur_paths = np.load(os.path.join(embeddings_folder, f"batch{batch}_16bit_no_downsample/{embeddings_layer}_{dataset_type}.npy")),\
-                    np.load(os.path.join(embeddings_folder, f"batch{batch}_16bit_no_downsample/{embeddings_layer}_labels_{dataset_type}.npy")),\
-                    np.load(os.path.join(embeddings_folder, f"batch{batch}_16bit_no_downsample/{embeddings_layer}_paths_{dataset_type}.npy"))
+            cur_vqindhist, cur_labels, cur_paths = np.load(os.path.join(embeddings_folder, batch, f"{embeddings_layer}_{dataset_type}.npy")),\
+                    np.load(os.path.join(embeddings_folder, batch, f"{embeddings_layer}_labels_{dataset_type}.npy")),\
+                    np.load(os.path.join(embeddings_folder, batch, f"{embeddings_layer}_paths_{dataset_type}.npy"))
             cur_vqindhist = cur_vqindhist.reshape(cur_vqindhist.shape[0], -1)
             vqindhist.append(cur_vqindhist)
             labels.append(cur_labels)
@@ -507,7 +508,7 @@ def find_rep_per_cluster(corr_with_clusters, hist_df_with_path, save_path, to_sa
     hist_per_cluster['second_max_cluster'] = top_clusters.apply(lambda x: x[1])
     hist_per_cluster.max_cluster = hist_per_cluster.max_cluster.str.replace('C',"").astype(int)
     hist_per_cluster.second_max_cluster = hist_per_cluster.second_max_cluster.str.replace('C',"").astype(int)
-    
+    return hist_per_cluster
     if save_together:
         fig, axs = plt.subplots(nrows=int(top_images/2)*np.unique(hist_per_cluster[['max_cluster', 'second_max_cluster']]).size, ncols=2, figsize=figsize)
 
@@ -760,3 +761,79 @@ def kl_divergence_matrix(df):
     kl_matrix += kl_matrix.T
 
     return pd.DataFrame(kl_matrix, index=columns, columns=columns)
+
+
+def plot_rep_tiles_conds(hist_per_cluster, top_images=8):
+
+    for i, cluster in enumerate(np.unique(hist_per_cluster[['max_cluster', 'second_max_cluster']])):
+        max_cluster_group = hist_per_cluster[hist_per_cluster.max_cluster==cluster]
+        max_cluster_group_stress = max_cluster_group[max_cluster_group.label.str.contains('stress')]
+        max_cluster_group_Untreaed = max_cluster_group[max_cluster_group.label.str.contains('Untreated')]
+
+        max_cluster_column = f"C{cluster}"
+        max_tiles_paths_stress = max_cluster_group_stress[[max_cluster_column,'path']].sort_values(by=max_cluster_column,ascending=False)[:top_images].path
+        max_tiles_paths_Untreaed = max_cluster_group_Untreaed[[max_cluster_column,'path']].sort_values(by=max_cluster_column,ascending=False)[:top_images].path
+
+        if max_tiles_paths_stress.size == 0:
+            print(f'Found no stress for {cluster=}')
+        if max_tiles_paths_Untreaed.size == 0:
+            print(f'Found no Untreated for {cluster=}')
+
+        fig, axs = plt.subplots(ncols=top_images*2, figsize=(20,4))
+
+        for j, tile_path in enumerate(max_tiles_paths_Untreaed):
+            cut = tile_path.rfind("_")
+            real_path = tile_path[:cut]
+            tile_number = int(tile_path[cut+1:])
+            cur_site = np.load(real_path)
+            ax = axs[j]
+            ax.imshow(cur_site[tile_number,:,:,0], cmap='gray',vmin=0,vmax=1)
+            ax.axis('off')
+            split_path=real_path.split(os.sep)
+            marker = split_path[-2]
+            condition = split_path[-3]
+            cell_line = split_path[-4]
+            ax.set_title(f"{marker} {condition}", fontsize=7)
+        for j, tile_path in enumerate(max_tiles_paths_stress):
+            cut = tile_path.rfind("_")
+            real_path = tile_path[:cut]
+            tile_number = int(tile_path[cut+1:])
+            cur_site = np.load(real_path)
+            ax = axs[top_images+j]
+            ax.imshow(cur_site[tile_number,:,:,0], cmap='gray',vmin=0,vmax=1)
+            ax.axis('off')
+            split_path=real_path.split(os.sep)
+            marker = split_path[-2]
+            condition = split_path[-3]
+            cell_line = split_path[-4]
+            ax.set_title(f"{marker} {condition}", fontsize=7)
+        plt.suptitle(f'cluster {cluster}', y=0.7)
+        plt.tight_layout()
+        plt.show()
+        
+    colors = ListedColormap(sns.color_palette(cc.glasbey, n_colors=24)) #used for when we have 24 markers
+    hist_per_cluster['short_label'] = hist_per_cluster.label.str.split('_').str[0]#.apply(lambda x: "_".join(x)) #include also condition in the label
+    color_dict = {}
+    for i, marker in enumerate(np.unique(hist_per_cluster['short_label'])):
+        color_dict[marker] = colors(i)
+    label_per_cluster = hist_per_cluster[['short_label','max_cluster']]
+    stack=pd.DataFrame(label_per_cluster.groupby(['max_cluster','short_label']).short_label.count() *100 / label_per_cluster.groupby(['max_cluster']).short_label.count())
+    stack = stack.rename(columns={'short_label': 'label_count'})
+    stack = stack.reset_index()
+    stack = stack.sort_values(by='max_cluster')
+    df_pivot = stack.pivot(index='max_cluster', columns='short_label', values='label_count').fillna(0)
+
+    fig = plt.figure(figsize=(10,6))
+    for cluster in df_pivot.index:
+        row=df_pivot.loc[cluster].sort_values(ascending=False)
+        left = 0
+        for i,marker in enumerate(row):
+            marker_name = row.index[i]
+            plt.barh(y=cluster, width=marker, left=left, color=color_dict[marker_name])
+            old_left = left
+            left = left+marker
+            if i <2:
+                plt.text(x=(old_left+marker/2), y=cluster-0.1, s=marker_name)
+    clusters = np.unique(hist_per_cluster[['max_cluster', 'second_max_cluster']])
+    plt.yticks(clusters)
+    plt.show()
