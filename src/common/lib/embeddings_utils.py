@@ -310,7 +310,7 @@ def load_indhists(config_path_model=None, config_path_data=None,
     reps = get_if_exists(config_data, 'REPS', None)
     logging.info(f"[load_indhists] reps = {reps}")
 
-    batches = [folder.split(os.sep)[-1].split("_")[0].replace('batch','') for folder in input_folders]
+    batches = [folder.split(os.sep)[-1] for folder in input_folders]
     embeddnigs_folder = os.path.join(model_output_folder, 'embeddings', 
                                      experiment_type, embeddings_layer)
     vqindhist, labels, paths = load_multiple_vqindhists(batches = batches,
