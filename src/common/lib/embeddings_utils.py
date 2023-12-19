@@ -301,6 +301,9 @@ def load_indhists(config_path_model=None, config_path_data=None,
     cell_lines = get_if_exists(config_data, 'CELL_LINES', None)
     logging.info(f"[load_indhists] cell_lines = {cell_lines}")
 
+    conditions = get_if_exists(config_data, 'CONDITIONS', None)
+    logging.info(f"[load_indhists] conditions = {conditions}")
+
     markers_to_exclude = get_if_exists(config_data, 'MARKERS_TO_EXCLUDE', None)
     logging.info(f"[load_indhists] markers_to_exclude = {markers_to_exclude}")
     
@@ -327,6 +330,8 @@ def load_indhists(config_path_model=None, config_path_data=None,
         hist_df = hist_df[hist_df.label.str.startswith(tuple(markers))]
     if cell_lines:
         hist_df = hist_df[hist_df['label'].str.split('_', expand=True)[1].isin(cell_lines)]
+    if conditions:
+        hist_df = hist_df[hist_df['label'].str.contains('|'.join(conditions), regex=True)]
     if reps:
         hist_df = hist_df[hist_df['label'].str.contains('|'.join(reps), regex=True)]
 
