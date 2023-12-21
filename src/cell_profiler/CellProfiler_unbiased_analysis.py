@@ -14,7 +14,7 @@ import os
 from functools import partial
 
 # Global paths
-BATCH_TO_RUN = 'deltaNLS_sort/batch2' 
+BATCH_TO_RUN = 'deltaNLS_sort/batch3' 
 #LINE_TO_RUN = 'WT'
 
 BASE_DIR = os.path.join('/home','labs','hornsteinlab','Collaboration','MOmaps')

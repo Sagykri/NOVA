@@ -8,7 +8,7 @@ from datetime import datetime
 import logging
 
 # Global paths
-BATCH_TO_RUN = 'batch9' 
+BATCH_TO_RUN = 'deltaNLS_sort/batch2' 
 
 BASE_DIR = os.path.join('/home','labs','hornsteinlab','Collaboration','MOmaps')
 INPUT_DIR = os.path.join(BASE_DIR, 'outputs','cell_profiler')
@@ -30,7 +30,8 @@ def set_logging(log_file_path, level=logging.INFO, format=' INFO: %(message)s'):
 marker_dict = {'DAPI':[], 'G3BP1':[], 'KIF5A':[], 'PURA':[], 
             'NONO':[], 'TDP43':[], 'CD41':[], 'FMRP':[], 'SQSTM1':[], 'Phalloidin':[], 'PSD95':[], 'CLTC':[],
             'NEMO':[], 'DCP1A':[], 'GM130':[], 'TOMM20':[], 'FUS':[], 'NCL':[], 'SCNA':[], 'ANXA11':[],
-            'LAMP1':[], 'Calreticulin':[], 'TIA1':[], 'mitotracker':[], 'PML':[], 'PEX14':[], 'pNFKB':[]}
+            'LAMP1':[], 'Calreticulin':[], 'TIA1':[], 'mitotracker':[], 'PML':[], 'PEX14':[], 'pNFKB':[],
+            'Tubulin':[], 'KIFC1':[], 'KIF20A':[], 'Pericentrin':[], 'Rab5':[]}
 
 
 def retrieve_features(input_path):
