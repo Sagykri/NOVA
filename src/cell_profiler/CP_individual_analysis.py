@@ -25,12 +25,12 @@ from src.cell_profiler.CellProfiler_unbiased_analysis import *
 from src.cell_profiler.CellProfiler_combine_output import *
 
 # Global paths
-BATCH_TO_RUN = 'batch2' 
-MARKER = 'DCP1A'
+BATCH_TO_RUN = 'batch6' 
+MARKER = 'ANXA11'
 
 INPUT_DIR = os.path.join(BASE_DIR, 'input','images', 'raw', 'SpinningDisk')
 INPUT_DIR_BATCH = os.path.join(INPUT_DIR, BATCH_TO_RUN)
-OUTPUT_DIR = os.path.join(BASE_DIR, 'outputs','cell_profiler', 'deltaNLS_sort/DCP1A')
+OUTPUT_DIR = os.path.join(BASE_DIR, 'outputs','cell_profiler', 'ANXA11')
 OUTPUT_DIR_BATCH = os.path.join(OUTPUT_DIR, BATCH_TO_RUN)
 OUTPUT_DIR_PLOTS = os.path.join(OUTPUT_DIR_BATCH, 'plots')
 
@@ -88,7 +88,7 @@ def get_log_ax(orient="v"):
         set_scale = "set_xscale"
     fig, ax = plt.subplots(1, 1, figsize=figsize)
     fig.patch.set_alpha(1)
-    getattr(ax, set_scale)("log")
+    #getattr(ax, set_scale)("log")
     return ax
 
 def plot_CP_features(file_path):
@@ -228,7 +228,7 @@ def plot_CP_features_deltaNLS(file_path):
             stat_results = [stats.mannwhitneyu(untreated[feature], dox[feature], alternative="two-sided")]
             logging.info(stat_results)
             pvalues = [result.pvalue for result in stat_results]
-            pairs = [('untreated', 'dox')]
+            pairs = [('Untreated', 'dox')]
             #formatted_pvalues = [f'p={pvalue:.2e}' for pvalue in pvalues]
         else:
             logging.info(f'values of {feature} normally distributed; calculating Tukey HSD')
@@ -240,19 +240,21 @@ def plot_CP_features_deltaNLS(file_path):
             pairs = [(i[1]["index"], i[1]["variable"]) for i in molten_df.iterrows()]
             pvalues = [i[1]["value"] for i in molten_df.iterrows()]  
         
-        fig = plt.figure()
-        my_pal = {'Untreated':'#494CB3', 'dox':'#90278E'}
-        plotting_parameters = {'data':matrix, 'x':'treatment', 'y':feature, 'palette':my_pal}
-        sns.boxplot(**plotting_parameters)
-        # Add annotations
-        annotator = Annotator(fig, pairs, **plotting_parameters)
-        annotator.set_pvalues(pvalues)
-        annotator.annotate()
-        plt.title(f'DCP1A {feature}')
-        fig.tight_layout()
-        plt.savefig(os.path.join(OUTPUT_DIR_PLOTS, f'boxplot_{feature}.png'))
-        plt.clf()
-        logging.info(f'Saved boxplot of CP {feature} of DCP1A')
+        with sns.plotting_context('notebook', font_scale = 1.4):
+            # Create new plot
+            ax = get_log_ax()
+            my_pal = {'Untreated':'#494CB3', 'dox':'#90278E'}
+            plotting_parameters = {'data':matrix, 'x':'treatment', 'y':feature, 'palette':my_pal}
+            sns.boxplot(**plotting_parameters)
+            # Add annotations
+            annotator = Annotator(ax, pairs, **plotting_parameters)
+            annotator.set_pvalues(pvalues)
+            annotator.annotate()
+            plt.title(f'DCP1A {feature} {BATCH_TO_RUN}')
+            plt.savefig(os.path.join(OUTPUT_DIR_PLOTS, f'boxplot_{feature}_{BATCH_TO_RUN}.eps'), format='eps')
+            plt.savefig(os.path.join(OUTPUT_DIR_PLOTS, f'boxplot_{feature}_{BATCH_TO_RUN}.pdf'))
+            plt.clf()
+            logging.info(f'Saved boxplot of CP {feature} of DCP1A')
 
 
 def main():
@@ -279,8 +281,8 @@ def main():
     # logging.info('Finished combining output measurements for ')
     
     logging.info("Starting to plot data")
-    #plot_CP_features(os.path.join(OUTPUT_DIR_BATCH, 'combined', f'{MARKER}_all.csv'))
-    plot_CP_features_deltaNLS(os.path.join(OUTPUT_DIR_BATCH, 'combined', f'{MARKER}_all.csv'))
+    plot_CP_features(os.path.join(OUTPUT_DIR_BATCH, 'combined', f'{MARKER}_all.csv'))
+    #plot_CP_features_deltaNLS(os.path.join(OUTPUT_DIR_BATCH, 'combined', f'{MARKER}_all.csv'))
     logging.info(f'Finished plotting features of {INPUT_DIR_BATCH}')
 
 if __name__ == '__main__':

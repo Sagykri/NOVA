@@ -147,24 +147,13 @@ class SPDPreprocessor(Preprocessor):
         to_denoise          = self.to_denoise
         to_show             = self.to_show
         tiles_indexes       = get_if_exists(kwargs, 'tiles_indexes')
-        crop_frame_size     = self.crop_frame_size
         brenner_bounds      = self.brenner_bounds
         
         # Changing from skimage.load to cv2.load (with grayscale flag) -> changed to IMREAD_ANYDEPTH to read in 16bit format
         img_target = cv2.imread(file_path, cv2.IMREAD_ANYDEPTH) #used to be IMREAD_GRAYSCALE
-        ############################
-        # SAGY 041223
-        logging.info(f"Cropping the target site by ({crop_frame_size[0]}, {crop_frame_size[1]}) for (w,h)")
-        img_target = preprocessing_utils.crop_frame(img_target, crop_frame_size[0], crop_frame_size[1]) 
-        ############################
         
         if img_nucleus is None:
             img_nucleus = cv2.imread(nucleus_file, cv2.IMREAD_ANYDEPTH) #used to be IMREAD_GRAYSCALE
-            ############################
-            # SAGY 041223
-            logging.info(f"Cropping the dapi site by ({crop_frame_size[0]}, {crop_frame_size[1]}) for (w,h)")
-            img_nucleus = preprocessing_utils.crop_frame(img_nucleus, crop_frame_size[0], crop_frame_size[1])
-            ############################
         
         # Check if files are corrputed
         if img_target is None or np.size(img_target) == 0:

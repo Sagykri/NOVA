@@ -13,3 +13,4 @@ class SPD_Batch5dnls(SPDPreprocessingConfigdNLS):
         self.INPUT_FOLDERS = [os.path.join(self.RAW_SUBFOLDER_ROOT, "deltaNLS_sort", "batch5")]
         self.OUTPUT_FOLDERS = [os.path.join(self.PROCESSED_SUBFOLDER_ROOT, "deltaNLS","batch5")]
         
+        self.LOGS_FOLDER = os.path.join(self.OUTPUTS_SUBSUBFOLDER, 'logs', "preprocessing_Dec2023", "dNLS", 'batch5')        
