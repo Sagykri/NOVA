@@ -152,7 +152,6 @@ def plot_CP_features(file_path):
             ax = get_log_ax()
             # Plot with seaborn
             sns.boxplot(**plotting_parameters)
-            # TO DO: fix order of cell lines
             # Add annotations
             annotator = Annotator(ax, pairs, **plotting_parameters)
             annotator.set_pvalues(pvalues)
@@ -213,14 +212,42 @@ def plot_CP_features_deltaNLS(file_path):
     matrix = pd.read_csv(file_path)
     matrix = matrix[matrix['cell_line'] == 'TDP43']
     
+     # Create cell line dataframes for statistical testing below
+    untreated = matrix.loc[(matrix['treatment'] == 'Untreated')]
+    dox = matrix.loc[(matrix['treatment'] == 'dox')]
+    
     # Choose and change the features you want to plot
     features_to_plot = ['ObjectNumber', 'AreaShape_Area', 'Intensity_MeanIntensity_DCP1A', 
                         'Texture_Contrast_DCP1A_3_00_256', 'Texture_Contrast_DCP1A_3_01_256']
     
     for feature in features_to_plot:
+        # Check whether feature values are normally distributed and do appropriate statistics
+        res = stats.normaltest(matrix[feature])
+        if res.pvalue < 0.05:
+            logging.info(f'values of {feature} not normally distributed; calculating Mann Whitney')
+            stat_results = [stats.mannwhitneyu(untreated[feature], dox[feature], alternative="two-sided")]
+            logging.info(stat_results)
+            pvalues = [result.pvalue for result in stat_results]
+            pairs = [('untreated', 'dox')]
+            #formatted_pvalues = [f'p={pvalue:.2e}' for pvalue in pvalues]
+        else:
+            logging.info(f'values of {feature} normally distributed; calculating Tukey HSD')
+            tukey_df = posthoc_tukey(matrix, val_col=feature, group_col="treatment")
+            remove = np.tril(np.ones(tukey_df.shape), k=0).astype("bool")
+            tukey_df[remove] = np.nan
+            molten_df = tukey_df.melt(ignore_index=False).reset_index().dropna()
+            logging.info(molten_df)
+            pairs = [(i[1]["index"], i[1]["variable"]) for i in molten_df.iterrows()]
+            pvalues = [i[1]["value"] for i in molten_df.iterrows()]  
+        
         fig = plt.figure()
         my_pal = {'Untreated':'#494CB3', 'dox':'#90278E'}
-        sns.boxplot(data=matrix, x='treatment', y=feature, palette=my_pal)
+        plotting_parameters = {'data':matrix, 'x':'treatment', 'y':feature, 'palette':my_pal}
+        sns.boxplot(**plotting_parameters)
+        # Add annotations
+        annotator = Annotator(fig, pairs, **plotting_parameters)
+        annotator.set_pvalues(pvalues)
+        annotator.annotate()
         plt.title(f'DCP1A {feature}')
         fig.tight_layout()
         plt.savefig(os.path.join(OUTPUT_DIR_PLOTS, f'boxplot_{feature}.png'))
