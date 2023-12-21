@@ -11963,3 +11963,7 @@ MOmaps_RNASeq_fastq/Nancy/RNA/outputs/RNAseq/volcano_plot_FUS_WT.pdf
 MOmaps_RNASeq_fastq/Nancy/RNA/outputs/RNAseq/volcano_plot_OPTN_WT.pdf
 MOmaps_RNASeq_fastq/Nancy/RNA/outputs/RNAseq/volcano_plot_TBK1_WT.pdf
 MOmaps_RNASeq_fastq/Nancy/RNA/outputs/RNAseq/volcano_plot_TDP43_WT.pdf
+
+tools/lena/UMAPs/**/*.eps
+tools/lena/SM_UMAPs/**/*.eps
+outputs/figures/manuscript/**/**/**/**.tif_processed.npy
