@@ -38,9 +38,7 @@ class SPDPreprocessor(Preprocessor):
         self.to_normalize = get_if_exists(conf, 'TO_NORMALIZE')
         self.cellprob_threshold = get_if_exists(conf, 'CELLPROB_THRESHOLD')
         self.flow_threshold = get_if_exists(conf, 'FLOW_THRESHOLD')
-        self.cell_inclusion_prct = get_if_exists(conf, 'CELL_INCLUSION_PRCT')
         self.to_denoise = get_if_exists(conf, 'TO_DENOISE')
-        self.crop_frame_size = get_if_exists(conf, 'CROP_FRAME_SIZE')
         self.cell_lines_to_include = get_if_exists(conf, 'CELL_LINES_TO_INCLUDE')
         self.conf = conf
         
