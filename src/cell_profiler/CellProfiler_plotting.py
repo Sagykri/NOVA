@@ -22,7 +22,7 @@ from sklearn.metrics import adjusted_rand_score
 import sklearn.cluster as cluster
 
 # Global paths
-BATCH_TO_RUN = 'batch9' 
+BATCH_TO_RUN = 'deltaNLS_sort/batch2' 
 
 BASE_DIR = os.path.join('/home','labs','hornsteinlab','Collaboration','MOmaps')
 sys.path.insert(1, BASE_DIR)
@@ -110,7 +110,7 @@ def load_data_and_plot_UMAPs(input_path, stress = True):
            
             df = preprocessing(df)
             
-            plot_umap0(df, marker)
+            #plot_umap0(df, marker)
             
             all_markers_df.append(df)
             
@@ -132,7 +132,7 @@ def load_data_and_plot_UMAPs(input_path, stress = True):
         return None
                   
             
-def preprocessing(features_df, use_condition='stress', exclude_cols=['Parent_Nucleus', 'object_type', 'Unnamed: 0_PrimaryObject1', 'Unnamed: 0_PrimaryObject2', 'Unnamed: 0_SecondaryObject']):
+def preprocessing(features_df, use_condition='deltaNLS', exclude_cols=['Parent_Nucleus', 'object_type', 'Unnamed: 0_PrimaryObject1', 'Unnamed: 0_PrimaryObject2', 'Unnamed: 0_SecondaryObject']):
     """
     Prepare the data for clustering
     - Included desired condition
@@ -152,16 +152,17 @@ def preprocessing(features_df, use_condition='stress', exclude_cols=['Parent_Nuc
     # Take the desired condition and corresponding columns
     if use_condition == 'stress':
         df = df.loc[df['cell_line'] == 'WT'] #shortcut now because only WT has stress / no stress
-        df.drop(exclude_cols, axis = 1, inplace=True)
     elif use_condition == 'LPS':
         df = df.loc[df['treatment'] == use_condition]
-        df.drop(exclude_cols, axis=1, inplace=True)
         df.drop('treatment', axis=1, inplace=True)
     elif use_condition == 'Untreated':
         df = df.loc[df['treatment'] == use_condition]
-        df.drop(exclude_cols, axis=1, inplace=True)
         df.drop('treatment', axis=1, inplace=True)
+    elif use_condition == 'deltaNLS':
+        df = df.loc[df['cell_line'] == 'TDP43']
     
+    df.drop(exclude_cols, axis=1, inplace=True)
+        
     # Data was converted to type 'object', so convert back to float to support UMAP
     cols_to_convert = [col for col in df.columns if col not in ['replicate', 'treatment', 'cell_line', 'marker']]
     df[cols_to_convert] = df[cols_to_convert].apply(pd.to_numeric)
@@ -533,7 +534,7 @@ def customized_plot():
             
 def main():
     logging.info(f"\n\nStarting to plot marker UMAPs from Cell Profiler output of batch: {INPUT_DIR_BATCH}")
-    load_data_and_plot_UMAPs(INPUT_DIR_BATCH)
+    load_data_and_plot_UMAPs(INPUT_DIR_BATCH, stress = False)
     #plot_umap2(INPUT_DIR_BATCH)
     #customized_plot()
     logging.info(f"\n\nFinished plotting marker UMAPs from Cell Profiler output of batch: {INPUT_DIR_BATCH}")
