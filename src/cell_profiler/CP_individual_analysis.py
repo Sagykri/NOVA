@@ -11,6 +11,9 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 from matplotlib.gridspec import GridSpec
 from functools import partial
+import scipy.stats as stats
+#from scikit_posthocs import posthoc_tukey
+from statannotations.Annotator import Annotator
 
 
 BASE_DIR = os.path.join('/home','labs','hornsteinlab','Collaboration','MOmaps')
@@ -21,7 +24,7 @@ from src.cell_profiler.CellProfiler_unbiased_analysis import *
 from src.cell_profiler.CellProfiler_combine_output import *
 
 # Global paths
-BATCH_TO_RUN = 'batch6' 
+BATCH_TO_RUN = 'batch9' 
 MARKER = 'ANXA11'
 
 INPUT_DIR = os.path.join(BASE_DIR, 'input','images', 'raw', 'SpinningDisk')
@@ -72,6 +75,21 @@ def get_measurements(input_path, marker = MARKER):
     
     return marker_dict
 
+def get_log_ax(orient="v"):
+    """ 
+    From https://github.com/trevismd/statannotations-tutorials/blob/main/Tutorial_1/utils.py
+    """
+    if orient == "v":
+        figsize = (10, 6)
+        set_scale = "set_yscale"
+    else:
+        figsize = (10, 8)
+        set_scale = "set_xscale"
+    fig, ax = plt.subplots(1, 1, figsize=figsize)
+    fig.patch.set_alpha(1)
+    getattr(ax, set_scale)("log")
+    return ax
+
 def plot_CP_features(file_path):
     
     """
@@ -81,20 +99,72 @@ def plot_CP_features(file_path):
     logging.info(f'Starting to plot CP features of {INPUT_DIR_BATCH}')
     matrix = pd.read_csv(file_path)
     matrix = matrix.loc[matrix['treatment'] == 'Untreated'] 
+    # Keep desired lines for comparison
     matrix = matrix.loc[(matrix['cell_line'] == 'WT') | (matrix['cell_line'] == 'FUSHomozygous') | (matrix['cell_line'] == 'FUSHeterozygous') | (matrix['cell_line'] == 'FUSRevertant')]
     
+    # Create cell line dataframes for statistical testing below
+    WT = matrix.loc[(matrix['cell_line'] == 'WT')]
+    FUSHomozygous = matrix.loc[(matrix['cell_line'] == 'FUSHomozygous')]
+    FUSHeterozygous = matrix.loc[(matrix['cell_line'] == 'FUSHeterozygous')]
+    FUSRevertant = matrix.loc[(matrix['cell_line'] == 'FUSRevertant')]
+    
     # Choose and change the features you want to plot
-    features_to_plot = ['Intensity_MeanIntensity_ANXA11', 'RadialDistribution_FracAtD_ANXA11_1of4',
-                        'Texture_Contrast_ANXA11_3_00_256', 'Texture_Contrast_ANXA11_3_01_256']
+    features_to_plot = ['Intensity_MeanIntensity_ANXA11', 'Intensity_MaxIntensity_ANXA11',
+                        'RadialDistribution_FracAtD_ANXA11_1of4', 'RadialDistribution_FracAtD_ANXA11_2of4',
+                        'RadialDistribution_FracAtD_ANXA11_3of4', 'RadialDistribution_FracAtD_ANXA11_4of4',
+                        'Texture_Contrast_ANXA11_3_00_256', 'Texture_Contrast_ANXA11_3_01_256', 'Texture_Variance_ANXA11_3_00_256']
     
     for feature in features_to_plot:
-        fig = plt.figure()
-        sns.boxplot(data=matrix, x='cell_line', y=feature)
-        plt.title(f'{MARKER} {feature}')
-        fig.tight_layout()
-        plt.savefig(os.path.join(OUTPUT_DIR_PLOTS, f'boxplot_{feature}_{BATCH_TO_RUN}.png'))
-        plt.clf()
-        logging.info(f'Saved boxplot of CP {feature} of {MARKER} in {BATCH_TO_RUN}')
+        res = stats.normaltest(matrix[feature])
+        if res.pvalue < 0.05:
+            logging.info(f'values of {feature} not normally distributed; calculating Mann Whitney')
+            stat_results = [stats.mannwhitneyu(WT[feature], FUSHomozygous[feature], alternative="two-sided"),
+                            stats.mannwhitneyu(WT[feature], FUSHeterozygous[feature], alternative="two-sided"),
+                            stats.mannwhitneyu(WT[feature], FUSRevertant[feature], alternative="two-sided"),
+                            stats.mannwhitneyu(FUSHomozygous[feature], FUSHeterozygous[feature], alternative="two-sided"),
+                            stats.mannwhitneyu(FUSHomozygous[feature], FUSRevertant[feature], alternative="two-sided"),
+                            stats.mannwhitneyu(FUSHeterozygous[feature], FUSRevertant[feature], alternative="two-sided"),]
+            pvalues = [result.pvalue for result in stat_results]
+            #formatted_pvalues = [f'p={pvalue:.2e}' for pvalue in pvalues]
+
+            my_pal = {'WT':'#00668B', 'FUSHomozygous':'#6E3B0B', 'FUSHeterozygous':'#A86343', 'FUSRevertant':'#C7A036'}
+            plotting_parameters = {'data':matrix, 'x':'cell_line', 'y':feature, 'showfliers':False, 'palette':my_pal}
+            pairs = [('WT', 'FUSHomozygous'), ('WT', 'FUSHeterozygous'), ('WT', 'FUSRevertant'),
+                     ('FUSHomozygous', 'FUSHeterozygous'), ('FUSHomozygous', 'FUSRevertant'),
+                     ('FUSHeterozygous', 'FUSRevertant')]
+            with sns.plotting_context('notebook', font_scale = 1.4):
+                # Create new plot
+                #fig = plt.figure()
+                ax = get_log_ax()
+                # Plot with seaborn
+                sns.boxplot(**plotting_parameters)
+                # TO DO: fix order of cell lines
+                # Add annotations
+                annotator = Annotator(ax, pairs, **plotting_parameters)
+                annotator.set_pvalues(pvalues)
+                annotator.annotate()
+                # Label and save
+                plt.title(f'{MARKER} {feature} {BATCH_TO_RUN}')
+                ax.set_xlabel("cell line")
+                #fig.tight_layout()
+                plt.savefig(os.path.join(OUTPUT_DIR_PLOTS, f'boxplot_{feature}_{BATCH_TO_RUN}.png'))
+                plt.clf()
+                logging.info(f'Saved boxplot of CP {feature} of {MARKER} in {BATCH_TO_RUN}')
+            
+        else:
+            logging.info(f'values of {feature} normally distributed; calculating Tukey HSD')
+            tukey_df = posthoc_tukey(matrix, val_col=feature, group_col="cell_line")
+            
+            #stat_results = stats.tukey_hsd(WT[feature], FUSHomozygous[feature], FUSHeterozygous[feature], FUSRevertant[feature])
+        logging.info(stat_results)                       
+        
+        # fig = plt.figure()
+        # sns.boxplot(data=matrix, x='cell_line', y=feature, showfliers = False)
+        # plt.title(f'{MARKER} {feature}')
+        # fig.tight_layout()
+        # plt.savefig(os.path.join(OUTPUT_DIR_PLOTS, f'boxplot_{feature}_{BATCH_TO_RUN}.png'))
+        # plt.clf()
+        # logging.info(f'Saved boxplot of CP {feature} of {MARKER} in {BATCH_TO_RUN}')
 
 # Specifically for deltaNLS, file structure is different
 def get_measurements_deltaNLS(input_path, marker = MARKER):

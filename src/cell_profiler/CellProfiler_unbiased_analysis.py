@@ -187,14 +187,14 @@ def find_marker_folders(batch_path, output_dir, depth=4, individual = False, tox
                     continue
                 
                 #if analyzing specific marker, skip all but that one
-                elif (individual == True) and (marker_name == 'ANXA11'):
-                    logging.info('Running individual analysis')
-                    if len(os.listdir(output_folder)) == 4:
+                elif (individual == True) and (marker_name == 'DCP1A'):
+                    logging.info('Running individual analysis of DCP1A')
+                    if len(os.listdir(output_folder)) == 7:
                         logging.info(f"Marker already analyzed: {output_folder}")
                         continue
                     else:
                         yield [entry.path, output_folder]   
-                elif (individual == True) and (marker_name != 'ANXA11'):
+                elif (individual == True) and (marker_name != 'DCP1A'):
                     continue
                 #for toxicity analysis
                 elif toxicity == True:
@@ -229,7 +229,7 @@ def main():
     # create a process pool that uses all cpus
     with Pool(5) as pool:
         # call the analyze_marker() function for each marker folder in parallel
-        for result in pool.map(partial(analyze_marker, pipeline_path = pipeline_path), find_marker_folders(batch_path=INPUT_DIR_BATCH, output_dir = OUTPUT_DIR, depth=5)):
+        for result in pool.map(partial(analyze_marker, pipeline_path = pipeline_path), find_marker_folders(batch_path=INPUT_DIR_BATCH, output_dir = OUTPUT_DIR, individual = True, depth=5)):
             logging.info(result)
 
     logging.info("Terminating the java utils and process pool (killing all tasks...)")
