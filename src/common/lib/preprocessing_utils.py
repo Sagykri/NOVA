@@ -32,7 +32,7 @@ def crop_frame(original_image, w=12,h=12):
     return cropped_image
 
 def filter_invalid_tiles(file_name, img, nucleus_diameter=100, cellprob_threshold=0,\
-                          flow_threshold=0.7, cell_inclusion_prct = 0.85, tile_w=100,tile_h=100,
+                          flow_threshold=0.7, tile_w=100,tile_h=100,
                           calculate_nucleus_distance=False,
                           cp_model=None, show_plot=True, return_counts=False):
     """
@@ -76,55 +76,40 @@ def filter_invalid_tiles(file_name, img, nucleus_diameter=100, cellprob_threshol
     if show_plot:
         tiles = crop_to_tiles(tile_w, tile_h, img)
     
-    hist, bins = np.histogram(masks, bins=range(masks.max()+2))
-    value_counts_dict = dict(zip(bins[:-1], hist))
-    
+    min_edge_distance = 2
     for i in range(n_masked_tiles):
         mask = masked_tiles[i]
-
         # Nuclues seg
         logging.info(f"[{file_name}] Tile number {i} out of {n_masked_tiles}")
         
-        if show_plot:
-            _, ax = plt.subplots(1,2)
-            ax[0].imshow(tiles[i,...,0], vmin=0, vmax=1)
-            ax[1].imshow(tiles[i,...,1], vmin=0, vmax=1)
-            plt.show()
-
         """
         Filter tiles with no nuclues
         """
-        is_valid = False
-        cur_n_whole_cells = 0
-        current_nucs = np.unique(mask)
-        if current_nucs.size == 1: # no object found in this tile but background (by cellpose)
-            n_cells_per_tile.append(0)
-            n_whole_cells_per_tile.append(0)
-            continue
-
-        for current_nuc in current_nucs:
-            if current_nuc == 0 :
-                continue
-
-            current_nuc_count = np.count_nonzero(mask == current_nuc)
-            if (current_nuc_count / value_counts_dict[current_nuc]) >= cell_inclusion_prct:
-                is_valid = True
-                cur_n_whole_cells+=1
-        
         outlines = cellpose.utils.outlines_list(mask)
         polys_nuclei = [Polygon(xy_to_tuple(o)) for o in outlines]
-        
+
+
+        # Build polygon of image's edges
+        img_edges = Polygon([[min_edge_distance,min_edge_distance],\
+                        [min_edge_distance,tile_h-min_edge_distance],\
+                        [tile_w-min_edge_distance,tile_h-min_edge_distance],\
+                        [tile_w-min_edge_distance,min_edge_distance]])
+
+        # Is there any nuclues inside the image boundries?
+        is_covered = [p.covered_by(img_edges) for p in polys_nuclei]
+        is_valid = any(is_covered)
+
         #####################################################################
         ############# 210722: New constraint - only 1-5 nuclei per tile #####
         is_valid = is_valid and (len(polys_nuclei) >= 1 and len(polys_nuclei) <= 5)
         #####################################################################
 
-        n_cells_per_tile.append(len(current_nucs)-1)
-        n_whole_cells_per_tile.append(cur_n_whole_cells)
-
+        n_cells_per_tile.append(len(polys_nuclei))
+        n_whole_cells = sum(np.asarray(is_covered)) if len(is_covered) > 0 else 0
+        n_whole_cells_per_tile.append(n_whole_cells)
         if is_valid:
             tiles_passed_indexes.append(i)
-        
+
     n_cells_per_tile = np.asarray(n_cells_per_tile)
     n_whole_cells_per_tile = np.asarray(n_whole_cells_per_tile)
     tiles_passed_indexes = np.asarray(tiles_passed_indexes)
@@ -369,11 +354,6 @@ def preprocess_image_pipeline(img, save_path, n_channels=2,
                 # Resize from 128x128 to 100x100
                 tile_current_channel = transform.resize(tile_current_channel, (100, 100), anti_aliasing=True)
             
-            # Min max scaling
-            tile_min = np.min(tile_current_channel, axis=None)
-            tile_current_channel = (tile_current_channel - tile_min) / (np.max(tile_current_channel, axis=None) - tile_min)
-            logging.info(f"Tile (c) min, max: {np.min(tile_current_channel)}, {np.max(tile_current_channel)}")
-                        
             if tile_processed is None:
                 tile_processed = tile_current_channel
             else:
@@ -470,20 +450,12 @@ def preprocess_panel(slf, panel, input_folder_root,
                         tile_height             = slf.tile_height
                         cellprob_threshold      = slf.cellprob_threshold
                         flow_threshold          = slf.flow_threshold
-                        cell_inclusion_prct     = slf.cell_inclusion_prct
                         to_show                 = slf.to_show
                         with_nucelus_distance   = slf.conf.WITH_NUCLEUS_DISTANCE
-                        crop_frame_size         = slf.crop_frame_size
                         brenner_bounds          = slf.brenner_bounds
 
                         # Crop DAPI tiles
                         img_nucleus = cv2.imread(nucleus_filepath, cv2.IMREAD_ANYDEPTH) #used to be IMREAD_GRAYSCALE
-                        
-                        ############################
-                        # SAGY 041223
-                        logging.info(f"Cropping DAPI by ({crop_frame_size[0]}, {crop_frame_size[1]}) for (w,h)")
-                        img_nucleus = crop_frame(img_nucleus, crop_frame_size[0], crop_frame_size[1]) 
-                        ############################
                         
                         logging.info("Rescaling intensity of DAPI")
                         img_nucleus = rescale_intensity(img_nucleus)
@@ -505,7 +477,6 @@ def preprocess_panel(slf, panel, input_folder_root,
                                                                                                                                                             nucleus_diameter=nucleus_diameter, 
                                                                                                                                                             cellprob_threshold=cellprob_threshold,
                                                                                                                                                             flow_threshold=flow_threshold, 
-                                                                                                                                                            cell_inclusion_prct = cell_inclusion_prct,
                                                                                                                                                             tile_w=tile_width, tile_h=tile_height, 
                                                                                                                                                             cp_model=cp_model,
                                                                                                                                                             calculate_nucleus_distance=with_nucelus_distance,
