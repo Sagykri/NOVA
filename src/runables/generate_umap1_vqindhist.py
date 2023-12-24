@@ -142,6 +142,7 @@ def __generate_with_load(config_model, config_data, dataset, model, output_folde
     map_labels_function = get_if_exists(config_data, 'MAP_LABELS_FUNCTION', None)
     if map_labels_function is not None:
         map_labels_function = eval(map_labels_function)(config_data)
+
     
     model.plot_umap(embedding_data=embeddings,
                     label_data=labels,
@@ -151,7 +152,8 @@ def __generate_with_load(config_model, config_data, dataset, model, output_folde
                     alpha=alpha,
                     s=size,
                     reset_umap=True,
-                    map_labels_function=map_labels_function)
+                    map_labels_function=map_labels_function,
+                    config_data=config_data)
     
     logging.info(f"UMAP saved successfully to {savepath}")
     return None
