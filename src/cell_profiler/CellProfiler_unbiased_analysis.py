@@ -11,15 +11,16 @@ from glob import glob
 import logging
 import pathlib
 import os
+from functools import partial
 
 # Global paths
-BATCH_TO_RUN = 'batch4' 
-LINE_TO_RUN = 'WT'
+BATCH_TO_RUN = 'deltaNLS_sort/batch3' 
+#LINE_TO_RUN = 'WT'
 
 BASE_DIR = os.path.join('/home','labs','hornsteinlab','Collaboration','MOmaps')
 INPUT_DIR = os.path.join(BASE_DIR, 'input','images','raw','SpinningDisk')
 INPUT_DIR_BATCH = os.path.join(INPUT_DIR, BATCH_TO_RUN)
-INPUT_DIR_LINE = os.path.join(INPUT_DIR_BATCH, LINE_TO_RUN)
+#INPUT_DIR_LINE = os.path.join(INPUT_DIR_BATCH, LINE_TO_RUN)
 OUTPUT_DIR = os.path.join(BASE_DIR, 'outputs','cell_profiler')
 
 LOG_DIR_PATH = os.path.join(OUTPUT_DIR, 'logs')
@@ -83,6 +84,8 @@ def collect_image_names_per_marker(input_data_dir):
     for file in os.listdir(input_data_dir):
         filename, ext = os.path.splitext(file)
         if ext == '.tif':
+            # Change name of duplicated file names
+            # file = file.replace(' (2)', '2')
             image_filename = os.path.join(input_data_dir, file)
             file_list.append(pathlib.Path(image_filename))    # CP requires absolute file paths
             
@@ -150,7 +153,7 @@ def analyze_marker(input_and_output_path_list, pipeline_path = os.path.join(BASE
     return f"\n\nFinished extracting features for {input_data_dir}"
 
 
-def find_marker_folders(batch_path, depth=4, individual = False, toxicity = False):
+def find_marker_folders(batch_path, output_dir, depth=4, individual = False, toxicity = False):
     """ 
     For a given batch (defined by "batch_path") it "walks" to its subfolders (until "depth" is reached) 
     and returns for every marker a list of relevant paths (AKA, [input_path, output_path] )
@@ -166,15 +169,14 @@ def find_marker_folders(batch_path, depth=4, individual = False, toxicity = Fals
         for entry in input_data_folder:
             if entry.is_dir(): 
                 # replace the prefix of the full path 
-                output_folder = entry.path.replace(INPUT_DIR, OUTPUT_DIR)
-                logging.info(f'{output_folder}')
+                output_folder = entry.path.replace(INPUT_DIR, output_dir)
                 # create output folder
                 if not os.path.exists(output_folder):
                     os.makedirs(output_folder)
     
             # if that's not a marker directory, recursion...
             if entry.is_dir() and depth > 0:
-                yield from find_marker_folders(entry.path, depth, individual, toxicity)
+                yield from find_marker_folders(entry.path, output_dir, depth, individual, toxicity)
             
             
             # if that's a marker directory
@@ -183,16 +185,25 @@ def find_marker_folders(batch_path, depth=4, individual = False, toxicity = Fals
                 #skip nucleus 
                 if marker_name=='DAPI':
                     continue
+                
                 #if analyzing specific marker, skip all but that one
-                elif (individual == True) and (marker_name == 'ANXA11'):
-                    logging.info('Running individual analysis')
-                    yield [entry.path, output_folder]    
-                elif (individual == True) and (marker_name != 'ANXA11'):
+                elif (individual == True) and (marker_name == 'DCP1A'):
+                    logging.info('Running individual analysis of DCP1A')
+                    if len(os.listdir(output_folder)) == 7:
+                        logging.info(f"Marker already analyzed: {output_folder}")
+                        continue
+                    else:
+                        yield [entry.path, output_folder]   
+                elif (individual == True) and (marker_name != 'DCP1A'):
                     continue
                 #for toxicity analysis
                 elif toxicity == True:
                     logging.info('Running toxicity analysis')
-                    yield [entry.path, output_folder]
+                    if len(os.listdir(output_folder)) == 4:
+                        logging.info(f"Marker already analyzed: {output_folder}")
+                        continue
+                    else:
+                        yield [entry.path, output_folder]
                 
                 else: 
                     #skip analyzed markers
@@ -208,16 +219,17 @@ def find_marker_folders(batch_path, depth=4, individual = False, toxicity = Fals
 def main():
 
     logging.info(f"\n\nStarting to run Cell Profiler pipeline on batch: {BATCH_TO_RUN}") 
-    logging.info(f"\n\nStarting to run Cell Profiler pipeline on line: {LINE_TO_RUN}")
+    #logging.info(f"\n\nStarting to run Cell Profiler pipeline on line: {LINE_TO_RUN}")
 
     # TODO: nancy, optimize, can we call this once and broadcast to all multi-processing pools?
     #global pipeline
     #pipeline = init_cell_profiler()
     
+    pipeline_path = os.path.join(BASE_DIR,'src','cell_profiler','pipelines','CellProfiler_unbiased-analysis_minimal.cppipe')
     # create a process pool that uses all cpus
     with Pool(5) as pool:
         # call the analyze_marker() function for each marker folder in parallel
-        for result in pool.imap_unordered(analyze_marker, find_marker_folders(batch_path=INPUT_DIR_LINE, depth=4)):
+        for result in pool.map(partial(analyze_marker, pipeline_path = pipeline_path), find_marker_folders(batch_path=INPUT_DIR_BATCH, output_dir = OUTPUT_DIR, individual = True, depth=5)):
             logging.info(result)
 
     logging.info("Terminating the java utils and process pool (killing all tasks...)")

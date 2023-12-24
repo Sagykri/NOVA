@@ -34,7 +34,7 @@ OUTPUT_DIR_BATCH = os.path.join(OUTPUT_DIR, 'toxicity2')
 LOG_DIR_PATH = os.path.join(OUTPUT_DIR, 'logs')
 
                     
-def retrieve_features(input_path):
+def retrieve_toxicity(input_path):
     
     logging.info(f'Collecting CP measurements for marker: {input_path}')
     
@@ -82,32 +82,26 @@ def main():
 
     logging.info(f"\n\nStarting to run toxicity analysis on batch: {BATCH_TO_RUN}") 
     
-    pipeline_path = os.path.join(BASE_DIR,'src','cell_profiler','pipelines','toxicity_analysis.cppipe')
+    # pipeline_path = os.path.join(BASE_DIR,'src','cell_profiler','pipelines','toxicity2_analysis.cppipe')
 
-    res = find_marker_folders(batch_path=INPUT_DIR_BATCH, depth=3, toxicity = True)
-    for tmp in res:
-        analyze_marker(tmp, pipeline_path=pipeline_path)
-        quit()
+    # # create a process pool that uses all cpus
+    # with Pool(5) as pool:
+    #     results = pool.map(partial(analyze_marker, pipeline_path=pipeline_path), find_marker_folders(batch_path=INPUT_DIR_BATCH, output_dir = OUTPUT_DIR, depth=3, toxicity = True))
+    #     for result in results:
+    #         logging.info(result)
+
+    #     logging.info("Terminating the java utils and process pool (killing all tasks...)")
+    #     # # stop java                
+    #     cellprofiler_core.utilities.java.stop_java()
+    #     # # forcefully terminate the process pool and kill all tasks
+    #     pool.terminate()        
+
+    # logging.info("Starting to collect and plot data")
+    from src.cell_profiler.CellProfiler_combine_output import find_marker_folders_output
     
-    
-    if False: #NANC
-        # create a process pool that uses all cpus
-        with Pool(5) as pool:
-            # call the analyze_marker() function for each marker folder in parallel
-            results = pool.map(partial(analyze_marker, pipeline_path=pipeline_path), find_marker_folders(batch_path=INPUT_DIR_BATCH, depth=3, toxicity = True))
-            for result in results:
-                logging.info(result)
-
-        logging.info("Terminating the java utils and process pool (killing all tasks...)")
-        # # stop java                
-        cellprofiler_core.utilities.java.stop_java()
-        # # forcefully terminate the process pool and kill all tasks
-        pool.terminate()        
-
-    logging.info("Starting to collect and plot data")
     frames = []
-    for sub_folder in find_marker_folders(batch_path=OUTPUT_DIR_BATCH, depth=3):
-        results = retrieve_features(sub_folder[0])
+    for sub_folder in find_marker_folders_output(batch_path=OUTPUT_DIR_BATCH, depth=3):
+        results = retrieve_toxicity(sub_folder)
         frames.append(results)
     
     combine_and_plot(frames)

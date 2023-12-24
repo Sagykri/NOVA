@@ -13,3 +13,4 @@ class SPD_Batch2dnls(SPDPreprocessingConfigdNLS):
         self.INPUT_FOLDERS = [os.path.join(self.RAW_SUBFOLDER_ROOT, "deltaNLS_sort", "batch2")]
         self.OUTPUT_FOLDERS = [os.path.join(self.PROCESSED_SUBFOLDER_ROOT, "deltaNLS","batch2")]
         
+        self.LOGS_FOLDER = os.path.join(self.OUTPUTS_SUBSUBFOLDER, 'logs', "preprocessing_Dec2023", "dNLS", 'batch2')        

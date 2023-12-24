@@ -35,8 +35,9 @@ def correlate_dimensions(df, stress = False):
     else:
         umap_df = df.drop(['replicate', 'marker', 'Unnamed: 0'], axis=1, inplace=False)
         # If taking specific cell lines:
-        umap_df = umap_df.loc[(umap_df['cell_line'] == 'WT') | (umap_df['cell_line'] == 'FUSHeterozygous') | (umap_df['cell_line'] == 'FUSRevertant')]
-        
+        #umap_df = umap_df.loc[(umap_df['cell_line'] == 'WT') | (umap_df['cell_line'] == 'FUSHeterozygous') | (umap_df['cell_line'] == 'FUSHomozygous') | (umap_df['cell_line'] == 'FUSRevertant')]
+        umap_df = umap_df.loc[(umap_df['cell_line'] == 'WT') | (umap_df['cell_line'] == 'FUSHeterozygous')]
+
         umap_df.set_index('cell_line', inplace=True)
     
     print(f'number of features: {len(umap_df.columns)}')
@@ -72,7 +73,7 @@ def correlate_dimensions(df, stress = False):
         corr_df.to_csv(os.path.join(OUTPUT_DIR, f'feature-correlation_{marker}_stress_{BATCH_TO_RUN}.csv'))
     else:
         #corr_df.to_csv(os.path.join(OUTPUT_DIR, f'feature-correlation_{marker}_lines_{BATCH_TO_RUN}.csv'))
-        corr_df.to_csv(os.path.join(OUTPUT_DIR, f'feature-correlation_{marker}_WT_FUSHetero_FUSRev_{BATCH_TO_RUN}.csv'))
+        corr_df.to_csv(os.path.join(OUTPUT_DIR, f'feature-correlation_{marker}_WT_FUSHetero_{BATCH_TO_RUN}.csv'))
 
     # Boxplots of top 10 and bottom 10 features
     #corr_df.head(10)
@@ -83,7 +84,7 @@ def main():
     
     #for marker in ['G3BP1', 'FMRP', 'TOMM20', 'mitotracker', 'PURA', 'PML', 'TDP43']:
     #    correlate_dimensions(get_data(INPUT_DIR_BATCH, marker))
-    correlate_dimensions(get_data(INPUT_DIR_BATCH, 'SQSTM1'))
+    correlate_dimensions(get_data(INPUT_DIR_BATCH, 'ANXA11'))
 
 if __name__ == '__main__':
     

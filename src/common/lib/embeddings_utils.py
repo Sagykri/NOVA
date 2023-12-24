@@ -235,13 +235,13 @@ def calc_spectral_features(model, datasets_list, output_folder, save=True, outpu
         for i, images_batch in enumerate(datasets_list[set_index]):
             images_spectral_features, images_labels, processed_images_path, save_paths = do_indhist_inference(images_batch, images_spectral_features, images_labels, processed_images_path, save_paths, output_layer,output_folder)
         images_spectral_features = np.concatenate(images_spectral_features)
-        save(images_spectral_features, images_labels, processed_images_path, save_paths, f"{set_type}set", output_layer)
+        save(images_spectral_features, images_labels, processed_images_path, save_paths, set_type, output_layer)
         return None
     
     if len(datasets_list)==3:
-        do_indhist_inference_for_set('train', 0 , datasets_list, output_layer, output_folder)
-        do_indhist_inference_for_set('val', 1 , datasets_list, output_layer, output_folder)
-        do_indhist_inference_for_set('test', 2 , datasets_list, output_layer, output_folder)
+        do_indhist_inference_for_set('trainset', 0 , datasets_list, output_layer, output_folder)
+        do_indhist_inference_for_set('valset', 1 , datasets_list, output_layer, output_folder)
+        do_indhist_inference_for_set('testset', 2 , datasets_list, output_layer, output_folder)
         
     elif len(datasets_list)==1:
         do_indhist_inference_for_set('all', 0 , datasets_list, output_layer, output_folder)
@@ -301,6 +301,9 @@ def load_indhists(config_path_model=None, config_path_data=None,
     cell_lines = get_if_exists(config_data, 'CELL_LINES', None)
     logging.info(f"[load_indhists] cell_lines = {cell_lines}")
 
+    conditions = get_if_exists(config_data, 'CONDITIONS', None)
+    logging.info(f"[load_indhists] conditions = {conditions}")
+
     markers_to_exclude = get_if_exists(config_data, 'MARKERS_TO_EXCLUDE', None)
     logging.info(f"[load_indhists] markers_to_exclude = {markers_to_exclude}")
     
@@ -310,7 +313,7 @@ def load_indhists(config_path_model=None, config_path_data=None,
     reps = get_if_exists(config_data, 'REPS', None)
     logging.info(f"[load_indhists] reps = {reps}")
 
-    batches = [folder.split(os.sep)[-1].split("_")[0].replace('batch','') for folder in input_folders]
+    batches = [folder.split(os.sep)[-1] for folder in input_folders]
     embeddnigs_folder = os.path.join(model_output_folder, 'embeddings', 
                                      experiment_type, embeddings_layer)
     vqindhist, labels, paths = load_multiple_vqindhists(batches = batches,
@@ -319,16 +322,20 @@ def load_indhists(config_path_model=None, config_path_data=None,
                                                         embeddings_layer = embeddings_layer)
     
     hist_df, _ = create_vqindhists_df(vqindhist, labels, paths)
+    logging.info(f"[load_indhists] hist_df.shape = {hist_df.shape}")
+    
     if cell_lines_conds:
-        hist_df = hist_df[hist_df.label.str.contains('|'.join(cell_lines_conds), regex=True)]
+        hist_df = hist_df[hist_df.label.str.contains('|'.join(cell_lines_conds), regex=True)]        
     if markers_to_exclude:
-        hist_df = hist_df[~hist_df.label.str.startswith(tuple(markers_to_exclude))]
+        hist_df = hist_df[~hist_df.label.str.startswith(tuple(markers_to_exclude))]        
     if markers:
-        hist_df = hist_df[hist_df.label.str.startswith(tuple(markers))]
+        hist_df = hist_df[hist_df.label.str.startswith(tuple(markers))]        
     if cell_lines:
-        hist_df = hist_df[hist_df['label'].str.split('_', expand=True)[1].isin(cell_lines)]
+        hist_df = hist_df[hist_df['label'].str.split('_', expand=True)[1].isin(cell_lines)]        
+    if conditions:
+        hist_df = hist_df[hist_df['label'].str.contains('|'.join(conditions), regex=True)]        
     if reps:
-        hist_df = hist_df[hist_df['label'].str.contains('|'.join(reps), regex=True)]
+        hist_df = hist_df[hist_df['label'].str.contains('|'.join(reps), regex=True)]        
 
     all_embedings_data = np.array(hist_df.drop(columns='label'))
     logging.info(f'all_embedings_data shape: {all_embedings_data.shape}')

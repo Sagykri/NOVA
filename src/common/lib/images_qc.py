@@ -5,6 +5,7 @@ sys.path.insert(1, os.getenv("MOMAPS_HOME"))
 import numpy as np
 import seaborn as sns
 import matplotlib.pyplot as plt
+from matplotlib.ticker import MultipleLocator
 import random
 import cv2
 from src.common.lib.preprocessing_utils import rescale_intensity
@@ -20,6 +21,8 @@ import pathlib
 from src.common.lib.qc_config_tmp import *
 from src.common.lib.calc_dataset_variance import _multiproc_calc_variance
 import re
+import warnings
+
 
 MOMAPS_HOME = '/home/labs/hornsteinlab/Collaboration/MOmaps/'
 BASE_DIR = os.path.join('/home','labs','hornsteinlab','Collaboration','MOmaps')
@@ -138,7 +141,7 @@ def validate_folder_structure(root_dir, folder_structure, missing_paths, bad_fil
                 bad_files, batch_df = validate_files_raw(path, batch_df, bad_files, marker_info, cell_lines_for_disp)
 
                 
-    return missing_paths, bad_files, batch_df
+    return missing_paths, bad_files, batch_df   
 
 def display_diff(batches, raws, procs, plot_path, fig_height=8, fig_width=8):
     for batch_proc, batch_raw, batch in zip(procs, raws,batches):
@@ -148,33 +151,44 @@ def display_diff(batches, raws, procs, plot_path, fig_height=8, fig_width=8):
         print('=' * 8)
 
 def get_array_sum(array_string):
+    if pd.isna(array_string):
+        return None
     # Remove square brackets and split the string into individual elements
     elements = array_string[1:-1].split()
     # Convert elements to integers and create the NumPy array
     array = np.array([int(elem) for elem in elements])
     return np.sum(array)
 
+def convert_to_list(array_string):
+    if pd.isna(array_string):
+        return None
+    string_list =  re.findall(r'\d+', array_string)
+    int_list = [int(x) for x in string_list]
+    return int_list
+
 def log_files_qc(LOGS_PATH):
     files_pds = []
 
     # Go over all files under logs
-    for file in os.listdir(LOGS_PATH):
-        # Take only "cell_count_stats" CSV files
-        if file.endswith(".csv") and file.startswith("cell_count_stats"):
+    for batch_folder in os.listdir(LOGS_PATH):
+        print(f"reading logs of {batch_folder}")
+        for file in os.listdir(os.path.join(LOGS_PATH, batch_folder)):
+            # Take only "cell_count_stats" CSV files
+            if file.endswith(".csv") and file.startswith("cell_count_stats"):
 
-            # Load each CSV
-            df = pd.read_csv(os.path.join(LOGS_PATH,file), 
-                             index_col=None, 
-                             header=0, 
-                             # NY: converters make the code slow...
-                             #converters={'cells_counts': pd.eval, 'whole_cells_counts': pd.eval}
-                            )
+                # Load each CSV
+                df = pd.read_csv(os.path.join(LOGS_PATH,batch_folder,file), 
+                                index_col=None, 
+                                header=0, 
+                                # NY: converters make the code slow...
+                                #converters={'cells_counts': pd.eval, 'whole_cells_counts': pd.eval}
+                                )
 
-            ##print(file, df.shape) 
+                ##print(file, df.shape) 
 
-            # Combine them to a single dataframe
-            if (not df.empty):
-                files_pds.append(df)
+                # Combine them to a single dataframe
+                if (not df.empty):
+                    files_pds.append(df)
 
     print("\nTotal of", len(files_pds), "files were read.")
     all_df = pd.concat(files_pds, axis=0).reset_index()
@@ -216,10 +230,15 @@ def log_files_qc(LOGS_PATH):
     if 'dox' in np.unique(df.condition) or 'HPBCD' in np.unique(df.condition) or 'LPS' in np.unique(df.condition):
         df['cell_line_cond'] = df.cell_line + " " + df.condition
 
-    df['site_cells_counts'] = df['cells_counts'].apply(get_array_sum)
-    df['site_whole_cells_counts'] = df['whole_cells_counts'].apply(get_array_sum)
-    df['cells_counts_list']=df['cells_counts'].apply(lambda x: re.findall(r'\d+', x)).apply(lambda x: list(map(int, x)))
-    df['p_valid_tiles'] = df['n_valid_tiles']*100 / df['cells_counts_list'].apply(len)
+    df['site_cell_count_sum'] = df['cells_counts'].apply(get_array_sum)
+    df['site_whole_cells_counts_sum'] = df['whole_cells_counts'].apply(get_array_sum)
+    df['cells_counts_list']=df['cells_counts'].apply(convert_to_list)
+
+    #df['p_valid_tiles'] = df['n_valid_tiles']*100 / df['cells_counts_list'].apply(len) not relevant since total tiles=100!
+
+    
+    # for name, group in df.groupby(['filename','batch','cell_line','panel','condition','rep']):
+
     return df.sort_values(by=['batch'])
 
 def create_folder_structure(folder_type, markers,cell_lines_to_cond, reps, panels):
@@ -243,14 +262,17 @@ def create_folder_structure(folder_type, markers,cell_lines_to_cond, reps, panel
 color_light_green = '#8DF980'
 color_yellow = 'yellow'
 color_gray = 'gray'
-
-# Function to apply custom colors based on both values and index
+    
 def apply_color(value):
     # Check the conditions and return the corresponding color
-    if (value == 100):
+    if (value == 100) or  (5000 < value):
         return color_light_green
-    elif (0 < value < 100):
+    elif (80 < value < 100) or (3000 < value <=5000):
         return color_yellow
+    elif (20 < value <= 80) or (1000 < value <=3000):
+        return 'orange'
+    elif (0 < value <= 20) or (100 < value <=1000):
+        return 'red'
     else:
         return color_gray
     
@@ -269,8 +291,111 @@ def apply_color_diff(value):
         return color_yellow
     else:
         return color_gray
-    
-def plot_table(df, file_name, plot_path, reps, expected_dapi, fig_height=8, fig_width=8):
+
+def custom_fmt(value):
+    # Custom function to format the annotation text with a "/"
+    return f'/{value:.0f}'
+
+def plot_filtering_heatmap(filtered, extra_index, xlabel='', figsize=(5,5), second=None, vmin=0, vmax=100, 
+                           show_sum=False, cbar_values = [0.15, 0.82, 0.02, 0.1]):
+    for batch, batch_data in filtered.groupby('batch'):
+        p = batch_data.pivot_table(index=['rep', extra_index],
+                                    columns='cell_line_cond',
+                                    values='index')
+        p = p.sort_values(by=extra_index)
+
+        fig, ax = plt.subplots(figsize=figsize, dpi=150)
+        sns.heatmap(data=p, ax=ax,
+                            yticklabels=p.index, cmap='RdYlGn',annot=True,
+                            vmin=vmin, vmax=vmax, cbar=False,annot_kws={'fontsize': 5, 'ha':'right'},fmt=".0f")
+        ax.set_yticklabels(ax.get_yticklabels(), fontsize=8)
+        ax.xaxis.tick_top()
+        ax.set_xlabel(xlabel)
+        ax.set_ylabel(batch)
+        ax.set_xticklabels(ax.get_xticklabels(), rotation=45, ha='left', fontsize=8)
+        cbar_ax = ax.figure.add_axes(cbar_values)
+        cbar = ax.figure.colorbar(ax.collections[0], cax=cbar_ax)
+        cbar.ax.tick_params(labelsize=8) 
+        if second is not None:
+            ax2 = ax.twinx()  # Create a twin Axes sharing the xaxis
+            second_data = second[second.batch==batch]
+            second_p = second_data.pivot_table(index=['rep', extra_index],
+                                    columns='cell_line_cond',
+                                    values='index')
+            second_p = second_p.sort_values(by=extra_index)
+            sns.heatmap(second_p, annot=False,
+                         cbar=False, ax=ax2, alpha=0)
+            for y, (rep, value) in enumerate(second_p.iterrows()):
+                for x, val in enumerate(value):
+                    if pd.isna(val):
+                        continue
+                    if val != p.iloc[y,x]:
+                        ax2.annotate(f' ({val:.0f})', xy=(x+0.5, y+0.46),fontsize=5, c='white', va='center')
+
+            # Customize the y-axis of the second heatmap
+            ax2.set_yticks([])  # Hide the y-axis ticks
+            ax2.set_ylabel('')  # Hide the y-axis label
+        plt.show()
+        
+        if show_sum:
+            p['Total'] = p.sum(axis=1)
+            p.loc['Total'] = p.sum(axis=0)
+            fig, axs = plt.subplots(ncols=2, figsize= (10,6), dpi=150)
+            marker_total = p[['Total']].drop(index='Total')
+            cell_line_total = pd.DataFrame(p.loc['Total']).drop(index='Total')
+            sns.barplot(data=marker_total, y=marker_total.index, x='Total', ax=axs[0])
+            axs[0].set_xlim(marker_total.min().min()-0.1*marker_total.min().min(), marker_total.max().max())
+            axs[0].xaxis.set_major_locator(MultipleLocator(1000))
+            axs[0].tick_params(axis='x', labelsize=10)
+            axs[0].set_ylabel(batch)
+            sns.barplot(data=cell_line_total, y=cell_line_total.index, x='Total', ax=axs[1])
+            axs[1].set_xlim(cell_line_total.min().min()-0.1*cell_line_total.min().min(), cell_line_total.max().max())
+            axs[1].xaxis.set_major_locator(MultipleLocator(10000))
+            axs[1].tick_params(axis='x', labelsize=10)
+            axs[1].set_ylabel('')
+
+            for ax in axs:
+                ax.set_xlabel(xlabel)
+                ax.set_yticklabels(ax.get_yticklabels(), fontsize=6)
+            with warnings.catch_warnings():
+                warnings.simplefilter("ignore", category=UserWarning)
+                plt.tight_layout()
+            plt.show()
+
+
+def plot_filtering_table(filtered, extra_index, width=8, height=8):
+    p = filtered.pivot_table(index=['batch', 'rep', extra_index],
+                            columns='cell_line_cond',
+                            values='index')
+    # p=p.astype('Int64')
+    p=p.applymap(lambda x: int(x) if not pd.isna(x) else x)
+
+    p=p.sort_values(by=['batch',extra_index])
+    color_p = p.applymap(apply_color)
+
+    p = p.reset_index()
+    p = p.set_index('batch')
+
+    color_p = color_p.reset_index()
+    color_p = color_p.set_index('batch')
+    color_p['rep'] = 'white'
+    color_p[extra_index] = 'white'
+    fig, ax = plt.subplots(figsize=(width, height))
+    table = ax.table(cellText=p.applymap(str).values,
+            rowLabels=p.index,
+            colLabels=p.columns,
+            cellLoc='center',
+            rowLoc='center',
+            loc='center',
+            cellColours=color_p.values,
+            bbox=[0, 0, 3, 3],
+            colWidths=[0.05]+ [0.05]+[0.1] * (len(p.columns)-1))
+    plt.axis('off')
+    table.auto_set_font_size(False)
+    table.set_fontsize(12)
+    plt.show()  
+
+def plot_table(df, file_name, plot_path, reps, expected_dapi, fig_height=8, fig_width=8, to_save=True):
     fig, ax = plt.subplots(figsize=(fig_width, fig_height))
     colored_df_without_DAPI = df.drop('DAPI', level=0).applymap(apply_color)
     dapi_index_data = [['DAPI']*len(reps),reps]
@@ -305,10 +430,10 @@ def plot_table(df, file_name, plot_path, reps, expected_dapi, fig_height=8, fig_
     plt.axis('off')
     table.auto_set_font_size(False)
     table.set_fontsize(12)
-
-    fig.set_size_inches(5, 5)  # Example: width=10 inches, height=6 inches
-    pathlib.Path(plot_path).mkdir(parents=True, exist_ok=True)
-    plt.savefig(os.path.join(plot_path, f'{file_name}.png'))
+    if to_save:
+        fig.set_size_inches(5, 5)  # Example: width=10 inches, height=6 inches
+        pathlib.Path(plot_path).mkdir(parents=True, exist_ok=True)
+        plt.savefig(os.path.join(plot_path, f'{file_name}.png'))
 
     # Displaying the plot with a smaller figure size in the notebook
     #plt.figure(figsize=(8, fig_height))  # Example: width=8 inches, height=4 inches
@@ -365,7 +490,7 @@ def run_validate_folder_structure(root_dir, proc, panels, markers,plot_path, mar
             for path in missing_paths:
                 print(path)
         if len(bad_files) == 0:
-            print('All files exists.')
+            print('No bad files are found.')
         else:
             print('Some files are bad:')
             for file in bad_files:
@@ -379,8 +504,8 @@ def run_validate_folder_structure(root_dir, proc, panels, markers,plot_path, mar
     print('=' * 20)
     return batch_dfs
     
-def plot_cell_count(df, order, custom_palette, whole_cells=False, norm=False):
-    y = 'site_whole_cells_counts' if whole_cells else 'site_cells_counts'
+    
+def plot_cell_count(df, order, custom_palette, y, title, norm=False):
     if np.unique(df.batch)[0]=="Perturbations":
         ylabel="count"
         if norm:
@@ -459,9 +584,7 @@ def plot_cell_count(df, order, custom_palette, whole_cells=False, norm=False):
                 c.tick_params(axis='x', labelsize=10)
                 c.legend(title='Cell Line', loc='upper left', bbox_to_anchor=(1, 0.8), fontsize=14)
                 c.set_ylabel(ylabel)
-    title = 'Cell Count Average per Site with STD'
-    if whole_cells:
-        title = f'Whole {title}'
+    # title = 'Cell Count Average per Site with STD'
     plt.suptitle(title)
     plt.show()
 
@@ -732,13 +855,64 @@ def plot_hists(batch_df_raw,batch_df_norm, batch_df_proc, batch_num, plot_sep_by
 
     mean_hist_proc = batch_df_proc.copy()
     mean_hist_proc[batch_df_proc.columns.difference(['site_count'])] = batch_df_proc.drop(columns=['site_count']).div(batch_df_proc['site_count'], axis=0).astype(int)
-    plot_hist_sep_by_type(mean_hist_raw, mean_hist_rescale, mean_hist_proc, batch_num, ncols, nrows)
+    # plot_hist_sep_by_type(mean_hist_raw, mean_hist_rescale, mean_hist_proc, batch_num, ncols, nrows)
+    plot_hist_lines(mean_hist_raw, mean_hist_rescale, mean_hist_proc, batch_num, ncols, nrows)
     if plot_sep_by_cell_line:
         plot_hist_sep_by_cell_line(mean_hist_raw, mean_hist_rescale, mean_hist_proc, batch_num)
 
+
+def plot_hist_lines(mean_hist_raw, mean_hist_rescale, mean_hist_proc, batch_num, ncols=7, nrows=4):
+    for hist_df, name in zip([mean_hist_raw, mean_hist_rescale, mean_hist_proc], ['raw', 'rescaled','processed']):
+        fig, axs = plt.subplots(figsize=(15, 8), ncols=ncols, nrows=nrows, sharey=True, dpi=200)
+        fig.subplots_adjust(top=0.85) 
+        plt.rcParams.update({'figure.autolayout': True})
+        for j, (marker, marker_df) in enumerate(hist_df.drop(columns=['site_count']).groupby(level=[1])):
+            df = marker_df.reset_index(level=1, drop=True).T
+            x_ticks = [str(round(idx, 1)) for idx in df.index]
+            x_ticks[-1] = x_ticks[-1] + "\n - 65000" if name=='raw' else x_ticks[-1] + "-1"
+
+            # Generate positions for the bars using numpy.arange
+            bar_positions = list(range(0, df.shape[0]))
+            ax = axs[j//ncols, j%ncols]
+            # Plot each column separately using a different color for each column
+            for col in df.columns:
+                ax.plot(bar_positions, df[col], label=col, linewidth=0.4)
+            xticks_size = 4
+            if name=='raw':
+                bar_positions = bar_positions[0:-1:2] + [bar_positions[-1]]
+                x_ticks = x_ticks[0:-1:2] + [x_ticks[-1]]
+                xticks_size=2.5
+            ax.set_xticks(bar_positions, x_ticks,  fontsize=xticks_size)
+            ax.set_xlabel('Intestiy value', fontsize=8)
+            if j%ncols==0:
+                ax.set_ylabel('Count', fontsize=10)
+                ax.tick_params(axis='y', labelsize=8)
+            ax.set_title(f'{marker}', fontsize=8)
+            ax.grid(False)
+
+        handles, labels = ax.get_legend_handles_labels()
+        #fig.legend(handles, labels, loc='lower center', ncol=13, bbox_to_anchor=(0.5,0), fontsize='xx-small')
+        fig.legend(handles, labels, loc='center right', ncol=1, fontsize=8, bbox_to_anchor=(1.1,0.5))
+        # Create a ScalarMappable object for the entire figure
+        sm = plt.cm.ScalarMappable(cmap='gray')
+        sm.set_array([])  # Dummy array to satisfy the ScalarMappable
+
+        # Add shared colorbar for the entire figure
+        cbar_ax = fig.add_axes([1.11, 0.5, 0.02, 0.2])  # Adjust the position as needed
+        cbar = plt.colorbar(sm, cax=cbar_ax, orientation='vertical')
+        cbar.set_ticks([0, 1])  # Assuming the range of values is from 0 to 1
+        cbar.set_label('Intestiy Colorbar', fontsize=10)
+        cbar.set_ticklabels(['Low', 'High'], fontsize=8)
+        cbar.ax.set_xticklabels(cbar.ax.get_xticklabels(), rotation=90)
+
+        plt.suptitle(f'{name} {batch_num}')
+        plt.tight_layout()
+        plt.show()
+
+        
 def run_calc_hist_new(batch, cell_lines_for_disp, markers, hist_sample=1, 
                       sample_size_per_markers=200, ncols=3, nrows=3, rep_count=2, cond_count=2):    
-    INPUT_DIR_BATCH_RAW = os.path.join(INPUT_DIR_RAW, batch.replace('_16bit',''))
+    INPUT_DIR_BATCH_RAW = os.path.join(INPUT_DIR_RAW, batch.replace('_16bit','').replace('_no_downsample',''))
     INPUT_DIR_BATCH_PROC = os.path.join(INPUT_DIR_PROC, batch.replace("_sort",""))
 
     images_raw = sample_images_all_markers_all_lines(INPUT_DIR_BATCH_RAW, sample_size_per_markers, _num_markers=len(markers),
@@ -762,11 +936,64 @@ def run_calc_hist_new(batch, cell_lines_for_disp, markers, hist_sample=1,
 
     #plot_hists(batch_df_processed, batch_df_processed, batch_df_processed, batch, ncols=ncols, nrows=nrows)
 
-def plot_n_valid_tiles_count(df, custom_palette,reps, batch_min=3, batch_max=9):
+
+def plot_barplot(df, custom_palette, reps, title, y, x, batch_min=3, batch_max=9):
+    df['batch_rep'] = df.batch + " " + df.rep
+    colors_list = custom_palette
+    batch_palette = {f'batch{i} {rep}':colors_list[i-batch_min] for i in range(batch_min,batch_max+1) for rep in reps}
+    g = sns.barplot(df, y=y, x=x,hue='batch_rep', orient='h',palette=batch_palette,
+                            hue_order=batch_palette.keys())
+    g.set_ylabel('cell line')
+    rep_hatches = {'rep1': '', 'rep2': '//'}  # Use '' for rep1 (solid) and '//' for rep2 (dots)
+
+    for rep in df['rep'].unique():
+        if rep == 'rep1':
+            continue
+        patches = g.patches
+        for patch in patches[1::len(df['rep'].unique())]:
+            hatch = rep_hatches[rep]
+            patch.set_hatch(hatch)
+
+    for patch in g.patches:
+        patch.set_edgecolor('black')
+    legend_patches = [plt.Rectangle((0, 0), 1, 1, fc=batch_palette[key],ec='black', hatch=rep_hatches[key.split()[-1]]) for key in batch_palette]
+
+    # Set the legend with the proxy artists
+    g.legend(legend_patches, batch_palette.keys(), title='Batch Rep', loc='center left', bbox_to_anchor=(1, 0.5))
+    g.set_title(title)
+    plt.show()
+
+def plot_count_plot(df, custom_palette, reps, title, batch_min=3, batch_max=9):
+    df['batch_rep'] = df.batch + " " + df.rep
+    colors_list = custom_palette
+    batch_palette = {f'batch{i} {rep}':colors_list[i-batch_min] for i in range(batch_min,batch_max+1) for rep in reps}
+    g = sns.countplot(df, y='cell_line_cond', hue='batch_rep',palette=batch_palette,
+                            hue_order=batch_palette.keys())
+    g.set_ylabel('cell line')
+    rep_hatches = {'rep1': '', 'rep2': '//'}  # Use '' for rep1 (solid) and '//' for rep2 (dots)
+
+    for rep in df['rep'].unique():
+        if rep == 'rep1':
+            continue
+        patches = g.patches
+        for patch in patches[1::len(df['rep'].unique())]:
+            hatch = rep_hatches[rep]
+            patch.set_hatch(hatch)
+
+    for patch in g.patches:
+        patch.set_edgecolor('black')
+    legend_patches = [plt.Rectangle((0, 0), 1, 1, fc=batch_palette[key],ec='black', hatch=rep_hatches[key.split()[-1]]) for key in batch_palette]
+
+    # Set the legend with the proxy artists
+    g.legend(legend_patches, batch_palette.keys(), title='Batch Rep', loc='center left', bbox_to_anchor=(1, 0.5))
+    g.set_title(title)
+    plt.show()
+
+def plot_catplot(df, custom_palette, reps, x, x_title, batch_min=3, batch_max=9):
     if np.unique(df.batch)[0]=='Perturbations':
-        g = sns.catplot(kind='box', data=df, y='cell_line', x='n_valid_tiles',height=12, hue='condition')#, palette=batch_palette,
+        g = sns.catplot(kind='box', data=df, y='cell_line', x=x,height=12, hue='condition')#, palette=batch_palette,
                     #hue_order=batch_palette.keys(), legend=False)
-        g.set_axis_labels('valid tiles count', 'cell line')
+        g.set_axis_labels(x_title, 'cell line')
 
         plt.show()
     else:
@@ -775,9 +1002,9 @@ def plot_n_valid_tiles_count(df, custom_palette,reps, batch_min=3, batch_max=9):
         colors_list = custom_palette
 
         batch_palette = {f'batch{i} {rep}':colors_list[i-batch_min] for i in range(batch_min,batch_max+1) for rep in reps}
-        g = sns.catplot(kind='box', data=df, y='cell_line_cond', x='n_valid_tiles',height=12, hue='batch_rep', palette=batch_palette,
+        g = sns.catplot(kind='box', data=df, y='cell_line_cond', x=x,height=12, hue='batch_rep', palette=batch_palette,
                         hue_order=batch_palette.keys(), legend=False)
-        g.set_axis_labels('valid tiles count', 'cell line')
+        g.set_axis_labels(x_title, 'cell line')
         rep_hatches = {'rep1': '', 'rep2': '//'}  # Use '' for rep1 (solid) and '//' for rep2 (dots)
 
         for ax in g.axes.flat:
@@ -798,41 +1025,6 @@ def plot_n_valid_tiles_count(df, custom_palette,reps, batch_min=3, batch_max=9):
 
         plt.show()
 
-def plot_p_valid_tiles_count(df, custom_palette,reps, batch_min=3, batch_max=9):
-    if np.unique(df.batch)[0]=='Perturbations':
-        g = sns.catplot(kind='box', data=df, y='cell_line', x='n_valid_tiles',height=12, hue='condition')#, palette=batch_palette,
-                    #hue_order=batch_palette.keys(), legend=False)
-        g.set_axis_labels('valid tiles count', 'cell line')
-
-        plt.show()
-    else:
-        df['batch_rep'] = df.batch + " " + df.rep
-        # Extract 7 colors from the palette
-        colors_list = custom_palette
-
-        batch_palette = {f'batch{i} {rep}':colors_list[i-batch_min] for i in range(batch_min,batch_max+1) for rep in reps}
-        g = sns.catplot(kind='box', data=df, y='cell_line_cond', x='p_valid_tiles',height=12, hue='batch_rep', palette=batch_palette,
-                        hue_order=batch_palette.keys(), legend=False)
-        g.set_axis_labels('valid tiles %', 'cell line')
-        rep_hatches = {'rep1': '', 'rep2': '//'}  # Use '' for rep1 (solid) and '//' for rep2 (dots)
-
-        for ax in g.axes.flat:
-            for rep in df['rep'].unique():
-                if rep == 'rep1':
-                    continue
-                patches = ax.patches
-                patches = [patch for patch in patches if type(patch) != matplotlib.patches.Rectangle]
-                for patch in patches[1::len(df['rep'].unique())]:
-                    hatch = rep_hatches[rep]
-                    patch.set_hatch(hatch)
-                    
-
-        legend_patches = [plt.Rectangle((0, 0), 1, 1, fc=batch_palette[key],ec='black', hatch=rep_hatches[key.split()[-1]]) for key in batch_palette]
-
-        # Set the legend with the proxy artists
-        g.axes.flat[-1].legend(legend_patches, batch_palette.keys(), title='Batch Rep', loc='center left', bbox_to_anchor=(1, 0.5))
-
-        plt.show()
 
 def plot_hm(df, split_by, rows, columns):
     splits = np.unique(df[split_by])
@@ -906,3 +1098,37 @@ def plot_hm(df, split_by, rows, columns):
             #ax2.axhline(-0.5, color='black', linewidth=2)
             fig.subplots_adjust(wspace=0)
             plt.show()
+
+def plot_hm_combine_batches(df,  batches, reps, rows, columns):
+    fig, axs = plt.subplots(figsize=(24, 7), ncols=4, sharey=False, sharex=False,
+                            gridspec_kw={'width_ratios': [0.8, 0.8, 0.8, 1]})
+    for i, (batch, rep) in enumerate([(x, y) for x in batches for y in reps]):
+        cur_df = df[(df['batch'] == batch) & (df['rep'] == rep)]
+        a = pd.crosstab(cur_df[rows], cur_df[columns], 
+                        values=cur_df['whole_cells_count_in_valid_tiles_mean'], aggfunc=np.mean)
+        vmin = 1
+        vmax = 2
+        ytick_labels = [f'cell line {i}' for i in range(1, a.shape[0] + 1)]
+        heatmap = sns.heatmap(a, annot=True, cmap="flare", linewidths=1, linecolor='gray', 
+                        cbar=False, ax=axs[i], vmin=vmin, vmax=vmax,annot_kws={"fontsize": 12}, yticklabels=ytick_labels)
+
+        heatmap.set_xlabel(f'{batch}\n{rep}', fontsize=24, color="navy")
+        heatmap.axvline(a.shape[1], color='black', linewidth=2)
+        heatmap.set_ylabel('')
+        if i==0:
+            heatmap.set_ylabel(rows.replace("_", " "), fontsize=24, color="navy")
+            # axs[i].set_yticklabels(ytick_labels, fontsize=12, rotate=90)
+            heatmap.set_yticklabels(ytick_labels, rotation=0)
+            cbar = heatmap.figure.colorbar(heatmap.collections[0])
+            cbar.ax.tick_params(labelsize=16)
+            # axs[i].text(0.9, -0.3, batch,transform=axs[i].transAxes, fontsize=30)
+        else:
+            heatmap.axvline(0, color='black', linewidth=2)
+            axs[i].set_yticklabels('')
+            axs[i].set_yticks([])
+        # if i==2:
+        #     axs[i].text(0.8, -0.3, batch,transform=axs[i].transAxes, fontsize=30)
+
+    fig.subplots_adjust(wspace=0)
+    plt.suptitle('Mean of whole cells count in valid tiles', fontsize=20, color="navy")
+    plt.show()

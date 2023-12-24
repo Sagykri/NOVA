@@ -345,3 +345,8 @@ def find_images_haar(images, threshold=35, minZero=0.001):
     
     blur_images = np.stack(blur_images)
     return blur_images
+
+
+def improve_brightness(img, contrast_factor, brightness_factor):
+    brightness_adjusted = contrast_factor * (img - img.min()) + brightness_factor
+    return brightness_adjusted
