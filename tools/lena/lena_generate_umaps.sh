@@ -1,7 +1,7 @@
-echo "Starting script..."
+echo "Starting UMAP0 script..."
 
 echo "Exporting MOMAPS_HOME and MOMAPS_DATA_HOME"
-export MOMAPS_HOME="/home/labs/hornsteinlab/Collaboration/MOmaps_Sagy/MOmaps"
+export MOMAPS_HOME="/home/labs/hornsteinlab/Collaboration/MOmaps"
 export MOMAPS_DATA_HOME="/home/labs/hornsteinlab/Collaboration/MOmaps/input"
 
 momaps_main="/home/labs/hornsteinlab/Collaboration/MOmaps"
@@ -15,6 +15,6 @@ echo "Activating conda env"
 conda activate "$momaps_main/anaconda3/momaps_torch"
 
 echo "Running script"
-$MOMAPS_HOME/bash_commands/run_py.sh $MOMAPS_HOME/src/runables/generate_umaps -g -m 7000 -b 10 -a $MOMAPS_HOME/tools/lena/lena_model_config/NeuroselfLenaConfig $MOMAPS_HOME/tools/lena/lena_dataset_config/LenaDatasetConfig -q gpu-short
+$MOMAPS_HOME/bash_commands/run_py.sh $MOMAPS_HOME/src/runables/generate_umaps -g -m 40000 -b 10 -a ./tools/lena/lena_model_config/NeuroselfLenaConfig ./tools/lena/lena_dataset_config/LenaDatasetConfig /home/labs/hornsteinlab/Collaboration/MOmaps/tools/lena -q gpu-short
 
 echo "The script is now running on the LSF (the cloud). Keep track via the RTM website: https://rtm1.wexac.weizmann.ac.il/"

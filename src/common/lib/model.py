@@ -10,6 +10,7 @@ import numpy as np
 import pandas as pd
 from torch.utils.data import DataLoader
 
+from sklearn.model_selection import train_test_split
 from cytoself.trainer.cytoselflite_trainer import CytoselfFullTrainer
 from cytoself.analysis.analysis_opencell import AnalysisOpenCell
 from cytoself.trainer.utils.plot_history import plot_history_cytoself
@@ -18,9 +19,9 @@ from cytoself.datamanager.base import DataManagerBase
 from src.common.lib import metrics 
 from src.common.lib.utils import get_if_exists
 
-from src.datasets.dataset_spd import DatasetSPD
-from src.common.lib import cytoself_custom
 from src.common.configs.model_config import ModelConfig
+
+# TODO: (210823) Clean plot_umap!
 
 class Model():
 
@@ -49,7 +50,7 @@ class Model():
         
         self.model = None
         self.analytics = None
-        self.unique_markers = None
+        self.num_class = None
         
     def generate_model_visualization(self, num_class=None, savepath=None):
         savepath = savepath if savepath is not None else os.path.join(self.conf.MODEL_OUTPUT_FOLDER,'model_viz')
@@ -62,7 +63,7 @@ class Model():
         writer.add_graph(trainer.model, dummy_input)
         writer.close()
         
-    def __construct_trainer(self, num_class=None, loading_pretrained=True):
+    def __construct_trainer(self, num_class=None, load_pretrained_model=False):
         pretrained_model_path   = self.pretrained_model_path
         early_stop_patience     = self.early_stop_patience
         learn_rate              = self.learn_rate 
@@ -80,7 +81,7 @@ class Model():
         reducelr_increment      = self.conf.REDUCELR_INCREMENT
         
         if num_class is None:
-            num_class = len(self.unique_markers)
+            num_class = self.num_class
         
         model_args = {
             'input_shape': input_shape,
@@ -111,11 +112,15 @@ class Model():
                                       homepath=model_output_folder,
                                       model_args=model_args)
         
-        if loading_pretrained and pretrained_model_path is not None and os.path.exists(pretrained_model_path):
+        if load_pretrained_model and pretrained_model_path is not None and os.path.exists(pretrained_model_path):
             logging.info(f"Loading pretrained model: {pretrained_model_path}")
-            pretrained_trainer = self.load_model(pretrained_model_path, num_fc_output_classes=1311, loading_pretrained=False)
+            pretrained_trainer = self.load_model(pretrained_model_path,
+                                                 num_fc_output_classes=1311,
+                                                 load_pretrained_model=False)
             logging.info(f"Copy weights")
             self.__copy_weights(pretrained_trainer.model, trainer.model)
+            logging.info(f"Deleting pretrained trainer")
+            del pretrained_trainer
         
         return trainer
             
@@ -161,28 +166,26 @@ class Model():
         if train_loader is None and valid_loader is None and test_loader is None:
             raise Exception("All loaders are None")
         
-        def __set_unique_markers(loader):
-            if self.unique_markers is None:
-                self.unique_markers = loader.dataset.unique_markers
+        def __set_num_class(loader):
+            if self.num_class is None:
+                self.num_class = len(loader.dataset.unique_markers)
         
         if train_loader is not None:
             self.train_loader = train_loader    
-            __set_unique_markers(self.train_loader)
+            __set_num_class(self.train_loader)
         if valid_loader is not None:
             self.valid_loader = valid_loader
-            __set_unique_markers(self.valid_loader)
+            __set_num_class(self.valid_loader)
         if test_loader is not None:
             self.test_loader = test_loader
-            __set_unique_markers(self.test_loader)
-        
-        num_class = len(self.unique_markers)
+            __set_num_class(self.test_loader)
         
         data_var = self.conf.DATA_VAR
         self.__init_datamanager_dummy(self.train_loader, self.valid_loader, self.test_loader,
-                                      data_var, data_var, data_var, num_class)
+                                      data_var, data_var, data_var)
             
     def __init_datamanager_dummy(self, train_loader, val_loader, test_loader,
-                                 train_variance, val_variance, test_variance, num_class):
+                                 train_variance, val_variance, test_variance):
         dm = DataManagerBase(None, None, None)
         dm.train_loader = train_loader
         dm.val_loader = val_loader
@@ -190,7 +193,6 @@ class Model():
         dm.train_variance = train_variance
         dm.val_variance = val_variance
         dm.test_variance = test_variance
-        dm.unique_labels = num_class
         
         self.data_manager = dm
     
@@ -220,7 +222,7 @@ class Model():
         if self.model is not None:
             logging.warning(f"Overriding currently loaded model with {last_checkpoint_path}")
         logging.info(f"Loading checkpoint: {last_checkpoint_path}")
-        trainer = self.load_model(last_checkpoint_path)
+        trainer = self.load_model(last_checkpoint_path, load_pretrained_model=True)
         # Moving to the next epoch
         trainer.current_epoch += 1
         logging.info(f"Checkpoint loaded successfully. Current epoch is: {trainer.current_epoch}")
@@ -236,12 +238,18 @@ class Model():
         trainer = self.__try_load_trainer()
         if trainer is None:
             logging.info("Constructing trainer...")
-            trainer = self.__construct_trainer()
+            trainer = self.__construct_trainer(load_pretrained_model=True)
             
         
         logging.info("Loading params from configuration")
         
         model_output_folder     = self.conf.MODEL_OUTPUT_FOLDER
+        
+        labels_savepath = os.path.join(model_output_folder, "unique_labels")
+        if not os.path.exists(model_output_folder):
+            os.makedirs(model_output_folder)
+        logging.info(f"Saving unique labels to file: {labels_savepath}.npy")
+        np.save(labels_savepath, np.unique(self.train_loader.dataset.y))
         
         logging.info("Training the model...")
         trainer.fit(self.data_manager,
@@ -257,7 +265,7 @@ class Model():
         
         return self.model
 
-    def load_model(self, model_path=None, num_fc_output_classes=None, loading_pretrained=True):
+    def load_model(self, model_path=None, num_fc_output_classes=None, load_pretrained_model=False):
         
         """Load model
 
@@ -277,7 +285,8 @@ class Model():
         
         if self.model is not None:
             logging.warning(f"[load_model] Overriding currently loaded model with {model_path}")
-        self.model = self.__construct_trainer(num_fc_output_classes,loading_pretrained=loading_pretrained)
+        self.model = self.__construct_trainer(num_fc_output_classes, 
+                                              load_pretrained_model=load_pretrained_model)
             
         # if os.path.isdir(model_path):
         if os.path.splitext(model_path)[1] == '.chkp':
@@ -319,6 +328,13 @@ class Model():
         self.analytics = analytics
         
         return analytics
+    
+    def generate_dummy_analytics(self):
+        analytics = AnalysisOpenCell(None, self.model)
+        
+        self.analytics = analytics
+        
+        return analytics
 
     def generate_reconstructed_image(self, dataloader=None, savepath=None):
         """
@@ -344,17 +360,18 @@ class Model():
             for i, im in enumerate(reconstructed[:10, ii, ...]):
                 i0, i1 = np.unravel_index(i, (2, 5))
                 t1[i0 * 100 : (i0 + 1) * 100, i1 * 100 : (i1 + 1) * 100] = im
-            ax[0, ii].imshow(t0, cmap='gray')
+            ax[0, ii].imshow(t0, cmap='gray', vmin=0, vmax=1)
             ax[0, ii].axis('off')
             ax[0, ii].set_title('input ' + ch)
-            ax[1, ii].imshow(t1, cmap='gray')
+            ax[1, ii].imshow(t1, cmap='gray', vmin=0, vmax=1)
             ax[1, ii].axis('off')
             ax[1, ii].set_title('output ' + ch)
         fig.tight_layout()
         
         if savepath is None:
-            savepath = os.path.join(self.conf.MODEL_OUTPUT_FOLDER, self.model.savepath_dict['visualization'], 'reconstructed_images.png')
-        
+            # savepath = os.path.join(self.conf.MODEL_OUTPUT_FOLDER, self.model.savepath_dict['visualization'], 'reconstructed_images.png')
+            savepath = os.path.join(self.conf.MODEL_OUTPUT_FOLDER, 'visualization', 'reconstructed_images.png')
+
         fig.savefig(savepath, dpi=300)
         
         # Calculate MSE
@@ -369,32 +386,101 @@ class Model():
     def generate_feature_spectrum(self):
         raise NotImplementedError()
         
-    # TODO: load embedding vectors
-    def load_embedding_vectors(self):
-        raise NotImplementedError()
+    def load_embeddings(self, embeddings_type='testset', config_data=None):
+        from src.common.lib import embeddings_utils
+        
+        if config_data is None:
+            allowed_embeddings_types = ['trainset', 'valset', 'testset', 'all']
+            assert embeddings_type is not None \
+                    and embeddings_type in allowed_embeddings_types,\
+                    f"embeddings_type must be one of the following: {allowed_embeddings_types}" 
+            
+            if embeddings_type == 'trainset':
+                config_data = self.train_loader.dataset.conf
+            elif embeddings_type == 'valset':
+                config_data = self.valid_loader.dataset.conf
+            elif embeddings_type == 'testset':
+                config_data = self.test_loader.dataset.conf
+            else: #all    
+                config_data = self.test_loader.dataset.conf
+        
+        embeddings, labels = embeddings_utils.load_embeddings(config_model=self.conf,
+                                                            config_data=config_data,
+                                                            embeddings_type=embeddings_type)
+
+        sample_pct =  get_if_exists(config_data, 'SAMPLE_PCT', None)
+        if sample_pct is not None and sample_pct < 1 and sample_pct > 0:
+            logging.info(f"[load_embeddings] A valid 'SAMPLE_PCT' has been identified. Sampling embeddings with SAMPLE_PCT={sample_pct}")
+            
+            labels_indexes = np.arange(len(labels))
+            _, labels_indexes_sample = train_test_split(labels_indexes,
+                                                        test_size=sample_pct,
+                                                        random_state=self.conf.SEED,
+                                                        shuffle=config_data.SHUFFLE,
+                                                        stratify=labels)
+        
+            embeddings, labels = embeddings[labels_indexes_sample], labels[labels_indexes_sample]
+
+        
+        return embeddings, labels
+    def load_indhists(self, embeddings_type='testset', config_data=None):
+        from src.common.lib import embeddings_utils      
+        embeddings, labels = embeddings_utils.load_indhists(config_model=self.conf,
+                                                            config_data=config_data,
+                                                            embeddings_type=embeddings_type)       
+        return embeddings, labels
     
     def set_mode(self, train):
         self.model.model.train(train)
     
-    def plot_umap(self, data_loader=None,
-                  title='UMAP',
-                  s=0.3, alpha=0.5, infer_labels=True,
+    def plot_umap(self,
+                  embeddings_type=None,
+                  embedding_data=None,
+                  label_data=None,
+                  data_loader=None,
                   id2label=None,
+                  is_3d=False,
+                  title='UMAP',
+                  s=0.3,
+                  alpha=0.5,
+                  reset_umap=False,
+                  map_labels_function=None,
+                  colormap='tab20_others',
                   **kwargs):
         """
         Args:
             Plot (and save to file in model_output/umap_figures/{title}.png) a UMAP plot
             data_loader(DataLoader, Optional): The default is self.test_loader
+            embedding_data (nparray, Optional): Precalculated embeddings.
+            label_data (nparray,Optional): Precalculated labels.
+            embeddings_type ('trainset'|'testset'|'valset'|'all', Optional). Defaults to testset.
+            
         """
         if self.analytics is None:
             raise Exception("Analytics is None. Please call load_analytics() beforehand")
-        
+
+        if reset_umap:
+            self.analytics.reset_umap()
+
         if data_loader is None:
             data_loader = self.test_loader
 
+        if embedding_data is None and label_data is None:
+            if embeddings_type is None:
+                embeddings_type='testset' if data_loader.dataset.conf.SPLIT_DATA else 'all'
+                logging.warn("embeddings_type is None. Setting to 'testset' if SPLIT_DATA=True, 'all' otherwise")
+
+            embedding_data, label_data = self.load_embeddings(embeddings_type)
+            
+            if len(embedding_data) == 0:
+                logging.warn("Couldn't find embeddings to load")
+                raise Exception("Embeddings are empty!")
+
+        if map_labels_function is not None:
+            label_data = map_labels_function(label_data)                        
+        
         umap_data = self.analytics.plot_umap_of_embedding_vector(
             data_loader=data_loader,
-            infer_labels=infer_labels,
             id2label=id2label,
             group_col=0,
             title=title,
@@ -403,7 +489,11 @@ class Model():
             s=s,
             alpha=alpha,
             show_legend=True,
+            is_3d=is_3d,
             random_state=self.conf.SEED,
+            embedding_data=embedding_data,
+            label_data=label_data,
+            colormap=colormap,
             **kwargs)
         
         return umap_data

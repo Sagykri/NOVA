@@ -1,0 +1,7 @@
+FUSHeterozygous: 6.149%
+FUSHomozygous: 13.68%
+FUSRevertant: 13.351%
+OPTN: 31.042%
+TBK1: 17.856%
+TDP43: 0.164%
+WT: 17.757%

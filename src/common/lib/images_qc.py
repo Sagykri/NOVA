@@ -40,7 +40,6 @@ def sample_and_calc_variance(INPUT_DIR, batch, sample_size_per_markers=200, num_
     
     return variance
 
-
 def validate_files_proc(path, batch_df, bad_files, marker_info, cell_lines_for_disp):
     path_split = path.split('/')
     cur_marker = path_split[-1]
@@ -121,8 +120,7 @@ def validate_files_raw(path, batch_df, bad_files, marker_info,cell_lines_for_dis
         if not good_file:
                 bad_files.append(f'{path}, {file}')
     return bad_files, batch_df
-
-                        
+                 
 def validate_folder_structure(root_dir, folder_structure, missing_paths, bad_files, batch_df,
                                marker_info, cell_lines_for_disp, proc=False):
     for name, content in folder_structure.items():
@@ -145,15 +143,12 @@ def validate_folder_structure(root_dir, folder_structure, missing_paths, bad_fil
                 
     return missing_paths, bad_files, batch_df   
 
-
-
 def display_diff(batches, raws, procs, plot_path, fig_height=8, fig_width=8):
     for batch_proc, batch_raw, batch in zip(procs, raws,batches):
         diff = batch_raw - batch_proc
         print(batch)
         plot_table_diff(diff, plot_path, batch, fig_height, fig_width)
         print('=' * 8)
-
 
 def get_array_sum(array_string):
     if pd.isna(array_string):
@@ -246,7 +241,6 @@ def log_files_qc(LOGS_PATH):
 
     return df.sort_values(by=['batch'])
 
-
 def create_folder_structure(folder_type, markers,cell_lines_to_cond, reps, panels):
     folder_structure = {}
     if folder_type == 'processed':
@@ -265,7 +259,6 @@ def create_folder_structure(folder_type, markers,cell_lines_to_cond, reps, panel
     return folder_structure
 
 
-    
 color_light_green = '#8DF980'
 color_yellow = 'yellow'
 color_gray = 'gray'
@@ -511,7 +504,7 @@ def run_validate_folder_structure(root_dir, proc, panels, markers,plot_path, mar
     print('=' * 20)
     return batch_dfs
     
-
+    
 def plot_cell_count(df, order, custom_palette, y, title, norm=False):
     if np.unique(df.batch)[0]=="Perturbations":
         ylabel="count"
@@ -649,7 +642,6 @@ def plot_sites_count(df, expected, order, custom_palette, split_to_reps=False):
         plt.suptitle(f'{title}\nexpected count = {expected}', fontsize=20)
         plt.show()
 
-
 def _calc_hist_raw(paths):
     bins_raw = np.concatenate(([0], np.arange(350,1000, 20), [1000, 2**16]))
     bins_rescale = np.arange(0,1.1, 0.1)
@@ -682,7 +674,6 @@ def _calc_hist_proc(paths):
             norm_hist += hist_with_site_count
             
     return norm_hist
-
 
 def create_sublists_by_marker_cell_line(images, raw, n, cell_lines_for_disp):
     sublists_dict = {}
@@ -763,7 +754,6 @@ def multiproc_calc_hists_per_batch_proc(images_paths, batch_df_proc, n, cell_lin
 
     return batch_df_proc
 
-
 def plot_hist_sep_by_type(mean_hist_raw, mean_hist_rescale, mean_hist_proc, batch_num, ncols=3, nrows=3):
     for hist_df, name in zip([mean_hist_raw, mean_hist_rescale, mean_hist_proc], ['raw', 'rescaled','processed']):
         fig, axs = plt.subplots(figsize=(15, 8), ncols=ncols, nrows=nrows, sharey=True, dpi=200)
@@ -807,8 +797,6 @@ def plot_hist_sep_by_type(mean_hist_raw, mean_hist_rescale, mean_hist_proc, batc
         plt.suptitle(f'{name} {batch_num}')
         plt.tight_layout()
         plt.show()
-
-
 
 def plot_hist_sep_by_cell_line(mean_hist_raw, mean_hist_rescale, mean_hist_proc, batch_num):
     mean_hist_raw = (mean_hist_raw/(1024*1024))*100
@@ -857,9 +845,7 @@ def plot_hist_sep_by_cell_line(mean_hist_raw, mean_hist_rescale, mean_hist_proc,
         fig.legend(handles, labels, loc='center right', ncol=1, fontsize=8, bbox_to_anchor=(1.1,0.5))
         plt.tight_layout()
         plt.show()
-        
-        
-
+                
 def plot_hists(batch_df_raw,batch_df_norm, batch_df_proc, batch_num, plot_sep_by_cell_line=False, ncols=3, nrows=3):
     mean_hist_raw = batch_df_raw.copy()
     mean_hist_raw[batch_df_raw.columns.difference(['site_count'])] = batch_df_raw.drop(columns=['site_count']).div(batch_df_raw['site_count'], axis=0).astype(int)
@@ -923,13 +909,14 @@ def plot_hist_lines(mean_hist_raw, mean_hist_rescale, mean_hist_proc, batch_num,
         plt.tight_layout()
         plt.show()
 
+        
 def run_calc_hist_new(batch, cell_lines_for_disp, markers, hist_sample=1, 
                       sample_size_per_markers=200, ncols=3, nrows=3, rep_count=2, cond_count=2):    
     INPUT_DIR_BATCH_RAW = os.path.join(INPUT_DIR_RAW, batch.replace('_16bit','').replace('_no_downsample',''))
     INPUT_DIR_BATCH_PROC = os.path.join(INPUT_DIR_PROC, batch.replace("_sort",""))
 
     images_raw = sample_images_all_markers_all_lines(INPUT_DIR_BATCH_RAW, sample_size_per_markers, _num_markers=len(markers),
-                                                     raw=True, all_conds=False, rep_count=rep_count, cond_count=cond_count)
+                                                     raw=True, all_conds=False, rep_count=rep_count, cond_count=cond_count, exclude_DAPI=True)
     images_proc = sample_images_all_markers_all_lines(INPUT_DIR_BATCH_PROC, _sample_size_per_markers=sample_size_per_markers,#*2, 
                                                  _num_markers=len(markers), raw=False, all_conds=True)
     cell_lines_for_df = [cell_line for cell_line in cell_lines_for_disp.values() for _ in range(len(markers))]
@@ -1038,41 +1025,6 @@ def plot_catplot(df, custom_palette, reps, x, x_title, batch_min=3, batch_max=9)
 
         plt.show()
 
-# def plot_p_valid_tiles_count(df, custom_palette,reps, batch_min=3, batch_max=9):
-#     if np.unique(df.batch)[0]=='Perturbations':
-#         g = sns.catplot(kind='box', data=df, y='cell_line', x='n_valid_tiles',height=12, hue='condition')#, palette=batch_palette,
-#                     #hue_order=batch_palette.keys(), legend=False)
-#         g.set_axis_labels('valid tiles count', 'cell line')
-
-#         plt.show()
-#     else:
-#         df['batch_rep'] = df.batch + " " + df.rep
-#         # Extract 7 colors from the palette
-#         colors_list = custom_palette
-
-#         batch_palette = {f'batch{i} {rep}':colors_list[i-batch_min] for i in range(batch_min,batch_max+1) for rep in reps}
-#         g = sns.catplot(kind='box', data=df, y='cell_line_cond', x='p_valid_tiles',height=12, hue='batch_rep', palette=batch_palette,
-#                         hue_order=batch_palette.keys(), legend=False)
-#         g.set_axis_labels('valid tiles %', 'cell line')
-#         rep_hatches = {'rep1': '', 'rep2': '//'}  # Use '' for rep1 (solid) and '//' for rep2 (dots)
-
-#         for ax in g.axes.flat:
-#             for rep in df['rep'].unique():
-#                 if rep == 'rep1':
-#                     continue
-#                 patches = ax.patches
-#                 patches = [patch for patch in patches if type(patch) != matplotlib.patches.Rectangle]
-#                 for patch in patches[1::len(df['rep'].unique())]:
-#                     hatch = rep_hatches[rep]
-#                     patch.set_hatch(hatch)
-                    
-
-#         legend_patches = [plt.Rectangle((0, 0), 1, 1, fc=batch_palette[key],ec='black', hatch=rep_hatches[key.split()[-1]]) for key in batch_palette]
-
-#         # Set the legend with the proxy artists
-#         g.axes.flat[-1].legend(legend_patches, batch_palette.keys(), title='Batch Rep', loc='center left', bbox_to_anchor=(1, 0.5))
-
-#         plt.show()
 
 def plot_hm(df, split_by, rows, columns):
     splits = np.unique(df[split_by])

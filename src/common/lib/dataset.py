@@ -27,9 +27,6 @@ def random_choice_rotate(image):
     k = np.random.choice([0, 1, 2, 3])
     return np.rot90(image, k=k, axes=(0,1))
 
-def flat_list_of_lists(l):
-    return [item for sublist in l for item in sublist]
-
 
 class Dataset(torch.utils.data.Dataset ,metaclass=ABCMeta):
     def __init__(self, conf: DatasetConfig):
@@ -52,7 +49,8 @@ class Dataset(torch.utils.data.Dataset ,metaclass=ABCMeta):
         self.to_split_data = conf.SPLIT_DATA
         self.data_set_type = conf.DATA_SET_TYPE
         self.is_aug_inplace = conf.IS_AUG_INPLACE
-        
+        self.reps = conf.REPS
+
         self.conf = conf
         
         self.X_paths, self.y, self.unique_markers = self._load_data_paths()  
@@ -85,7 +83,6 @@ class Dataset(torch.utils.data.Dataset ,metaclass=ABCMeta):
         
         subset.X_paths, subset.y = dataset.X_paths[indexes], dataset.y[indexes]
         
-        subset.unique_markers = np.unique(subset.y)
         subset.label = subset.y
         
         return subset
@@ -157,9 +154,9 @@ class Dataset(torch.utils.data.Dataset ,metaclass=ABCMeta):
                         paths_batch.append([path]*len(augmented_images))
         
         X_batch = np.concatenate(X_batch)
-        y_batch = np.asarray(flat_list_of_lists(y_batch))
+        y_batch = np.asarray(utils.flat_list_of_lists(y_batch))
         if return_paths:
-            paths_batch = np.asarray(flat_list_of_lists(paths_batch))
+            paths_batch = np.asarray(utils.flat_list_of_lists(paths_batch))
 
         # If the channel axis is the last one, move it to be the second one
         # (#tiles, 100, 100, #channel) -> (#tiles, #channel, 100, 100)
@@ -183,15 +180,9 @@ class Dataset(torch.utils.data.Dataset ,metaclass=ABCMeta):
         
         return X_batch, y_batch
         
-    def id2label(self, y_id, unique_markers=None):
-        if unique_markers is None:
-            unique_markers = self.unique_markers
-            
-        y_label = np.empty_like(y_id, dtype='object')
-        for i in range(len(unique_markers)):
-            label = unique_markers[i]
-            y_label[y_id==i] = label
-            
+    def id2label(self, y_id):
+        y_label = self.unique_markers[y_id.flatten().astype(int)]
+        
         return y_label
     
     def __label_converter(self, y, label_format='index'):

@@ -2,24 +2,31 @@
 .history/
 .vscode/
 .ipynb_checkpoints/
-
+*.csv
 anaconda3/
 logs/
 
 id_rsa
 id_rsa.pub
+outputs/figures/**/*.eps
 outputs/config_used/*
+outputs/config_used_old/*
 outputs/cell_profiler/*
+outputs/tensorflow/*
+outputs/models_outputs_*
 input/embeddings/*
 input/gt_tables/*
 input/images/raw/*
 !input/images/raw/.gitkeep
 input/images/processed/*
+data/processed/*
 !input/images/processed/.gitkeep
+
+/tools/lena/models_outputs_Lena/embeddings/**/*.npy
 
 tests/**/*.png
 tests/**/*.tif
-
+*.tiff
 Anaconda3-2023.03-Linux-x86_64.sh
 
 *.h5
@@ -46,7 +53,6 @@ __pycache__/
 
 core.*
 **/*.h5
-outputs/*
 **/*.tif
 **/*.png
 **/*.czi
@@ -11957,3 +11963,8 @@ MOmaps_RNASeq_fastq/Nancy/RNA/outputs/RNAseq/volcano_plot_FUS_WT.pdf
 MOmaps_RNASeq_fastq/Nancy/RNA/outputs/RNAseq/volcano_plot_OPTN_WT.pdf
 MOmaps_RNASeq_fastq/Nancy/RNA/outputs/RNAseq/volcano_plot_TBK1_WT.pdf
 MOmaps_RNASeq_fastq/Nancy/RNA/outputs/RNAseq/volcano_plot_TDP43_WT.pdf
+
+tools/lena/UMAPs/**/*.eps
+tools/lena/SM_UMAPs/**/*.eps
+outputs/figures/manuscript/**/**/**/**.tif_processed.npy
+outputs/figures/manuscript/fig1/micrographs/U2OS_reconstructed/recon_DCP1A_stressed_220714_U2OS_stressed-DAPI_Phalloidin_G3BP1_DCP1A-01_U2OS.tif_processed.npy

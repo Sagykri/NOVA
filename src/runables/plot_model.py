@@ -36,6 +36,7 @@ def plot_model():
     config_model = load_config_file(config_path_model, 'model')
     
     logging.info("init")
+    logging.info("[Plot Model]")
     
     logging.info(f"Is GPU available: {torch.cuda.is_available()}")
     logging.info(f"Num GPUs Available: {torch.cuda.device_count()}")

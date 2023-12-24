@@ -14,3 +14,7 @@ class SPD_Batch5(SPDPreprocessingConfig):
         self.OUTPUT_FOLDERS = [os.path.join(self.PROCESSED_SUBFOLDER_ROOT, "batch5")]
          
         self.WITH_NUCLEUS_DISTANCE = False
+        self.TO_DOWNSAMPLE = False
+        self.TILE_WIDTH = 128
+        self.TILE_HEIGHT = 128
+        self.LOGS_FOLDER = os.path.join(self.OUTPUTS_SUBSUBFOLDER, 'logs', "preprocessing_Dec2023", 'batch5')

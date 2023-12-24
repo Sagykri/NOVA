@@ -12,13 +12,14 @@ class NeuroselfLenaConfig(NeuroselfConfig):
         ################### *EDITABLE - SAFE TO EDIT* ####################
         
         # Please specify the path to the model
-        self.MODEL_PATH = "/home/labs/hornsteinlab/Collaboration/MOmaps_Sagy/MOmaps/outputs/models_outputs_batch78_16bit_shuffle_tl/checkpoints/checkpoint_ep6.chkp"
+        self.MODEL_PATH = "/home/labs/hornsteinlab/Collaboration/MOmaps/outputs/models_outputs_batch78_nods_tl_ep23/model_31.pt"
+        # self.MODEL_PATH = "/home/labs/hornsteinlab/Collaboration/MOmaps/outputs/models_outputs_cytoself_qsplit9/model_33.pt"
         
         ###############################################
         
         
         ################# PLEASE DON'T TOUCH THIS SECTION ######################
-        self.MODEL_OUTPUT_FOLDER = os.path.join(self.HOME_FOLDER, "tools", "lena", 'models_outputs_Lena')
+        self.MODEL_OUTPUT_FOLDER = os.path.dirname(self.MODEL_PATH)
         self.LOGS_FOLDER = os.path.join(self.MODEL_OUTPUT_FOLDER, 'logs')
         self.CONFIGS_USED_FOLDER = os.path.join(self.MODEL_OUTPUT_FOLDER, "configs_used", datetime.datetime.now().strftime("%d%m%y_%H%M%S_%f"))
         

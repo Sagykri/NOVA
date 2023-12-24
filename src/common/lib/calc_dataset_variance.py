@@ -54,19 +54,6 @@ def _multiproc_calc_variance(images_paths):
     print(f"Variance: {np.mean(vars)}")
     return np.mean(vars)
 
-def calc_variance_neurons_batch(batch_num, sample_size_per_markers=200, num_markers=26):
-    
-    print(f"\n\ncalc_variance_neurons_batch {batch_num}")
-    
-    # Global paths
-    BATCH_TO_RUN = 'batch'+str(batch_num)
-    INPUT_DIR_BATCH = os.path.join(INPUT_DIR, BATCH_TO_RUN)
-
-    images = sample_images_all_markers_all_lines(INPUT_DIR_BATCH, sample_size_per_markers, num_markers)
-    
-    variance = _multiproc_calc_variance(images_paths=images)
-    
-    return variance
 
 def calc_variance_opencell():
     """
@@ -82,11 +69,30 @@ def calc_variance_opencell():
     return variance
 
 
+def calc_variance_neurons_batch(batch_num, sample_size_per_markers=200, num_markers=26):
+    
+    print(f"\n\ncalc_variance_neurons_batch {batch_num}")
+    
+    # Global paths
+    BATCH_TO_RUN = 'batch'+str(batch_num)
+    INPUT_DIR_BATCH = os.path.join(INPUT_DIR, BATCH_TO_RUN)
+
+    images = sample_images_all_markers_all_lines(INPUT_DIR_BATCH, 
+                                                 sample_size_per_markers, 
+                                                 num_markers,
+                                                 all_conds=True,
+                                                 exclude_DAPI=False)
+                                                 # markers_to_include=['DAPI']
+    
+    variance = _multiproc_calc_variance(images_paths=images)
+    
+    return variance
+
 if __name__ == '__main__':
     print("\n\n\nStart..")
     
-    calc_variance_neurons_batch(batch_num='7_16bit', sample_size_per_markers=200, num_markers=26)
-    
+    #calc_variance_neurons_batch(batch_num='6', sample_size_per_markers=200, num_markers=26)
+
     #calc_variance_opencell()
     
     print("\n\n\n\nDone!")

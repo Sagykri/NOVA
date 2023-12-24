@@ -38,12 +38,21 @@ class SPDPreprocessor(Preprocessor):
         self.to_normalize = get_if_exists(conf, 'TO_NORMALIZE')
         self.cellprob_threshold = get_if_exists(conf, 'CELLPROB_THRESHOLD')
         self.flow_threshold = get_if_exists(conf, 'FLOW_THRESHOLD')
-        self.min_edge_distance = get_if_exists(conf, 'MIN_EDGE_DISTANCE')
         self.to_denoise = get_if_exists(conf, 'TO_DENOISE')
+        self.cell_lines_to_include = get_if_exists(conf, 'CELL_LINES_TO_INCLUDE')
         self.conf = conf
         
         if self.conf.SELECTIVE_INPUT_PATHS is not None:
             logging.info(f"SELECTIVE_INPUT_PATHS is ON. Processing only these files: {self.conf.SELECTIVE_INPUT_PATHS}")
+            
+        self.brenner_bounds_path = get_if_exists(conf, 'BRENNER_BOUNDS_PATH')
+        self.brenner_bounds = None
+        if self.brenner_bounds_path is not None:
+            logging.info(f"Brenner bounds have been detected: {self.brenner_bounds_path}. Loading the file...")
+            self.brenner_bounds = pd.read_csv(self.brenner_bounds_path, index_col=0)
+            
+        if self.markers_to_include is not None:
+            logging.info(f"Markers to include = {self.markers_to_include}")
     
     
     def preprocess_images(self, **kwargs):
@@ -58,9 +67,15 @@ class SPDPreprocessor(Preprocessor):
         logging_df = LogDF(self.conf.LOGS_FOLDER, 
                            columns=["DATETIME", "filename", "batch", "cell_line", "panel",
                                     "condition", "rep", "marker",
-                                    "cells_counts", "cells_count_mean", "cells_count_std",
+                                    "cells_counts", 
+                                    
+                                    'valid_tiles_indexes', # SAGY 201123
+                                    
+                                    "cells_count_mean", "cells_count_std",
                                     "whole_cells_counts", "whole_cells_count_mean", "whole_cells_count_std",
-                                    "n_valid_tiles", "cells_count_in_valid_tiles_mean", "cells_count_in_valid_tiles_std",
+                                    "n_valid_tiles", 
+                                    "site_cell_count",
+                                    "cells_count_in_valid_tiles_mean", "cells_count_in_valid_tiles_std",
                                     "whole_cells_count_in_valid_tiles_mean", "whole_cells_count_in_valid_tiles_std"],
                            filename_prefix="cell_count_stats_")
         
@@ -79,9 +94,13 @@ class SPDPreprocessor(Preprocessor):
                 logging.info(f"[{raw_f}] Skipping non-folder")
                 continue
             
-            cell_lines = [f for f in sorted(os.listdir(input_folder_root)) if os.path.isdir(os.path.join(input_folder_root, f))]
 
-            # logging.warning("\n\n\n\n NOTE!! WARNING!! TAKING ONLY WT!! :O :O :O\n\n\n")
+            if self.cell_lines_to_include is None or len(self.cell_lines_to_include) == 0:
+                logging.info("CELL_LINES_TO_INCLUDE doesn't exist in config. Taking all cell lines detected")
+                cell_lines = [f for f in sorted(os.listdir(input_folder_root)) if os.path.isdir(os.path.join(input_folder_root, f))]
+            else:
+                cell_lines = self.cell_lines_to_include
+
             logging.info(f"[{raw_f}] Cell line detected: {cell_lines}")
 
             for cell_line in cell_lines:
@@ -126,9 +145,11 @@ class SPDPreprocessor(Preprocessor):
         to_denoise          = self.to_denoise
         to_show             = self.to_show
         tiles_indexes       = get_if_exists(kwargs, 'tiles_indexes')
+        brenner_bounds      = self.brenner_bounds
         
         # Changing from skimage.load to cv2.load (with grayscale flag) -> changed to IMREAD_ANYDEPTH to read in 16bit format
         img_target = cv2.imread(file_path, cv2.IMREAD_ANYDEPTH) #used to be IMREAD_GRAYSCALE
+        
         if img_nucleus is None:
             img_nucleus = cv2.imread(nucleus_file, cv2.IMREAD_ANYDEPTH) #used to be IMREAD_GRAYSCALE
         
@@ -156,7 +177,8 @@ class SPDPreprocessor(Preprocessor):
                                                                         to_downsample=to_downsample,
                                                                         to_denoise=to_denoise, 
                                                                         to_normalize=to_normalize, 
-                                                                        to_show=to_show)
+                                                                        to_show=to_show,
+                                                                        brenner_bounds=brenner_bounds)
         
         return processed_images
 
