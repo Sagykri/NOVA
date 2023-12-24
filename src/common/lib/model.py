@@ -446,7 +446,7 @@ class Model():
                   reset_umap=False,
                   map_labels_function=None,
                   colormap='tab20_others',
-                  use_colormap_config=True,
+                  config_data=None,
                   **kwargs):
         """
         Args:
@@ -460,6 +460,9 @@ class Model():
         if self.analytics is None:
             raise Exception("Analytics is None. Please call load_analytics() beforehand")
 
+        if config_data is None:
+            raise Exception("Config data is None")
+        
         if reset_umap:
             self.analytics.reset_umap()
 
@@ -468,7 +471,7 @@ class Model():
 
         if embedding_data is None and label_data is None:
             if embeddings_type is None:
-                embeddings_type='testset' if data_loader.dataset.conf.SPLIT_DATA else 'all'
+                embeddings_type='testset' if config_data.SPLIT_DATA else 'all'
                 logging.warn("embeddings_type is None. Setting to 'testset' if SPLIT_DATA=True, 'all' otherwise")
 
             embedding_data, label_data = self.load_embeddings(embeddings_type)
@@ -480,7 +483,9 @@ class Model():
         if map_labels_function is not None:
             label_data = map_labels_function(label_data)    
             
-                            
+        name_color_dict =  config_data.UMAP_MAPPINGS
+        name_key=config_data.UMAP_MAPPINGS_ALIAS_KEY
+        color_key=config_data.UMAP_MAPPINGS_COLOR_KEY
         
         umap_data = self.analytics.plot_umap_of_embedding_vector(
             data_loader=data_loader,
@@ -497,9 +502,9 @@ class Model():
             embedding_data=embedding_data,
             label_data=label_data,
             colormap=colormap,
-            name_color_dict=self.conf.UMAP_MAPPINGS if use_colormap_config else None,
-            name_key=self.conf.UMAP_MAPPINGS_ALIAS_KEY,
-            color_key=self.conf.UMAP_MAPPINGS_COLOR_KEY,
+            name_color_dict=name_color_dict,
+            name_key=name_key,
+            color_key=color_key,
             **kwargs)
         
         return umap_data

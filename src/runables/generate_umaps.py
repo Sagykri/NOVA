@@ -120,7 +120,8 @@ def __generate_with_load(config_model, config_data, dataset, model, markers, out
                         alpha=alpha,
                         s=size,
                         reset_umap=True,
-                        map_labels_function=map_labels_function)
+                        map_labels_function=map_labels_function,
+                        config_data=config_data)
         
         logging.info(f"[{c}] UMAP saved successfully to {savepath}")
         
