@@ -21,5 +21,5 @@ class SPDPreprocessingConfig(PreprocessingConfig):
         self.TILE_WIDTH = 128 
         self.TILE_HEIGHT = 128
         self.WITH_NUCLEUS_DISTANCE = False
-        
+        self.CELL_LINES_TO_INCLUDE = None
         self.BRENNER_BOUNDS_PATH =  os.path.join(os.getenv("MOMAPS_HOME"), 'src', 'preprocessing', 'sites_validity_bounds.csv')
