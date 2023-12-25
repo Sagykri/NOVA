@@ -44,116 +44,64 @@ class BaseConfig():
         self.__LOGS_FOLDER = os.path.join(self.HOME_FOLDER, 'logs')
         
         # For plotting
-        self.TERM_UNSTRESSED = "_unstressed"
-        self.TERM_STRESSED = "_stressed"
-        self.TERM_WT = "_WT"
-        self.TERM_TDP43 = "_TDP43"
-        self.TERM_FUS = "_FUS"
-        self.TERM_OPTN = "_OPTN"
-        self.TERM_TBK1 = "_TBK1"
-        self.TERM_WT_UNSTRESS = "_WT_unstressed"
-        self.TERM_TDP43_UNSTRESS = "_TDP43_unstressed"
-        self.TERM_FUS_UNSTRESS = "_FUS_unstressed"
-        self.TERM_OPTN_UNSTRESS = "_OPTN_unstressed"
-        self.TERM_TBK1_UNSTRESS = "_TBK1_unstressed"
-        self.TERM_WT_STRESS = "_WT_stressed"
-        self.TERM_TDP43_STRESS = "_TDP43_stressed"
-        self.TERM_FUS_STRESS = "_FUS_stressed"
-        self.TERM_OPTN_STRESS = "_OPTN_stressed"
-        self.TERM_TBK1_STRESS = "_TBK1_stressed"
-        self.TERM_WT_MICROGLIA = "_WT_microglia"
-        self.TERM_FUS_MICROGLIA = "_FUS_microglia"
-        self.TERM_TDP43_MICROGLIA = "_TDP43_microglia"
-        self.TERM_OPTN_MICROGLIA = "_OPTN_microglia"
-        self.TERM_WT_NEURONS = "_WT_neurons"
-        self.TERM_FUS_NEURONS = "_FUS_neurons"
-        self.TERM_TDP43_NEURONS = "_TDP43_neurons"
-        self.TERM_OPTN_NEURONS = "_OPTN_neurons"
-
-        self.LEGEND_UNSTRESSED = "Unstressed"
-        self.LEGEND_STRESSED = "Stressed"
-        self.LEGEND_WT = "WT"
-        self.LEGEND_TDP43 = "TDP43"
-        self.LEGEND_FUS = "FUS"
-        self.LEGEND_OPTN = "OPTN"
-        self.LEGEND_TBK1 = "TBK1"
-        self.LEGEND_WT_UNSTRESS = "WT Unstressed"
-        self.LEGEND_TDP43_UNSTRESS = "TDP43 Unstressed"
-        self.LEGEND_FUS_UNSTRESS = "FUS Unstressed"
-        self.LEGEND_WT_UNSTRESS = "WT Unstressed"
-        self.LEGEND_OPTN_UNSTRESS = "OPTN Unstressed"
-        self.LEGEND_TBK1_UNSTRESS = "TBK1 Unstressed"
-        self.LEGEND_WT_STRESS = "WT Stressed"
-        self.LEGEND_TDP43_STRESS = "TDP43 Stressed"
-        self.LEGEND_FUS_STRESS = "FUS Stressed"
-        self.LEGEND_WT_STRESS = "WT Stressed"
-        self.LEGEND_OPTN_STRESS = "OPTN Stressed"
-        self.LEGEND_TBK1_STRESS = "TBK1 Stressed"
-        self.LEGEND_WT_MICROGLIA = "WT microglia"
-        self.LEGEND_FUS_MICROGLIA = "FUS microglia"
-        self.LEGEND_TDP43_MICROGLIA = "TDP43 microglia"
-        self.LEGEND_OPTN_MICROGLIA = "OPTN microglia"
-        self.LEGEND_WT_NEURONS = "WT neurons"
-        self.LEGEND_FUS_NEURONS = "FUS neurons"
-        self.LEGEND_TDP43_NEURONS = "TDP43 neurons"
-        self.LEGEND_OPTN_NEURONS = "OPTN neurons"
-
-        self.TEMR_LEGEND_MAPPING = {
-            self.TERM_UNSTRESSED: self.LEGEND_UNSTRESSED,
-            self.TERM_STRESSED: self.LEGEND_STRESSED,
-            self.TERM_WT: self.LEGEND_WT,
-            self.TERM_TDP43: self.LEGEND_TDP43,
-            self.TERM_FUS: self.LEGEND_FUS,
-            self.TERM_OPTN: self.LEGEND_OPTN,
-            self.TERM_TBK1: self.LEGEND_TBK1,
-            self.TERM_WT_UNSTRESS: self.LEGEND_WT_UNSTRESS,
-            self.TERM_TDP43_UNSTRESS: self.LEGEND_TDP43_UNSTRESS,
-            self.TERM_FUS_UNSTRESS: self.LEGEND_FUS_UNSTRESS,
-            self.TERM_OPTN_UNSTRESS: self.LEGEND_OPTN_UNSTRESS,
-            self.TERM_TBK1_UNSTRESS: self.LEGEND_TBK1_UNSTRESS,
-            self.TERM_WT_STRESS: self.LEGEND_WT_STRESS,
-            self.TERM_TDP43_STRESS: self.LEGEND_TDP43_STRESS,
-            self.TERM_FUS_STRESS: self.LEGEND_FUS_STRESS,
-            self.TERM_OPTN_STRESS: self.LEGEND_OPTN_STRESS,
-            self.TERM_TBK1_STRESS: self.LEGEND_TBK1_STRESS,
-            self.TERM_WT_MICROGLIA: self.LEGEND_WT_MICROGLIA,
-            self.TERM_FUS_MICROGLIA: self.LEGEND_FUS_MICROGLIA,
-            self.TERM_TDP43_MICROGLIA: self.LEGEND_TDP43_MICROGLIA,
-            self.TERM_OPTN_MICROGLIA: self.LEGEND_OPTN_MICROGLIA,
-            self.TERM_WT_NEURONS: self.LEGEND_WT_NEURONS,
-            self.TERM_FUS_NEURONS: self.LEGEND_FUS_NEURONS,
-            self.TERM_TDP43_NEURONS: self.LEGEND_TDP43_NEURONS,
-            self.TERM_OPTN_NEURONS: self.LEGEND_OPTN_NEURONS
-
+        self.UMAP_MAPPINGS_ALIAS_KEY = 'alias'
+        self.UMAP_MAPPINGS_COLOR_KEY = 'color'
+        
+        self.UMAP_MAPPINGS_CONDITION = {
+            'Untreated': {self.UMAP_MAPPINGS_ALIAS_KEY: '- Stress', self.UMAP_MAPPINGS_COLOR_KEY: '#52C5D5'},
+            'stress': {self.UMAP_MAPPINGS_ALIAS_KEY: '+ Stress', self.UMAP_MAPPINGS_COLOR_KEY: '#F7810F'},
         }
-
-        self.COLORS_MAPPING = {
-            self.TERM_UNSTRESSED: 'cyan',
-            self.TERM_STRESSED: 'orange',
-            self.TERM_WT: 'green',
-            self.TERM_TDP43: 'blue',
-            self.TERM_FUS: 'red',
-            self.TERM_OPTN: 'yellow',
-            self.TERM_TBK1: 'brown',
-            self.TERM_WT_UNSTRESS: "cyan",
-            self.TERM_TDP43_UNSTRESS: "green",
-            self.TERM_FUS_UNSTRESS: "purple",
-            self.TERM_OPTN_UNSTRESS: "yellow",
-            self.TERM_TBK1_UNSTRESS: "brown",
-            self.TERM_WT_STRESS: "orange",
-            self.TERM_TDP43_STRESS: "orange",
-            self.TERM_FUS_STRESS: "black",
-            self.TERM_OPTN_STRESS: "cyan",
-            self.TERM_TBK1_STRESS: "pink",
-            self.TERM_WT_MICROGLIA: "lime",
-            self.TERM_FUS_MICROGLIA: "magenta",
-            self.TERM_TDP43_MICROGLIA: "cyan",
-            self.TERM_OPTN_MICROGLIA: "orange",
-            self.TERM_WT_NEURONS: "green",
-            self.TERM_FUS_NEURONS: "red",
-            self.TERM_TDP43_NEURONS: "blue",
-            self.TERM_OPTN_NEURONS: "yellow"
+        
+        self.UMAP_MAPPINGS_ALS = {
+            'WT_Untreated': {self.UMAP_MAPPINGS_ALIAS_KEY: 'Wild-Type', self.UMAP_MAPPINGS_COLOR_KEY: '#52C5D5'},
+            'WT_stress': {self.UMAP_MAPPINGS_ALIAS_KEY: 'WT Stress', self.UMAP_MAPPINGS_COLOR_KEY: '#F7810F'},
+            'FUSHeterozygous_Untreated': {self.UMAP_MAPPINGS_ALIAS_KEY: 'FUS Heterozygous', self.UMAP_MAPPINGS_COLOR_KEY: '#A86343'},
+            'FUSHomozygous_Untreated': {self.UMAP_MAPPINGS_ALIAS_KEY: 'FUS Homozygous', self.UMAP_MAPPINGS_COLOR_KEY: '#6E3B0B'},
+            'FUSRevertant_Untreated': {self.UMAP_MAPPINGS_ALIAS_KEY: 'FUS Revertant', self.UMAP_MAPPINGS_COLOR_KEY: '#C7A036'},
+            'OPTN_Untreated': {self.UMAP_MAPPINGS_ALIAS_KEY: 'OPTN', self.UMAP_MAPPINGS_COLOR_KEY: '#7BA89C'},
+            'TBK1_Untreated': {self.UMAP_MAPPINGS_ALIAS_KEY: 'TBK1', self.UMAP_MAPPINGS_COLOR_KEY: '#A89689'},
+            'SCNA_Untreated': {self.UMAP_MAPPINGS_ALIAS_KEY: 'SCNA', self.UMAP_MAPPINGS_COLOR_KEY: 'black'},
+            'TDP43_Untreated': {self.UMAP_MAPPINGS_ALIAS_KEY: 'TDP43', self.UMAP_MAPPINGS_COLOR_KEY: '#93749E'},
         }
+        
+        self.UMAP_MAPPINGS_DOX = {
+            'WT_Untreated': {self.UMAP_MAPPINGS_ALIAS_KEY: 'Wild-Type', self.UMAP_MAPPINGS_COLOR_KEY: '#2FA0C1'},
+            'TDP43_Untreated': {self.UMAP_MAPPINGS_ALIAS_KEY: 'TDP43dNLS, -Dox', self.UMAP_MAPPINGS_COLOR_KEY: '#6BAD31'},
+            'TDP43_dox': {self.UMAP_MAPPINGS_ALIAS_KEY: 'TDP43dNLS, +Dox', self.UMAP_MAPPINGS_COLOR_KEY: '#90278E'},
+        }
+        
+        self.UMAP_MAPPINGS_MARKERS = {
+            'NCL': {self.UMAP_MAPPINGS_ALIAS_KEY: 'Nucleolus', self.UMAP_MAPPINGS_COLOR_KEY: 'red'},
+            'FUS': {self.UMAP_MAPPINGS_ALIAS_KEY: 'Heterogeneous Nuclear Ribonucleoprotein (hnRNP) Complexes', self.UMAP_MAPPINGS_COLOR_KEY: 'salmon'},
+            'DAPI': {self.UMAP_MAPPINGS_ALIAS_KEY: 'Nucleus', self.UMAP_MAPPINGS_COLOR_KEY: 'mediumaquamarine'},
+            'PML': {self.UMAP_MAPPINGS_ALIAS_KEY: 'Promyelocytic Leukaemia (PML) Nuclear Bodies', self.UMAP_MAPPINGS_COLOR_KEY: 'darkred'},
+            'ANXA11': {self.UMAP_MAPPINGS_ALIAS_KEY: 'ANXA11-granules', self.UMAP_MAPPINGS_COLOR_KEY: 'darkorange'},
+            'NONO': {self.UMAP_MAPPINGS_ALIAS_KEY: 'Paraspeckles', self.UMAP_MAPPINGS_COLOR_KEY: 'orange'},
+            'TDP43': {self.UMAP_MAPPINGS_ALIAS_KEY: 'TDP-43-granules', self.UMAP_MAPPINGS_COLOR_KEY: 'gold'},
+            'PEX14': {self.UMAP_MAPPINGS_ALIAS_KEY: 'Peroxisomes', self.UMAP_MAPPINGS_COLOR_KEY: 'black'},
+            'Calreticulin': {self.UMAP_MAPPINGS_ALIAS_KEY: 'Endoplasmic Reticulum (ER)', self.UMAP_MAPPINGS_COLOR_KEY: 'saddlebrown'},
+            'Phalloidin': {self.UMAP_MAPPINGS_ALIAS_KEY: 'Actin Cytoskeleton', self.UMAP_MAPPINGS_COLOR_KEY: 'darkviolet'},
+            'mitotracker': {self.UMAP_MAPPINGS_ALIAS_KEY: 'Mitochondria', self.UMAP_MAPPINGS_COLOR_KEY: 'pink'},
+            'TOMM20': {self.UMAP_MAPPINGS_ALIAS_KEY: 'Mitochondria Outer Membrane', self.UMAP_MAPPINGS_COLOR_KEY: 'palevioletred'},
+            'PURA': {self.UMAP_MAPPINGS_ALIAS_KEY: 'PURA-granules', self.UMAP_MAPPINGS_COLOR_KEY: 'deeppink'},
+            'CLTC': {self.UMAP_MAPPINGS_ALIAS_KEY: 'Coated Vesicles', self.UMAP_MAPPINGS_COLOR_KEY: 'magenta'},
+            'KIF5A': {self.UMAP_MAPPINGS_ALIAS_KEY: 'Microtubule-Associated Transport Machinery', self.UMAP_MAPPINGS_COLOR_KEY: 'darkmagenta'},
+            'SNCA': {self.UMAP_MAPPINGS_ALIAS_KEY: 'Presynaptic Terminals', self.UMAP_MAPPINGS_COLOR_KEY: 'navy'},
+            'CD41': {self.UMAP_MAPPINGS_ALIAS_KEY: 'CD41-granules', self.UMAP_MAPPINGS_COLOR_KEY: 'royalblue'},
+            'SQSTM1': {self.UMAP_MAPPINGS_ALIAS_KEY: 'Autophagosomes', self.UMAP_MAPPINGS_COLOR_KEY: 'deepskyblue'},
+            'G3BP1': {self.UMAP_MAPPINGS_ALIAS_KEY: 'Stress Granules', self.UMAP_MAPPINGS_COLOR_KEY: 'olive'},
+            'GM130': {self.UMAP_MAPPINGS_ALIAS_KEY: 'Golgi Apparatus', self.UMAP_MAPPINGS_COLOR_KEY: 'olivedrab'},
+            'LAMP1': {self.UMAP_MAPPINGS_ALIAS_KEY: 'Lysosomes', self.UMAP_MAPPINGS_COLOR_KEY: 'lime'},
+            'DCP1A': {self.UMAP_MAPPINGS_ALIAS_KEY: 'P-Bodies', self.UMAP_MAPPINGS_COLOR_KEY: 'seagreen'},
+            'NEMO': {self.UMAP_MAPPINGS_ALIAS_KEY: 'NEMO Condensates', self.UMAP_MAPPINGS_COLOR_KEY: 'darkgreen'},
+            'PSD95': {self.UMAP_MAPPINGS_ALIAS_KEY: 'Post-Synaptic Subcompartments', self.UMAP_MAPPINGS_COLOR_KEY: 'green'},
+            
+            
+            'FMRP': {self.UMAP_MAPPINGS_ALIAS_KEY: 'FMRP', self.UMAP_MAPPINGS_COLOR_KEY: 'gray'}
+        }
+        
+        # Set the UMAPS mapping here!
+        self.UMAP_MAPPINGS = self.UMAP_MAPPINGS_ALS
         
         
     @property

@@ -75,11 +75,21 @@ def eval_model():
         
     logging.info("Loading analytics..")
     model.load_analytics()
+    
     logging.info("Plot umap..")
-    model.plot_umap(colormap='Set1',
-                    alpha=0.8,
-                    s=0.8,
+    colormap = get_if_exists(config_data, 'COLORMAP', 'Set1')
+    size = get_if_exists(config_data, 'SIZE', 0.8)
+    alpha = get_if_exists(config_data, 'ALPHA', 0.7)
+    map_labels_function = get_if_exists(config_data, 'MAP_LABELS_FUNCTION', None)
+    if map_labels_function is not None:
+        map_labels_function = eval(map_labels_function)(config_data)
+    
+    model.plot_umap(colormap=colormap,
+                    alpha=alpha,
+                    s=size,
                     is_3d=False,
+                    config_data=config_data,
+                    map_labels_function=map_labels_function,
                     title=f"{'_'.join([os.path.basename(f) for f in config_data.INPUT_FOLDERS])}_{datetime.datetime.now().strftime('%d%m%y_%H%M%S_%f')}_{os.path.splitext(os.path.basename(config_model.MODEL_PATH))[0]}")
     
 

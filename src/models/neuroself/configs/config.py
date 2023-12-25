@@ -18,6 +18,3 @@ class NeuroselfConfig(ModelConfig):
         self.LEARN_RATE = None #2e-4
         self.BATCH_SIZE = None #32
         self.MAX_EPOCH = None #100
-        
-        self.GROUPS_TERMS_CONDITION = [self.TERM_UNSTRESSED, self.TERM_STRESSED]
-        self.GROUPS_TERMS_LINE = [self.TERM_WT, self.TERM_TDP43, self.TERM_FUS, self.TERM_OPTN, self.TERM_TBK1]
