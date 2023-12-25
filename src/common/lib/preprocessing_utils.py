@@ -279,11 +279,18 @@ def segment(img, model, channels=None,
 
   return masks, flows, styles, diams
 
-def __is_site_brenner_valid(img, marker_name, site_brenner_bounds):
+def __is_site_brenner_valid(img, marker_name, site_brenner_bounds, panel):
     logging.info(f"marker_name: {marker_name}")
     if marker_name not in site_brenner_bounds.index:
-        logging.info(f"Marker couldn't be found in the brenner bounds file. Passing it..")
-        return True
+        logging.info(f"Marker {marker_name} couldn't be found in the brenner bounds file")
+        
+        # Changing if marker_name + panel exists in the file. For example: TDP43_panelN
+        marker_name = f'{marker_name}_{panel}'
+        logging.info(f"Checking if {marker_name} exists in the brenner bounds file")
+        
+        if marker_name not in site_brenner_bounds.index:
+            logging.info(f"Marker {marker_name} also couldn't be found in the brenner bounds file. Passing it..")
+            return True
     
     img_brenner = calculate_image_sharpness_brenner(img)
     marker_brenner_bounds = site_brenner_bounds.loc[marker_name]
@@ -301,7 +308,7 @@ def __is_site_brenner_valid(img, marker_name, site_brenner_bounds):
 def preprocess_image_pipeline(img, save_path, n_channels=2,
                                   tiles_indexes=None,
                                   tile_width=100, tile_height=100, to_downsample=True,
-                                  to_denoise=False, to_normalize=True, to_show=False, brenner_bounds=None):
+                                  to_denoise=False, to_normalize=True, to_show=False, brenner_bounds=None, img_path=None):
     """
         Run the image preprocessing pipeline for spinning disk (spd) images
     """
@@ -328,7 +335,8 @@ def preprocess_image_pipeline(img, save_path, n_channels=2,
     # SAGY 041223
     # Filter bad sites using Brenner gradient
     marker_name = save_path.split(os.sep)[-2]
-    if brenner_bounds is not None and not __is_site_brenner_valid(img_processed[...,0], marker_name, brenner_bounds):
+    panel = img_path.split(os.sep)[-5]
+    if brenner_bounds is not None and not __is_site_brenner_valid(img_processed[...,0], marker_name, brenner_bounds, panel):
         return []
     
     ############################
@@ -466,7 +474,7 @@ def preprocess_panel(slf, panel, input_folder_root,
                         if brenner_bounds is None:
                             raise "brenner_bounds is None"
                         
-                        if brenner_bounds is not None and not __is_site_brenner_valid(img_nucleus, 'DAPI', brenner_bounds):
+                        if brenner_bounds is not None and not __is_site_brenner_valid(img_nucleus, 'DAPI', brenner_bounds, panel):
                             logging.warning(f"Nothing is valid due to Brenner bounds")
                             valid_tiles_indexes[site] =  np.asarray([])
                         else:
