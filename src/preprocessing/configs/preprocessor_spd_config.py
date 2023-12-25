@@ -18,8 +18,8 @@ class SPDPreprocessingConfig(PreprocessingConfig):
         self.OUTPUTS_SUBSUBFOLDER = os.path.join(self.OUTPUTS_SUBFOLDER, "spd")
         self.PREPROCESSOR_CLASS_PATH = os.path.join("src", "preprocessing", "preprocessors", "preprocessor_spd", "SPDPreprocessor")
         self.TO_DOWNSAMPLE = False
-        self.TILE_WIDTH = 100 
-        self.TILE_HEIGHT = 100
+        self.TILE_WIDTH = 128 
+        self.TILE_HEIGHT = 128
         self.WITH_NUCLEUS_DISTANCE = False
         
         self.BRENNER_BOUNDS_PATH =  os.path.join(os.getenv("MOMAPS_HOME"), 'src', 'preprocessing', 'sites_validity_bounds.csv')
