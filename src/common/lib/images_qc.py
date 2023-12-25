@@ -297,7 +297,7 @@ def custom_fmt(value):
     return f'/{value:.0f}'
 
 def plot_filtering_heatmap(filtered, extra_index, xlabel='', figsize=(5,5), second=None, vmin=0, vmax=100, 
-                           show_sum=False, cbar_values = [0.15, 0.82, 0.02, 0.1]):
+                           show_sum=False):
     for batch, batch_data in filtered.groupby('batch'):
         p = batch_data.pivot_table(index=['rep', extra_index],
                                     columns='cell_line_cond',
@@ -305,17 +305,20 @@ def plot_filtering_heatmap(filtered, extra_index, xlabel='', figsize=(5,5), seco
         p = p.sort_values(by=extra_index)
 
         fig, ax = plt.subplots(figsize=figsize, dpi=150)
-        sns.heatmap(data=p, ax=ax,
+        hm = sns.heatmap(data=p, ax=ax,
                             yticklabels=p.index, cmap='RdYlGn',annot=True,
-                            vmin=vmin, vmax=vmax, cbar=False,annot_kws={'fontsize': 5, 'ha':'right'},fmt=".0f")
+                            vmin=vmin, vmax=vmax, cbar=True,annot_kws={'fontsize': 5, 'ha':'right'},fmt=".0f",
+                            cbar_kws = {'shrink': 0.2,})
         ax.set_yticklabels(ax.get_yticklabels(), fontsize=8)
         ax.xaxis.tick_top()
         ax.set_xlabel(xlabel)
         ax.set_ylabel(batch)
         ax.set_xticklabels(ax.get_xticklabels(), rotation=45, ha='left', fontsize=8)
-        cbar_ax = ax.figure.add_axes(cbar_values)
-        cbar = ax.figure.colorbar(ax.collections[0], cax=cbar_ax)
-        cbar.ax.tick_params(labelsize=8) 
+        # cbar_ax = fig.add_axes([0, 0.9, 0.2, 0.02])  # Adjust the position as needed
+        # cbar = plt.colorbar(ax, cax=cbar_ax, orientation='vertical')
+        cbar = ax.collections[0].colorbar
+        cbar.ax.tick_params(axis='y', labelsize=6)
+
         if second is not None:
             ax2 = ax.twinx()  # Create a twin Axes sharing the xaxis
             second_data = second[second.batch==batch]
@@ -344,12 +347,12 @@ def plot_filtering_heatmap(filtered, extra_index, xlabel='', figsize=(5,5), seco
             marker_total = p[['Total']].drop(index='Total')
             cell_line_total = pd.DataFrame(p.loc['Total']).drop(index='Total')
             sns.barplot(data=marker_total, y=marker_total.index, x='Total', ax=axs[0])
-            axs[0].set_xlim(marker_total.min().min()-0.1*marker_total.min().min(), marker_total.max().max())
+            axs[0].set_xlim(marker_total.min().min()-0.5*marker_total.min().min(), marker_total.max().max()+0.1* marker_total.max().max())
             axs[0].xaxis.set_major_locator(MultipleLocator(1000))
             axs[0].tick_params(axis='x', labelsize=10)
             axs[0].set_ylabel(batch)
             sns.barplot(data=cell_line_total, y=cell_line_total.index, x='Total', ax=axs[1])
-            axs[1].set_xlim(cell_line_total.min().min()-0.1*cell_line_total.min().min(), cell_line_total.max().max())
+            axs[1].set_xlim(cell_line_total.min().min()-0.5*cell_line_total.min().min(), cell_line_total.max().max()+0.1*cell_line_total.max().max())
             axs[1].xaxis.set_major_locator(MultipleLocator(10000))
             axs[1].tick_params(axis='x', labelsize=10)
             axs[1].set_ylabel('')
@@ -362,6 +365,20 @@ def plot_filtering_heatmap(filtered, extra_index, xlabel='', figsize=(5,5), seco
                 plt.tight_layout()
             plt.show()
 
+def add_empty_lines(df, batches):
+    for batch in batches:
+        for cell_line_cond in line_colors.keys():
+            for panel in panels.columns:
+                for rep in reps:
+                    if df[(df.batch==batch)&
+                        (df.cell_line_cond==cell_line_cond)&
+                        (df.panel==f'panel{panel}')&
+                        (df.rep==rep)].shape[0] ==0:
+                            new_row = {'batch': batch, 'cell_line_cond': cell_line_cond,
+                                    'panel': f'panel{panel}', 'rep':rep, 'index':0}
+                            # Add the new row to the DataFrame
+                            df = df.append(new_row, ignore_index=True)
+    return df
 
 def plot_filtering_table(filtered, extra_index, width=8, height=8):
     p = filtered.pivot_table(index=['batch', 'rep', extra_index],
@@ -534,38 +551,20 @@ def plot_cell_count(df, order, custom_palette, y, title, norm=False):
             y='percentage'
             ylabel = '%'
         if no_batches>1:
-            fig, axs = plt.subplots(nrows=1, ncols=no_batches, sharey=True, sharex=False, figsize=(12,6))
+            fig, axs = plt.subplots(nrows=1, ncols=no_batches, sharey=True, sharex=False, figsize=(15,6))
             fig.subplots_adjust(wspace=0)
             for i, (batch_name, batch) in enumerate(df.groupby('batch')):
                 c = sns.barplot(data=batch, x='rep', hue='cell_line_cond', y=y, hue_order = order, 
                                 ax=axs[i], palette=custom_palette, errorbar='sd')
                 c.set_xlabel(batch_name, fontsize=12) 
                 c.tick_params(axis='x', labelsize=10)
-                # # ANOVA test
-                # for j, (rep, rep_data) in enumerate(batch.groupby('rep')):
-                #     anova_data = []
-                #     group_labels = []
-                #     for cell_line_cond, cond_data in rep_data.groupby('cell_line_cond'):
-                #         anova_data.append(cond_data[y].values)
-                #         group_labels.append(cell_line_cond)
-                #     anova_f, anova_pvalue = f_oneway(*anova_data)
-                #     anova_text = f"{rep} {anova_pvalue:.10f} {anova_f}"
-                #     print(f'{batch_name} {anova_text}')
-                    # if anova_pvalue < 0.05:
-                    #     # Dunnett's test (comparing each group to the control)
-                    #     control_group_idx = group_labels.index('WT Untreated')
-                    #     control_group_data = anova_data[control_group_idx]
-                    #     dunnett_pvalues = dunnett(*anova_data, control=control_group_data)
-
-                    #     dunnett_text = "\n".join([f"{group_labels[i]} vs. WT Untreated: {p:.3f}" for i, p in enumerate(dunnett_pvalues) if i != control_group_idx])
-                    #     print(dunnett_text)
-                    # #c.text(0.5*j, 0.95, anova_text, transform=c.transAxes, ha='center', fontsize=12)
-
                 if 0<i<no_batches-1: #middle plots
                     c.spines['left'].set_visible(False)
                     c.spines['right'].set_visible(False)
                     c.legend_.remove()
                     c.set_ylabel('')
+                    # c.set_yticks([])
+                    # c.set_yticklabels([])
                 if i==no_batches-1:
                     c.spines['left'].set_visible(False)
                     c.set_ylabel('')
@@ -689,6 +688,8 @@ def create_sublists_by_marker_cell_line(images, raw, n, cell_lines_for_disp):
             marker = parts[-2]
             cur_cond = parts[-3]
             cur_cell_line = parts[-4]
+        if 'SCNA' in cur_cell_line:
+            continue
         cell_line_for_disp = cell_lines_for_disp[f'{cur_cell_line}_{cur_cond}']
         # Create a key from the combination of marker and cell line
         key = f"{marker}_{cell_line_for_disp}"
@@ -1132,3 +1133,110 @@ def plot_hm_combine_batches(df,  batches, reps, rows, columns):
     fig.subplots_adjust(wspace=0)
     plt.suptitle('Mean of whole cells count in valid tiles', fontsize=20, color="navy")
     plt.show()
+
+def show_site_survival_dapi_brenner(df_dapi, batches):
+    dapi_filter_by_brenner = df_dapi.groupby(['batch','cell_line_cond','panel','rep']).index.count().reset_index()
+    dapi_filter_by_brenner=add_empty_lines(dapi_filter_by_brenner, batches)
+    dapi_filter_by_brenner.sort_values(by=['batch','cell_line_cond','panel','rep'], inplace=True)
+    dapi_filter_by_brenner.reset_index(inplace=True, drop=True)
+    plot_filtering_heatmap(dapi_filter_by_brenner, extra_index='panel',xlabel='% site survival Brenner on DAPI')
+    return dapi_filter_by_brenner
+
+def show_site_survival_dapi_cellpose(df_dapi, batches, dapi_filter_by_brenner):
+    dapi_filter_by_cellpose = df_dapi[df_dapi.site_cell_count!=0]
+    dapi_filter_by_cellpose = dapi_filter_by_cellpose.groupby(['batch','cell_line_cond','panel','rep']).index.count().reset_index()
+    dapi_filter_by_cellpose=add_empty_lines(dapi_filter_by_cellpose, batches)
+    dapi_filter_by_cellpose.sort_values(by=['batch','cell_line_cond','panel','rep'], inplace=True)
+    dapi_filter_by_cellpose.reset_index(inplace=True, drop=True)
+    assert(dapi_filter_by_cellpose.drop(columns='index') == dapi_filter_by_brenner.drop(columns='index')).all().all()
+    dapi_filter_by_cellpose_per = dapi_filter_by_cellpose.copy()
+    dapi_filter_by_cellpose_per['index'] = round(dapi_filter_by_cellpose_per['index']*100 / dapi_filter_by_brenner['index'])
+    dapi_filter_by_cellpose_per.fillna(0, inplace=True)
+    plot_filtering_heatmap(dapi_filter_by_cellpose_per, extra_index='panel', xlabel='% Site survival Cellpose', second=dapi_filter_by_cellpose)
+    return dapi_filter_by_cellpose
+
+def show_site_survival_dapi_tiling(df_dapi, batches, dapi_filter_by_cellpose):
+    dapi_filter_by_tiling = df_dapi[(df_dapi.site_cell_count!=0) & (df_dapi.n_valid_tiles!=0)]
+    dapi_filter_by_tiling = dapi_filter_by_tiling.groupby(['batch','cell_line_cond','panel','rep']).index.count().reset_index()
+    dapi_filter_by_tiling=add_empty_lines(dapi_filter_by_tiling, batches)
+    dapi_filter_by_tiling.sort_values(by=['batch','cell_line_cond','panel','rep'], inplace=True)
+    dapi_filter_by_tiling.reset_index(inplace=True, drop=True)
+    assert(dapi_filter_by_tiling.drop(columns='index') == dapi_filter_by_cellpose.drop(columns='index')).all().all()
+    dapi_filter_by_tiling_per = dapi_filter_by_tiling.copy()
+    dapi_filter_by_tiling_per['index'] = round(dapi_filter_by_tiling_per['index']*100 / dapi_filter_by_cellpose['index'])
+    dapi_filter_by_tiling_per.fillna(0, inplace=True)
+    plot_filtering_heatmap(dapi_filter_by_tiling_per, extra_index='panel', xlabel='% Site survival tiling', 
+                       second=dapi_filter_by_tiling)
+    return dapi_filter_by_tiling
+
+def show_site_survival_target_brenner(df_dapi, df_target, dapi_filter_by_tiling):
+    pass_dapi = df_dapi[(df_dapi.site_cell_count!=0) & (df_dapi.n_valid_tiles!=0)] # take only DAPI's that passed so far (Brenner & Cellpose & tiling)
+    passs = pd.concat([pass_dapi,df_target])
+    pass_target = pd.DataFrame(columns=['batch','rep','marker','panel']) # create empty df for results
+
+    for marker in markers:
+        if marker=='DAPI':
+            continue
+        # for each marker, find the DAPI sites that passed
+        pass_target_cur = passs[passs.marker.str.contains(f'{marker}|DAPI', regex=True)] 
+        # groupby all identifiers to group DAPI&marker sites, then count rows, later count only rows with count>1 (to ignore DAPI)
+        site_pass = pass_target_cur.groupby(['site_num','batch','cell_line_cond','rep','panel']).index.count().reset_index() # for each site, count how many passes (includeing dapi)
+        marker_pass = site_pass[site_pass['index']>1].groupby(['batch','cell_line_cond','rep','panel'])['index'].count().reset_index() # find how many targets passed and then add them all
+        marker_pass['marker'] = marker # add marker info
+        pass_target = pass_target.merge(marker_pass, how='outer') # save result
+
+    pass_target_per = pass_target.copy() # calc percentages
+    merge = pass_target.merge(dapi_filter_by_tiling[['batch','cell_line_cond','rep','index','panel']],
+                    on=['batch', 'cell_line_cond', 'panel', 'rep'], suffixes=('_pass', '_dapi'))
+    pass_target_per = pass_target_per.sort_values(by=['batch','cell_line_cond','rep','panel','marker']).reset_index()
+    merge = merge.sort_values(by=['batch','cell_line_cond','rep','panel','marker']).reset_index()
+
+    pass_target_per['index'] = round(merge['index_pass']*100 / merge['index_dapi'])
+    plot_filtering_heatmap(pass_target_per.drop(columns=['level_0','panel']), extra_index='marker', 
+                        xlabel = '% Site survival by Brenner on target channel', second=pass_target,
+                        figsize=(6,8))
+    return
+
+def calc_total_sums(df_target, df_dapi, stats):
+    dfs = []
+    for marker in markers:
+        if marker=='DAPI':
+            continue
+        cur_target = df_target[df_target.marker==marker]
+        to_merge_target = cur_target[['batch','cell_line_cond','rep','site_num','panel']]
+        to_merge_dapi = df_dapi[['batch','cell_line_cond','rep','site_num','panel'] + stats] 
+        merge = to_merge_target.merge(to_merge_dapi,
+                                    on= ['batch','cell_line_cond','rep','site_num','panel'], how='left')
+        
+        cur_sum = merge.groupby(['batch','cell_line_cond','rep','panel']).sum().reset_index()
+        cur_sum['marker'] = marker
+        dfs.append(cur_sum)
+    total_sum = pd.concat(dfs)
+    return total_sum
+
+def show_total_sum_tables(total_sum):
+    for batch, batch_totals in total_sum.groupby('batch'):
+        describe = pd.DataFrame()
+        describe['n_valid_tiles'] = batch_totals[['n_valid_tiles']].describe()
+        describe['% valid tiles'] = (batch_totals[['n_valid_tiles']]*100/10000).describe() # calc percentage of tiles out of posssible tiles (100 sites*100 tiles in a site)
+        describe.loc['sum','n_valid_tiles'] = batch_totals['n_valid_tiles'].sum()
+        describe['site_whole_cells_counts_sum'] = batch_totals[['site_whole_cells_counts_sum']].describe()
+        describe.loc['sum','site_whole_cells_counts_sum'] = batch_totals['site_whole_cells_counts_sum'].sum()
+        describe['site_cell_count_sum'] = batch_totals[['site_cell_count_sum']].describe()
+        describe.loc['sum','site_cell_count_sum'] = batch_totals['site_cell_count_sum'].sum()
+        describe.loc['expected_count'] = int(9 * 2 * 25)
+        describe.index.name = batch
+        display(HTML(describe.to_html()))
+        
+    describe = pd.DataFrame()
+    describe['n valid tiles'] = total_sum[['n_valid_tiles']].describe() 
+    describe['% valid tiles'] = (total_sum[['n_valid_tiles']]*100/10000).describe() # calc percentage of tiles out of posssible tiles (100 sites*100 tiles in a site)
+    describe.loc['sum','n valid tiles'] = total_sum['n_valid_tiles'].sum()
+    describe['site_whole_cells_counts_sum'] = total_sum[['site_whole_cells_counts_sum']].describe()
+    describe.loc['sum','site_whole_cells_counts_sum'] = total_sum['site_whole_cells_counts_sum'].sum()
+    describe['site_cell_count_sum'] = total_sum[['site_cell_count_sum']].describe()
+    describe.loc['sum','site_cell_count_sum'] = total_sum['site_cell_count_sum'].sum()
+    describe.loc['expected_count'] = int(9 * 2 * 25)
+    describe.index.name = 'All batches'
+    display(HTML(describe.to_html()))
+    return
