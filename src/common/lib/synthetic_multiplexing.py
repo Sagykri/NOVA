@@ -111,7 +111,7 @@ def __get_embeddings(model, embeddings_type, config_data, vq_type='vqvec2'):
     if vq_type in ['vqindhist1', 'vqindhist2']:
         loading_func = lambda: model.load_indhists(embeddings_type, config_data)
     elif vq_type in ['vqvec1', 'vqvec2']:
-        loading_func = lambda: model.load_embeddings(embeddings_type)
+        loading_func = lambda: model.load_embeddings(embeddings_type, config_data)
     else:
         raise f"Invalid vq type {vq_type} [The options are: 'vqvec1', 'vqvec2', 'vqindhist1', 'vqindhist2']"
     
