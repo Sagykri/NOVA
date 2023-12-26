@@ -51,9 +51,6 @@ def generate_umaps():
     logging.info(f"Loading model (Path: {config_model.MODEL_PATH})")
     model.load_model(num_fc_output_classes=len(unique_markers))
     
-    markers = np.unique([m.split('_')[0] if '_' in m else m for m in unique_markers]) 
-    logging.info(f"Markers detected: {markers}")
-    
     __generate_with_load(config_model, config_data, model, markers, output_folder_path)
 
 
@@ -66,6 +63,9 @@ def __generate_with_load(config_model, config_data, model, markers, output_folde
     model.generate_dummy_analytics()
     embeddings, labels = model.load_embeddings(embeddings_type='testset' if config_data.SPLIT_DATA else 'all',
                                                config_data=config_data)
+
+    markers = np.unique([m.split('_')[-1] if '_' in m else m for m in np.unique(labels.reshape(-1,))]) 
+    logging.info(f"Detected markers: {markers}")
     
     for c in markers:
         logging.info(f"Marker: {c}")
