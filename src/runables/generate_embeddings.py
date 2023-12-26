@@ -24,6 +24,11 @@ def generate_embeddings():
 
     # Get dataset configs (as used in trainig the model)
     config_path_data = sys.argv[2]
+    
+    # Init model and model configuration 
+    # Note: This line must be called before loading the data config file, otherwise no logs will be written to the model folder
+    model, config_model =  init_model_for_embeddings(config_path_model=config_path_model)
+    
     config_data = load_config_file(config_path_data, 'data') 
     embeddings_layer = get_if_exists(config_data, 'EMBEDDINGS_LAYER', 'vqvec2')
 
@@ -32,10 +37,6 @@ def generate_embeddings():
     logging.info(f"Starting to generate {embeddings_layer} embeddings...")
     logging.info(f"Is GPU available: {torch.cuda.is_available()}")
     logging.info(f"Num GPUs Available: {torch.cuda.device_count()}")
-
-
-    # Init model and model configuration 
-    model, config_model =  init_model_for_embeddings(config_path_model=config_path_model)
 
     logging.info(f"Init datasets {config_data} from {config_path_data}")
     experiment_type = get_if_exists(config_data, 'EXPERIMENT_TYPE', None)
