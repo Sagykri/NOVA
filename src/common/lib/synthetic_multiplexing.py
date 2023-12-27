@@ -38,8 +38,9 @@ def multiplex(model: Model, embeddings_type='testset',
     
     if map_labels_function is not None:
         logging.info("Applyging map_labels_function from the config on the unique_groups")
+        logging.info(f"unique groups before function: {unique_groups}")
         unique_groups = map_labels_function(unique_groups)    
-    
+        logging.info(f"unique groups after function: {unique_groups}")
     logging.info("Generating dummy analytics..")
     model.generate_dummy_analytics()
     
@@ -111,7 +112,7 @@ def __get_embeddings(model, embeddings_type, config_data, vq_type='vqvec2'):
     if vq_type in ['vqindhist1', 'vqindhist2']:
         loading_func = lambda: model.load_indhists(embeddings_type, config_data)
     elif vq_type in ['vqvec1', 'vqvec2']:
-        loading_func = lambda: model.load_embeddings(embeddings_type)
+        loading_func = lambda: model.load_embeddings(embeddings_type, config_data)
     else:
         raise f"Invalid vq type {vq_type} [The options are: 'vqvec1', 'vqvec2', 'vqindhist1', 'vqindhist2']"
     

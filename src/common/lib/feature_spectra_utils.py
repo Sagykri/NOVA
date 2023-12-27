@@ -35,6 +35,7 @@ def create_vqindhists_df(vqindhist, labels, paths, arange_labels=True):
     hist_df['label'] = labels
     hist_df['label'] = hist_df['label'].str.replace("_16bit_no_downsample", "")
     hist_df['label'] = hist_df['label'].str.replace("_spd_format", "")
+    hist_df['label'] = hist_df['label'].str.replace("_add_brenner_cellpose", "")
     hist_df['label'] = hist_df['label'].str.replace(os.sep, "_")
 
     def rearrange_string(s):

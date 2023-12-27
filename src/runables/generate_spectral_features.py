@@ -49,7 +49,7 @@ def generate_spectral_features():
 
     datasets_list = load_dataset_for_embeddings(config_data=config_data, batch_size=1, config_model=config_model, shuffle=False)
     # Set the output folder (where to save the embeddings)
-    embeddings_folder = os.path.join(config_model.MODEL_OUTPUT_FOLDER, 'embeddings_with_path', experiment_type, embedding_layer)
+    embeddings_folder = os.path.join(config_model.MODEL_OUTPUT_FOLDER, 'embeddings', experiment_type, embedding_layer)
      
     # Get trained model    
     trained_model = load_model_with_dataloader(model, datasets_list)
