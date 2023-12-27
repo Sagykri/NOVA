@@ -365,7 +365,7 @@ def plot_filtering_heatmap(filtered, extra_index, xlabel='', figsize=(5,5), seco
                 plt.tight_layout()
             plt.show()
 
-def add_empty_lines(df, batches):
+def add_empty_lines(df, batches, line_colors, panels):
     for batch in batches:
         for cell_line_cond in line_colors.keys():
             for panel in panels.columns:
@@ -412,7 +412,7 @@ def plot_filtering_table(filtered, extra_index, width=8, height=8):
     table.set_fontsize(12)
     plt.show()  
 
-def plot_table(df, file_name, plot_path, reps, expected_dapi, fig_height=8, fig_width=8, to_save=True):
+def plot_table(df, file_name, plot_path, reps, expected_dapi, fig_height=8, fig_width=8, to_save=False):
     fig, ax = plt.subplots(figsize=(fig_width, fig_height))
     colored_df_without_DAPI = df.drop('DAPI', level=0).applymap(apply_color)
     dapi_index_data = [['DAPI']*len(reps),reps]
@@ -457,7 +457,7 @@ def plot_table(df, file_name, plot_path, reps, expected_dapi, fig_height=8, fig_
     fig.set_size_inches(fig_width, fig_height)
     plt.show()
 
-def plot_table_diff(df, plot_path, file_name,fig_height=8, fig_width=8):
+def plot_table_diff(df, plot_path, file_name,fig_height=8, fig_width=8, to_save=False):
     fig, ax = plt.subplots(figsize=(fig_width, fig_height))
     colored_df = df.applymap(apply_color_diff)
     colored_df = colored_df.reset_index(level=1)
@@ -477,8 +477,9 @@ def plot_table_diff(df, plot_path, file_name,fig_height=8, fig_width=8):
     plt.axis('off')
     table.auto_set_font_size(False)
     table.set_fontsize(12)
-    pathlib.Path(plot_path).mkdir(parents=True, exist_ok=True)
-    plt.savefig(os.path.join(plot_path, f'{file_name}_diff.png'))
+    if to_save:
+        pathlib.Path(plot_path).mkdir(parents=True, exist_ok=True)
+        plt.savefig(os.path.join(plot_path, f'{file_name}_diff.png'))
     plt.show()
 
 def run_validate_folder_structure(root_dir, proc, panels, markers,plot_path, marker_info,
@@ -488,12 +489,15 @@ def run_validate_folder_structure(root_dir, proc, panels, markers,plot_path, mar
     folder_type = 'processed' if proc else 'raw'
     folder_structure = create_folder_structure(folder_type, markers,cell_lines_to_cond, reps, panels)
     batch_dfs = []
+    if not proc and 'deltaNLS' in root_dir:
+        markers.remove('TDP43N')
+        markers = [marker if marker not in ['TDP43B'] else 'TDP43' for marker in markers]         
+    index_data = [[marker for marker in markers for _ in reps],reps * len(markers)]
+    multi_index = pd.MultiIndex.from_arrays(index_data, names=['Marker', 'Rep'])
     for batch in batches: 
         print(batch)
         # Specify the root directory to validate
         batch_root_dir = os.path.join(root_dir, batch)
-        index_data = [[marker for marker in markers for _ in reps],reps * len(markers)]
-        multi_index = pd.MultiIndex.from_arrays(index_data, names=['Marker', 'Rep'])
         batch_df = pd.DataFrame(index=multi_index, columns=cell_lines_for_disp.values())
 
         # Validate the folder structure and track missing paths
@@ -912,7 +916,7 @@ def plot_hist_lines(mean_hist_raw, mean_hist_rescale, mean_hist_proc, batch_num,
 
         
 def run_calc_hist_new(batch, cell_lines_for_disp, markers, hist_sample=1, 
-                      sample_size_per_markers=200, ncols=3, nrows=3, rep_count=2, cond_count=2):    
+                      sample_size_per_markers=200, ncols=3, nrows=3, rep_count=2, cond_count=2, dnls=False):    
     INPUT_DIR_BATCH_RAW = os.path.join(INPUT_DIR_RAW, batch.replace('_16bit','').replace('_no_downsample',''))
     INPUT_DIR_BATCH_PROC = os.path.join(INPUT_DIR_PROC, batch.replace("_sort",""))
 
@@ -920,11 +924,20 @@ def run_calc_hist_new(batch, cell_lines_for_disp, markers, hist_sample=1,
                                                      raw=True, all_conds=False, rep_count=rep_count, cond_count=cond_count, exclude_DAPI=True)
     images_proc = sample_images_all_markers_all_lines(INPUT_DIR_BATCH_PROC, _sample_size_per_markers=sample_size_per_markers,#*2, 
                                                  _num_markers=len(markers), raw=False, all_conds=True)
+
+    if dnls:
+        raw_markers = markers.copy()
+        raw_markers.remove('TDP43N')
+        raw_markers = [marker if marker not in ['TDP43B'] else 'TDP43' for marker in raw_markers] 
+    else:
+        raw_markers = markers.copy()
+    cell_lines_for_df_raw = [cell_line for cell_line in cell_lines_for_disp.values() for _ in range(len(raw_markers))]
     cell_lines_for_df = [cell_line for cell_line in cell_lines_for_disp.values() for _ in range(len(markers))]
-    batch_df_raw = pd.DataFrame(index=[cell_lines_for_df, markers*len(cell_lines_for_disp.values())], 
+    # print(raw_markers)
+    batch_df_raw = pd.DataFrame(index=[cell_lines_for_df_raw, raw_markers*len(cell_lines_for_disp.values())], 
                                 columns=np.concatenate(([0], np.arange(350,1000, 20), [1000])))
     batch_df_raw['site_count'] = np.nan
-    batch_df_norm = pd.DataFrame(index=[cell_lines_for_df, markers*len(cell_lines_for_disp.values())], 
+    batch_df_norm = pd.DataFrame(index=[cell_lines_for_df_raw, raw_markers*len(cell_lines_for_disp.values())], 
                                 columns=np.arange(0,1, 0.1))
     batch_df_norm['site_count'] = np.nan
     batch_df_processed = pd.DataFrame(index=[cell_lines_for_df, markers*len(cell_lines_for_disp.values())], 
@@ -1134,18 +1147,18 @@ def plot_hm_combine_batches(df,  batches, reps, rows, columns):
     plt.suptitle('Mean of whole cells count in valid tiles', fontsize=20, color="navy")
     plt.show()
 
-def show_site_survival_dapi_brenner(df_dapi, batches):
+def show_site_survival_dapi_brenner(df_dapi, batches, line_colors, panels):
     dapi_filter_by_brenner = df_dapi.groupby(['batch','cell_line_cond','panel','rep']).index.count().reset_index()
-    dapi_filter_by_brenner=add_empty_lines(dapi_filter_by_brenner, batches)
+    dapi_filter_by_brenner=add_empty_lines(dapi_filter_by_brenner, batches, line_colors, panels)
     dapi_filter_by_brenner.sort_values(by=['batch','cell_line_cond','panel','rep'], inplace=True)
     dapi_filter_by_brenner.reset_index(inplace=True, drop=True)
     plot_filtering_heatmap(dapi_filter_by_brenner, extra_index='panel',xlabel='% site survival Brenner on DAPI')
     return dapi_filter_by_brenner
 
-def show_site_survival_dapi_cellpose(df_dapi, batches, dapi_filter_by_brenner):
+def show_site_survival_dapi_cellpose(df_dapi, batches, dapi_filter_by_brenner, line_colors, panels):
     dapi_filter_by_cellpose = df_dapi[df_dapi.site_cell_count!=0]
     dapi_filter_by_cellpose = dapi_filter_by_cellpose.groupby(['batch','cell_line_cond','panel','rep']).index.count().reset_index()
-    dapi_filter_by_cellpose=add_empty_lines(dapi_filter_by_cellpose, batches)
+    dapi_filter_by_cellpose=add_empty_lines(dapi_filter_by_cellpose, batches, line_colors, panels)
     dapi_filter_by_cellpose.sort_values(by=['batch','cell_line_cond','panel','rep'], inplace=True)
     dapi_filter_by_cellpose.reset_index(inplace=True, drop=True)
     assert(dapi_filter_by_cellpose.drop(columns='index') == dapi_filter_by_brenner.drop(columns='index')).all().all()
@@ -1155,10 +1168,10 @@ def show_site_survival_dapi_cellpose(df_dapi, batches, dapi_filter_by_brenner):
     plot_filtering_heatmap(dapi_filter_by_cellpose_per, extra_index='panel', xlabel='% Site survival Cellpose', second=dapi_filter_by_cellpose)
     return dapi_filter_by_cellpose
 
-def show_site_survival_dapi_tiling(df_dapi, batches, dapi_filter_by_cellpose):
+def show_site_survival_dapi_tiling(df_dapi, batches, dapi_filter_by_cellpose, line_colors, panels):
     dapi_filter_by_tiling = df_dapi[(df_dapi.site_cell_count!=0) & (df_dapi.n_valid_tiles!=0)]
     dapi_filter_by_tiling = dapi_filter_by_tiling.groupby(['batch','cell_line_cond','panel','rep']).index.count().reset_index()
-    dapi_filter_by_tiling=add_empty_lines(dapi_filter_by_tiling, batches)
+    dapi_filter_by_tiling=add_empty_lines(dapi_filter_by_tiling, batches, line_colors, panels)
     dapi_filter_by_tiling.sort_values(by=['batch','cell_line_cond','panel','rep'], inplace=True)
     dapi_filter_by_tiling.reset_index(inplace=True, drop=True)
     assert(dapi_filter_by_tiling.drop(columns='index') == dapi_filter_by_cellpose.drop(columns='index')).all().all()
@@ -1215,6 +1228,7 @@ def calc_total_sums(df_target, df_dapi, stats):
     return total_sum
 
 def show_total_sum_tables(total_sum):
+    # show table for each batch
     for batch, batch_totals in total_sum.groupby('batch'):
         describe = pd.DataFrame()
         describe['n_valid_tiles'] = batch_totals[['n_valid_tiles']].describe()
@@ -1222,20 +1236,20 @@ def show_total_sum_tables(total_sum):
         describe.loc['sum','n_valid_tiles'] = batch_totals['n_valid_tiles'].sum()
         describe['site_whole_cells_counts_sum'] = batch_totals[['site_whole_cells_counts_sum']].describe()
         describe.loc['sum','site_whole_cells_counts_sum'] = batch_totals['site_whole_cells_counts_sum'].sum()
-        describe['site_cell_count_sum'] = batch_totals[['site_cell_count_sum']].describe()
-        describe.loc['sum','site_cell_count_sum'] = batch_totals['site_cell_count_sum'].sum()
+        describe['site_cell_count'] = batch_totals[['site_cell_count']].describe()
+        describe.loc['sum','site_cell_count'] = batch_totals['site_cell_count'].sum()
         describe.loc['expected_count'] = int(9 * 2 * 25)
         describe.index.name = batch
         display(HTML(describe.to_html()))
-        
+    # show table for all batches combined 
     describe = pd.DataFrame()
     describe['n valid tiles'] = total_sum[['n_valid_tiles']].describe() 
     describe['% valid tiles'] = (total_sum[['n_valid_tiles']]*100/10000).describe() # calc percentage of tiles out of posssible tiles (100 sites*100 tiles in a site)
     describe.loc['sum','n valid tiles'] = total_sum['n_valid_tiles'].sum()
     describe['site_whole_cells_counts_sum'] = total_sum[['site_whole_cells_counts_sum']].describe()
     describe.loc['sum','site_whole_cells_counts_sum'] = total_sum['site_whole_cells_counts_sum'].sum()
-    describe['site_cell_count_sum'] = total_sum[['site_cell_count_sum']].describe()
-    describe.loc['sum','site_cell_count_sum'] = total_sum['site_cell_count_sum'].sum()
+    describe['site_cell_count'] = total_sum[['site_cell_count']].describe()
+    describe.loc['sum','site_cell_count'] = total_sum['site_cell_count'].sum()
     describe.loc['expected_count'] = int(9 * 2 * 25)
     describe.index.name = 'All batches'
     display(HTML(describe.to_html()))
