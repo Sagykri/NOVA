@@ -68,20 +68,8 @@ def calc_cellprofiler_distances(scale=True):
     reps = marker_centroids['rep'].unique()
     marker_centroids['cell_line_condition'] = marker_centroids['cell_line'] + '_' + marker_centroids['condition']
     cell_lines_conditions = marker_centroids['cell_line_condition'].unique()
-    output_folder = "/home/labs/hornsteinlab/Collaboration/MOmaps_Noam/MOmaps/"
+    output_folder = "/home/labs/hornsteinlab/Collaboration/MOmaps/outputs/cell_profiler/"
     between_cell_lines_sep_batch_rep = between_cell_lines_sep_rep_dist(marker_centroids, cell_lines_conditions, markers, distances_main_folder=output_folder, batch_name="all?")
-
-
-    if scale: #min max scale for each batch+rep !
-        scaled = pd.DataFrame()
-        for name, group in between_cell_lines_sep_batch_rep.groupby(['batch','rep']):
-            numeric_cur = group.select_dtypes(include='number')
-            max_cur = numeric_cur.max().max()
-            min_cur = numeric_cur.min().min()
-            cur_scaled_df = (numeric_cur - min_cur) / (max_cur-min_cur)
-            cur_scaled_df = pd.concat([group.select_dtypes(exclude='number'), cur_scaled_df], axis=1)
-            scaled = pd.concat([scaled, cur_scaled_df])
-    scaled.to_csv(os.path.join(output_folder,f'scaled.csv'), index=False)
 
 def create_markers_centroids_df(all_labels, all_embedings_data, exclude_DAPI=True):  
     """Create a pd.DataFrame of centroids embedddings and experimental settings 
@@ -439,7 +427,7 @@ def calc_embeddings_distances(config_model, config_data, distances_main_folder, 
 
     return None
 
-def unite_batches(distances_main_folder, input_folders, scale=False, files = ['within_reps_similarities','between_rep_similarities',
+def unite_batches(distances_main_folder, input_folders, files = ['within_reps_similarities','between_rep_similarities',
                                                                 'between_cell_lines_conds_similarities','mean_between_cell_lines_conds_similarities',
                                                                 'between_cell_lines_conds_similarities_rep']
                                                                 ):
@@ -464,16 +452,6 @@ def unite_batches(distances_main_folder, input_folders, scale=False, files = ['w
                 cur_df['batch'] = batch
             new_df = pd.concat([new_df, cur_df])
         new_df.to_csv(os.path.join(distances_main_folder,f'{file}_new.csv'), index=False)
-        if scale: #min max scale for each batch+rep !
-            scaled = pd.DataFrame()
-            for name, group in new_df.groupby(['batch','rep']):
-                numeric_cur = group.select_dtypes(include='number')
-                max_cur = numeric_cur.max().max()
-                min_cur = numeric_cur.min().min()
-                cur_scaled_df = (numeric_cur - min_cur) / (max_cur-min_cur)
-                cur_scaled_df = pd.concat([group.select_dtypes(exclude='number'), cur_scaled_df], axis=1)
-                scaled = pd.concat([scaled, cur_scaled_df])
-        scaled.to_csv(os.path.join(distances_main_folder,f'{file}_new_scaled.csv'), index=False)
     return None
 
 if __name__ == "__main__":

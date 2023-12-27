@@ -21,7 +21,7 @@ def run_calc_embeddings_distances(config_path_model, config_path_data, embedding
     os.makedirs(distances_main_folder, exist_ok=True)
     logging.info(f'Saving results in {distances_main_folder}')
     calc_embeddings_distances(config_model, config_data, distances_main_folder, embeddings_type)
-    unite_batches(distances_main_folder, config_data.INPUT_FOLDERS, scale=True, files=['between_cell_lines_conds_similarities_rep'])
+    unite_batches(distances_main_folder, config_data.INPUT_FOLDERS, files=['between_cell_lines_conds_similarities_rep'])
 
 
 
