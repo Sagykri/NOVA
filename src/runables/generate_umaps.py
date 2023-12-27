@@ -51,10 +51,10 @@ def generate_umaps():
     logging.info(f"Loading model (Path: {config_model.MODEL_PATH})")
     model.load_model(num_fc_output_classes=len(unique_markers))
     
-    __generate_with_load(config_model, config_data, model, markers, output_folder_path)
+    __generate_with_load(config_model, config_data, model, output_folder_path)
 
 
-def __generate_with_load(config_model, config_data, model, markers, output_folder_path):
+def __generate_with_load(config_model, config_data, model, output_folder_path):
     logging.info("Clearing cache")
     torch.cuda.empty_cache()
     
