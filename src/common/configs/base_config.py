@@ -86,7 +86,7 @@ class BaseConfig():
             'PURA': {self.UMAP_MAPPINGS_ALIAS_KEY: 'PURA-granules', self.UMAP_MAPPINGS_COLOR_KEY: 'deeppink'},
             'CLTC': {self.UMAP_MAPPINGS_ALIAS_KEY: 'Coated Vesicles', self.UMAP_MAPPINGS_COLOR_KEY: 'magenta'},
             'KIF5A': {self.UMAP_MAPPINGS_ALIAS_KEY: 'Microtubule-Associated Transport Machinery', self.UMAP_MAPPINGS_COLOR_KEY: 'darkmagenta'},
-            'SNCA': {self.UMAP_MAPPINGS_ALIAS_KEY: 'Presynaptic Terminals', self.UMAP_MAPPINGS_COLOR_KEY: 'navy'},
+            'SCNA': {self.UMAP_MAPPINGS_ALIAS_KEY: 'Presynaptic Terminals', self.UMAP_MAPPINGS_COLOR_KEY: 'navy'},
             'CD41': {self.UMAP_MAPPINGS_ALIAS_KEY: 'CD41-granules', self.UMAP_MAPPINGS_COLOR_KEY: 'royalblue'},
             'SQSTM1': {self.UMAP_MAPPINGS_ALIAS_KEY: 'Autophagosomes', self.UMAP_MAPPINGS_COLOR_KEY: 'deepskyblue'},
             'G3BP1': {self.UMAP_MAPPINGS_ALIAS_KEY: 'Stress Granules', self.UMAP_MAPPINGS_COLOR_KEY: 'olive'},
@@ -94,9 +94,7 @@ class BaseConfig():
             'LAMP1': {self.UMAP_MAPPINGS_ALIAS_KEY: 'Lysosomes', self.UMAP_MAPPINGS_COLOR_KEY: 'lime'},
             'DCP1A': {self.UMAP_MAPPINGS_ALIAS_KEY: 'P-Bodies', self.UMAP_MAPPINGS_COLOR_KEY: 'seagreen'},
             'NEMO': {self.UMAP_MAPPINGS_ALIAS_KEY: 'NEMO Condensates', self.UMAP_MAPPINGS_COLOR_KEY: 'darkgreen'},
-            'PSD95': {self.UMAP_MAPPINGS_ALIAS_KEY: 'Post-Synaptic Subcompartments', self.UMAP_MAPPINGS_COLOR_KEY: 'green'},
-            
-            
+            'PSD95': {self.UMAP_MAPPINGS_ALIAS_KEY: 'Post-Synaptic Subcompartments', self.UMAP_MAPPINGS_COLOR_KEY: 'green'},            
             'FMRP': {self.UMAP_MAPPINGS_ALIAS_KEY: 'FMRP', self.UMAP_MAPPINGS_COLOR_KEY: 'gray'}
         }
         
