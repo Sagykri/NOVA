@@ -21,14 +21,14 @@ marker_info = pd.DataFrame([[['Cy5']]*10 + [['mCherry']]*11 + [['GFP']]*4,
                          columns = ['G3BP1','NONO','SQSTM1','PSD95','NEMO','GM130','NCL','ANXA11','Calreticulin','mitotracker',
                                  'KIF5A','TDP43','FMRP','CLTC','DCP1A','TOMM20','FUS','SCNA','LAMP1','TIA1','PML',
                                  'PURA','CD41','Phalloidin', 'PEX14']).T  #order here is important - taken from Lena's sheet
-cell_lines = ['FUSHomozygous', 'TDP43', 'TBK1', 'WT', 'SCNA', 'FUSRevertant','OPTN', 'FUSHeterozygous']
+cell_lines = ['FUSHomozygous', 'TDP43', 'TBK1', 'WT', 'FUSRevertant','OPTN', 'FUSHeterozygous'] #'SCNA',
 cell_lines_to_cond = {'FUSHomozygous':['Untreated'], 'TDP43':['Untreated'], 'TBK1':['Untreated'],
-                      'WT':['Untreated','stress'],'SCNA':['Untreated'], 'FUSRevertant':['Untreated'],
-                      'OPTN':['Untreated'], 'FUSHeterozygous':['Untreated']}
+                      'WT':['Untreated','stress'], 'FUSRevertant':['Untreated'],
+                      'OPTN':['Untreated'], 'FUSHeterozygous':['Untreated']} #'SCNA':['Untreated'],
 cell_lines_for_disp = {'FUSHomozygous_Untreated':'FUSHomozygous', 'TDP43_Untreated':'TDP43', 
                        'TBK1_Untreated':'TBK1', 'WT_stress':'WT_stress', 'WT_Untreated':'WT_Untreated',
-                        'SCNA_Untreated':'SCNA','FUSRevertant_Untreated':'FUSRevertant',
-                        'OPTN_Untreated':'OPTN', 'FUSHeterozygous_Untreated':'FUSHeterozygous'}
+                        'FUSRevertant_Untreated':'FUSRevertant',
+                        'OPTN_Untreated':'OPTN', 'FUSHeterozygous_Untreated':'FUSHeterozygous'} #'SCNA_Untreated':'SCNA',
 reps = ['rep1','rep2']
 colorblind_palette = sns.color_palette('colorblind')
 line_colors = {
@@ -36,7 +36,7 @@ line_colors = {
     'FUSHomozygous': colorblind_palette[1],
     'FUSRevertant': colorblind_palette[2],
     'OPTN': colorblind_palette[8],
-    'SCNA': colorblind_palette[4],
+    # 'SCNA': colorblind_palette[4],
     'TBK1': colorblind_palette[5],
     'TDP43': colorblind_palette[6],
     'WT Untreated': colorblind_palette[9],
@@ -144,19 +144,19 @@ dnls_panels = pd.DataFrame([['G3BP1','TDP43','SQSTM1','PSD95',np.nan,'GM130','NC
                             ['PURA','Tubulin','Phalloidin','CD41',np.nan,np.nan,np.nan,np.nan,np.nan,np.nan,np.nan,np.nan,'PEX14',np.nan],
              ['DAPI']*14], columns=['A','B','C','D','E','F','G','H','I','J','K','L','M','N'],
             index=['Cy5', 'mCherry', 'GFP','DAPI'])
-dnls_markers = ['G3BP1','TDP43','SQSTM1','PSD95','GM130','NCL','ANXA11','Calreticulin','Pericentrin',
+dnls_markers = ['G3BP1','TDP43N','TDP43B','SQSTM1','PSD95','GM130','NCL','ANXA11','Calreticulin','Pericentrin',
                 'Rab5','KIFC1','mitotracker','KIF5A','DCP1A','FMRP','CLTC','KIF20A','TOMM20','FUS','SCNA','LAMP1',
                 'TIA1','NONO','NEMO','PML','PURA','Tubulin','Phalloidin','CD41','PEX14','DAPI']
 
 dnls_cell_lines_for_disp = {f'{cell_line}_{cond}':f'{cell_line}_{cond}' 
                             for cell_line in dnls_cell_lines for cond in dnls_cell_lines_to_cond[cell_line] }
-dnls_marker_info = pd.DataFrame([[['Cy5']]*11 + [['mCherry']]*13 + [['GFP']]*5 + [['Cy5','mCherry']],
-                          [['A'],['C'],['D'],['F'],['G'],['H'],['I'],['J'], ['K'],['L'],['M'], 
-                          ['A'],['B'],['C'],['D'],['E'],['F'],['G'],['H'],['I'],['J'],['K'],['L'], ['M'], 
+dnls_marker_info = pd.DataFrame([[['Cy5']]*12 + [['mCherry']]*14 + [['GFP']]*5 + [['Cy5','mCherry']],
+                          [['A'], ['B'], ['C'],['D'],['F'],['G'],['H'],['I'],['J'], ['K'],['L'],['M'], 
+                          ['A'],['B'],['C'],['D'],['E'],['F'],['G'],['H'],['I'],['J'],['K'],['L'], ['M'], ['N'], 
                           ['A'],['B'],['C'],['D'],['M'], ['B','N']]], index=['Antibody','panel'],
-                         columns = ['G3BP1','SQSTM1','PSD95','GM130','NCL','ANXA11','Calreticulin','Pericentrin',
-                'Rab5','KIFC1','mitotracker','KIF5A','DCP1A','FMRP','CLTC','KIF20A','TOMM20','FUS','SCNA','LAMP1',
-                'TIA1','NONO','NEMO','PML', 'PURA','Tubulin','Phalloidin','CD41','PEX14','TDP43']).T #order here is important - taken from Lena's sheet
+                         columns = ['G3BP1','TDP43B','SQSTM1','PSD95','GM130','NCL','ANXA11','Calreticulin','Pericentrin',
+                'Rab5','KIFC1','mitotracker','KIF5A','DCP1A','FMRP','CLTC','KIF20A','TOMM20','FUS','SCNA','LAMP1', 
+                'TIA1','NONO','NEMO','PML', 'TDP43N','PURA','Tubulin','Phalloidin','CD41','PEX14','TDP43']).T #order here is important - taken from Lena's sheet
 
 dnls_line_colors = {
     'TDP43 Untreated': colorblind_palette[4],

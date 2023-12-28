@@ -21,11 +21,13 @@ def multiplex(model: Model, embeddings_type='testset',
                     alpha=0.8,
                     s=0.8,
                     output_layer='vqvec2',
-                    savepath='default'):
+                    savepath='default',
+                    map_labels_function=None,
+                    config_data=None):
     assert model is not None, "Model is None"
-    assert model.test_loader is not None, "model.test_loader is None, please first load dataloaders"
+    assert config_data is not None, 'config_data is None'
     
-    dataset_conf = model.test_loader.dataset.conf
+    dataset_conf = config_data
 
     embeddings, labels = __get_embeddings(model, embeddings_type, config_data=dataset_conf, vq_type=output_layer)
     logging.info(f"[Before concat] Embeddings shape: {embeddings.shape}, Labels shape: {labels.shape}")
@@ -34,8 +36,13 @@ def multiplex(model: Model, embeddings_type='testset',
     embeddings, label_data, unique_groups = __get_multiplexed_embeddings(df, random_state=dataset_conf.SEED)
     logging.info(f"[After concat] Embeddings shape: {embeddings.shape}, Labels shape: {label_data.shape}")
     
-    logging.info("Loading analytics..")
-    model.load_analytics()
+    if map_labels_function is not None:
+        logging.info("Applyging map_labels_function from the config on the unique_groups")
+        logging.info(f"unique groups before function: {unique_groups}")
+        unique_groups = map_labels_function(unique_groups)    
+        logging.info(f"unique groups after function: {unique_groups}")
+    logging.info("Generating dummy analytics..")
+    model.generate_dummy_analytics()
     
     logging.info("Plot umap..")
     model.plot_umap(colormap=colormap,
@@ -47,7 +54,9 @@ def multiplex(model: Model, embeddings_type='testset',
                     unique_groups=unique_groups,
                     embedding_data=embeddings,
                     output_layer=output_layer,
-                    savepath=savepath)
+                    savepath=savepath,
+                    map_labels_function=map_labels_function,
+                    config_data=config_data)
 
 def __generate_plot_title(model_conf, dataset_conf):
     return 'SM_' + f"{'_'.join([os.path.basename(f) for f in dataset_conf.INPUT_FOLDERS])}_{datetime.datetime.now().strftime('%d%m%y_%H%M%S_%f')}_{os.path.splitext(os.path.basename(model_conf.MODEL_PATH))[0]}"
@@ -103,7 +112,7 @@ def __get_embeddings(model, embeddings_type, config_data, vq_type='vqvec2'):
     if vq_type in ['vqindhist1', 'vqindhist2']:
         loading_func = lambda: model.load_indhists(embeddings_type, config_data)
     elif vq_type in ['vqvec1', 'vqvec2']:
-        loading_func = lambda: model.load_embeddings(embeddings_type)
+        loading_func = lambda: model.load_embeddings(embeddings_type, config_data)
     else:
         raise f"Invalid vq type {vq_type} [The options are: 'vqvec1', 'vqvec2', 'vqindhist1', 'vqindhist2']"
     

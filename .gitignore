@@ -3,6 +3,7 @@
 .vscode/
 .ipynb_checkpoints/
 *.csv
+!/src/preprocessing/*.csv
 anaconda3/
 logs/
 
@@ -23,6 +24,8 @@ data/processed/*
 !input/images/processed/.gitkeep
 
 /tools/lena/models_outputs_Lena/embeddings/**/*.npy
+/sandbox/**/*.npy
+/sandbox/**/*.pdf
 
 tests/**/*.png
 tests/**/*.tif

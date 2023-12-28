@@ -178,7 +178,8 @@ class SPDPreprocessor(Preprocessor):
                                                                         to_denoise=to_denoise, 
                                                                         to_normalize=to_normalize, 
                                                                         to_show=to_show,
-                                                                        brenner_bounds=brenner_bounds)
+                                                                        brenner_bounds=brenner_bounds,
+                                                                        img_path=file_path)
         
         return processed_images
 

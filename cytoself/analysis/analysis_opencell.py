@@ -208,6 +208,9 @@ class AnalysisOpenCell(BaseAnalysis):
         label_data,
         unique_groups: Optional = None,
         colormap: Union[str, tuple] = 'tab20_others',
+        name_color_dict=None,
+        name_key=None,
+        color_key=None,
         s: float = 0.2,
         alpha: float = 0.1,
         title: str = 'UMAP',
@@ -277,15 +280,19 @@ class AnalysisOpenCell(BaseAnalysis):
             ind = label_data == gp
             ind = ind.reshape(-1,)
 
-            if isinstance(cmap, dict):#SAGY
-                _c = np.array([cmap[gp]]*sum(ind))#SAGY
-            elif '_others' in colormap and gp == 'others':
-                _c = cm.Greys(25)
+            if name_color_dict is None:
+                if isinstance(cmap, dict):#SAGY
+                    _c = np.array([cmap[gp]]*sum(ind))#SAGY
+                elif '_others' in colormap and gp == 'others':
+                    _c = cm.Greys(25)
+                else:
+                    _c = cmap[i % len(cmap)]  #SAGY
+                    _c = np.array(_c).reshape(1, -1) #SAGY
+                    i += 1
             else:
-                _c = cmap[i % len(cmap)]  #SAGY
-                _c = np.array(_c).reshape(1, -1) #SAGY
-                i += 1
-                
+                if gp not in name_color_dict:
+                    raise Exception(f"{gp} is not in given name_color_dict")
+                _c = np.array([*[name_color_dict[gp][color_key]] * sum(ind)])
             if is_3d:#SAGY
                 ax.scatter(
                     umap_data[ind, 0],
@@ -294,7 +301,7 @@ class AnalysisOpenCell(BaseAnalysis):
                     s=s,
                     alpha=alpha,
                     c=_c,
-                    label=gp,
+                    label=gp if name_color_dict is None else name_color_dict[gp][name_key],
                     zorder=0 if gp == 'others' else len(unique_groups) - i + 1,
                 )
             else:
@@ -305,7 +312,7 @@ class AnalysisOpenCell(BaseAnalysis):
                     alpha=alpha if 'mean' not in gp else 1,
                     c=_c,
                     marker = 'o' if 'mean' not in gp else "*", 
-                    label=gp,
+                    label=gp if name_color_dict is None else name_color_dict[gp][name_key],
                     zorder=0 if gp == 'others' else len(unique_groups) - i + 1,
                 )
                 # SAGY

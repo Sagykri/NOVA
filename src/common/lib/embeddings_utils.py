@@ -338,10 +338,10 @@ def load_indhists(config_path_model=None, config_path_data=None,
         hist_df = hist_df[hist_df['label'].str.contains('|'.join(reps), regex=True)]        
 
     all_embedings_data = np.array(hist_df.drop(columns='label'))
-    logging.info(f'all_embedings_data shape: {all_embedings_data.shape}')
+    logging.info(f'[load_indhists] all_embedings_data shape: {all_embedings_data.shape}')
     all_labels = np.array(hist_df['label'])
-    logging.info(f'all_labels shape: {all_labels.shape}')
-           
+    logging.info(f'[load_indhists] all_labels shape: {all_labels.shape}')
+    logging.info(f'[load_indhists] example label: {all_labels[0]}')
     return all_embedings_data, all_labels
 
 ###############################################################
