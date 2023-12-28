@@ -12,11 +12,11 @@ import math
 import CellProfiler_plotting as cp
 
 # Global paths
-BATCH_TO_RUN = 'batch7' 
+BATCH_TO_RUN = 'batch2' 
 
 BASE_DIR = os.path.join('/home','labs','hornsteinlab','Collaboration','MOmaps')
 INPUT_DIR = os.path.join(BASE_DIR, 'outputs','cell_profiler')
-INPUT_DIR_BATCH = os.path.join(INPUT_DIR, BATCH_TO_RUN, 'combined')
+INPUT_DIR_BATCH = os.path.join(INPUT_DIR, 'deltaNLS_sort', BATCH_TO_RUN, 'combined')
 OUTPUT_DIR = os.path.join(INPUT_DIR, BATCH_TO_RUN, 'plots')
 
 LOG_DIR_PATH = os.path.join(INPUT_DIR, 'logs')
@@ -84,7 +84,7 @@ def main():
     
     #for marker in ['G3BP1', 'FMRP', 'TOMM20', 'mitotracker', 'PURA', 'PML', 'TDP43']:
     #    correlate_dimensions(get_data(INPUT_DIR_BATCH, marker))
-    correlate_dimensions(get_data(INPUT_DIR_BATCH, 'ANXA11'))
+    correlate_dimensions(get_data(INPUT_DIR_BATCH, 'DCP1A'))
 
 if __name__ == '__main__':
     

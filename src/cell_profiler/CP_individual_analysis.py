@@ -25,12 +25,12 @@ from src.cell_profiler.CellProfiler_unbiased_analysis import *
 from src.cell_profiler.CellProfiler_combine_output import *
 
 # Global paths
-BATCH_TO_RUN = 'batch6' 
-MARKER = 'ANXA11'
+BATCH_TO_RUN = 'batch3' 
+MARKER = 'DCP1A'
 
 INPUT_DIR = os.path.join(BASE_DIR, 'input','images', 'raw', 'SpinningDisk')
 INPUT_DIR_BATCH = os.path.join(INPUT_DIR, BATCH_TO_RUN)
-OUTPUT_DIR = os.path.join(BASE_DIR, 'outputs','cell_profiler', 'ANXA11')
+OUTPUT_DIR = os.path.join(BASE_DIR, 'outputs','cell_profiler', 'deltaNLS_sort/DCP1A')
 OUTPUT_DIR_BATCH = os.path.join(OUTPUT_DIR, BATCH_TO_RUN)
 OUTPUT_DIR_PLOTS = os.path.join(OUTPUT_DIR_BATCH, 'plots')
 
@@ -183,7 +183,7 @@ def get_measurements_deltaNLS(input_path, marker = MARKER):
     #combine measurements of all objects
     for file in os.listdir(input_path):
         
-        if marker not in str(file): 
+        if 'Pbodies' not in str(file): 
             continue                           
         
         else:
@@ -280,9 +280,16 @@ def main():
     # concatenate_features(results, os.path.join(OUTPUT_DIR_BATCH, 'combined'))
     # logging.info('Finished combining output measurements for ')
     
-    logging.info("Starting to plot data")
-    plot_CP_features(os.path.join(OUTPUT_DIR_BATCH, 'combined', f'{MARKER}_all.csv'))
-    #plot_CP_features_deltaNLS(os.path.join(OUTPUT_DIR_BATCH, 'combined', f'{MARKER}_all.csv'))
+    #logging.info("Starting to plot data")
+    #plot_CP_features(os.path.join(OUTPUT_DIR_BATCH, 'combined', f'{MARKER}_all.csv'))
+    #logging.info(f'Finished plotting features of {INPUT_DIR_BATCH}')
+    
+    ### deltaNLS ###
+    logging.info('Starting to combine and plot deltaNLS')
+    # for sub_folder in find_marker_folders_output(batch_path=OUTPUT_DIR_BATCH, depth=5):
+    #     results = get_measurements_deltaNLS(sub_folder)
+    # concatenate_features(results, os.path.join(OUTPUT_DIR_BATCH, 'combined'))
+    plot_CP_features_deltaNLS(os.path.join(OUTPUT_DIR_BATCH, 'combined', f'{MARKER}_all.csv'))
     logging.info(f'Finished plotting features of {INPUT_DIR_BATCH}')
 
 if __name__ == '__main__':
