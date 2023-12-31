@@ -211,6 +211,7 @@ class AnalysisOpenCell(BaseAnalysis):
         name_color_dict=None,
         name_key=None,
         color_key=None,
+        default_color='black',
         s: float = 0.2,
         alpha: float = 0.1,
         title: str = 'UMAP',
@@ -291,7 +292,8 @@ class AnalysisOpenCell(BaseAnalysis):
                     i += 1
             else:
                 if gp not in name_color_dict:
-                    raise Exception(f"{gp} is not in given name_color_dict")
+                    logging.warn(f"{gp} is not in the given name_color_dict. Using the default color {default_color}")
+                    name_color_dict[gp] = {name_key: gp, color_key: default_color}
                 _c = np.array([*[name_color_dict[gp][color_key]] * sum(ind)])
             if is_3d:#SAGY
                 ax.scatter(
