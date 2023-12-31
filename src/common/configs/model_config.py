@@ -11,13 +11,12 @@ class ModelConfig(BaseConfig):
         super().__init__()
         
         
-        self.INPUT_FOLDERS = None
-        self.MODELS_HOME_FOLDER = os.path.join(self.HOME_FOLDER, "src", "models")
+
         self.MODEL_OUTPUT_FOLDER = None
         
         
         self.LAST_CHECKPOINT_PATH = None
-        
+        self.MODEL_PATH = None
         
         self.EARLY_STOP_PATIENCE = 10
         self.LEARN_RATE = 2e-4
