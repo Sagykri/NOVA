@@ -25,8 +25,10 @@ def split_channel(z: Tensor, channel_split: int, embedding_dim: int) -> Tensor:
     """
     if z.shape[1] / channel_split == embedding_dim:
         z_t = torch.movedim(z, 1, -1)
+        #SAGY 311223
+        factor = int(channel_split**0.5)
         return torch.movedim(
-            torch.reshape(z_t, z_t.shape[:-2] + (z_t.shape[-2] * channel_split, z_t.shape[-1] // channel_split)), -1, 1
+            torch.reshape(z_t, (z_t.shape[0], z_t.shape[1] * factor, z_t.shape[2] * factor, z_t.shape[-1] // channel_split)), -1, 1
         )
     else:
         raise ValueError(
@@ -52,8 +54,10 @@ def unsplit_channel(z: Tensor, channel_split: int) -> Tensor:
 
     """
     z_t = torch.movedim(z, 1, -1)
+    #SAGY 311223
+    factor = int(channel_split**0.5)
     return torch.movedim(
-        torch.reshape(z_t, z_t.shape[:-2] + (z_t.shape[-2] // channel_split, z_t.shape[-1] * channel_split)), -1, 1
+        torch.reshape(z_t, (z_t.shape[0], z_t.shape[1] // factor, z_t.shape[2] // factor, z_t.shape[-1] * channel_split)), -1, 1
     )
 
 
