@@ -432,6 +432,7 @@ class BaseTrainer:
         else:
             self.current_epoch = initial_epoch
             best_vloss = torch.inf if 'val_loss' not in self.history else min(self.history['val_loss'])
+            best_epoch = self.current_epoch if 'val_loss' not in self.history else self.history['val_loss'].idxmin() + 1 #SAGY
             # SAGY
             self.count_lr_no_improve = self.count_lr_no_improve if self.count_lr_no_improve is not None else 0 
             self.count_early_stop = self.count_early_stop if self.count_early_stop is not None else 0
@@ -466,7 +467,8 @@ class BaseTrainer:
                         # SAGY
                         logging.info(f"[ep_{current_epoch}] New best! vloss: {_vloss}, (old best: {best_vloss})")
                         best_vloss = _vloss
-                        
+                        best_epoch = current_epoch #SAGY
+
                         # SAGY - Reset counters
                         self.count_lr_no_improve = 0
                         self.count_early_stop = 0
@@ -509,7 +511,12 @@ class BaseTrainer:
                     # Free mem - empty cache
                     torch.cuda.empty_cache()
 
-            self.save_model(self.savepath_dict['homepath'], f'model_{self.current_epoch}.pt')
+            best_checkpoint, best_checkpoint_fpath = self.__load_checkpoint(epoch=best_epoch) #SAGY
+            logging.info(f"Best epoch was {best_epoch}: {best_checkpoint_fpath}\nSaving it as the final model") #SAGY
+            best_model = deepcopy(self.model) #SAGY
+            best_model.load_state_dict(best_checkpoint['model_state_dict']) #SAGY
+            self.save_model(self.savepath_dict['homepath'], f'model_{best_epoch}.pt', best_model) #SAGY
+
             self.history.to_csv(join(self.savepath_dict['visualization'], 'training_history.csv'), index=False)
 
     def save_checkpoint(self, path: Optional[str] = None, is_improvement=False):
@@ -542,14 +549,7 @@ class BaseTrainer:
         logging.info(f'A model checkpoint has been saved at {fpath}')
 
     def load_checkpoint(self, path: Optional[str] = None, epoch: Optional[int] = None):
-        if path is None:
-            path = self.savepath_dict['checkpoints']
-        if epoch is None:
-            fpath = path #SAGY #join(path, natsorted([f for f in os.listdir(path) if f.endswith('.chkp')])[-1])
-        else:
-            fpath = join(path, f'checkpoint_ep{epoch}.chkp')
-
-        checkpoint = torch.load(fpath)
+        checkpoint, fpath = self.__load_checkpoint(path, epoch) #SAGY
         self.model.load_state_dict(checkpoint['model_state_dict'])
         self.optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
         self.current_epoch = checkpoint['epoch']
@@ -561,6 +561,21 @@ class BaseTrainer:
         ##
         logging.info(f'{fpath} has been loaded.')
 
+    # SAGY
+    def __load_checkpoint(self, path: Optional[str] = None, epoch: Optional[int] = None):
+        if path is None:
+            path = self.savepath_dict['checkpoints']
+        if epoch is None:
+            fpath = path #SAGY #join(path, natsorted([f for f in os.listdir(path) if f.endswith('.chkp')])[-1])
+        else:
+            fpath = join(path, f'checkpoint_ep{epoch}.chkp')
+            if not os.path.exists(fpath):
+                fpath = join(path, f'checkpoint_ep{epoch}_improvement.chkp')
+            
+        checkpoint = torch.load(fpath)
+        
+        return checkpoint, fpath
+    
     def save_model(
         self, path: str, filename: str = 'pytorch_model.pt', model: Optional[nn.Module] = None, by_weights: bool = False
     ):
