@@ -22,16 +22,16 @@ from sklearn.metrics import adjusted_rand_score
 import sklearn.cluster as cluster
 
 # Global paths
-BATCH_TO_RUN = 'deltaNLS_sort/batch2' 
+BATCH_TO_RUN = 'batch3' 
 
 BASE_DIR = os.path.join('/home','labs','hornsteinlab','Collaboration','MOmaps')
 sys.path.insert(1, BASE_DIR)
 
-INPUT_DIR = os.path.join(BASE_DIR, 'outputs','cell_profiler')
+INPUT_DIR = os.path.join(BASE_DIR, 'outputs','cell_profiler', 'deltaNLS_sort')
 INPUT_DIR_BATCH = os.path.join(INPUT_DIR, BATCH_TO_RUN, 'combined')
 OUTPUT_DIR = os.path.join(INPUT_DIR, BATCH_TO_RUN, 'plots')
 
-LOG_DIR_PATH = os.path.join(INPUT_DIR, 'logs')
+LOG_DIR_PATH = os.path.join(BASE_DIR, 'outputs','cell_profiler', 'logs')
     
     
 def set_logging(log_file_path, level=logging.INFO, format=' INFO: %(message)s'):
@@ -121,6 +121,7 @@ def load_data_and_plot_UMAPs(input_path, stress = True):
         
         #Combine markers
         df_all = pd.concat(all_markers_df)
+
         if stress:
             df_all.to_csv(os.path.join(INPUT_DIR_BATCH, f'stress_all_markers_concatenated-by-object-type_{BATCH_TO_RUN}.csv'))
         else:

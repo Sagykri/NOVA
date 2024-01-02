@@ -24,7 +24,7 @@ def generate_spectral_features():
     model, config_model =  init_model_for_embeddings(config_path_model=sys.argv[1])
     
     logging.info("---------------Start---------------")
-    logging.info("[Generate vqindhist of vq1]")
+    logging.info("[Generate vqindhist]")
     #logging.info("Starting to generate VQVAE2 embeddings...")
     logging.info(f"Is GPU available: {torch.cuda.is_available()}")
     logging.info(f"Num GPUs Available: {torch.cuda.device_count()}")

@@ -211,6 +211,7 @@ class AnalysisOpenCell(BaseAnalysis):
         name_color_dict=None,
         name_key=None,
         color_key=None,
+        default_color='black',
         s: float = 0.2,
         alpha: float = 0.1,
         title: str = 'UMAP',
@@ -292,7 +293,8 @@ class AnalysisOpenCell(BaseAnalysis):
                     i += 1
             else:
                 if gp not in name_color_dict:
-                    raise Exception(f"{gp} is not in given name_color_dict")
+                    logging.warn(f"{gp} is not in the given name_color_dict. Using the default color {default_color}")
+                    name_color_dict[gp] = {name_key: gp, color_key: default_color}
                 _c = np.array([*[name_color_dict[gp][color_key]] * sum(ind)])
             if is_3d:#SAGY
                 ax.scatter(
@@ -344,7 +346,7 @@ class AnalysisOpenCell(BaseAnalysis):
             logging.info(f"names after: {names}")
             logging.info(f"hndls after : {hndls}")
         # -----------------------
-        # Nancy for figure 2A - remove legend
+        # Nancy for figure 2A - to remove legend - comment this out
         # -----------------------
         leg = ax.legend(
             hndls,
@@ -363,9 +365,9 @@ class AnalysisOpenCell(BaseAnalysis):
         # Nancy for figure 2A - remove legend
         # -----------------------
         
-        ax.set_xlabel(xlabel) # Nancy for figure 2A - remove axis label
-        ax.set_ylabel(ylabel) # Nancy for figure 2A - remove axis label
-        ax.set_title(title) # Nancy for figure 2A - remove tile
+        ax.set_xlabel(xlabel) # Nancy for figure 2A - remove axis label - comment this out
+        ax.set_ylabel(ylabel) # Nancy for figure 2A - remove axis label - comment this out
+        ax.set_title(title) # Nancy for figure 2A - remove tile - comment this out
         
         ax.set_xticklabels([]) 
         ax.set_yticklabels([]) 
@@ -373,7 +375,8 @@ class AnalysisOpenCell(BaseAnalysis):
         ax.set_yticks([]) 
         
         # -----------------------
-        # Nancy for figure 2A
+        # 
+        # for figure 2A - add this
         # -----------------------
         # increase tick width
         # for axis in ['bottom','left']:

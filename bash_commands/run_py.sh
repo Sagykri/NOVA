@@ -12,7 +12,7 @@
 # ./bash_commands/run_py.sh ./src/runables/training -g -m 40000 -b 47 -a ./src/models/neuroself/configs/model_config/TLNeuroselfB78NoDSModelConfig ./src/datasets/configs/training_data_config/B78TrainDatasetConfig -j training_neuroself
 
 # Training cytoself:
-# ./bash_commands/run_py.sh ./src/runables/training -g -m 40000 -b 44  -a ./src/models/cytoself_vanilla/configs/config/CytoselfModelConfig ./src/datasets/configs/training_data_config/TrainOpenCellDatasetConfig -j training_cytoself
+# ./bash_commands/run_py.sh ./src/runables/training -g -m 40000 -b 44  -a ./src/models/cytoself_vanilla/configs/config/CytoselfModelConfig ./src/datasets/configs/training_data_config/TrainOpenCellDatasetConfig -j training_cytoself -q high_gpu_gsla
 
 # Eval model:
 # ./bash_commands/run_py.sh ./src/runables/eval_model -g -m 10000 -b 25 -a ./src/models/cytoself_vanilla/configs/config/CytoselfModelConfig ./src/datasets/configs/train_config/TrainOpenCellDatasetConfig -q gpu-short -j eval_cytoself
