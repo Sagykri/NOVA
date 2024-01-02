@@ -35,34 +35,22 @@ def generate_umaps():
     
     logging.info(f"Is GPU available: {torch.cuda.is_available()}")
     logging.info(f"Num GPUs Available: {torch.cuda.device_count()}")
-    
-    logging.info("Init datasets")
-    dataset = DatasetSPD(config_data)
-    
-    logging.info(f"Data shape: {dataset.X_paths.shape}, {dataset.y.shape}")
-    
+        
     __unique_labels_path = os.path.join(config_model.MODEL_OUTPUT_FOLDER, "unique_labels.npy")
     if os.path.exists(__unique_labels_path):
         logging.info(f"unique_labels.npy files has been detected - using it. ({__unique_labels_path})")
-        dataset.unique_markers = np.load(__unique_labels_path)
+        unique_markers = np.load(__unique_labels_path)
     else:
         logging.warn(f"Couldn't find unique_labels file: {__unique_labels_path}")
-    
-    dataset.flip, dataset.rot = False, False
-    if config_data.SPLIT_DATA:
-        logging.info("Split data...")
-        _, _, indexes = dataset.split()
-        dataset = Dataset.get_subset(dataset, indexes)
-    else:
-        indexes = None
+        raise Exception(f"Couldn't find unique_labels file: {__unique_labels_path}")
     
     logging.info("Init model")
     model = Model(config_model)
     
     logging.info(f"Loading model (Path: {config_model.MODEL_PATH})")
-    model.load_model(num_fc_output_classes=len(dataset.unique_markers))
+    model.load_model(num_fc_output_classes=len(unique_markers))
     
-    __generate_with_load(config_model, config_data, dataset, model, output_folder_path, delta)
+    __generate_with_load(config_model, config_data, model, output_folder_path, delta)
     return None
 
 def calculate_difference(group, first_cond = 'stress', second_cond='Untreated'):
@@ -110,7 +98,7 @@ def generate_deltas(embeddings, labels, first_cond = 'stress', second_cond='Untr
     return embeddings, labels
 
 
-def __generate_with_load(config_model, config_data, dataset, model, output_folder_path, delta=False):
+def __generate_with_load(config_model, config_data, model, output_folder_path, delta=False):
     logging.info("Clearing cache")
     torch.cuda.empty_cache()
     
@@ -125,7 +113,7 @@ def __generate_with_load(config_model, config_data, dataset, model, output_folde
         logging.info(f'[__generate_with_load]: doing deltas: embeddings shape: {embeddings.shape}, labels shape: {labels.shape}, unique labels: {np.unique(labels)}')
 
     logging.info(f"Plot umap...")
-    title = f"{'_'.join([os.path.basename(f) for f in dataset.input_folders])}"
+    title = f"{'_'.join([os.path.basename(f) for f in config_data.INPUT_FOLDERS])}"
     savepath = os.path.join(output_folder_path,\
                             'UMAPs',\
                             'UMAP1'
@@ -143,7 +131,11 @@ def __generate_with_load(config_model, config_data, dataset, model, output_folde
     if map_labels_function is not None:
         map_labels_function = eval(map_labels_function)(config_data)
 
-    
+    ordered_marker_names = ['FUS','NCL','PML','ANXA11', 'NONO', 'TDP43',
+                                     'PEX14','Calreticulin','Phalloidin','mitotracker','TOMM20',
+                                     'PURA','CLTC','KIF5A','SCNA','CD41','SQSTM1',
+                                     'FMRP','G3BP1','GM130','LAMP1','DCP1A','NEMO', 'PSD95']
+    ordered_names = [config_data.UMAP_MAPPINGS[marker]['alias'] for marker in ordered_marker_names]
     model.plot_umap(embedding_data=embeddings,
                     label_data=labels,
                     title=title,
@@ -153,7 +145,8 @@ def __generate_with_load(config_model, config_data, dataset, model, output_folde
                     s=size,
                     reset_umap=True,
                     map_labels_function=map_labels_function,
-                    config_data=config_data)
+                    config_data=config_data,
+                    ordered_names = ordered_names)
     
     logging.info(f"UMAP saved successfully to {savepath}")
     return None

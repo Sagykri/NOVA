@@ -220,6 +220,7 @@ class AnalysisOpenCell(BaseAnalysis):
         savepath: str = 'default',
         dpi: int = 300,
         figsize: tuple[float, float] = (6, 5), # Nancy for figure 2A
+        ordered_names=None,
     ):
         """
         Plot a UMAP by annotating groups in different colors
@@ -334,16 +335,27 @@ class AnalysisOpenCell(BaseAnalysis):
         ax.spines['top'].set_visible(False)
         ax.spines['right'].set_visible(False)
         hndls, names = ax.get_legend_handles_labels()
+        # Noam 1912: ordering legend labels by given order
+        if ordered_names is not None:
+            logging.info('ordering legend labels!')
+            logging.info(f"names before: {names}")
+            logging.info(f"hndls before : {hndls}")
+            hndls = [handle for name, handle in sorted(zip(names, hndls), key=lambda x: ordered_names.index(x[0]))]
+            names = ordered_names #sorted(ordered_names)
+
+            logging.info(f"names after: {names}")
+            logging.info(f"hndls after : {hndls}")
         # -----------------------
         # Nancy for figure 2A - to remove legend - comment this out
         # -----------------------
-        leg = ax.legend( 
+        leg = ax.legend(
             hndls,
             names,
             prop={'size': 6},
             bbox_to_anchor=(1, 1),
             loc='upper left',
             ncol=1 + len(names) // 20,
+            #ncol=1, #NOAM: for umap1
             frameon=False,
         )
         for ll in leg.legendHandles:
@@ -379,8 +391,8 @@ class AnalysisOpenCell(BaseAnalysis):
         
         fig.tight_layout()
         if savepath:
-            logging.info(f"Saving umap to {savepath}")
-            fig.savefig(savepath, dpi=dpi, format='eps') # Nancy for figure 2A (TO change UMAP format)
+            logging.info(f"Saving umap to {savepath}")#SAGY
+            fig.savefig(savepath, dpi=dpi) #NOAM: we dont need format.., format='eps')
         return fig, ax
 
     def calculate_cellid_ondim0_vqidx_ondim1(
