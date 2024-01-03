@@ -47,10 +47,10 @@ def fetch_saved_embeddings(config_model, config_data, embeddings_type):
     logging.info(f"[load_embeddings] {all_embedings_data.shape}, {all_labels.shape}")    
     return all_embedings_data, all_labels
 
-def calc_cellprofiler_distances(scale=True):
+def calc_cellprofiler_distances():
     #load labels and features
     cellprofiler_features_folder = "/home/labs/hornsteinlab/Collaboration/MOmaps/outputs/cell_profiler"
-    batches_folders = ['batch6_50percent','batch7','batch8','batch9_50percent']
+    batches_folders = ['batch6','batch7','batch8','batch9']
     batch_labels, batch_features = [],[]
     for batch in batches_folders:
         batch_df = pd.read_csv(os.path.join(cellprofiler_features_folder, batch, 'combined', f'stress_all_markers_concatenated-by-object-type_{batch}.csv'))
@@ -79,8 +79,8 @@ def calc_cellprofiler_distances(scale=True):
     marker_centroids['cell_line_condition'] = marker_centroids['cell_line'] + '_' + marker_centroids['condition']
     cell_lines_conditions = marker_centroids['cell_line_condition'].unique()
     output_folder = "/home/labs/hornsteinlab/Collaboration/MOmaps/outputs/cell_profiler/"
-    between_cell_lines_sep_batch_rep = between_cell_lines_sep_rep_dist(marker_centroids, cell_lines_conditions, markers, 
-                                                                       distances_main_folder=output_folder, batch_name="CellProfiler")
+    between_cell_lines_sep_batch_rep = between_cell_lines_sep_rep_dist(marker_centroids, cell_lines_conditions, markers,
+                                                                        distances_main_folder=output_folder, batch_name="CellProfiler")
 
 def create_markers_centroids_df(all_labels, all_embedings_data, exclude_DAPI=True):  
     """Create a pd.DataFrame of centroids embedddings and experimental settings 
