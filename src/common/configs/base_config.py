@@ -53,16 +53,24 @@ class BaseConfig():
         }
         
         self.UMAP_MAPPINGS_ALS = {
-            'WT_Untreated': {self.UMAP_MAPPINGS_ALIAS_KEY: 'Wild-Type', self.UMAP_MAPPINGS_COLOR_KEY: '#52C5D5'},
-            'WT_stress': {self.UMAP_MAPPINGS_ALIAS_KEY: 'WT Stress', self.UMAP_MAPPINGS_COLOR_KEY: '#F7810F'},
-            'FUSHeterozygous_Untreated': {self.UMAP_MAPPINGS_ALIAS_KEY: 'FUS Heterozygous', self.UMAP_MAPPINGS_COLOR_KEY: '#A86343'},
-            'FUSHomozygous_Untreated': {self.UMAP_MAPPINGS_ALIAS_KEY: 'FUS Homozygous', self.UMAP_MAPPINGS_COLOR_KEY: '#6E3B0B'},
-            'FUSRevertant_Untreated': {self.UMAP_MAPPINGS_ALIAS_KEY: 'FUS Revertant', self.UMAP_MAPPINGS_COLOR_KEY: '#C7A036'},
-            'OPTN_Untreated': {self.UMAP_MAPPINGS_ALIAS_KEY: 'OPTN', self.UMAP_MAPPINGS_COLOR_KEY: '#7BA89C'},
-            'TBK1_Untreated': {self.UMAP_MAPPINGS_ALIAS_KEY: 'TBK1', self.UMAP_MAPPINGS_COLOR_KEY: '#A89689'},
+            'WT_Untreated': {self.UMAP_MAPPINGS_ALIAS_KEY: 'Wild-Type', self.UMAP_MAPPINGS_COLOR_KEY: '#37AFD7'},
+            'FUSHeterozygous_Untreated': {self.UMAP_MAPPINGS_ALIAS_KEY: 'FUS Heterozygous', self.UMAP_MAPPINGS_COLOR_KEY: '#AB7A5B'},
+            'FUSHomozygous_Untreated': {self.UMAP_MAPPINGS_ALIAS_KEY: 'FUS Homozygous', self.UMAP_MAPPINGS_COLOR_KEY: '#78491C'},
+            'FUSRevertant_Untreated': {self.UMAP_MAPPINGS_ALIAS_KEY: 'FUS Revertant', self.UMAP_MAPPINGS_COLOR_KEY: '#C8C512'},
+            'OPTN_Untreated': {self.UMAP_MAPPINGS_ALIAS_KEY: 'OPTN', self.UMAP_MAPPINGS_COLOR_KEY: '#FF98BB'},
+            'TBK1_Untreated': {self.UMAP_MAPPINGS_ALIAS_KEY: 'TBK1', self.UMAP_MAPPINGS_COLOR_KEY: '#319278'},
             'SCNA_Untreated': {self.UMAP_MAPPINGS_ALIAS_KEY: 'SCNA', self.UMAP_MAPPINGS_COLOR_KEY: 'black'},
-            'TDP43_Untreated': {self.UMAP_MAPPINGS_ALIAS_KEY: 'TDP43', self.UMAP_MAPPINGS_COLOR_KEY: '#93749E'},
+            'TDP43_Untreated': {self.UMAP_MAPPINGS_ALIAS_KEY: 'TDP43', self.UMAP_MAPPINGS_COLOR_KEY: '#A8559E'},
         }
+        self.UMAP_MAPPINGS_ALS['WT'] = self.UMAP_MAPPINGS_ALS['WT_Untreated']
+        self.UMAP_MAPPINGS_ALS['FUSHeterozygous'] = self.UMAP_MAPPINGS_ALS['FUSHeterozygous_Untreated']
+        self.UMAP_MAPPINGS_ALS['FUSHomozygous'] = self.UMAP_MAPPINGS_ALS['FUSHomozygous_Untreated']
+        self.UMAP_MAPPINGS_ALS['FUSRevertant'] = self.UMAP_MAPPINGS_ALS['FUSRevertant_Untreated']
+        self.UMAP_MAPPINGS_ALS['OPTN'] = self.UMAP_MAPPINGS_ALS['OPTN_Untreated']
+        self.UMAP_MAPPINGS_ALS['TBK1'] = self.UMAP_MAPPINGS_ALS['TBK1_Untreated']
+        self.UMAP_MAPPINGS_ALS['SCNA'] = self.UMAP_MAPPINGS_ALS['SCNA_Untreated']
+        self.UMAP_MAPPINGS_ALS['TDP43'] = self.UMAP_MAPPINGS_ALS['TDP43_Untreated']
+
         
         self.UMAP_MAPPINGS_DOX = {
             'WT_Untreated': {self.UMAP_MAPPINGS_ALIAS_KEY: 'Wild-Type', self.UMAP_MAPPINGS_COLOR_KEY: '#2FA0C1'},
@@ -71,30 +79,31 @@ class BaseConfig():
         }
         
         self.UMAP_MAPPINGS_MARKERS = {
-            'NCL': {self.UMAP_MAPPINGS_ALIAS_KEY: 'Nucleolus', self.UMAP_MAPPINGS_COLOR_KEY: 'red'},
-            'FUS': {self.UMAP_MAPPINGS_ALIAS_KEY: 'Heterogeneous Nuclear Ribonucleoprotein (hnRNP) Complexes', self.UMAP_MAPPINGS_COLOR_KEY: 'salmon'},
-            'DAPI': {self.UMAP_MAPPINGS_ALIAS_KEY: 'Nucleus', self.UMAP_MAPPINGS_COLOR_KEY: 'mediumaquamarine'},
-            'PML': {self.UMAP_MAPPINGS_ALIAS_KEY: 'Promyelocytic Leukaemia (PML) Nuclear Bodies', self.UMAP_MAPPINGS_COLOR_KEY: 'darkred'},
-            'ANXA11': {self.UMAP_MAPPINGS_ALIAS_KEY: 'ANXA11-granules', self.UMAP_MAPPINGS_COLOR_KEY: 'darkorange'},
-            'NONO': {self.UMAP_MAPPINGS_ALIAS_KEY: 'Paraspeckles', self.UMAP_MAPPINGS_COLOR_KEY: 'orange'},
-            'TDP43': {self.UMAP_MAPPINGS_ALIAS_KEY: 'TDP-43-granules', self.UMAP_MAPPINGS_COLOR_KEY: 'gold'},
-            'PEX14': {self.UMAP_MAPPINGS_ALIAS_KEY: 'Peroxisomes', self.UMAP_MAPPINGS_COLOR_KEY: 'black'},
-            'Calreticulin': {self.UMAP_MAPPINGS_ALIAS_KEY: 'Endoplasmic Reticulum (ER)', self.UMAP_MAPPINGS_COLOR_KEY: 'saddlebrown'},
-            'Phalloidin': {self.UMAP_MAPPINGS_ALIAS_KEY: 'Actin Cytoskeleton', self.UMAP_MAPPINGS_COLOR_KEY: 'darkviolet'},
-            'mitotracker': {self.UMAP_MAPPINGS_ALIAS_KEY: 'Mitochondria', self.UMAP_MAPPINGS_COLOR_KEY: 'pink'},
-            'TOMM20': {self.UMAP_MAPPINGS_ALIAS_KEY: 'Mitochondria Outer Membrane', self.UMAP_MAPPINGS_COLOR_KEY: 'palevioletred'},
-            'PURA': {self.UMAP_MAPPINGS_ALIAS_KEY: 'PURA-granules', self.UMAP_MAPPINGS_COLOR_KEY: 'deeppink'},
-            'CLTC': {self.UMAP_MAPPINGS_ALIAS_KEY: 'Coated Vesicles', self.UMAP_MAPPINGS_COLOR_KEY: 'magenta'},
-            'KIF5A': {self.UMAP_MAPPINGS_ALIAS_KEY: 'Microtubule-Associated Transport Machinery', self.UMAP_MAPPINGS_COLOR_KEY: 'darkmagenta'},
-            'SCNA': {self.UMAP_MAPPINGS_ALIAS_KEY: 'Presynaptic Terminals', self.UMAP_MAPPINGS_COLOR_KEY: 'navy'},
-            'CD41': {self.UMAP_MAPPINGS_ALIAS_KEY: 'CD41-granules', self.UMAP_MAPPINGS_COLOR_KEY: 'royalblue'},
-            'SQSTM1': {self.UMAP_MAPPINGS_ALIAS_KEY: 'Autophagosomes', self.UMAP_MAPPINGS_COLOR_KEY: 'deepskyblue'},
-            'G3BP1': {self.UMAP_MAPPINGS_ALIAS_KEY: 'Stress Granules', self.UMAP_MAPPINGS_COLOR_KEY: 'olive'},
-            'GM130': {self.UMAP_MAPPINGS_ALIAS_KEY: 'Golgi Apparatus', self.UMAP_MAPPINGS_COLOR_KEY: 'olivedrab'},
-            'LAMP1': {self.UMAP_MAPPINGS_ALIAS_KEY: 'Lysosomes', self.UMAP_MAPPINGS_COLOR_KEY: 'lime'},
-            'DCP1A': {self.UMAP_MAPPINGS_ALIAS_KEY: 'P-Bodies', self.UMAP_MAPPINGS_COLOR_KEY: 'seagreen'},
-            'NEMO': {self.UMAP_MAPPINGS_ALIAS_KEY: 'NEMO Condensates', self.UMAP_MAPPINGS_COLOR_KEY: 'darkgreen'},
-            'PSD95': {self.UMAP_MAPPINGS_ALIAS_KEY: 'Post-Synaptic Subcompartments', self.UMAP_MAPPINGS_COLOR_KEY: 'green'},            
+            'NCL': {self.UMAP_MAPPINGS_ALIAS_KEY: 'Nucleolus', self.UMAP_MAPPINGS_COLOR_KEY: '#18E4CF'},
+            'FUS': {self.UMAP_MAPPINGS_ALIAS_KEY: 'hnRNP complex', self.UMAP_MAPPINGS_COLOR_KEY: '#9968CB'},
+            'DAPI': {self.UMAP_MAPPINGS_ALIAS_KEY: 'Nucleus', self.UMAP_MAPPINGS_COLOR_KEY: '#AFBDFF'},
+            'PML': {self.UMAP_MAPPINGS_ALIAS_KEY: 'PML bodies', self.UMAP_MAPPINGS_COLOR_KEY: '#F08F21'},
+            'ANXA11': {self.UMAP_MAPPINGS_ALIAS_KEY: 'ANXA11 granules', self.UMAP_MAPPINGS_COLOR_KEY: '#37378D'},
+            'NONO': {self.UMAP_MAPPINGS_ALIAS_KEY: 'Paraspeckles', self.UMAP_MAPPINGS_COLOR_KEY: '#4343FE'},
+            'TDP43': {self.UMAP_MAPPINGS_ALIAS_KEY: 'TDP43 granules', self.UMAP_MAPPINGS_COLOR_KEY: '#06A0E9'},
+            'PEX14': {self.UMAP_MAPPINGS_ALIAS_KEY: 'Peroxisome', self.UMAP_MAPPINGS_COLOR_KEY: '#168FB2'},
+            'Calreticulin': {self.UMAP_MAPPINGS_ALIAS_KEY: 'ER', self.UMAP_MAPPINGS_COLOR_KEY: '#12F986'},
+            'Phalloidin': {self.UMAP_MAPPINGS_ALIAS_KEY: 'Cytoskeleton', self.UMAP_MAPPINGS_COLOR_KEY: '#921010'},
+            'mitotracker': {self.UMAP_MAPPINGS_ALIAS_KEY: 'Mitochondria', self.UMAP_MAPPINGS_COLOR_KEY: '#898700'},
+            'TOMM20': {self.UMAP_MAPPINGS_ALIAS_KEY: 'MOM', self.UMAP_MAPPINGS_COLOR_KEY: '#66CDAA'},
+            'PURA': {self.UMAP_MAPPINGS_ALIAS_KEY: 'PURA granules', self.UMAP_MAPPINGS_COLOR_KEY: '#AF8215'},
+            'CLTC': {self.UMAP_MAPPINGS_ALIAS_KEY: 'Coated Vesicles', self.UMAP_MAPPINGS_COLOR_KEY: '#32AC0E'},
+            'KIF5A': {self.UMAP_MAPPINGS_ALIAS_KEY: 'Transport machinery', self.UMAP_MAPPINGS_COLOR_KEY: '#ACE142'},
+            'SCNA': {self.UMAP_MAPPINGS_ALIAS_KEY: 'Presynapse', self.UMAP_MAPPINGS_COLOR_KEY: '#DEDB23'},
+            'CD41': {self.UMAP_MAPPINGS_ALIAS_KEY: 'Integrin puncta', self.UMAP_MAPPINGS_COLOR_KEY: '#F04521'},
+            'SQSTM1': {self.UMAP_MAPPINGS_ALIAS_KEY: 'Autophagosomes', self.UMAP_MAPPINGS_COLOR_KEY: '#FFBF0D'},
+            'G3BP1': {self.UMAP_MAPPINGS_ALIAS_KEY: 'Stress Granules', self.UMAP_MAPPINGS_COLOR_KEY: '#A80358'},
+            'GM130': {self.UMAP_MAPPINGS_ALIAS_KEY: 'Golgi', self.UMAP_MAPPINGS_COLOR_KEY: '#D257EA'},
+            'LAMP1': {self.UMAP_MAPPINGS_ALIAS_KEY: 'Lysosome', self.UMAP_MAPPINGS_COLOR_KEY: '#E6A9EA'},
+            'DCP1A': {self.UMAP_MAPPINGS_ALIAS_KEY: 'P-Bodies', self.UMAP_MAPPINGS_COLOR_KEY: '#F0A3A3'},
+            'NEMO': {self.UMAP_MAPPINGS_ALIAS_KEY: 'NEMO granules', self.UMAP_MAPPINGS_COLOR_KEY: '#EF218B'},
+            'PSD95': {self.UMAP_MAPPINGS_ALIAS_KEY: 'Postsynapse', self.UMAP_MAPPINGS_COLOR_KEY: '#F1CBDD'},            
+            
             'FMRP': {self.UMAP_MAPPINGS_ALIAS_KEY: 'FMRP', self.UMAP_MAPPINGS_COLOR_KEY: 'gray'}
         }
         

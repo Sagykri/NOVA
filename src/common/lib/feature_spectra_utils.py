@@ -1,37 +1,65 @@
 import os 
-
+import scipy
 import numpy as np
 import pandas as pd
-
 import seaborn as sns
-import matplotlib.pyplot as plt
 import colorcet as cc
-from matplotlib.colors import ListedColormap
-
-import scipy
-from collections import defaultdict
 import networkx as nx
+import matplotlib.pyplot as plt
+from collections import defaultdict
+from matplotlib.colors import ListedColormap, LinearSegmentedColormap
 
-def load_multiple_vqindhists(batches, embeddings_folder, datasets = ['trainset','valset','testset'], embeddings_layer = 'vqindhist1'):
-    # batches: list of batch folder names (like: [batch6] or [batch6_16bit_no_downsample])
+from src.common.lib.image_metrics import improve_brightness
+
+def load_multiple_vqindhists(batches, embeddings_folder, datasets=['trainset','valset','testset'], embeddings_layer='vqindhist1'):
+    
+    """Load vqinhist1, labels and paths of tiles in given batches
+    Args:        
+        batches (list of strings): list of batch folder names (e.g., ['batch6', 'batch7'])
+        embeddings_folder (string): full path to stored embeddings
+        datasets (list, optional): Defaults to ['trainset','valset','testset'].
+        embeddings_layer (str, optional): Defaults to 'vqindhist1'.
+    Returns:
+        vqindhist: list of np.arrays from shape (# cell lines). each np.array is in shape (# tiles, 2048)
+        labels: list of np.arrays from shape (# cell lines). each np.array is in shape (# tiles) and the stored value is full label
+        paths: list of strings from shape (# cell lines). each np.array is in shape (# tiles) and the stored value is full path
+    """
+    
     vqindhist, labels, paths = [] , [], []
     for batch in batches:
         for dataset_type in datasets:
-            cur_vqindhist, cur_labels, cur_paths = np.load(os.path.join(embeddings_folder, batch, f"{embeddings_layer}_{dataset_type}.npy")),\
-                    np.load(os.path.join(embeddings_folder, batch, f"{embeddings_layer}_labels_{dataset_type}.npy")),\
-                    np.load(os.path.join(embeddings_folder, batch, f"{embeddings_layer}_paths_{dataset_type}.npy"))
+            cur_vqindhist, cur_labels, cur_paths =  np.load(os.path.join(embeddings_folder, batch, f"{embeddings_layer}_{dataset_type}.npy")),\
+                                                    np.load(os.path.join(embeddings_folder, batch, f"{embeddings_layer}_labels_{dataset_type}.npy")),\
+                                                    np.load(os.path.join(embeddings_folder, batch, f"{embeddings_layer}_paths_{dataset_type}.npy"))
             cur_vqindhist = cur_vqindhist.reshape(cur_vqindhist.shape[0], -1)
             vqindhist.append(cur_vqindhist)
             labels.append(cur_labels)
             paths.append(cur_paths)   
+            
     return vqindhist, labels, paths
 
 def create_vqindhists_df(vqindhist, labels, paths, arange_labels=True):
+    """Create one DataFrame where columns are 2,048 vqind values, the label and path of each tile 
+
+    Args:
+        vqindhist: list of np.arrays from shape (# cell lines). each np.array is in shape (# tiles, 2048)
+        labels: list of np.arrays from shape (# cell lines). each np.array is in shape (# tiles) and the stored value is full label
+        paths: list of strings from shape (# cell lines). each np.array is in shape (# tiles) and the stored value is full path
+        arange_labels (bool, optional): Defaults to True.
+
+    Returns:
+        pd.DataFrame: shape is (# tiles, 2050). 
+                      rows are tiles, columns are 2048 vqind values and another column for label (string) and columns for path (string)
+    """
     vqindhist = np.concatenate(vqindhist)
     labels = np.concatenate(labels)
     paths = np.concatenate(paths)
     
+    # Convert to DataFrame
     hist_df = pd.DataFrame(vqindhist)
+    # Add the path of each tile
+    hist_df['path'] = paths
+    # Add label of each tile
     hist_df['label'] = labels
     hist_df['label'] = hist_df['label'].str.replace("_16bit_no_downsample", "")
     hist_df['label'] = hist_df['label'].str.replace("_spd_format", "")
@@ -44,103 +72,162 @@ def create_vqindhists_df(vqindhist, labels, paths, arange_labels=True):
 
     if arange_labels:
         hist_df['label'] = hist_df['label'].apply(rearrange_string)
-    hist_df_with_path = hist_df.copy()
-    hist_df_with_path['path'] = paths
     
-    return hist_df, hist_df_with_path
+    return hist_df
 
-def cut_dendrogram_get_clusters(clustermap, corr, cutoff = 14.2): ## Cut the dendrogram to get indices clusters
+def _get_cluster_extend(den):
+    """workaround: to support more than 10 unique clusters
+
+    Args:
+        den (scipy.cluster.hierarchy.dendrogram): _description_
+
+    Returns:
+        defaultdict(list): _description_
+    """
+    index_to_cluster = defaultdict(list)
+    cur_cluster = 1
+    last_color = den['leaves_color_list'][0]
+    max_color = np.max([int(x.replace("C","")) for x in den['leaves_color_list']])
     
+    # Find indices of 'C0' in the list
+    indices_to_replace = [i for i, x in enumerate(den['leaves_color_list']) if x == 'C0']
+    # Replace 'C0' with unique names
+    for index, replacement in zip(indices_to_replace, range(max_color, max_color + len(indices_to_replace))):
+        den['leaves_color_list'][index] = f'C{replacement}'
+    
+    for index, color in zip(den['ivl'], den['leaves_color_list']):
+        if color != last_color:
+            cur_cluster += 1
+            last_color = color
+        index_to_cluster[index] = cur_cluster    
+    return index_to_cluster
+    
+def set_num_clusters_by_dendrogram(clustermap, corr, cutoff=14.2):
+    """Cut the dendrogram in cutoff to get clusters and clusters's member (codebook vector indices) 
+        
+    Args:
+        clustermap (seaborn.matrix.ClusterGrid): clustermap object (heatmap)
+        corr (DataFrame): codebook vectors correlation matrix 
+        cutoff (float, optional): value in y-axis of the dendogram. affects num of clusters obtained. Defaults to 14.2.
+
+    Returns:
+        DataFrame: corr with number of cluster for each codebook vectors
+    """
+    # Plot dendogram
     fig, axs = plt.subplots(nrows=1, ncols=2, figsize=(20,4))
     den = scipy.cluster.hierarchy.dendrogram(clustermap.dendrogram_col.linkage,
                                              labels = corr.index,
                                              color_threshold=cutoff,
                                              no_labels=True,
                                              ax=axs[0],
-                                             distance_sort = False)
-            # count_sort and dist_sort in dendrogram: affect the sorting of the clusters!
-
-    axs[0].axhline(cutoff, c='black', linestyle="-")
-    #return den
+                                             distance_sort = False # dist_sort & count_sort affect the sorting of the clusters!
+                                             ) 
     
-    # to support more than 10 unique clusters:
-    def get_cluster_extend(den):
-        index_to_cluster = defaultdict(list)
-        cur_cluster = 1
-        last_color = den['leaves_color_list'][0]
-        max_color = np.max([int(x.replace("C","")) for x in den['leaves_color_list']])
-        
-        # Find indices of 'C0' in the list
-        indices_to_replace = [i for i, x in enumerate(den['leaves_color_list']) if x == 'C0']
-        # Replace 'C0' with unique names
-        for index, replacement in zip(indices_to_replace, range(max_color, max_color + len(indices_to_replace))):
-            den['leaves_color_list'][index] = f'C{replacement}'
-        
-        for index, color in zip(den['ivl'], den['leaves_color_list']):
-            if color != last_color:
-                cur_cluster += 1
-                last_color = color
-            index_to_cluster[index] = cur_cluster    
-        return index_to_cluster
-
-    index_to_cluster = get_cluster_extend(den)
+    # Vertical line in "cutoff"         
+    axs[0].axhline(cutoff, c='black', linestyle="-")
+    
+    # Setting cluster number for each codebook vector (i.e., index)
+    index_to_cluster = _get_cluster_extend(den)
     new_cluster_id = []
-    #corr_with_clusters = corr.copy()
-
     for i in corr.index:
         new_cluster_id.append(index_to_cluster[i])
-
     corr["cluster"] = new_cluster_id
-    # visualize the cluster counts
-    sns.countplot(data=corr.sort_values(by='cluster'), x='cluster', palette='coolwarm', ax=axs[1])
-
-    # Add labels and title
-    axs[1].set_xlabel('Cluster')
-    axs[1].set_ylabel('Indices Count')
-    axs[1].set_title('Indices Counts per Cluster')
-
-    plt.tight_layout()
-    # # Show
-    plt.show()
     corr['cluster'] = corr['cluster'].astype(str)
     corr['cluster'] = 'C' + corr['cluster']
+    
+    # Histogram of cluster counts: number of codebook vectors in each cluster
+    # TODO: sort the x labels - Nancy
+    sns.countplot(data=corr, x='cluster', palette='coolwarm', ax=axs[1])
+    # Add labels and title
+    axs[1].set_xlabel('Cluster', fontsize=24)
+    axs[1].set_ylabel('Count', fontsize=24)
+    axs[1].set_title('Number of Codebook Vectors per Cluster', fontsize=24)
+    plt.tight_layout()
+    plt.show()
+    
     return corr
 
-def add_condition_to_label(label, condition):
+def _add_condition_to_label(label, condition):
     l = label.split("_")
     l.insert(2, condition)
     return '_'.join(l)
     
-def create_codebook_heatmap(hist_df, save_path=None, to_save=False, filename=None, method='pearson', calc_linkage=False, linkage_method='average'):
-    ## Average the histograms per each label and save in a new dataframe (mean_spectra_per_marker)
-    mean_spectra_per_marker = hist_df.groupby('label').mean()
-    # print(f"Averging {mean_spectra_per_marker.index.size} labels:")
-    # print(mean_spectra_per_marker.index)
-    ## Correlate the indices histograms    
-    corr = mean_spectra_per_marker.corr(method=method)
+def calc_correlation_codebook_vectors(df, corr_method):
+    """
+    For every label in df, calc a representative (mean) vqindhist (AKA, group by label and mean).
+    Compute correlation on rows and return the correlation of the codebook vectors
+
+    Args:
+        df (_type_): _description_
+        corr_method (_type_): _description_
+
+    Returns:
+        _type_: _description_
+    """
+
+    # Average the histograms per each label and save in a new dataframe (mean_spectra_per_marker)
+    mean_spectra_per_marker = df.groupby('label').mean()
+    print(f"Computing {corr_method} correlation of {mean_spectra_per_marker.shape[0]} labels based on {mean_spectra_per_marker.shape[1]} codebook vectors")
     
-    # remove columns or rows that are all nan (which can happen when the data is constant before the correlation)
+    ## Correlate the indices histograms    
+    corr = mean_spectra_per_marker.corr(method=corr_method)
+    
+    # Remove columns or rows that are all nan (which can happen when the data is constant before the correlation)
     corr.dropna(axis=0, how='all', inplace=True)
     corr.dropna(axis=1, how='all', inplace=True)
+    return corr
+
+def create_codebook_heatmap(hist_df, save_path=None, to_save=False, filename=None, corr_method='pearson', calc_linkage=False, linkage_method='average'):
+    """Compute correlatino between codebook vectors, plot heatmap (clustermap)
+
+    Args:
+        hist_df (_type_): hist_df (pd.DataFrame): vqindhist
+        save_path (string, optional): Defaults to None.
+        to_save (bool, optional): Defaults to False.
+        filename (string, optional): Defaults to None.
+        corr_method (str, optional): Function for calculating correlation. e.g., pearson, spearman, etc.. Defaults to 'pearson'.
+        calc_linkage (bool, optional): to control parsms of scipy.cluster.hierarchy.linkage. Defaults to False.
+        linkage_method (str, optional): used only if "calc_linkage" is True. Options: 'single', 'complete', 'average', 'weighted', 'centroid', 'median' or 'ward'. Defaults to 'average'.
+
+    Returns:
+        corr (DataFrame): the correlation between codebook vectors (2048, 2048)
+        clustermap (seaborn.matrix.ClusterGrid): clustermap object
+    """
+    corr = calc_correlation_codebook_vectors(hist_df, corr_method)
     
-    # calculate linkage matrix
+    # Calculate linkage matrix
     if calc_linkage:
-        linkage = scipy.cluster.hierarchy.linkage(corr, method=linkage_method, metric='euclidean', optimal_ordering=True)
-        # methods = single complete average weighted centroid median ward
+        linkage = scipy.cluster.hierarchy.linkage(corr, 
+                                                  method=linkage_method, # 'complete', 'average', 'median', 'ward'
+                                                  metric='euclidean', 
+                                                  optimal_ordering=True)
     else:
+        # if sets to None, then the linkage is calculated with defualt values of sns.clustermap()
         linkage=None
-    ## Plot correlation heatmap
+    
+    # Plot correlation heatmap
     kws = dict(cbar_kws=dict(ticks=[-1,0,1]))
-    clustermap = sns.clustermap(corr, center=0, cmap='bwr', vmin=-1, vmax=1, row_linkage=linkage, col_linkage=linkage,
-                                figsize=(5,5), xticklabels=False, col_cluster=True, row_cluster=True, **kws)
+    colors = LinearSegmentedColormap.from_list("", ["tan", "white", "slategray"])
+    clustermap = sns.clustermap(corr, 
+                                center=0, 
+                                cmap=colors, 
+                                vmin=-1, vmax=1, 
+                                row_linkage=linkage, 
+                                col_linkage=linkage,
+                                figsize=(5,5), 
+                                xticklabels=False, 
+                                col_cluster=True, 
+                                row_cluster=True, 
+                                **kws)
+    # Remove the dendrogram on the rows
     clustermap.ax_row_dendrogram.set_visible(False)
     clustermap.ax_cbar.set_position([clustermap.ax_col_dendrogram.get_position().x1+0.01, # x location 
                                      clustermap.ax_col_dendrogram.get_position().y0+0.01, # y location
                                      0.01,                                                # width
                                      clustermap.ax_col_dendrogram.get_position().height-0.05]) #height
-    clustermap.ax_cbar.set_title('Pearson r',fontsize=6)
-    clustermap.cax.tick_params(axis='y', labelsize=6, length=0, pad=0.1) 
-    #plt.show()
+    clustermap.ax_cbar.set_title(f'{corr_method} correlation', fontsize=12)
+    clustermap.cax.tick_params(axis='y', labelsize=12, length=0, pad=0.1) 
+    
     if to_save:
         clustermap.figure.savefig(os.path.join(save_path, filename), bbox_inches='tight', dpi=300)
     
@@ -151,8 +238,8 @@ def plot_histograms(axs, cur_groups, first_cond, second_cond, total_spectra_per_
     # plot the histograms
     for i, label in enumerate(cur_groups[::-1]):
         if plot_delta:
-            label1 = add_condition_to_label(label, condition=first_cond)
-            label2 = add_condition_to_label(label, condition=second_cond)
+            label1 = _add_condition_to_label(label, condition=first_cond)
+            label2 = _add_condition_to_label(label, condition=second_cond)
             d1 = total_spectra_per_marker_ordered.loc[label1, :]
             d2 = total_spectra_per_marker_ordered.loc[label2, :]
             if div:
@@ -332,7 +419,6 @@ def plot_heatmap_with_clusters_and_histograms(corr_with_clusters, hist_df, label
     
     return None
 
-
 def plot_hists_supp_1A(hist_df, labels, corr_with_clusters, hierarchical_order=None, sort=False, color_by_cond=False, plot_delta=False, 
                        to_save=False, colormap_name='viridis',figsize=(5,5), first_cond='stress', second_cond='Untreated', 
                        save_path=None, filename=None, colors = {"Untreated": "#52C5D5", 'stress': "#F7810F"}, to_mean=True, plot_cluster_lines=True, scale_max=False):
@@ -490,17 +576,54 @@ def plot_heatmap_with_clusters_supp_1A(corr_with_clusters, save_path=None, to_sa
         clustermap.figure.savefig(os.path.join(save_path, filename),bbox_inches='tight', dpi=300)
     return clustermap.dendrogram_col.reordered_ind
 
-def find_rep_per_cluster(corr_with_clusters, hist_df_with_path, save_path, to_save=False, save_together = True,
-                         filename="representative_images_per_cluster.eps", figsize=(4,32), use_second_max=False, top_images = 4):
-    clusters = np.unique(corr_with_clusters.cluster)
+def _get_cluster_score_per_tile(cluster_assignment, hist_df, norm_by='cluster_size'):
+    """
+    Return score_per_cluster; for every tile image, a score for every cluster
 
-    hist_per_cluster = pd.DataFrame(index = hist_df_with_path.index, columns = list(clusters) + ['label','path'])
-    hist_per_cluster.label = hist_df_with_path.label
-    hist_per_cluster.path = hist_df_with_path.path
+    Args:
+        cluster_assignment (ps.DataFrame): assignment of codebook vectors stored in "cluster" column
+        hist_df (pd.DataFrame): tiles vqinhists, with label and path
+        norm_by (string, optional): either 'cluster_size' or 'codebook_size'. Defaults to 'cluster_size'.
 
-    # for each cluster, get the indices and calc the sum of the histogram, then normalize by the cluster size
-    for cluster_label, cluster_group in corr_with_clusters.groupby('cluster'):
-        hist_per_cluster[cluster_label] = hist_df_with_path[cluster_group.index].sum(axis=1) / (cluster_group.index.size) #625 
+    Raises:
+        ValueError: if norm_by is not 'cluster_size' or 'codebook_size'/
+
+    Returns:
+        score_per_cluster (pd.DataFrame): shape is (# tiles, # clusters + 2)
+    """
+        
+    # get unique cluster names
+    clusters = np.unique(cluster_assignment.cluster)
+    
+    # create DataFrame (rows=tiles, columns=[C1, C2,..., label, path])
+    score_per_cluster = pd.DataFrame(index=hist_df.index, columns = list(clusters) + ['label','path'])
+    score_per_cluster.label = hist_df.label
+    score_per_cluster.path = hist_df.path
+    
+    for cluster_label, cluster_members in cluster_assignment.groupby('cluster'):
+        # for each cluster, get the indices (codebook vectors) assigned to it
+        cluster_members = hist_df[cluster_members.index]
+        # calc the sum of the count values (# times a codebook vector used in a tile)
+        score_per_cluster[cluster_label] = cluster_members.sum(axis=1) 
+        
+        if norm_by=='cluster_size':
+            # normalize by the cluster size
+            score_per_cluster[cluster_label] = score_per_cluster[cluster_label] / (cluster_members.index.size) #625 
+        elif norm_by=='codebook_size':
+            # normalize by the constant 625 (vq1 uses 25x25 vqinds)
+            score_per_cluster[cluster_label] = score_per_cluster[cluster_label] / 625
+        else:
+            raise ValueError(f'{norm_by} is not supperted')
+
+    return score_per_cluster
+
+def find_representative_images_per_cluster(codebook_vec_cluster_assignment, hist_df, figsize=(4,32), use_second_max=False):
+    
+    # Compute score for every tile and every cluster    
+    hist_per_cluster = _get_cluster_score_per_tile(cluster_assignment=codebook_vec_cluster_assignment,
+                                                    hist_df=hist_df,
+                                                    norm_by='cluster_size')
+    
     # Find the two largest values and corresponding columns (clusters) for each row
     top_clusters = hist_per_cluster.drop(['label', 'path'], axis=1).apply(lambda row: row.nlargest(2).index, axis=1)
 
@@ -509,7 +632,11 @@ def find_rep_per_cluster(corr_with_clusters, hist_df_with_path, save_path, to_sa
     hist_per_cluster['second_max_cluster'] = top_clusters.apply(lambda x: x[1])
     hist_per_cluster.max_cluster = hist_per_cluster.max_cluster.str.replace('C',"").astype(int)
     hist_per_cluster.second_max_cluster = hist_per_cluster.second_max_cluster.str.replace('C',"").astype(int)
+    
     return hist_per_cluster
+
+def plot_representative_images_per_cluster(hist_per_cluster, filename="representative_images_per_cluster.eps", save_path=None, to_save=False, save_together=True, top_images=8):
+    
     if save_together:
         fig, axs = plt.subplots(nrows=int(top_images/2)*np.unique(hist_per_cluster[['max_cluster', 'second_max_cluster']]).size, ncols=2, figsize=figsize)
 
@@ -533,7 +660,10 @@ def find_rep_per_cluster(corr_with_clusters, hist_df_with_path, save_path, to_sa
                 ax = axs[i * int(top_images/2) + j // 2, j%2]
             else:
                 fig, ax = plt.subplots(figsize=(4,4))
-            ax.imshow(cur_site[tile_number,:,:,0], cmap='gray',vmin=0,vmax=1)
+            
+            # Adjust contrast and brightness
+            tile = improve_brightness(img=cur_site[tile_number,:,:,0], contrast_factor=1, brightness_factor=0.1)
+            ax.imshow(tile, cmap='gray',vmin=0,vmax=1)
             ax.axis('off')
             split_path=real_path.split(os.sep)
             marker = split_path[-2]
@@ -599,7 +729,6 @@ def find_rep_per_cluster(corr_with_clusters, hist_df_with_path, save_path, to_sa
     plt.show()
 
     return None
-
 
 def create_correlation_graph(correlation_matrix, top_positive=True, num_edges=2):
     graph = nx.Graph()
@@ -668,9 +797,9 @@ def draw_bicorrelation_graph(graph, title, cmap_pos, cmap_neg, vmin_pos = 0, vma
         plt.savefig(os.path.join(save_path, filename),bbox_inches='tight', dpi=300)
     plt.show()
 
-def create_lables_heatmap(df, title, save_path=None, to_save=False, filename=None, kl=False, method='pearson'):
+def create_lables_heatmap(df, title, save_path=None, to_save=False, filename=None, kl=False, corr_method='pearson'):
     if not kl:
-        corrs = df.T.corr(method=method)
+        corrs = df.T.corr(method=corr_method)
         clustermap = sns.clustermap(corrs, center=0, cmap='bwr', vmin=-1, vmax=1, figsize=(5,5))
 
     if kl:
@@ -693,7 +822,7 @@ def create_lables_heatmap(df, title, save_path=None, to_save=False, filename=Non
                                      clustermap.ax_col_dendrogram.get_position().y0+0.01, # y location
                                      0.01,                                                # width
                                      clustermap.ax_col_dendrogram.get_position().height-0.05]) #height
-    clustermap.ax_cbar.set_title(f'{method} r',fontsize=6)
+    clustermap.ax_cbar.set_title(f'{curr_method} r',fontsize=6)
     clustermap.cax.tick_params(axis='y', labelsize=6, length=0, pad=0.1) 
     clustermap.ax_heatmap.set_xlabel('Marker', fontsize=12)
     clustermap.ax_heatmap.set_ylabel('Marker', fontsize=12)
@@ -737,8 +866,6 @@ def analyse_deltas(df, markers_to_delta, first_cond, second_cond, div=False,
     return markers_order
 
 
-from scipy.special import kl_div
-
 def kl_divergence_matrix(df):
     """
     Compute the matrix of Kullback-Leibler (KL) divergence for each pair of columns in a DataFrame.
@@ -749,6 +876,7 @@ def kl_divergence_matrix(df):
     Returns:
     - pandas DataFrame containing the KL divergence between each pair of columns
     """
+    from scipy.special import kl_div
     columns = df.columns
     num_columns = len(columns)
     
@@ -788,7 +916,9 @@ def plot_rep_tiles_conds(hist_per_cluster, top_images=8):
             tile_number = int(tile_path[cut+1:])
             cur_site = np.load(real_path)
             ax = axs[j]
-            ax.imshow(cur_site[tile_number,:,:,0], cmap='gray',vmin=0,vmax=1)
+            # Adjust contrast and brightness
+            tile = improve_brightness(img=cur_site[tile_number,:,:,0], contrast_factor=1, brightness_factor=0.1)
+            ax.imshow(tile, cmap='gray',vmin=0,vmax=1)
             ax.axis('off')
             split_path=real_path.split(os.sep)
             marker = split_path[-2]
@@ -801,7 +931,9 @@ def plot_rep_tiles_conds(hist_per_cluster, top_images=8):
             tile_number = int(tile_path[cut+1:])
             cur_site = np.load(real_path)
             ax = axs[top_images+j]
-            ax.imshow(cur_site[tile_number,:,:,0], cmap='gray',vmin=0,vmax=1)
+            # Adjust contrast and brightness
+            tile = improve_brightness(img=cur_site[tile_number,:,:,0], contrast_factor=1, brightness_factor=0.1)
+            ax.imshow(tile, cmap='gray',vmin=0,vmax=1)
             ax.axis('off')
             split_path=real_path.split(os.sep)
             marker = split_path[-2]

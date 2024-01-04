@@ -61,8 +61,9 @@ def calculate_difference(group, first_cond = 'stress', second_cond='Untreated'):
 	first_df = first_df.sample(frac=1).reset_index(drop=True)
 	second_df = second_df.sample(frac=1).reset_index(drop=True)
     # remove labels columns
-	first_df.drop(columns=['label','marker'], inplace=True)
-	second_df.drop(columns=['label','marker'], inplace=True)
+	first_df.drop(columns=['label','marker', 'path'], inplace=True)
+	second_df.drop(columns=['label','marker', 'path'], inplace=True)
+ 
 	# Cut the DataFrames to have the same size
 	min_size = min(len(first_df), len(second_df))
 	first_df = first_df.head(min_size)
@@ -72,7 +73,7 @@ def calculate_difference(group, first_cond = 'stress', second_cond='Untreated'):
 	return delta
 
 def generate_deltas(embeddings, labels, first_cond = 'stress', second_cond='Untreated'):
-    df, _ = create_vqindhists_df([embeddings], [labels], [labels], arange_labels=False)
+    df = create_vqindhists_df([embeddings], [labels], [labels], arange_labels=False)
     df['label'] = df['label'].str.split("_").str[0:3:2].apply(lambda x: '_'.join(x)) # merging different batches and reps -> label == marker_cond
     # # first, create the mean deltas for ref
     # total_spectra_per_marker_ordered = df.groupby('label').mean()
@@ -118,7 +119,7 @@ def __generate_with_load(config_model, config_data, model, output_folder_path, d
                             'UMAPs',\
                             'UMAP1'
                                 f'{__now.strftime("%d%m%y_%H%M%S_%f")}_{os.path.splitext(os.path.basename(config_model.MODEL_PATH))[0]}',\
-                                    f'{title}.png')
+                                    f'{title}')
         
     __savepath_parent = os.path.dirname(savepath)
     if not os.path.exists(__savepath_parent):
@@ -131,10 +132,9 @@ def __generate_with_load(config_model, config_data, model, output_folder_path, d
     if map_labels_function is not None:
         map_labels_function = eval(map_labels_function)(config_data)
 
-    ordered_marker_names = ['FUS','NCL','PML','ANXA11', 'NONO', 'TDP43',
-                                     'PEX14','Calreticulin','Phalloidin','mitotracker','TOMM20',
-                                     'PURA','CLTC','KIF5A','SCNA','CD41','SQSTM1',
-                                     'FMRP','G3BP1','GM130','LAMP1','DCP1A','NEMO', 'PSD95']
+    ordered_marker_names = ["DAPI", 'TDP43', 'PEX14', 'NONO', 'ANXA11', 'FUS', 'Phalloidin', 
+                            'PURA', 'mitotracker', 'TOMM20', 'NCL', 'Calreticulin', 'CLTC', 'KIF5A', 'SCNA', 'SQSTM1', 'PML',
+                            'DCP1A', 'PSD95', 'LAMP1', 'GM130', 'NEMO', 'CD41', 'G3BP1']
     ordered_names = [config_data.UMAP_MAPPINGS[marker]['alias'] for marker in ordered_marker_names]
     model.plot_umap(embedding_data=embeddings,
                     label_data=labels,

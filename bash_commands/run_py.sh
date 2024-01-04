@@ -30,6 +30,9 @@
 # Generate UMAP2s - Synthetic Multiplexing
 # ./bash_commands/run_py.sh ./src/runables/run_synthetic_multiplexing -g -m 30000 -b 10  -a ./src/models/cytoself_vanilla/configs/config/CytoselfModelConfig ./src/datasets/configs/embeddings_data_config/EmbeddingsU2OSDatasetConfig /home/labs/hornsteinlab/Collaboration/MOmaps/outputs/figures/U2OS -j SM_U2OS
 
+# Generate UMAP1
+# ./bash_commands/run_py.sh ./src/runables/generate_umap1_vqindhist -g -m 20000 -b 10 -a ./src/models/neuroself/configs/model_config/TLNeuroselfB78NoDSModelConfig ./src/figures/figures_config/NeuronsUMAP1B78FigureConfig /home/labs/hornsteinlab/Collaboration/MOmaps/outputs/figures/manuscript/fig2/panelC/ -j umap1
+
 # Test GPU
 # ./bash_commands/run_py.sh ./tests/test_gpu  -m 1000 -g
 

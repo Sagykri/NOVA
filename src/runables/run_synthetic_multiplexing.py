@@ -23,7 +23,15 @@ def run_synthetic_multiplexing():
     
     config_path_model = sys.argv[1]
     config_path_data = sys.argv[2]
-    output_folder_path = sys.argv[3] if len(sys.argv) > 3 else config_model.MODEL_OUTPUT_FOLDER
+    
+    figure_output_folder = get_if_exists(config_data, 'FIGURE_OUTPUT_FOLDER', None)
+    if len(sys.argv) > 3:
+        output_folder_path = sys.argv[3]
+    elif figure_output_folder is not None:
+        output_folder_path = figure_output_folder
+    else:
+        output_folder_path = config_model.MODEL_OUTPUT_FOLDER
+    
     jobid = os.getenv('LSB_JOBID')
 
     assert os.path.isdir(output_folder_path) and os.path.exists(output_folder_path), f"{output_folder_path} is an invalid output folder path or doesn't exists"
@@ -72,7 +80,7 @@ def run_synthetic_multiplexing():
     savepath = os.path.join(output_folder_path,\
                             'SM_UMAPs',\
                                 f'{datetime.datetime.now().strftime("%d%m%y_%H%M%S_%f")}_{jobid}_{os.path.splitext(os.path.basename(config_model.MODEL_PATH))[0]}',\
-                                    f'{title}.eps')
+                                    f'{title}')
     
     __savepath_parent = os.path.dirname(savepath)
     if not os.path.exists(__savepath_parent):

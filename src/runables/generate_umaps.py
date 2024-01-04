@@ -27,7 +27,14 @@ def generate_umaps():
 
     config_model = load_config_file(config_path_model, 'model')
     config_data = load_config_file(config_path_data, 'data', config_model.CONFIGS_USED_FOLDER)
-    output_folder_path = sys.argv[3] if len(sys.argv) > 3 else config_model.MODEL_OUTPUT_FOLDER
+    
+    figure_output_folder = get_if_exists(config_data, 'FIGURE_OUTPUT_FOLDER', None)
+    if len(sys.argv) > 3:
+        output_folder_path = sys.argv[3]
+    elif figure_output_folder is not None:
+        output_folder_path = figure_output_folder
+    else:
+        output_folder_path = config_model.MODEL_OUTPUT_FOLDER
 
     assert os.path.isdir(output_folder_path) and os.path.exists(output_folder_path), f"{output_folder_path} is an invalid output folder path or doesn't exists"
 
@@ -84,7 +91,7 @@ def __generate_with_load(config_model, config_data, model, output_folder_path):
         savepath = os.path.join(output_folder_path,\
                                 'UMAPs',\
                                     f'{__now.strftime("%d%m%y_%H%M%S_%f")}_{os.path.splitext(os.path.basename(config_model.MODEL_PATH))[0]}',\
-                                        f'{title}.eps') # NANCY
+                                        f'{title}') # NANCY
         
         __savepath_parent = os.path.dirname(savepath)
         if not os.path.exists(__savepath_parent):

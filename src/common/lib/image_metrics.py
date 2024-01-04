@@ -17,12 +17,11 @@ def calculate_snr(image):
   return snr
 
 
-
-"""
-Higher Variance: Strong edges and, consequently, a sharper image.
-Lower Variance: The image is blurrier with fewer or softer edges.
-"""
 def calculate_image_sharpness_laplacian(image):
+    """
+    Higher Variance: Strong edges and, consequently, a sharper image.
+    Lower Variance: The image is blurrier with fewer or softer edges.
+    """
     from scipy import ndimage
     # Convert image to grayscale
 
@@ -35,12 +34,11 @@ def calculate_var(image):
   
   return np.var(image)
 
-
-"""
-Low = blur
-High = sharp
-"""
 def calculate_image_sharpness_brenner(image):
+  """
+  Low = blur
+  High = sharp
+  """
   def _brenners_gradient(image):
     # Calculate the squared difference
     shift = 2  # Typical distance between pixels for calculation
@@ -54,27 +52,24 @@ def calculate_image_sharpness_brenner(image):
   
   return rows_brenner + cols_brenner
 
-
-"""
-High = Noise
-Low = Structure
-"""
 def calculate_entropy(image):
+  """
+  High = Noise
+  Low = Structure
+  """
   entropy_value = shannon_entropy(image)
   
   return entropy_value
-
-
 
 def calculate_sigma(image):
   ret = estimate_sigma(image)
   
   return ret
 
-"""
-"...if there are a low amount of high frequencies, then the image can be considered blurry." (https://pyimagesearch.com/2015/09/07/blur-detection-with-opencv/)
-"""
 def calculate_high_freq_power(image, threshold=None):
+    """
+    "...if there are a low amount of high frequencies, then the image can be considered blurry." (https://pyimagesearch.com/2015/09/07/blur-detection-with-opencv/)
+    """
     f = np.fft.fft2(image)
     fshift = np.fft.fftshift(f)
     magnitude_spectrum = 20*np.log(np.abs(fshift))
@@ -88,11 +83,11 @@ def calculate_high_freq_power(image, threshold=None):
 
     return high_freq_power
   
-"""
-0 - no blur
-1 - maximal blur
-"""
 def calc_image_blur_effect(image):
+  """
+  0 - no blur
+  1 - maximal blur
+  """
   from skimage.measure import blur_effect
   return blur_effect(image)
 
@@ -104,10 +99,10 @@ def calc_image_blur_effect(image):
 #                                                                        #
 ########################################################################## 
 
-"""
-For detecting snow-like images - a snow-like image will have very few large uniform areas
-"""
 def calculate_largest_uniform_area(image):
+    """
+    For detecting snow-like images - a snow-like image will have very few large uniform areas
+    """
     from skimage.measure import label, regionprops
     
     
@@ -122,11 +117,11 @@ def calculate_largest_uniform_area(image):
 
     return largest_area
 
-"""
-High = structure
-Low = Noise
-"""
 def calculate_correlation(image):
+  """
+  High = structure
+  Low = Noise
+  """
   gray_image = image
   # if len(image.shape) == 3:
   # gray_image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
@@ -135,11 +130,11 @@ def calculate_correlation(image):
   return correlation_matrix
 
 
-"""
-"GLCM - Gray-Level Co-occurrence Matrix for calculating texture.
-Blurry images may have lower contrast and higher homogeneity in the GLCM
-"""
 def calculate_GLCM(image):
+  """
+  "GLCM - Gray-Level Co-occurrence Matrix for calculating texture.
+  Blurry images may have lower contrast and higher homogeneity in the GLCM
+  """
   gray_image = image
 # if len(image.shape) == 3:
   # gray_image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)

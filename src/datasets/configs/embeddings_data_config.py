@@ -31,7 +31,7 @@ class EmbeddingsExampleDatasetConfig(DatasetConfig):
         self.CONDITIONS = ['Untreated']
         self.MARKERS = ['TOMM20','mitotracker'] #['FUS']
         self.REPS = ['rep1', 'rep2'] # Can be : ['rep1', 'rep2'] or ['rep1'] or ['rep2']
-        # self.MARKERS_TO_EXCLUDE = ['FMRP', 'DAPI', 'TIA1']
+        # self.MARKERS_TO_EXCLUDE = ['FMRP', 'TIA1']
     
         # Which type to load: ['trainset', 'valset', 'testset', 'all']
         self.EMBEDDINGS_TYPE_TO_LOAD = 'testset'
@@ -66,13 +66,13 @@ class EmbeddingsB78DatasetConfig(DatasetConfig):
         self.EXPERIMENT_TYPE = 'neurons'    
         
         # Local/Global embeddings
-        #self.EMBEDDINGS_LAYER = 'vqvec2'
+        self.EMBEDDINGS_LAYER = 'vqindhist1' # 'vqvec2', 'vqindhist1', 'vqindhist2'
 
         # for umap1 vqindhist:
-        self.EMBEDDINGS_LAYER = 'vqindhist1'
-        self.CELL_LINES_CONDS = ['WT_Untreated']#,'WT_stress']
+        # self.EMBEDDINGS_LAYER = 'vqindhist1'
+        # self.CELL_LINES_CONDS = ['WT_Untreated']#,'WT_stress']
         self.MAP_LABELS_FUNCTION = "lambda self: lambda labels: __import__('numpy').asarray([l.split('_')[0] for l in labels])"
-        spectral_cmap = sns.color_palette('Spectral', n_colors=24)
+        # spectral_cmap = sns.color_palette('Spectral', n_colors=24)
         # self.COLORMAP = {'ANXA11':spectral_cmap[0], 'NONO':spectral_cmap[1], 'TDP43':spectral_cmap[2],
         #                  'NCL':spectral_cmap[3],'FUS':spectral_cmap[4], 'PML':spectral_cmap[5],
         #                  'PEX14':spectral_cmap[6],'Calreticulin':spectral_cmap[7],
@@ -83,15 +83,13 @@ class EmbeddingsB78DatasetConfig(DatasetConfig):
         #                  'LAMP1':spectral_cmap[20],'DCP1A':spectral_cmap[21], 'NEMO':spectral_cmap[22], 'PSD95':spectral_cmap[23]}
         self.COLORMAP = {'FUS':'salmon','NCL':'red', 'PML':'darkred',
                         'ANXA11':'darkorange', 'NONO':'orange', 'TDP43':'gold',
-                    
-                    'PEX14':'black','Calreticulin':'saddlebrown',
-
-
-                    'Phalloidin':'darkviolet','mitotracker':'pink', 'TOMM20':'palevioletred',
-                    'PURA':'deeppink','CLTC':'magenta','KIF5A':'darkmagenta',
-                    'SCNA':'navy','CD41':'royalblue','SQSTM1':'deepskyblue', 
-                    'FMRP':'mediumaquamarine', 'G3BP1':'olive','GM130':'olivedrab',
-                    'LAMP1':'lime','DCP1A':'seagreen', 'NEMO':'darkgreen', 'PSD95':'green'}
+                        'PEX14':'black','Calreticulin':'saddlebrown',
+                        'Phalloidin':'darkviolet','mitotracker':'pink', 'TOMM20':'palevioletred',
+                        'PURA':'deeppink','CLTC':'magenta','KIF5A':'darkmagenta',
+                        'SCNA':'navy','CD41':'royalblue','SQSTM1':'deepskyblue', 
+                        'FMRP':'mediumaquamarine', 'G3BP1':'olive','GM130':'olivedrab',
+                        'LAMP1':'lime','DCP1A':'seagreen', 'NEMO':'darkgreen', 'PSD95':'green'}
+        
         # self.COLORMAP = sns.color_palette(cc.glasbey, n_colors=24)
         # for delta vqindhist umap1:
         # markers = ['ANXA11', 'CD41', 'CLTC', 'Calreticulin', 'DCP1A', 'FMRP', 'FUS','G3BP1', 'GM130', 'KIF5A', 'LAMP1', 'NCL','NEMO', 'NONO', 'PEX14',
@@ -104,7 +102,7 @@ class EmbeddingsB78DatasetConfig(DatasetConfig):
 
         # self.COLORMAP = new_colormap
 
-        self.MARKERS_TO_EXCLUDE = ['TIA1','DAPI']
+        #self.MARKERS_TO_EXCLUDE = ['TIA1']
         
 class EmbeddingsB9DatasetConfig(DatasetConfig):
     def __init__(self):
@@ -119,11 +117,13 @@ class EmbeddingsB9DatasetConfig(DatasetConfig):
         self.ADD_BATCH_TO_LABEL = True
         
         # Local/Global embeddings
-        self.EMBEDDINGS_LAYER = 'vqvec2'
+        self.EMBEDDINGS_LAYER = 'vqvec2' # 'vqvec2', 'vqindhist1', 'vqindhist2'
         
-        # self.CELL_LINES = ['WT']#, 'FUSHomozygous', 'FUSHeterozygous', 'FUSRevertant']
+        self.CELL_LINES = ['WT']
+        # self.CELL_LINES = ['FUSHomozygous', 'TDP43', 'TBK1', 'WT', 'SCNA', 'FUSRevertant','OPTN', 'FUSHeterozygous']
         # self.CONDITIONS = ['Untreated']
-        # self.MARKERS = ['G3BP1']
+        self.REPS = ['rep1', 'rep2'] # Can be : ['rep1', 'rep2'] or ['rep1'] or ['rep2']
+        self.MARKERS =  ['G3BP1', 'PML', 'PURA'] #['G3BP1']
         
         self.MAP_LABELS_FUNCTION = "lambda self: lambda labels: __import__('numpy').asarray([l.split('_')[-2-int(self.ADD_REP_TO_LABEL)] for l in labels])"
 
@@ -150,11 +150,11 @@ class EmbeddingsB6DatasetConfig(DatasetConfig):
 
         self.CELL_LINES = ['WT']#, 'FUSHeterozygous', 'FUSRevertant']
         self.REPS = ['rep2'] # Can be : ['rep1', 'rep2'] or ['rep1'] or ['rep2']
-        self.MARKERS = ['G3BP1', 'DAPI', 'Phalloidin', 'DCP1A']
-        # self.MARKERS_TO_EXCLUDE = ['FMRP', 'DAPI', 'TIA1']
+        self.MARKERS = ['G3BP1']#, 'DAPI', 'Phalloidin', 'DCP1A']
+        # # self.MARKERS_TO_EXCLUDE = ['FMRP', 'TIA1']
         
         # Local/Global embeddings
-        self.EMBEDDINGS_LAYER = 'vqvec2'
+        self.EMBEDDINGS_LAYER = 'vqvec2' # 'vqvec2', 'vqindhist1', 'vqindhist2'
         
         self.MAP_LABELS_FUNCTION = "lambda self: lambda labels: __import__('numpy').asarray([l.split('_')[-2-int(self.ADD_REP_TO_LABEL)] for l in labels])"
 
@@ -269,9 +269,36 @@ class EmbeddingsALLDatasetConfig(DatasetConfig):
         self.ADD_REP_TO_LABEL = True
         self.ADD_BATCH_TO_LABEL = True
         self.EMBEDDINGS_LAYER = 'vqvec2'
+        
         self.CELL_LINES = ['FUSHomozygous', 'TDP43', 'TBK1', 'WT', 'SCNA', 'FUSRevertant','OPTN', 'FUSHeterozygous']
         # self.MARKERS = ['TOMM20','mitotracker','GM130'] #['FUS']
         self.REPS = ['rep1', 'rep2'] # Can be : ['rep1', 'rep2'] or ['rep1'] or ['rep2']
+
+class EmbeddingsB6_add_brenner_cellposeDatasetConfig(DatasetConfig):
+    def __init__(self):
+        super().__init__()
+
+        self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "spd2", "SpinningDisk", f) for f in 
+                        ["batch6_add_brenner_cellpose"]]
+        
+        self.SPLIT_DATA = False
+        self.EXPERIMENT_TYPE = 'neurons'
+        self.ADD_REP_TO_LABEL = True
+        self.ADD_BATCH_TO_LABEL = True
+
+        # Local/Global embeddings
+        self.EMBEDDINGS_LAYER = 'vqindhist2' # 'vqindhist1', 'vqindhist2'
+        
+        self.MAP_LABELS_FUNCTION = "lambda self: lambda labels: __import__('numpy').asarray([l.split('_')[-2-int(self.ADD_REP_TO_LABEL)] for l in labels])"
+
+        # Set the colormap, for example: {"Untreated": "#52C5D5", 'stress': "#F7810F"} 
+        self.COLORMAP = {"Untreated": "#52C5D5", 'stress': "#F7810F"}
+
+        # Set the size of the dots
+        self.SIZE = 30
+        # Set the alpha of the dots (0=max opacity, 1=no opacity)
+        self.ALPHA = 0.7
+        #######################################
 
 ############################################################
 # deltaNLS

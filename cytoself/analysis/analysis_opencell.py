@@ -354,7 +354,7 @@ class AnalysisOpenCell(BaseAnalysis):
             prop={'size': 6},
             bbox_to_anchor=(1, 1),
             loc='upper left',
-            ncol=1 + len(names) // 20,
+            ncol=1 + len(names) // 25,
             #ncol=1, #NOAM: for umap1
             frameon=False,
         )
@@ -392,7 +392,8 @@ class AnalysisOpenCell(BaseAnalysis):
         fig.tight_layout()
         if savepath:
             logging.info(f"Saving umap to {savepath}")#SAGY
-            fig.savefig(savepath, dpi=dpi) #NOAM: we dont need format.., format='eps')
+            fig.savefig(f"{savepath}.eps", dpi=dpi, format='eps')
+            fig.savefig(f"{savepath}.png", dpi=dpi)
         return fig, ax
 
     def calculate_cellid_ondim0_vqidx_ondim1(

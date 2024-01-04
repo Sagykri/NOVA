@@ -321,7 +321,7 @@ def load_indhists(config_path_model=None, config_path_data=None,
                                                         datasets = [embeddings_type],
                                                         embeddings_layer = embeddings_layer)
     
-    hist_df, _ = create_vqindhists_df(vqindhist, labels, paths)
+    hist_df = create_vqindhists_df(vqindhist, labels, paths)
     logging.info(f"[load_indhists] hist_df.shape = {hist_df.shape}")
     
     if cell_lines_conds:
@@ -337,7 +337,7 @@ def load_indhists(config_path_model=None, config_path_data=None,
     if reps:
         hist_df = hist_df[hist_df['label'].str.contains('|'.join(reps), regex=True)]        
 
-    all_embedings_data = np.array(hist_df.drop(columns='label'))
+    all_embedings_data = np.array(hist_df.drop(columns=['label', 'path']))
     logging.info(f'[load_indhists] all_embedings_data shape: {all_embedings_data.shape}')
     all_labels = np.array(hist_df['label'])
     logging.info(f'[load_indhists] all_labels shape: {all_labels.shape}')
