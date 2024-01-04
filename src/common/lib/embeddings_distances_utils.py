@@ -47,10 +47,10 @@ def fetch_saved_embeddings(config_model, config_data, embeddings_type):
     logging.info(f"[load_embeddings] {all_embedings_data.shape}, {all_labels.shape}")    
     return all_embedings_data, all_labels
 
-def calc_cellprofiler_distances(scale=True):
+def calc_cellprofiler_distances():
     #load labels and features
     cellprofiler_features_folder = "/home/labs/hornsteinlab/Collaboration/MOmaps/outputs/cell_profiler"
-    batches_folders = ['batch6_50percent','batch7','batch8','batch9_50percent']
+    batches_folders = ['batch6','batch7','batch8','batch9']
     batch_labels, batch_features = [],[]
     for batch in batches_folders:
         batch_df = pd.read_csv(os.path.join(cellprofiler_features_folder, batch, 'combined', f'stress_all_markers_concatenated-by-object-type_{batch}.csv'))
@@ -61,6 +61,16 @@ def calc_cellprofiler_distances(scale=True):
         batch_labels.append(cur_batch_labels)
     batch_labels = pd.concat(batch_labels)
     batch_features = pd.concat(batch_features)
+
+    # feature filtering and scaling
+    constant_cols = batch_features.columns[batch_features.nunique() == 1]
+    batch_features = batch_features.drop(columns=constant_cols) # remove columns with constant values
+    batch_features = batch_features.dropna(axis=1, how='any') # remove features with nan values
+    for feature in batch_features.columns:
+        cur_min = batch_features[feature].min()
+        cur_max = batch_features[feature].max()
+        batch_features[feature] = (batch_features[feature] - cur_min) / (cur_max-cur_min) # min max each feature (it's really not the best solution but it ~works)
+
     features = np.array(batch_features)
     labels = np.array(batch_labels.apply(lambda row: '_'.join(map(str, row)), axis=1))
     marker_centroids = create_markers_centroids_df(labels, features)
@@ -69,7 +79,8 @@ def calc_cellprofiler_distances(scale=True):
     marker_centroids['cell_line_condition'] = marker_centroids['cell_line'] + '_' + marker_centroids['condition']
     cell_lines_conditions = marker_centroids['cell_line_condition'].unique()
     output_folder = "/home/labs/hornsteinlab/Collaboration/MOmaps/outputs/cell_profiler/"
-    between_cell_lines_sep_batch_rep = between_cell_lines_sep_rep_dist(marker_centroids, cell_lines_conditions, markers, distances_main_folder=output_folder, batch_name="all?")
+    between_cell_lines_sep_batch_rep = between_cell_lines_sep_rep_dist(marker_centroids, cell_lines_conditions, markers,
+                                                                        distances_main_folder=output_folder, batch_name="CellProfiler")
 
 def create_markers_centroids_df(all_labels, all_embedings_data, exclude_DAPI=True):  
     """Create a pd.DataFrame of centroids embedddings and experimental settings 
