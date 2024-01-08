@@ -10,6 +10,7 @@ from collections import defaultdict
 from matplotlib.colors import ListedColormap, LinearSegmentedColormap
 
 from src.common.lib.image_metrics import improve_brightness
+from src.common.configs.base_config import BaseConfig
 
 def load_multiple_vqindhists(batches, embeddings_folder, datasets=['trainset','valset','testset'], embeddings_layer='vqindhist1'):
     
@@ -248,6 +249,7 @@ def plot_histograms(axs, cur_groups, first_cond, second_cond, total_spectra_per_
                 d = np.log2(d1 / d2)
             else:
                 d = d1 - d2
+            axs[i].set_ylim(-10,25) # important!?
         else:
             d = total_spectra_per_marker_ordered.loc[label, :]
         if color_by_cond:
@@ -315,10 +317,19 @@ def plot_heatmap_with_clusters_and_histograms(corr_with_clusters, hist_df, label
                                              filename="codeword_idx_heatmap_and_histograms.tiff",
                                              colors = {"Untreated": "#52C5D5", 'stress': "#F7810F"},
                                              first_cond='stress',second_cond='Untreated',
-                                             title=None, figsize=(9,3)):
+                                             title=None, figsize=(9,3),calc_linkage=False, linkage_method='average'):
+    # calculate linkage matrix
+    if calc_linkage:
+        linkage = scipy.cluster.hierarchy.linkage(corr_with_clusters.drop(columns=['cluster']), method=linkage_method, metric='euclidean', optimal_ordering=True)
+        # methods = single complete average weighted centroid median ward
+    else:
+        linkage=None
+    
     # create the heatmap and dendrogram
     kws = dict(cbar_kws=dict(ticks=[-1,0,1]))
-    clustermap = sns.clustermap(corr_with_clusters.drop(columns=['cluster']), center=0, cmap='bwr', vmin=-1, vmax=1, figsize=(9,5), xticklabels=False, yticklabels=False, col_colors=corr_with_clusters.cluster, **kws)
+    clustermap = sns.clustermap(corr_with_clusters.drop(columns=['cluster']), center=0, cmap='bwr', vmin=-1, vmax=1, figsize=(9,5), 
+                                xticklabels=False, yticklabels=False, col_colors=corr_with_clusters.cluster, row_linkage=linkage, col_linkage=linkage, **kws)
+    
     clustermap.ax_row_dendrogram.set_visible(False)
 
     # get the indices order from the dendrogram 
@@ -355,9 +366,9 @@ def plot_heatmap_with_clusters_and_histograms(corr_with_clusters, hist_df, label
         max_per_condition = None
     if plot_delta:
         # Pairs to be compared
-        #list_of_pairs = list(set(total_spectra_per_marker_ordered.reset_index()['label'].str.split("_").str[0]))#.apply(lambda x: '_'.join(x[:2] + x[3:]))))
-        #cur_groups = list_of_pairs
-        cur_groups = labels
+        list_of_pairs = list(set(total_spectra_per_marker_ordered.reset_index()['label'].str.split("_").str[0]))#.apply(lambda x: '_'.join(x[:2] + x[3:]))))
+        cur_groups = list_of_pairs
+        # cur_groups = labels
     # calc clusters locations
     cluster_counts = pd.DataFrame(corr_with_clusters.cluster.value_counts()).reset_index()
     cluster_counts.cluster = cluster_counts.cluster.str.replace('C','').astype('int')
@@ -400,8 +411,12 @@ def plot_heatmap_with_clusters_and_histograms(corr_with_clusters, hist_df, label
         if cur_count < 15:
             prev_count = cluster_end
             continue
-        clustermap.ax_heatmap.axvline(x=cluster_end, color='black',linestyle="--", linewidth=0.4)
+        # clustermap.ax_heatmap.axvline(x=cluster_end, color='black',linestyle="--", linewidth=0.4)
         clustermap.ax_col_colors.text(x=cluster_end-(cur_count/2), y=0.5, s=cluster, fontsize=6)
+        clustermap.ax_heatmap.plot([cluster_end,cluster_end], [prev_count,cluster_end], color='black',linestyle="--", linewidth=1)
+        clustermap.ax_heatmap.plot([prev_count,cluster_end], [cluster_end,cluster_end], color='black',linestyle="--", linewidth=1)
+        clustermap.ax_heatmap.plot([prev_count,prev_count], [prev_count,cluster_end], color='black',linestyle="--", linewidth=1)
+        clustermap.ax_heatmap.plot([prev_count,cluster_end], [prev_count,prev_count], color='black',linestyle="--", linewidth=1)
         prev_count = cluster_end
 
     if title:
@@ -730,12 +745,16 @@ def plot_representative_images_per_cluster(hist_per_cluster, filename="represent
 
     return None
 
-def create_correlation_graph(correlation_matrix, top_positive=True, num_edges=2):
+def create_correlation_graph(correlation_matrix, top_positive=True, num_edges=2, scale_factor=10):
     graph = nx.Graph()
+    marker_to_organelle = BaseConfig().UMAP_MAPPINGS_MARKERS
     for marker, row in correlation_matrix.iterrows():
+        organelle = marker_to_organelle[marker][BaseConfig().UMAP_MAPPINGS_ALIAS_KEY]
         sorted_correlations = row.drop(marker).sort_values(ascending=not top_positive).head(num_edges)
         for other_marker, correlation in sorted_correlations.items():
-            graph.add_edge(marker, other_marker, weight=abs(correlation), color=correlation)
+            other_organelle = marker_to_organelle[other_marker][BaseConfig().UMAP_MAPPINGS_ALIAS_KEY]
+            graph.add_edge(organelle, other_organelle, weight=abs(correlation), color=correlation, 
+                           scaled_weight=abs(correlation)*scale_factor)
     return graph
 
 def create_bicorrelation_graph(correlation_matrix, num_edges=2):
@@ -752,17 +771,28 @@ def create_bicorrelation_graph(correlation_matrix, num_edges=2):
     return graph
 
 def draw_correlation_graph(graph, title, cmap, vmin, vmax, save_path=None, filename="corr_graph.tiff", to_save=False):
-    pos = nx.spring_layout(graph, weight='weight', seed=42) #shell_layout
-    fig, ax = plt.subplots(figsize=(15, 8))
-    nx.draw_networkx_nodes(graph, pos, node_color='white', node_size=500, edgecolors='black', linewidths=0.5, ax=ax)
-    nx.draw_networkx_labels(graph, pos, font_size=6, ax=ax)
+    node_size = 10
+    # Compute the spring layout with the scaled weights
+    pos = nx.spring_layout(graph, weight='scaled_weight', seed=42, k=1)
+    # pos = nx.spring_layout(graph, weight='weight', seed=42) #shell_layout
+    # pos = nx.kamada_kawai_layout(graph)
+    fig, ax = plt.subplots(figsize=(6, 4))
+    nx.draw_networkx_nodes(graph, pos, node_color='none', node_size=node_size, edgecolors='none', 
+                           linewidths=0.5, ax=ax)
+    nx.draw_networkx_labels(graph, pos, font_size=7, ax=ax, 
+                            bbox=dict(facecolor='white', edgecolor='none', boxstyle='round,pad=0.05'),
+                            verticalalignment='center')
     edge_colors = [graph[u][v]['color'] for u,v in graph.edges()]
-    nx.draw_networkx_edges(graph, pos, edge_color=edge_colors, edge_cmap=cmap, edge_vmin=vmin, edge_vmax=vmax, ax=ax)
+    nx.draw_networkx_edges(graph, pos, edge_color=edge_colors, edge_cmap=cmap, edge_vmin=vmin, 
+                           edge_vmax=vmax, ax=ax, node_size=node_size, width=3)
     sm = plt.cm.ScalarMappable(cmap=cmap, norm=plt.Normalize(vmin=vmin, vmax=vmax))
     sm.set_array([])
-    plt.colorbar(sm, orientation='vertical', label='Correlation Strength',shrink=0.2,pad=0)
+    plt.colorbar(sm, orientation='horizontal', label='Correlation Strength',shrink=0.2,pad=0)
+    # cax = plt.axes([0.8, 0.85, 0.1, 0.02])  # Adjust position and size of colorbar axis
+    # cbar = plt.colorbar(sm, cax=cax, orientation='horizontal', label='Correlation Strength')
     plt.title(title)
     plt.axis('off')
+    plt.tight_layout()
     if to_save:
         plt.savefig(os.path.join(save_path, filename),bbox_inches='tight', dpi=300)
     plt.show()
@@ -901,16 +931,18 @@ def plot_rep_tiles_conds(hist_per_cluster, top_images=8):
 
         max_cluster_column = f"C{cluster}"
         max_tiles_paths_stress = max_cluster_group_stress[[max_cluster_column,'path']].sort_values(by=max_cluster_column,ascending=False)[:top_images].path
-        max_tiles_paths_Untreaed = max_cluster_group_Untreaed[[max_cluster_column,'path']].sort_values(by=max_cluster_column,ascending=False)[:top_images].path
-
+        max_tiles_paths_Untreated = max_cluster_group_Untreaed[[max_cluster_column,'path']].sort_values(by=max_cluster_column,ascending=False)[:top_images].path
+        
+        # max_tiles_paths_stress = max_cluster_group_stress[['variance','path']].sort_values(by='variance',ascending=False)[:top_images].path
+        # max_tiles_paths_Untreated = max_cluster_group_Untreaed[['variance','path']].sort_values(by='variance',ascending=False)[:top_images].path
         if max_tiles_paths_stress.size == 0:
             print(f'Found no stress for {cluster=}')
-        if max_tiles_paths_Untreaed.size == 0:
+        if max_tiles_paths_Untreated.size == 0:
             print(f'Found no Untreated for {cluster=}')
 
         fig, axs = plt.subplots(ncols=top_images*2, figsize=(20,4))
 
-        for j, tile_path in enumerate(max_tiles_paths_Untreaed):
+        for j, tile_path in enumerate(max_tiles_paths_Untreated):
             cut = tile_path.rfind("_")
             real_path = tile_path[:cut]
             tile_number = int(tile_path[cut+1:])
@@ -956,17 +988,46 @@ def plot_rep_tiles_conds(hist_per_cluster, top_images=8):
     stack = stack.sort_values(by='max_cluster')
     df_pivot = stack.pivot(index='max_cluster', columns='short_label', values='label_count').fillna(0)
 
-    fig = plt.figure(figsize=(10,6))
-    for cluster in df_pivot.index:
-        row=df_pivot.loc[cluster].sort_values(ascending=False)
-        left = 0
-        for i,marker in enumerate(row):
-            marker_name = row.index[i]
-            plt.barh(y=cluster, width=marker, left=left, color=color_dict[marker_name])
-            old_left = left
-            left = left+marker
-            if i <2:
-                plt.text(x=(old_left+marker/2), y=cluster-0.1, s=marker_name)
-    clusters = np.unique(hist_per_cluster[['max_cluster', 'second_max_cluster']])
-    plt.yticks(clusters)
+    fig, axs = plt.subplots(ncols=3, figsize=(20,5))
+    for j, cond in enumerate(['Untreated','stress']):
+        cur_hist_per_cluster = hist_per_cluster[hist_per_cluster.label.str.contains(cond)]
+        label_per_cluster = cur_hist_per_cluster[['short_label','max_cluster']]
+        stack=pd.DataFrame(label_per_cluster.groupby(['max_cluster','short_label']).short_label.count() *100 / label_per_cluster.groupby(['max_cluster']).short_label.count())
+        stack = stack.rename(columns={'short_label': 'label_count'})
+        stack = stack.reset_index()
+        stack = stack.sort_values(by='max_cluster')
+        df_pivot = stack.pivot(index='max_cluster', columns='short_label', values='label_count').fillna(0)
+        for cluster in df_pivot.index:
+            row=df_pivot.loc[cluster].sort_values(ascending=False)
+            left = 0
+            for i,marker in enumerate(row):
+                marker_name = row.index[i]
+                axs[j].barh(y=cluster, width=marker, left=left, color=color_dict[marker_name])
+                old_left = left
+                left = left+marker
+                if i <3: # show names in the first 3 labels
+                    axs[j].text(x=(old_left+marker/2), y=cluster-0.1, s=marker_name)
+        clusters = np.unique(hist_per_cluster[['max_cluster', 'second_max_cluster']])
+        axs[j].set_title(f'{cond} label usage percentages per codebook cluster')
+        axs[j].set_yticks(clusters)
+    
+    # for_stress_stack = hist_per_cluster[hist_per_cluster.label.str.contains('FMRP|FUS|PURA|G3BP1|PML', regex=True)]
+    hist_per_cluster['short_label'] = hist_per_cluster.label.str.split('_').str[2]#.apply(lambda x: "_".join(x)) #include also condition in the label
+    label_per_cluster = hist_per_cluster[['short_label','max_cluster']]
+    stack=pd.DataFrame(label_per_cluster.groupby(['max_cluster','short_label']).short_label.count() *100 / label_per_cluster.groupby(['max_cluster']).short_label.count())
+    stack = stack.rename(columns={'short_label': 'label_count'})
+    stack = stack.reset_index()
+    stack = stack.sort_values(by='max_cluster')
+    df_pivot = stack.pivot(index='max_cluster', columns='short_label', values='label_count').fillna(0)
+    # base_cmap = plt.cm.get_cmap('Paired', 12) #used for when we have 3 markers and 2 conds
+    # cmap = ListedColormap([base_cmap(i) for i in range(0, len(df_pivot.columns))])
+
+    axs[2]=df_pivot.plot(kind='barh', stacked=True, ax=axs[2])#, cmap = cmap)
+    axs[2].set_xticklabels(axs[1].get_xticklabels(), rotation=0)
+    axs[2].legend(title='Labels', bbox_to_anchor=(1.05, 1), loc='upper left',
+            borderaxespad=-0.5, fontsize='x-small')
+    axs[2].set_title('Stacked Bar Plot of Labels per Cluster')
+    axs[2].set_ylabel('Cluster')
+    axs[2].set_xlabel('Label Percentage')
+    
     plt.show()
