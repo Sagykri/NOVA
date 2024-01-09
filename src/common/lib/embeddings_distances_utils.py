@@ -20,7 +20,6 @@ from src.common.lib.embeddings_utils import load_embeddings
 import datetime
 ###############################################################
 # Utils for calculating distances between  labels, based on the full latent space (Embeddings) 
-# (run from MOmaps/src/runables/calc_distances.py) # TODO: 
 ###############################################################
 
 
@@ -73,7 +72,7 @@ def calc_cellprofiler_distances():
 
     features = np.array(batch_features)
     labels = np.array(batch_labels.apply(lambda row: '_'.join(map(str, row)), axis=1))
-    marker_centroids = create_markers_centroids_df(labels, features)
+    marker_centroids = create_markers_centroids_df(labels, features, exclude_DAPI=False)
     markers = marker_centroids['marker'].unique()
     reps = marker_centroids['rep'].unique()
     marker_centroids['cell_line_condition'] = marker_centroids['cell_line'] + '_' + marker_centroids['condition']
@@ -243,8 +242,9 @@ def load_batch_embeddings(input_folder, cell_lines, config_data, config_model, e
         if batch_name in ['batch7','batch8']:
             cur_config_data.SPLIT_DATA = True
         # Load saved embeddings
+        logging.info(f"[load_batch_embeddings] loading {cell_line} from {batch_name}")
         all_embedings_data, all_labels = fetch_saved_embeddings(config_model, cur_config_data, embeddings_type)
-        cur_marker_centroids = create_markers_centroids_df(all_labels, all_embedings_data, exclude_DAPI=True)
+        cur_marker_centroids = create_markers_centroids_df(all_labels, all_embedings_data, exclude_DAPI=False)
         del(all_embedings_data)
 
         logging.info(f'Calculated marker_centroids_vectors for {batch_name}, {cell_line}')
