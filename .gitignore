@@ -11976,3 +11976,6 @@ outputs/figures/manuscript/fig1/*.tif_processed.npy
 
 *.chkp
 
+outputs/models/test_neuroself_batch7_16bit_no_downsample/configs_used/281223_114205_193382/test.json
+outputs/models/test_neuroself_batch7_exp/**
+outputs/models/test_neuroself_batch7_16bit_no_downsample/**
