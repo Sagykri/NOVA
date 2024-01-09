@@ -238,6 +238,7 @@ def create_codebook_heatmap(hist_df, save_path=None, to_save=False, filename=Non
 def _get_cluster_score_per_tile(cluster_assignment, hist_df, norm_by='cluster_size'):
     """
     Return score_per_cluster; for every tile image, a score for every cluster
+    TEST NANACY
 
     Args:
         cluster_assignment (ps.DataFrame): assignment of codebook vectors stored in "cluster" column
