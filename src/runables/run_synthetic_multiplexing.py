@@ -24,6 +24,11 @@ def run_synthetic_multiplexing():
     config_path_model = sys.argv[1]
     config_path_data = sys.argv[2]
     
+    jobid = os.getenv('LSB_JOBID')
+    
+    config_model = load_config_file(config_path_model, 'model')
+    config_data = load_config_file(config_path_data, 'data', config_model.CONFIGS_USED_FOLDER)
+    
     figure_output_folder = get_if_exists(config_data, 'FIGURE_OUTPUT_FOLDER', None)
     if len(sys.argv) > 3:
         output_folder_path = sys.argv[3]
@@ -32,13 +37,7 @@ def run_synthetic_multiplexing():
     else:
         output_folder_path = config_model.MODEL_OUTPUT_FOLDER
     
-    jobid = os.getenv('LSB_JOBID')
-
     assert os.path.isdir(output_folder_path) and os.path.exists(output_folder_path), f"{output_folder_path} is an invalid output folder path or doesn't exists"
-
-
-    config_model = load_config_file(config_path_model, 'model')
-    config_data = load_config_file(config_path_data, 'data', config_model.CONFIGS_USED_FOLDER)
 
     logging.info(f"init - jobid: {jobid}")
     logging.info("[Synthetic Multiplexing]")
