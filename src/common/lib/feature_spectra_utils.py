@@ -342,12 +342,14 @@ def find_representative_tiles(cluster_id, tile_score_per_cluster, top_images=8, 
         rep_tiles_path.extend(top_rep_tiles.path)
         
         if show_other_labels:
-            # Show from the next most common labels
-            most_common_marker = top_rep_tiles.path.str.split(os.sep).str[-2].mode().values[0]
-            max_cluster_group_cond_others = max_cluster_group_cond[~max_cluster_group_cond.label.str.contains(most_common_marker)]
-            top_others = max_cluster_group_cond_others[[f"C{cluster_id}", 'path']].sort_values(by=f"C{cluster_id}", ascending=False)[:top_images]
-            rep_tiles_path.extend(top_others.path)
-        
+            if not top_rep_tiles.empty:
+                # Show from the next most common labels
+                most_common_marker = top_rep_tiles.path.str.split(os.sep).str[-2].mode().values[0]
+                max_cluster_group_cond_others = max_cluster_group_cond[~max_cluster_group_cond.label.str.contains(most_common_marker)]
+                top_others = max_cluster_group_cond_others[[f"C{cluster_id}", 'path']].sort_values(by=f"C{cluster_id}", ascending=False)[:top_images]
+                rep_tiles_path.extend(top_others.path)
+            else:
+                print(f'top_rep_tiles is empty')
         # Alert if no representative tiles were found for this cluster_id 
         if (len(rep_tiles_path) == 0):
             if n_conditions>1:
@@ -374,7 +376,7 @@ def save_representative_tiles(rep_tiles_per_cluster, chosen_idx_dict, save_path=
             for path in paths:
                 real_path, tile_number = _split_tile_path(path)
                 
-                fig, ax = plt.subplots()
+                fig, ax = plt.subplots(figsize=(2,2))
                 # Load the tile (numpy)
                 cur_site = np.load(real_path)
                 
@@ -383,12 +385,16 @@ def save_representative_tiles(rep_tiles_per_cluster, chosen_idx_dict, save_path=
                                         contrast_factor=1.5, 
                                         brightness_factor=0)
                 
-                ax.imshow(tile, cmap='cet_linear_ternary_red_0_50_c52',vmin=0,vmax=1) # 
+                ax.imshow(tile, cmap='gray',vmin=0,vmax=1) # cet_linear_ternary_red_0_50_c52
                 ax.axis('off')
+                split_path = real_path.split(os.sep)
+                tile_name = '_'.join(split_path[-5:])
+                if to_save:
+                    fig.savefig(os.path.join(save_path, 'rep_tiles', f'{cluster}_{tile_name}.eps'), bbox_inches='tight', dpi=300)
+                else:
+                    plt.show()
+    return None
 
-                # if to_save:
-                    #fig.savefig()
-                
 def plot_representative_tiles(tile_score_per_cluster, top_images=8, by_conditions=[''], show_other_labels=True,
                               figsize=(20,6)):
     
@@ -423,7 +429,7 @@ def plot_representative_tiles(tile_score_per_cluster, top_images=8, by_condition
                                         contrast_factor=1.5, 
                                         brightness_factor=0)
                 
-                ax.imshow(tile, cmap='cet_linear_ternary_red_0_50_c52',vmin=0,vmax=1) # 
+                ax.imshow(tile, cmap='gray',vmin=0,vmax=1) # cet_linear_ternary_red_0_50_c52
                 ax.axis('off')
                 # Set title for each image
                 split_path = real_path.split(os.sep)
@@ -490,7 +496,7 @@ def plot_histograms(axs, cur_groups, first_cond, second_cond, total_spectra_per_
             d1 = total_spectra_per_marker_ordered.loc[label1, :]
             d2 = total_spectra_per_marker_ordered.loc[label2, :]
             d = d1 - d2
-            axs[i].set_ylim(-10,25) # important!?
+            # axs[i].set_ylim(-10,25) # important!?
         else:
             d = total_spectra_per_marker_ordered.loc[label, :]
         if color_by_cond:
@@ -546,11 +552,12 @@ def plot_histograms(axs, cur_groups, first_cond, second_cond, total_spectra_per_
 
 def plot_heatmap_with_clusters_and_histograms(corr_with_clusters, hist_df, labels, save_path=None, to_save=False, color_by_cond=False,
                                               plot_delta=False, sep_histograms = False,
-                                              sep = "_", colormap_name = "viridis", plot_hists=True,
-                                             filename="codeword_idx_heatmap_and_histograms.tiff",
-                                             colors = {"Untreated": "#52C5D5", 'stress': "#F7810F"},
-                                             first_cond='stress',second_cond='Untreated',
-                                             title=None,calc_linkage=False, linkage_method='average'):
+                                              colormap_name = "viridis", plot_hists=True,
+                                              hist_filename = None, heatmap_filename=None,
+                                              colors = {"Untreated": "#52C5D5", 'stress': "#F7810F"},
+                                              first_cond='stress',second_cond='Untreated',
+                                              title=None,calc_linkage=False, linkage_method='average',
+                                              figsize=(6,5)):
     # calculate linkage matrix
     if calc_linkage:
         linkage = scipy.cluster.hierarchy.linkage(corr_with_clusters.drop(columns=['cluster']), method=linkage_method, metric='euclidean', optimal_ordering=True)
@@ -566,9 +573,12 @@ def plot_heatmap_with_clusters_and_histograms(corr_with_clusters, hist_df, label
     gray_dict = {cluster:'gray' for cluster in gray}
     color_dict = {**light_gray_dict, **gray_dict}
     # create the heatmap and dendrogram
-    kws = dict(cbar_kws=dict(ticks=[-1,0,1]))
-    clustermap = sns.clustermap(corr_with_clusters.drop(columns=['cluster']), center=0, cmap=clustermap_colors, vmin=-1, vmax=1, figsize=(7,5), 
-                                xticklabels=False, yticklabels=False, row_colors=corr_with_clusters.cluster.map(color_dict), row_linkage=linkage, col_linkage=linkage, **kws)
+    # kws = dict(cbar_kws=dict(ticks=[-1,0,1]))
+    clustermap = sns.clustermap(corr_with_clusters.drop(columns=['cluster']), center=0, 
+                                cmap=clustermap_colors, vmin=-1, vmax=1, figsize=figsize, 
+                                xticklabels=False, yticklabels=False, 
+                                row_colors=corr_with_clusters.cluster.map(color_dict), 
+                                row_linkage=linkage, col_linkage=linkage, cbar_pos=None)
 
     # get the indices order from the dendrogram 
     hierarchical_order = clustermap.dendrogram_col.reordered_ind
@@ -627,14 +637,13 @@ def plot_heatmap_with_clusters_and_histograms(corr_with_clusters, hist_df, label
         axs = plot_histograms(axs, cur_groups, first_cond, second_cond, total_spectra_per_marker_ordered, 
                         color_by_cond, colors, max_per_condition, cluster_counts, plot_delta)
     
-    # fix the cbar appearance 
-    clustermap.ax_cbar.set_position([clustermap.ax_col_dendrogram.get_position().x1+0.01, # x location 
-                                     clustermap.ax_col_dendrogram.get_position().y0+0.01, # y location
-                                     0.01,                                                # width
-                                     clustermap.ax_col_dendrogram.get_position().height-0.05]) #height
-    clustermap.ax_cbar.set_title('Pearson r',fontsize=6)
-    clustermap.cax.tick_params(axis='y', labelsize=6, length=0, pad=0.1)
-   
+    # # fix the cbar appearance 
+    # clustermap.ax_cbar.set_position([clustermap.ax_col_dendrogram.get_position().x1-0.2, # x location 
+    #                                  clustermap.ax_col_dendrogram.get_position().y0+0.01, # y location
+    #                                  0.2,                                                # width
+    #                                  0.01]) #height
+    # clustermap.ax_cbar.set_title('Pearson r',fontsize=6)
+    # clustermap.cax.tick_params(axis='x', labelsize=6, length=0, pad=0.1)
     # add cluster lines to the heatmap
     prev_count = 0
     for j, cluster in enumerate(cluster_counts.cluster):
@@ -645,7 +654,7 @@ def plot_heatmap_with_clusters_and_histograms(corr_with_clusters, hist_df, label
         if cur_count < 15:
             prev_count = cluster_end
             continue
-        clustermap.ax_row_colors.text(y=cluster_end-(cur_count/2), x=0.45, s=cluster, fontsize=6)
+        clustermap.ax_row_colors.text(y=cluster_end-(cur_count/2), x=0.3, s=cluster, fontsize=6)
         clustermap.ax_heatmap.plot([cluster_end,cluster_end], [prev_count,cluster_end], color='black',linestyle="--", linewidth=1)
         clustermap.ax_heatmap.plot([prev_count,cluster_end], [cluster_end,cluster_end], color='black',linestyle="--", linewidth=1)
         clustermap.ax_heatmap.plot([prev_count,prev_count], [prev_count,cluster_end], color='black',linestyle="--", linewidth=1)
@@ -663,11 +672,12 @@ def plot_heatmap_with_clusters_and_histograms(corr_with_clusters, hist_df, label
     if title:
         clustermap.fig.suptitle(title, x = clustermap.ax_col_dendrogram.get_position().x0+(clustermap.ax_col_dendrogram.get_position().x1-clustermap.ax_col_dendrogram.get_position().x0)/2,
                                y = clustermap.ax_col_dendrogram.get_position().y1+0.05)
-    if to_save and not sep_histograms:
-        clustermap.figure.savefig(os.path.join(save_path, filename),bbox_inches='tight', dpi=300)
+    if to_save and (not heatmap_filename is None):
+        clustermap.figure.savefig(os.path.join(save_path, heatmap_filename),
+                                  bbox_inches='tight', dpi=600)
     if sep_histograms:
         # fig, axs = plt.subplots(nrows = len(cur_groups), figsize = (6.7, 0.2*len(cur_groups)))
-        fig = plt.figure( figsize=(7,5))
+        fig = plt.figure( figsize=figsize)
         hist_height = 0.05
         axs=[]
         for i, label in enumerate(cur_groups):
@@ -680,8 +690,8 @@ def plot_heatmap_with_clusters_and_histograms(corr_with_clusters, hist_df, label
                         color_by_cond, colors, max_per_condition, cluster_counts, plot_delta)
         fig.subplots_adjust(hspace=0)
         if to_save:
-            fig.savefig(os.path.join(save_path, "only_histograms_" + filename),bbox_inches='tight', dpi=300)
-    
+            fig.savefig(os.path.join(save_path, hist_filename),bbox_inches='tight', dpi=300)
+    plt.show()
     return None
 
 def plot_hists_supp_1A(hist_df, labels, corr_with_clusters, hierarchical_order=None, sort=False, color_by_cond=False, plot_delta=False, 
@@ -844,13 +854,25 @@ def plot_heatmap_with_clusters_supp_1A(corr_with_clusters, save_path=None, to_sa
 def create_correlation_graph(correlation_matrix, top_positive=True, num_edges=2, scale_factor=10):
     graph = nx.Graph()
     marker_to_organelle = BaseConfig().UMAP_MAPPINGS_MARKERS
+    stress_markers = ['G3BP1','LAMP1','GM130','PURA','TOMM20'] 
     for marker, row in correlation_matrix.iterrows():
-        organelle = marker_to_organelle[marker][BaseConfig().UMAP_MAPPINGS_ALIAS_KEY]
-        sorted_correlations = row.drop(marker).sort_values(ascending=not top_positive).head(num_edges)
-        for other_marker, correlation in sorted_correlations.items():
-            other_organelle = marker_to_organelle[other_marker][BaseConfig().UMAP_MAPPINGS_ALIAS_KEY]
+        organelle = marker_to_organelle[marker][BaseConfig().UMAP_MAPPINGS_ALIAS_KEY].replace(' ', '\n')
+        filtered_corr = row.drop(marker)
+        filtered_corr = filtered_corr[filtered_corr>0.4]
+        ## OLD METHOD OF CHOSING THE TOP MOST CORR
+        # sorted_correlations = row.drop(marker).sort_values(ascending=not top_positive).head(num_edges)
+        # for other_marker, correlation in sorted_correlations.items():
+            # other_organelle = marker_to_organelle[other_marker][BaseConfig().UMAP_MAPPINGS_ALIAS_KEY]
+            # graph.add_edge(organelle, other_organelle, weight=abs(correlation), color=correlation, 
+                        #    scaled_weight=abs(correlation)*scale_factor)
+        ### FINSIH OLD METHOD
+        for other_marker, correlation in filtered_corr.items():
+            other_organelle = marker_to_organelle[other_marker][BaseConfig().UMAP_MAPPINGS_ALIAS_KEY].replace(' ', '\n')
             graph.add_edge(organelle, other_organelle, weight=abs(correlation), color=correlation, 
                            scaled_weight=abs(correlation)*scale_factor)
+            graph.nodes[organelle]['label_color'] = marker_to_organelle[marker]['color'] if marker in stress_markers else 'black'
+            graph.nodes[other_organelle]['label_color'] = marker_to_organelle[other_marker]['color'] if marker in stress_markers else 'black'
+
     return graph
 
 def draw_correlation_graph(graph, title, cmap, vmin, vmax, save_path=None, filename="corr_graph.tiff", to_save=False):
@@ -859,26 +881,35 @@ def draw_correlation_graph(graph, title, cmap, vmin, vmax, save_path=None, filen
     pos = nx.spring_layout(graph, weight='scaled_weight', seed=42, k=1)
     # pos = nx.spring_layout(graph, weight='weight', seed=42) #shell_layout
     # pos = nx.kamada_kawai_layout(graph)
-    fig, ax = plt.subplots(figsize=(6, 4))
+    fig, ax = plt.subplots(figsize=(7, 6))
     nx.draw_networkx_nodes(graph, pos, node_color='none', node_size=node_size, edgecolors='none', 
                            linewidths=0.5, ax=ax)
-    nx.draw_networkx_labels(graph, pos, font_size=7, ax=ax, 
-                            bbox=dict(facecolor='white', edgecolor='none', boxstyle='round,pad=0.05'),
-                            verticalalignment='center')
+    # nx.draw_networkx_labels(graph, pos, labels=labels, font_size=7, ax=ax, 
+                            # bbox=dict(facecolor='white', edgecolor='none', boxstyle='square,pad=0.1'),
+                            # verticalalignment='center')
     edge_colors = [graph[u][v]['color'] for u,v in graph.edges()]
     nx.draw_networkx_edges(graph, pos, edge_color=edge_colors, edge_cmap=cmap, edge_vmin=vmin, 
                            edge_vmax=vmax, ax=ax, node_size=node_size, width=3)
     sm = plt.cm.ScalarMappable(cmap=cmap, norm=plt.Normalize(vmin=vmin, vmax=vmax))
     sm.set_array([])
-    plt.colorbar(sm, orientation='horizontal', label='Correlation Strength',shrink=0.2,pad=0)
+    cbar = plt.colorbar(sm, orientation='horizontal', label='Correlation Strength',shrink=0.2,pad=0)
+    # Add more ticks
+    cbar.set_ticks([vmin, 0.5,0.75, vmax])
     # cax = plt.axes([0.8, 0.85, 0.1, 0.02])  # Adjust position and size of colorbar axis
     # cbar = plt.colorbar(sm, cax=cax, orientation='horizontal', label='Correlation Strength')
-    plt.title(title)
     plt.axis('off')
+    # Draw labels with different colors
+    for node, (x, y) in pos.items():
+        label_color = graph.nodes[node]['label_color']
+        ax.text(x, y, node, color='k', fontsize=10, ha='center', va='center',
+                bbox=dict(facecolor='white', edgecolor=label_color, boxstyle='round,pad=0.2'))
+
+    plt.margins(0.01)
     plt.tight_layout()
     if to_save:
         plt.savefig(os.path.join(save_path, filename),bbox_inches='tight', dpi=300)
     plt.show()
+    return graph
     
 def create_lables_heatmap(df, title, save_path=None, to_save=False, filename=None, corr_method='pearson'):
     corrs = df.T.corr(method=corr_method)
@@ -927,19 +958,19 @@ def calc_deltas(df, first_cond, second_cond):
 
     return deltas
 
-def analyse_deltas(df, first_cond, second_cond, 
+def analyse_deltas(df, first_cond, second_cond, scale_factor=10,
                   heatmap_title = None, graph_filename=None, save_path=None, 
                    to_save=False, heatmap_filename=None, plot_network=True):
     
     deltas = calc_deltas(df, first_cond, second_cond)
     markers_order , marker_delta_corr = create_lables_heatmap(deltas, heatmap_title, save_path=save_path, 
-                                                  to_save=to_save, filename=heatmap_filename)
+                                                  to_save=False, filename=heatmap_filename)
     if plot_network:
-        positive_graph = create_correlation_graph(marker_delta_corr, top_positive=True, scale_factor=10)
+        positive_graph = create_correlation_graph(marker_delta_corr, top_positive=True, scale_factor=scale_factor)
         
         draw_correlation_graph(positive_graph, '', 
-                               cmap=plt.get_cmap('Reds'), vmin=0, vmax=1,
-                              save_path=save_path, filename=f"Positive_{graph_filename}", to_save=to_save)
+                               cmap=plt.get_cmap('gray_r'), vmin=0.3, vmax=1,
+                              save_path=save_path, filename=f"{graph_filename}", to_save=to_save)
 
     return None
 
