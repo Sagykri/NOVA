@@ -378,33 +378,7 @@ class EmbeddingsdNLSB4DatasetConfig(DatasetConfig):
         
 ############################################################
 # U2OS data
-############################################################        
-    def __init__(self):
-        super().__init__()
-        self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "Confocal","U2OS_spd_format")]
-        self.SPLIT_DATA = False        
-        self.CELL_LINES = ['U2OS']
-        self.EXPERIMENT_TYPE = 'U2OS'
-        #self.CONDITIONS = ['Untreated','stress']
-        self.EMBEDDINGS_LAYER = 'vqindhist1'
-        #self.MARKERS = ['G3BP1','DAPI','Phalloidin','DCP1A']
-        # Set a function to map the labels, can be None if not needed.
-        # Instructions:
-        # - The function must be given as string!
-        # - Please start with 'lambda self:' and then put your lambda function
-        # - If you need to use a package, use it through import as follows __import__('numpy').array([])
-        # - Example: "lambda self: lambda labels: __import__('numpy').asarray([l.split('_')[-2-int(self.ADD_REP_TO_LABEL)] for l in labels])"
-        self.MAP_LABELS_FUNCTION = "lambda self: lambda labels: __import__('numpy').asarray([l.split('_')[-2-int(self.ADD_REP_TO_LABEL)] for l in labels])"
-
-        # Set the colormap, for example: {"Untreated": "#52C5D5", 'stress': "#F7810F"} 
-        #self.COLORMAP = {"Untreated": "#52C5D5", 'stress': "#F7810F"}
-
-        # Set the size of the dots
-        self.SIZE = 30
-        # Set the alpha of the dots (0=max opacity, 1=no opacity)
-        self.ALPHA = 0.7
-        #######################################
-
+############################################################       
 class EmbeddingsU2OSDatasetConfig(DatasetConfig):
     def __init__(self):
         super().__init__()
@@ -415,14 +389,14 @@ class EmbeddingsU2OSDatasetConfig(DatasetConfig):
         self.SPLIT_DATA = False        
         self.CELL_LINES = ['U2OS']
         self.EXPERIMENT_TYPE = 'U2OS'
-        self.ADD_REP_TO_LABEL = False
-        self.ADD_BATCH_TO_LABEL = False
+        self.ADD_REP_TO_LABEL = True
+        self.ADD_BATCH_TO_LABEL = True
+        self.MARKERS = ['G3BP1', 'DCP1A', 'Phalloidin', 'DAPI']
         
         # Local/Global embeddings
-        self.EMBEDDINGS_LAYER = 'vqvec2' # 'vqindhist1'
+        self.EMBEDDINGS_LAYER = "vqvec2"#'vqindhist1' # 'vqindhist1', 'vqvec2'
         
         # Set a function to map the labels, can be None if not needed.
-        # Instructions:
         self.MAP_LABELS_FUNCTION = "lambda self: lambda labels: __import__('numpy').asarray([l.split('_')[-2-int(self.ADD_REP_TO_LABEL)] for l in labels])"
 
         # Set the colormap, for example: {"Untreated": "#52C5D5", 'stress': "#F7810F"} 

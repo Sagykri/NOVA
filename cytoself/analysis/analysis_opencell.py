@@ -2,6 +2,7 @@ import inspect
 from os.path import join
 from typing import Optional, Union
 
+import pandas as pd
 import colorcet as cc
 import matplotlib.pyplot as plt
 import numpy as np
@@ -221,6 +222,7 @@ class AnalysisOpenCell(BaseAnalysis):
         dpi: int = 300,
         figsize: tuple[float, float] = (6, 5), # Nancy for figure 2A
         ordered_names=None,
+        outliers_fraction=0.1,
     ):
         """
         Plot a UMAP by annotating groups in different colors
@@ -385,15 +387,29 @@ class AnalysisOpenCell(BaseAnalysis):
         # -----------------------
         # Nancy for figure 2A
         # -----------------------
-        
         gs_bottom = fig.add_subplot(gs[1])
-        get_metrics_figure(umap_data, label_data, ax=gs_bottom)
+        ax, scores = get_metrics_figure(umap_data, label_data, ax=gs_bottom, outliers_fraction=outliers_fraction)
         
         fig.tight_layout()
         if savepath:
             logging.info(f"Saving umap to {savepath}")#SAGY
             fig.savefig(f"{savepath}.eps", dpi=dpi, format='eps')
             fig.savefig(f"{savepath}.png", dpi=dpi)
+            
+            #SAGY
+            metrics_savepath = f"{savepath}_Metrics.csv"
+            logging.info(f"Saving metrics to {metrics_savepath}")#SAGY
+            pd.DataFrame(list(scores.items()), columns=["Metric", "Value"]).to_csv(metrics_savepath, index=False)
+            
+            data_savepath = f"{savepath}_X.npy"
+            logging.info(f"Saving umap_data to {data_savepath}")
+            np.save(data_savepath, umap_data)
+            
+            labels_savepath = f"{savepath}_y.npy"
+            logging.info(f"Saving labels to {labels_savepath}")
+            np.save(labels_savepath, label_data)
+            ###
+            
         return fig, ax
 
     def calculate_cellid_ondim0_vqidx_ondim1(
