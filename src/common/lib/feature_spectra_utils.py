@@ -353,9 +353,9 @@ def find_representative_tiles(cluster_id, tile_score_per_cluster, top_images=8, 
         # Alert if no representative tiles were found for this cluster_id 
         if (len(rep_tiles_path) == 0):
             if n_conditions>1:
-                print(f'Found no representative tiles for {cluster_id=} and {cond=}!')
+                print(f'Found no representative tiles for cluster_id={cluster_id} and cond={cond}!')
             else:
-                print(f'Found no representative tiles for {cluster_id=}!')
+                print(f'Found no representative tiles for cluster_id={cluster_id}!')
         
         list_of_rep_tiles_path.append(rep_tiles_path)
     
@@ -487,16 +487,24 @@ def plot_histograms(axs, cur_groups, first_cond, second_cond, total_spectra_per_
                     color_by_cond, colors, max_per_condition, cluster_counts, plot_delta, plot_cluster_lines=True, 
                     linewidth=1, show_yscale=True, scale_max=True):
     marker_to_organelle = BaseConfig().UMAP_MAPPINGS_MARKERS
-
+    min_delta, max_delta = None, None
     # plot the histograms
     for i, label in enumerate(cur_groups[::-1]):
         if plot_delta:
+            print(label)
             label1 = _add_condition_to_label(label, condition=first_cond)
             label2 = _add_condition_to_label(label, condition=second_cond)
             d1 = total_spectra_per_marker_ordered.loc[label1, :]
             d2 = total_spectra_per_marker_ordered.loc[label2, :]
             d = d1 - d2
-            # axs[i].set_ylim(-10,25) # important!?
+            if not min_delta:
+                min_delta = d.min()
+            else:
+                min_delta = min(min_delta, d.min())
+            if not max_delta:
+                max_delta = d.max()
+            else:
+                max_delta = max(max_delta, d.max())
         else:
             d = total_spectra_per_marker_ordered.loc[label, :]
         if color_by_cond:
@@ -512,7 +520,7 @@ def plot_histograms(axs, cur_groups, first_cond, second_cond, total_spectra_per_
         else:
             # axs[i].fill_between(range(len(d)), d, color=colors[i], label=label, linewidth=linewidth)
             axs[i].fill_between(range(len(d)), d, color=marker_to_organelle[label]['color'], label=label, linewidth=linewidth)
-        axs[i].margins(y=0.25)
+        
         axs[i].set_xticklabels([])
         axs[i].set_xticks([])
         if not show_yscale:
@@ -548,6 +556,11 @@ def plot_histograms(axs, cur_groups, first_cond, second_cond, total_spectra_per_
         axs[i].spines['right'].set_color('lightgray')
         axs[i].spines['left'].set_color('lightgray')
         axs[i].margins(x=0)
+    
+    # if plot_delta: # make all delta have the same y limit
+    #     print(f'making y axis limits from {min_delta} to {max_delta}')
+    #     for i, _ in enumerate(cur_groups[::-1]):
+    #         axs[i].set_ylim(min_delta-0.25*abs(min_delta), max_delta+0.25*max_delta)
     return axs
 
 def plot_heatmap_with_clusters_and_histograms(corr_with_clusters, hist_df, labels, save_path=None, to_save=False, color_by_cond=False,
@@ -587,6 +600,8 @@ def plot_heatmap_with_clusters_and_histograms(corr_with_clusters, hist_df, label
     real_labels = []
     for label in labels:
         if label not in np.unique(hist_df.label):
+            if label=='FUS':
+                label = 'FUS_'
             real_labels += [real_label for real_label in np.unique(hist_df.label) if label in real_label]
         else:
             real_labels.append(label)
@@ -594,7 +609,7 @@ def plot_heatmap_with_clusters_and_histograms(corr_with_clusters, hist_df, label
     cur_groups = real_labels
     # Mean the histograms by labels and re-order by the indices order
     total_spectra_per_marker_ordered = hist_df_cur.groupby('label').mean()[hierarchical_order]
-    
+    # return total_spectra_per_marker_ordered
     if color_by_cond:
         # Set same y label limit for pairs to be compared
         tmp1 = pd.DataFrame(total_spectra_per_marker_ordered.max(axis=1)).reset_index()
@@ -607,9 +622,9 @@ def plot_heatmap_with_clusters_and_histograms(corr_with_clusters, hist_df, label
         max_per_condition = None
     if plot_delta:
         # Pairs to be compared
-        list_of_pairs = list(set(total_spectra_per_marker_ordered.reset_index()['label'].str.split("_").str[0]))#.apply(lambda x: '_'.join(x[:2] + x[3:]))))
-        cur_groups = list_of_pairs
-        # cur_groups = labels
+        # list_of_pairs = list(set(total_spectra_per_marker_ordered.reset_index()['label'].str.split("_").str[0]))#.apply(lambda x: '_'.join(x[:2] + x[3:]))))
+        # cur_groups = list_of_pairs
+        cur_groups = labels
     # calc clusters locations
     cluster_counts = pd.DataFrame(corr_with_clusters.cluster.value_counts()).reset_index()
     cluster_counts.cluster = cluster_counts.cluster.str.replace('C','').astype('int')
@@ -668,10 +683,11 @@ def plot_heatmap_with_clusters_and_histograms(corr_with_clusters, hist_df, label
                                                orig_row_den_pos.x1-orig_row_den_pos.x0,
                                                orig_row_den_pos.y1-orig_row_den_pos.y0]) #clustermap.ax_col_dendrogram.get_position().x1-clustermap.ax_col_dendrogram.get_position().x0])
     clustermap.ax_row_dendrogram.invert_xaxis()
-
+    clustermap.ax_row_colors.set_xticklabels('')
+    clustermap.ax_row_colors.set_xticks([])
     if title:
         clustermap.fig.suptitle(title, x = clustermap.ax_col_dendrogram.get_position().x0+(clustermap.ax_col_dendrogram.get_position().x1-clustermap.ax_col_dendrogram.get_position().x0)/2,
-                               y = clustermap.ax_col_dendrogram.get_position().y1+0.05)
+                               y = clustermap.ax_col_dendrogram.get_position().y0+0.05)
     if to_save and (not heatmap_filename is None):
         clustermap.figure.savefig(os.path.join(save_path, heatmap_filename),
                                   bbox_inches='tight', dpi=600)
@@ -960,11 +976,11 @@ def calc_deltas(df, first_cond, second_cond):
 
 def analyse_deltas(df, first_cond, second_cond, scale_factor=10,
                   heatmap_title = None, graph_filename=None, save_path=None, 
-                   to_save=False, heatmap_filename=None, plot_network=True):
+                   to_save=False, heatmap_filename=None, plot_network=True, corr_method='pearson'):
     
     deltas = calc_deltas(df, first_cond, second_cond)
     markers_order , marker_delta_corr = create_lables_heatmap(deltas, heatmap_title, save_path=save_path, 
-                                                  to_save=False, filename=heatmap_filename)
+                                                  to_save=False, filename=heatmap_filename, corr_method=corr_method)
     if plot_network:
         positive_graph = create_correlation_graph(marker_delta_corr, top_positive=True, scale_factor=scale_factor)
         
