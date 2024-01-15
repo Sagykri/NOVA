@@ -5,6 +5,7 @@ import matplotlib.pyplot as plt
 import torch
 import sklearn.cluster as cluster
 import pandas as pd
+import logging
 
 def calculate_mse(inpt, reconstructed):
   """Calculate MSE
@@ -27,12 +28,27 @@ def calculate_mse(inpt, reconstructed):
       mses[ch] = torch.nn.functional.mse_loss(inpt[:, ii, ...], reconstructed[:, ii, ...])
   return mses
 
-def calc_clustering_validation_metric(umap_df, true_labels, metrics=['ARI']):
+def cluster_without_outliers(X, n_clusters, outliers_fraction=0.1, n_init=10, random_state=42):
+  from k_means_constrained import KMeansConstrained
+  
+  size_min = int(len(X)*outliers_fraction)
+  logging.info(f"[K Means Constrained clustering] size_min = {size_min}")
+  
+  clf = KMeansConstrained(
+          n_clusters=n_clusters,
+          size_min=size_min,
+          n_init=n_init,
+          random_state=random_state
+      )
+  predicted_labels = clf.fit_predict(X)
+  return predicted_labels
+
+def calc_clustering_validation_metric(X, true_labels, metrics=['ARI'], outliers_fraction=0.1):
         """
-        Give first 2 UMAP components and true labels to calculate a dictionary with clustering metrics
+        Give data and true labels to calculate a dictionary with clustering metrics
 
         Args:
-            umap_df (dataframe): first 2 UMAP components
+            X (N,-1): The data
             true_labels (array): list of strings 
             metrics (list, optional): clustering metrics to calculate; defaults to ['ARI'].
 
@@ -48,14 +64,17 @@ def calc_clustering_validation_metric(umap_df, true_labels, metrics=['ARI']):
             
             # K-means for standard (centroid-based) clustering
             k = len(true_labels.unique())
-            kmeans_labels = cluster.KMeans(n_clusters=k, n_init=10, random_state=42).fit_predict(umap_df)
-            ARI = adjusted_rand_score(true_labels, kmeans_labels)
-
-            scores['ARI'] = round(ARI, 3)
+            # logging.warn("!!! Using Kmeans clustering instead of KMeansConstrained until the installtion of the package is fixed")
+            # kmeans_labels = cluster.KMeans(n_clusters=k, n_init=10, random_state=42).fit_predict(X)
+            kmeans_labels = cluster_without_outliers(X, n_clusters=k, outliers_fraction=outliers_fraction, n_init=10, random_state=42)
+            ari = adjusted_rand_score(true_labels, kmeans_labels)
+            scores['ARI'] = round(ari, 3)
+            
+            logging.info(f"[calc_clustering_validation_metric] ARI: {ari}")
             
         return scores
 
-def get_metrics_figure(X, labels_true, savepath=None, ax=None):
+def get_metrics_figure(X, labels_true, savepath=None, ax=None, outliers_fraction=0.1):
   """Generate a plot displaying the metrics
 
   Args:
@@ -66,7 +85,7 @@ def get_metrics_figure(X, labels_true, savepath=None, ax=None):
   Returns:
       [Fig, ARI]: The figure and the score
   """
-  scores = calc_clustering_validation_metric(X, pd.Series(labels_true.reshape(-1,)), metrics=['ARI'])
+  scores = calc_clustering_validation_metric(X, pd.Series(labels_true.reshape(-1,)), metrics=['ARI'], outliers_fraction=outliers_fraction)
 
   n_scores = len(scores.keys())
   titles = ["ARI"]

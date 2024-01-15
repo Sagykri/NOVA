@@ -23,7 +23,8 @@ def multiplex(model: Model, embeddings_type='testset',
                     output_layer='vqvec2',
                     savepath='default',
                     map_labels_function=None,
-                    config_data=None):
+                    config_data=None,
+                    show=True):
     assert model is not None, "Model is None"
     assert config_data is not None, 'config_data is None'
     
@@ -44,19 +45,22 @@ def multiplex(model: Model, embeddings_type='testset',
     logging.info("Generating dummy analytics..")
     model.generate_dummy_analytics()
     
-    logging.info("Plot umap..")
-    model.plot_umap(colormap=colormap,
-                    alpha=alpha,
-                    s=s,
-                    label_data=label_data,
-                    id2label=None,
-                    title=title if title is not None else __generate_plot_title(model.conf, dataset_conf),
-                    unique_groups=unique_groups,
-                    embedding_data=embeddings,
-                    output_layer=output_layer,
-                    savepath=savepath,
-                    map_labels_function=map_labels_function,
-                    config_data=config_data)
+    if show:
+        logging.info("Plot umap..")
+        model.plot_umap(colormap=colormap,
+                        alpha=alpha,
+                        s=s,
+                        label_data=label_data,
+                        id2label=None,
+                        title=title if title is not None else __generate_plot_title(model.conf, dataset_conf),
+                        unique_groups=unique_groups,
+                        embedding_data=embeddings,
+                        output_layer=output_layer,
+                        savepath=savepath,
+                        map_labels_function=map_labels_function,
+                        config_data=config_data)
+        
+    return embeddings, label_data
 
 def __generate_plot_title(model_conf, dataset_conf):
     return 'SM_' + f"{'_'.join([os.path.basename(f) for f in dataset_conf.INPUT_FOLDERS])}_{datetime.datetime.now().strftime('%d%m%y_%H%M%S_%f')}_{os.path.splitext(os.path.basename(model_conf.MODEL_PATH))[0]}"
