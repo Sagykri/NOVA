@@ -396,59 +396,111 @@ def save_representative_tiles(rep_tiles_per_cluster, chosen_idx_dict, save_path=
     return None
 
 def plot_representative_tiles(tile_score_per_cluster, top_images=8, by_conditions=[''], show_other_labels=True,
-                              figsize=(20,6)):
+                              figsize=(20,6), plot_for_notebook=True, save_path=None):
     
     print(f'Showing more than one label = {show_other_labels}')
     n_conditions = len(by_conditions)
+    clusters = np.unique(tile_score_per_cluster[['max_cluster']])
     rep_tiles_per_cluster = {}
-    for i, cluster_id in enumerate(np.unique(tile_score_per_cluster[['max_cluster']])):
-        
-        list_rep_tiles_path = find_representative_tiles(cluster_id, 
-                                                        tile_score_per_cluster, 
-                                                        top_images, 
-                                                        by_conditions, 
-                                                        show_other_labels=show_other_labels)
-        rep_tiles_per_cluster[cluster_id] = list_rep_tiles_path
-        fig, axs = plt.subplots(ncols=top_images, nrows=len(by_conditions),  figsize=figsize)
-        
-        # If single condition, then we need to make axs 2D manually. Nancy's trick :) 
-        if n_conditions<2:
-            axs = axs.reshape(1, -1)
-        
-        for n_rows, condition_rep_tiles_path in enumerate(list_rep_tiles_path):
-            for n_cols, tile_path in enumerate(condition_rep_tiles_path):
-                
-                ax = axs[n_rows, n_cols]
-                
-                real_path, tile_number = _split_tile_path(tile_path)
-                # Load the tile (numpy)
-                cur_site = np.load(real_path)
-                
-                # Adjust contrast and brightness
-                tile = improve_brightness(img=cur_site[tile_number,:,:,0], 
-                                        contrast_factor=1.5, 
-                                        brightness_factor=0)
-                
-                ax.imshow(tile, cmap='gray',vmin=0,vmax=1) # cet_linear_ternary_red_0_50_c52
-                ax.axis('off')
-                # Set title for each image
-                split_path = real_path.split(os.sep)
-                marker, condition, cell_line = split_path[-2], split_path[-3], split_path[-4]
-                # cluster_score = round(tile_score_per_cluster[tile_score_per_cluster.path==tile_path][f'C{cluster_id}'].values[0]*10**4,3)
-                ax.set_title(f"{marker}", fontsize=18)
+    if plot_for_notebook:
+        for i, cluster_id in enumerate(clusters):
             
-            if by_conditions[0]!='':
-                # Set title for condition
-                axs[n_rows, 0].text(x=-0.3, y=0, s=f'{condition}', rotation=90, fontsize=24, fontweight='bold', color="orange", transform=axs[n_rows,0].transAxes)
-            diff = top_images - (n_cols+1)
-            if diff != 0:
-                for i in range(n_cols, top_images):
-                    axs[n_rows, i].axis('off')
-        # Set title for each cluster
-        plt.suptitle(f'Cluster {cluster_id}', y=0.9, fontsize=24, fontweight='bold', color="orange")
+            list_rep_tiles_path = find_representative_tiles(cluster_id, 
+                                                            tile_score_per_cluster, 
+                                                            top_images, 
+                                                            by_conditions, 
+                                                            show_other_labels=show_other_labels)
+            rep_tiles_per_cluster[cluster_id] = list_rep_tiles_path
+            fig, axs = plt.subplots(ncols=top_images, nrows=len(by_conditions),  figsize=figsize)
+            
+            # If single condition, then we need to make axs 2D manually. Nancy's trick :) 
+            if n_conditions<2:
+                axs = axs.reshape(1, -1)
+            
+            for n_rows, condition_rep_tiles_path in enumerate(list_rep_tiles_path):
+                for n_cols, tile_path in enumerate(condition_rep_tiles_path):
+                    
+                    ax = axs[n_rows, n_cols]
+                    
+                    real_path, tile_number = _split_tile_path(tile_path)
+                    # Load the tile (numpy)
+                    cur_site = np.load(real_path)
+                    
+                    # Adjust contrast and brightness
+                    tile = improve_brightness(img=cur_site[tile_number,:,:,0], 
+                                            contrast_factor=1.5, 
+                                            brightness_factor=0)
+                    
+                    ax.imshow(tile, cmap='gray',vmin=0,vmax=1) # cet_linear_ternary_red_0_50_c52
+                    ax.axis('off')
+                    # Set title for each image
+                    split_path = real_path.split(os.sep)
+                    marker, condition, cell_line = split_path[-2], split_path[-3], split_path[-4]
+                    # cluster_score = round(tile_score_per_cluster[tile_score_per_cluster.path==tile_path][f'C{cluster_id}'].values[0]*10**4,3)
+                    ax.set_title(f"{marker}", fontsize=18)
+                
+                if by_conditions[0]!='':
+                    # Set title for condition
+                    axs[n_rows, 0].text(x=-0.3, y=0, s=f'{condition}', rotation=90, fontsize=24, fontweight='bold', color="orange", transform=axs[n_rows,0].transAxes)
+                diff = top_images - (n_cols+1)
+                if diff != 0:
+                    for i in range(n_cols, top_images):
+                        axs[n_rows, i].axis('off')
+            # Set title for each cluster
+            plt.suptitle(f'Cluster {cluster_id}', y=0.9, fontsize=24, fontweight='bold', color="orange")
+            plt.tight_layout()
+            plt.show()
+    else:
+        fig, axs = plt.subplots(ncols=top_images, nrows=len(by_conditions)*len(clusters),  figsize=figsize)
+        for i, cluster_id in enumerate(clusters):
+            
+            list_rep_tiles_path = find_representative_tiles(cluster_id, 
+                                                            tile_score_per_cluster, 
+                                                            top_images, 
+                                                            by_conditions, 
+                                                            show_other_labels=show_other_labels)
+                       
+            for n_cond, condition_rep_tiles_path in enumerate(list_rep_tiles_path):
+                for n_cols, tile_path in enumerate(condition_rep_tiles_path):
+                    
+                    ax = axs[i*n_conditions + n_cond, n_cols]
+                    
+                    real_path, tile_number = _split_tile_path(tile_path)
+                    split_path = real_path.split(os.sep)
+                    marker, condition, cell_line = split_path[-2], split_path[-3], split_path[-4]
+                    
+                    # Load the tile (numpy)
+                    cur_site = np.load(real_path)
+                    contrast_factor = 1.5
+                    if marker in ['NEMO','PSD95']:
+                        contrast_factor = 1
+                    elif marker in ['GM130','LAMP1','PEX14','SQSTM1','Phalloidin','mitotracker']:
+                        contrast_factor = 2.5
+                    # Adjust contrast and brightness
+                    tile = improve_brightness(img=cur_site[tile_number,:,:,0], 
+                                            contrast_factor=contrast_factor, 
+                                            brightness_factor=0)
+                    
+                    ax.imshow(tile, cmap='gray',vmin=0,vmax=1) # cet_linear_ternary_red_0_50_c52
+                    ax.axis('off')
+                    # Set title for each image
+                    # cluster_score = round(tile_score_per_cluster[tile_score_per_cluster.path==tile_path][f'C{cluster_id}'].values[0]*10**4,3)
+                    ax.set_title(f"{marker}", fontsize=6)
+                
+                if n_conditions>1:
+                    # Set title for condition
+                    axs[i*n_conditions + n_cond, 0].text(x=-10, y=0, s=f'{condition}', fontsize=10, 
+                                                         fontweight='bold', color="orange", transform=axs[i*n_conditions + n_cond, 0].transAxes)
+                diff = top_images - (n_cols+1)
+                if diff != 0:
+                    for j in range(n_cols, top_images):
+                        axs[i*n_conditions + n_cond, j].axis('off')
+                # Set title for each cluster
+                axs[i*n_conditions + n_cond, 0].text(x=5, y=1.4, s=f'Cluster {cluster_id}', fontsize=14, fontweight='bold',
+                                                     transform=axs[i*n_conditions + n_cond, 0].transAxes)
         plt.tight_layout()
+        fig.savefig(os.path.join(save_path, 'rep_tiles_all.eps'), bbox_inches='tight', dpi=300)
         plt.show()
-        
     return rep_tiles_per_cluster
         
 def plot_tile_label_pct_in_cluster(tile_score_per_cluster):
