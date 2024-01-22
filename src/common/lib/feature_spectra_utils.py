@@ -8,6 +8,7 @@ import networkx as nx
 import matplotlib.pyplot as plt
 from collections import defaultdict
 from matplotlib.colors import ListedColormap, LinearSegmentedColormap
+import tifffile
 
 from src.common.lib.image_metrics import improve_brightness
 from src.common.configs.base_config import BaseConfig
@@ -306,7 +307,8 @@ def find_max_cluster_per_tile(codebook_vec_cluster_assignment, hist_df, norm_by=
     
     return hist_per_cluster
 
-def find_representative_tiles(cluster_id, tile_score_per_cluster, top_images=8, by_conditions=[''], show_other_labels = True):
+def find_representative_tiles(cluster_id, tile_score_per_cluster, top_images=8, by_conditions=[''], 
+                              show_other_labels=True, plot_for_notebook=True):
     """Returns the representative tile (the path to the tile) for a given cluster_id.
         
     Args:
@@ -323,6 +325,12 @@ def find_representative_tiles(cluster_id, tile_score_per_cluster, top_images=8, 
     """
     # Get tiles that were assigned with this cluster as their max cluster 
     max_cluster_group = tile_score_per_cluster[tile_score_per_cluster.max_cluster==cluster_id]
+    # fixing for graphics
+    if cluster_id==1 and not plot_for_notebook:
+        max_cluster_group = max_cluster_group[~max_cluster_group.label.str.contains('KIF5A')]
+    if cluster_id==2 and not plot_for_notebook:
+        max_cluster_group = max_cluster_group[~max_cluster_group.label.str.contains('FUS_|GM130_', regex=True)]
+    
     n_conditions = len(by_conditions)
     list_of_rep_tiles_path = []
     
@@ -332,8 +340,6 @@ def find_representative_tiles(cluster_id, tile_score_per_cluster, top_images=8, 
     for cond in by_conditions:
         
         rep_tiles_path = []
-        
-        
         # Get all tiles with this condition
         max_cluster_group_cond = max_cluster_group[max_cluster_group.label.str.contains(cond)]
         # Get the top N tiles (where N is defined by "top_images")
@@ -345,7 +351,10 @@ def find_representative_tiles(cluster_id, tile_score_per_cluster, top_images=8, 
             if not top_rep_tiles.empty:
                 # Show from the next most common labels
                 most_common_marker = top_rep_tiles.path.str.split(os.sep).str[-2].mode().values[0]
+                # remove the most common marker
                 max_cluster_group_cond_others = max_cluster_group_cond[~max_cluster_group_cond.label.str.contains(most_common_marker)]
+                # remove all paths that we already used
+                max_cluster_group_cond_others = max_cluster_group_cond_others[~max_cluster_group_cond_others.path.str.contains('|'.join(top_rep_tiles.path), regex=True)]
                 top_others = max_cluster_group_cond_others[[f"C{cluster_id}", 'path']].sort_values(by=f"C{cluster_id}", ascending=False)[:top_images]
                 rep_tiles_path.extend(top_others.path)
             else:
@@ -368,7 +377,19 @@ def _split_tile_path(tile_path):
     tile_number = int(tile_path[cut+1:])
     return real_path, tile_number
 
-def save_representative_tiles(rep_tiles_per_cluster, chosen_idx_dict, save_path=None, to_save=False):
+def _calc_tile_pixel_size_in_um():
+    raw_image_path = "/home/labs/hornsteinlab/Collaboration/MOmaps/input/images/raw/SpinningDisk/batch6/WT/panelD/Untreated/rep2/PSD95/R11_w3confCy5_s396.tif"
+
+    with tifffile.TiffFile(raw_image_path) as tif:
+        metadata = tif.pages[0].tags
+        site_pixel_size_in_um = metadata.get('UIC1tag').value['XCalibration']
+
+    tile_pixel_size_in_um = site_pixel_size_in_um * 1.28
+    return tile_pixel_size_in_um
+
+def save_representative_tiles(rep_tiles_per_cluster, chosen_idx_dict, save_path=None, to_save=False,
+                              tile_scalebar_length_in_um=5):
+    tile_pixel_size_in_um = _calc_tile_pixel_size_in_um()
     for cluster in chosen_idx_dict:
         chosen_idx = chosen_idx_dict[cluster]
         for cond, cond_list in enumerate(chosen_idx):
@@ -387,6 +408,10 @@ def save_representative_tiles(rep_tiles_per_cluster, chosen_idx_dict, save_path=
                 
                 ax.imshow(tile, cmap='gray',vmin=0,vmax=1) # cet_linear_ternary_red_0_50_c52
                 ax.axis('off')
+                # add scale bar
+                tile_scalebar_length_in_pixels = tile_scalebar_length_in_um / tile_pixel_size_in_um
+                ax.hlines(y=90, xmin=85-tile_scalebar_length_in_pixels, xmax=85, color='white', linewidth=2)
+
                 split_path = real_path.split(os.sep)
                 tile_name = '_'.join(split_path[-5:])
                 if to_save:
@@ -396,59 +421,120 @@ def save_representative_tiles(rep_tiles_per_cluster, chosen_idx_dict, save_path=
     return None
 
 def plot_representative_tiles(tile_score_per_cluster, top_images=8, by_conditions=[''], show_other_labels=True,
-                              figsize=(20,6)):
+                              figsize=(20,6), plot_for_notebook=True, save_path=None):
     
     print(f'Showing more than one label = {show_other_labels}')
     n_conditions = len(by_conditions)
+    clusters = np.unique(tile_score_per_cluster[['max_cluster']])
     rep_tiles_per_cluster = {}
-    for i, cluster_id in enumerate(np.unique(tile_score_per_cluster[['max_cluster']])):
-        
-        list_rep_tiles_path = find_representative_tiles(cluster_id, 
-                                                        tile_score_per_cluster, 
-                                                        top_images, 
-                                                        by_conditions, 
-                                                        show_other_labels=show_other_labels)
-        rep_tiles_per_cluster[cluster_id] = list_rep_tiles_path
-        fig, axs = plt.subplots(ncols=top_images, nrows=len(by_conditions),  figsize=figsize)
-        
-        # If single condition, then we need to make axs 2D manually. Nancy's trick :) 
-        if n_conditions<2:
-            axs = axs.reshape(1, -1)
-        
-        for n_rows, condition_rep_tiles_path in enumerate(list_rep_tiles_path):
-            for n_cols, tile_path in enumerate(condition_rep_tiles_path):
-                
-                ax = axs[n_rows, n_cols]
-                
-                real_path, tile_number = _split_tile_path(tile_path)
-                # Load the tile (numpy)
-                cur_site = np.load(real_path)
-                
-                # Adjust contrast and brightness
-                tile = improve_brightness(img=cur_site[tile_number,:,:,0], 
-                                        contrast_factor=1.5, 
-                                        brightness_factor=0)
-                
-                ax.imshow(tile, cmap='gray',vmin=0,vmax=1) # cet_linear_ternary_red_0_50_c52
-                ax.axis('off')
-                # Set title for each image
-                split_path = real_path.split(os.sep)
-                marker, condition, cell_line = split_path[-2], split_path[-3], split_path[-4]
-                # cluster_score = round(tile_score_per_cluster[tile_score_per_cluster.path==tile_path][f'C{cluster_id}'].values[0]*10**4,3)
-                ax.set_title(f"{marker}", fontsize=18)
+    if plot_for_notebook:
+        for i, cluster_id in enumerate(clusters):
             
-            if by_conditions[0]!='':
-                # Set title for condition
-                axs[n_rows, 0].text(x=-0.3, y=0, s=f'{condition}', rotation=90, fontsize=24, fontweight='bold', color="orange", transform=axs[n_rows,0].transAxes)
-            diff = top_images - (n_cols+1)
-            if diff != 0:
-                for i in range(n_cols, top_images):
-                    axs[n_rows, i].axis('off')
-        # Set title for each cluster
-        plt.suptitle(f'Cluster {cluster_id}', y=0.9, fontsize=24, fontweight='bold', color="orange")
-        plt.tight_layout()
-        plt.show()
+            list_rep_tiles_path = find_representative_tiles(cluster_id, 
+                                                            tile_score_per_cluster, 
+                                                            top_images, 
+                                                            by_conditions, 
+                                                            show_other_labels=show_other_labels,
+                                                            plot_for_notebook=plot_for_notebook)
+            rep_tiles_per_cluster[cluster_id] = list_rep_tiles_path
+            fig, axs = plt.subplots(ncols=top_images, nrows=len(by_conditions),  figsize=figsize)
+            
+            # If single condition, then we need to make axs 2D manually. Nancy's trick :) 
+            if n_conditions<2:
+                axs = axs.reshape(1, -1)
+            
+            for n_rows, condition_rep_tiles_path in enumerate(list_rep_tiles_path):
+                for n_cols, tile_path in enumerate(condition_rep_tiles_path):
+                    
+                    ax = axs[n_rows, n_cols]
+                    
+                    real_path, tile_number = _split_tile_path(tile_path)
+                    # Load the tile (numpy)
+                    cur_site = np.load(real_path)
+                    
+                    # Adjust contrast and brightness
+                    tile = improve_brightness(img=cur_site[tile_number,:,:,0], 
+                                            contrast_factor=1.5, 
+                                            brightness_factor=0)
+                    
+                    ax.imshow(tile, cmap='gray',vmin=0,vmax=1) # cet_linear_ternary_red_0_50_c52
+                    ax.axis('off')
+                    # Set title for each image
+                    split_path = real_path.split(os.sep)
+                    marker, condition, cell_line = split_path[-2], split_path[-3], split_path[-4]
+                    # cluster_score = round(tile_score_per_cluster[tile_score_per_cluster.path==tile_path][f'C{cluster_id}'].values[0]*10**4,3)
+                    ax.set_title(f"{marker}", fontsize=18)
+                
+                if by_conditions[0]!='':
+                    # Set title for condition
+                    axs[n_rows, 0].text(x=-0.3, y=0, s=f'{condition}', rotation=90, fontsize=24, fontweight='bold', color="orange", transform=axs[n_rows,0].transAxes)
+                diff = top_images - (n_cols+1)
+                if diff != 0:
+                    for i in range(n_cols, top_images):
+                        axs[n_rows, i].axis('off')
+            # Set title for each cluster
+            plt.suptitle(f'Cluster {cluster_id}', y=0.9, fontsize=24, fontweight='bold', color="orange")
+            plt.tight_layout()
+            plt.show()
+    else:
+        fig, axs = plt.subplots(ncols=top_images, nrows=len(by_conditions)*len(clusters),  figsize=figsize)
+        for i, cluster_id in enumerate(clusters):
+            
+            list_rep_tiles_path = find_representative_tiles(cluster_id, 
+                                                            tile_score_per_cluster, 
+                                                            top_images, 
+                                                            by_conditions, 
+                                                            show_other_labels=show_other_labels,
+                                                            plot_for_notebook=plot_for_notebook)
+                       
+            for n_cond, condition_rep_tiles_path in enumerate(list_rep_tiles_path):
+                for n_cols, tile_path in enumerate(condition_rep_tiles_path):
+                    
+                    ax = axs[i*n_conditions + n_cond, n_cols]
+                    
+                    real_path, tile_number = _split_tile_path(tile_path)
+                    split_path = real_path.split(os.sep)
+                    marker, condition, cell_line = split_path[-2], split_path[-3], split_path[-4]
+                    
+                    # Load the tile (numpy)
+                    cur_site = np.load(real_path)
+                    contrast_factor = 1.5
+                    if marker in ['NEMO','PSD95']:
+                        contrast_factor = 1
+                    elif marker in ['GM130','LAMP1','PEX14','SQSTM1','Phalloidin','mitotracker']:
+                        contrast_factor = 2.5
+                    # Adjust contrast and brightness
+                    tile = improve_brightness(img=cur_site[tile_number,:,:,0], 
+                                            contrast_factor=contrast_factor, 
+                                            brightness_factor=0)
+                    
+                    ax.imshow(tile, cmap='gray',vmin=0,vmax=1) # cet_linear_ternary_red_0_50_c52
+                    ax.axis('off')
+                    # Set title for each image
+                    # cluster_score = round(tile_score_per_cluster[tile_score_per_cluster.path==tile_path][f'C{cluster_id}'].values[0]*10**4,3)
+                    ax.set_title(f"{marker}", fontsize=6)
+
+                if n_conditions>1:
+                    # Set title for condition
+                    axs[i*n_conditions + n_cond, 0].text(x=-10, y=0, s=f'{condition}', fontsize=10, 
+                                                         fontweight='bold', color="orange", transform=axs[i*n_conditions + n_cond, 0].transAxes)
+                diff = top_images - (n_cols+1)
+                if diff != 0:
+                    for j in range(n_cols, top_images):
+                        axs[i*n_conditions + n_cond, j].axis('off')
+                # Set title for each cluster
+                axs[i*n_conditions + n_cond, 0].text(x=5, y=1.4, s=f'Cluster {cluster_id}', fontsize=14, fontweight='bold',
+                                                     transform=axs[i*n_conditions + n_cond, 0].transAxes)
+        # add scale bar to last tile
+        tile_scalebar_length_in_um = 5
+        tile_pixel_size_in_um = _calc_tile_pixel_size_in_um()
+        tile_scalebar_length_in_pixels = tile_scalebar_length_in_um / tile_pixel_size_in_um
+        axs[-1,-1].hlines(y=90, xmin=85-tile_scalebar_length_in_pixels, xmax=85, color='white', linewidth=2)
         
+        plt.subplots_adjust(wspace=0.05)
+        plt.tight_layout()
+        fig.savefig(os.path.join(save_path, 'rep_tiles_all.eps'), bbox_inches='tight', dpi=300)
+        plt.show()
     return rep_tiles_per_cluster
         
 def plot_tile_label_pct_in_cluster(tile_score_per_cluster):
@@ -484,14 +570,14 @@ def plot_tile_label_pct_in_cluster(tile_score_per_cluster):
     plt.show()
 
 def plot_histograms(axs, cur_groups, first_cond, second_cond, total_spectra_per_marker_ordered, 
-                    color_by_cond, colors, max_per_condition, cluster_counts, plot_delta, plot_cluster_lines=True, 
+                    color_by_cond, colors, max_per_condition, cluster_counts, plot_delta, label_is_marker=True, plot_cluster_lines=True, 
                     linewidth=1, show_yscale=True, scale_max=True):
     marker_to_organelle = BaseConfig().UMAP_MAPPINGS_MARKERS
+    cell_lines_dict = BaseConfig().UMAP_MAPPINGS_ALS
     min_delta, max_delta = None, None
     # plot the histograms
     for i, label in enumerate(cur_groups[::-1]):
         if plot_delta:
-            print(label)
             label1 = _add_condition_to_label(label, condition=first_cond)
             label2 = _add_condition_to_label(label, condition=second_cond)
             d1 = total_spectra_per_marker_ordered.loc[label1, :]
@@ -519,8 +605,10 @@ def plot_histograms(axs, cur_groups, first_cond, second_cond, total_spectra_per_
                 axs[i].set_ylim(0, max_limit+(0.25*max_limit))
         else:
             # axs[i].fill_between(range(len(d)), d, color=colors[i], label=label, linewidth=linewidth)
-            axs[i].fill_between(range(len(d)), d, color=marker_to_organelle[label]['color'], label=label, linewidth=linewidth)
-        
+            if label_is_marker:
+                axs[i].fill_between(range(len(d)), d, color=marker_to_organelle[label]['color'], label=label, linewidth=linewidth)
+            else:
+                axs[i].fill_between(range(len(d)), d, color=cell_lines_dict[label.split('_')[1]]['color'], label=label, linewidth=linewidth)
         axs[i].set_xticklabels([])
         axs[i].set_xticks([])
         if not show_yscale:
@@ -535,7 +623,10 @@ def plot_histograms(axs, cur_groups, first_cond, second_cond, total_spectra_per_
         cond = ''
         if color_by_cond:
             cond = f' {splitted_label[1]}'
-        label_for_plot = marker_to_organelle[marker]['alias'] + cond
+        if label_is_marker:
+            label_for_plot = marker_to_organelle[marker]['alias'] + cond
+        else:
+            label_for_plot = label #cell_lines_dict[label.split('_')[1]]['alias'] + cond
         axs[i].text(1.02, 0.5, label_for_plot, transform=axs[i].transAxes,
                     rotation=0, va='center', ha='left')
         if plot_cluster_lines:
@@ -570,7 +661,8 @@ def plot_heatmap_with_clusters_and_histograms(corr_with_clusters, hist_df, label
                                               colors = {"Untreated": "#52C5D5", 'stress': "#F7810F"},
                                               first_cond='stress',second_cond='Untreated',
                                               title=None,calc_linkage=False, linkage_method='average',
-                                              figsize=(6,5)):
+                                              figsize=(6,5),
+                                              label_is_marker=True):
     # calculate linkage matrix
     if calc_linkage:
         linkage = scipy.cluster.hierarchy.linkage(corr_with_clusters.drop(columns=['cluster']), method=linkage_method, metric='euclidean', optimal_ordering=True)
@@ -650,7 +742,7 @@ def plot_heatmap_with_clusters_and_histograms(corr_with_clusters, hist_df, label
         
         ### PLOT THE HISTOGRAMS ###
         axs = plot_histograms(axs, cur_groups, first_cond, second_cond, total_spectra_per_marker_ordered, 
-                        color_by_cond, colors, max_per_condition, cluster_counts, plot_delta)
+                        color_by_cond, colors, max_per_condition, cluster_counts, plot_delta, label_is_marker)
     
     # # fix the cbar appearance 
     # clustermap.ax_cbar.set_position([clustermap.ax_col_dendrogram.get_position().x1-0.2, # x location 
@@ -703,7 +795,7 @@ def plot_heatmap_with_clusters_and_histograms(corr_with_clusters, hist_df, label
                                      hist_height #height
                                      ]))
         axs = plot_histograms(axs[::-1], cur_groups, first_cond, second_cond, total_spectra_per_marker_ordered, 
-                        color_by_cond, colors, max_per_condition, cluster_counts, plot_delta)
+                        color_by_cond, colors, max_per_condition, cluster_counts, plot_delta, label_is_marker)
         fig.subplots_adjust(hspace=0)
         if to_save:
             fig.savefig(os.path.join(save_path, hist_filename),bbox_inches='tight', dpi=300)

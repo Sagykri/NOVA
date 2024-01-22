@@ -41,14 +41,12 @@ wget https://repo.anaconda.com/archive/Anaconda3-2023.03-Linux-x86_64.sh
 - V sklearn
 - V scikit-image (used pip not conda)
 - V umap-learn
-- tensorflow (h5py==2.10.0) - For training only:
-    V conda install tensorflow-gpu=1.15
-    V conda install h5py=2.10.0
 - V tqdm
 - V shap (shaply values)
 - V Shapely (geometric) 
 - V adjustText
 - torch-tb-profiler
+- k-means-constrained
 
 pip install jupyter notebook
 Add the conda env as kernel to jupyter:
