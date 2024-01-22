@@ -578,7 +578,6 @@ def plot_histograms(axs, cur_groups, first_cond, second_cond, total_spectra_per_
     # plot the histograms
     for i, label in enumerate(cur_groups[::-1]):
         if plot_delta:
-            print(label)
             label1 = _add_condition_to_label(label, condition=first_cond)
             label2 = _add_condition_to_label(label, condition=second_cond)
             d1 = total_spectra_per_marker_ordered.loc[label1, :]
@@ -609,7 +608,7 @@ def plot_histograms(axs, cur_groups, first_cond, second_cond, total_spectra_per_
             if label_is_marker:
                 axs[i].fill_between(range(len(d)), d, color=marker_to_organelle[label]['color'], label=label, linewidth=linewidth)
             else:
-                axs[i].fill_between(range(len(d)), d, color=cell_lines_dict[label]['color'], label=label, linewidth=linewidth)
+                axs[i].fill_between(range(len(d)), d, color=cell_lines_dict[label.split('_')[1]]['color'], label=label, linewidth=linewidth)
         axs[i].set_xticklabels([])
         axs[i].set_xticks([])
         if not show_yscale:
@@ -627,7 +626,7 @@ def plot_histograms(axs, cur_groups, first_cond, second_cond, total_spectra_per_
         if label_is_marker:
             label_for_plot = marker_to_organelle[marker]['alias'] + cond
         else:
-            label_for_plot = cell_lines_dict[label]['alias'] + cond
+            label_for_plot = label #cell_lines_dict[label.split('_')[1]]['alias'] + cond
         axs[i].text(1.02, 0.5, label_for_plot, transform=axs[i].transAxes,
                     rotation=0, va='center', ha='left')
         if plot_cluster_lines:
