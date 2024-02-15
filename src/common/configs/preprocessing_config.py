@@ -25,6 +25,8 @@ class PreprocessingConfig(BaseConfig):
         self.MARKERS_TO_INCLUDE = None
         self.TO_SHOW = False
         self.NUCLEUS_DIAMETER = 60
+        self.EXPECTED_SITE_WIDTH = 1024
+        self.EXPECTED_SITE_HEIGHT = 1024
         self.TILE_WIDTH = 100
         self.TILE_HEIGHT = 100
         self.TO_DOWNSAMPLE = False

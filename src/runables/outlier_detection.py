@@ -20,7 +20,7 @@ import logging
 sys.path.insert(1, os.getenv("MOMAPS_HOME"))
 print(f"MOMAPS_HOME: {os.getenv('MOMAPS_HOME')}")
 
-from src.common.lib.preprocessing_utils import rescale_intensity
+from src.common.lib.preprocessing_utils import handle_img_shape, rescale_intensity
 from src.common.lib import image_metrics
 from src.common.lib.utils import init_logging, flat_list_of_lists
 from src.common.lib.image_sampling_utils import sample_images_all_markers_all_lines
@@ -28,7 +28,7 @@ from src.common.lib.image_sampling_utils import sample_images_all_markers_all_li
 
 BASE_DIR = os.path.join('/home','labs','hornsteinlab','Collaboration','MOmaps')
 INPUT_DIR = os.path.join(BASE_DIR, 'input', 'images', 'raw', 'SpinningDisk')
-calc_per_tile = True # I ran _site_ with this being False! (281123)
+calc_per_tile = False # I ran _site_ with this being False! (281123)
 
 def calculate_metrics_for_batch(batch_name, sample_size_per_markers=100, num_markers=36, markers=None):
     
@@ -43,7 +43,7 @@ def calculate_metrics_for_batch(batch_name, sample_size_per_markers=100, num_mar
                                                  num_markers,
                                                  raw=True,
                                                  rep_count=2,
-                                                 cond_count=2,
+                                                #  cond_count=2,
                                                  all_conds=True)
                                                 #  markers=["DAPI"])
     logging.info(f"Images len: {len(images)}")
@@ -93,7 +93,9 @@ def _calc_image_metrics(img_path):
         logging.info(f"{path} is empty!")
         return None
     
-    img = img[12:-12,12:-12]
+    # img = img[12:-12,12:-12]
+    handle_img_shape(img, expected_site_width=1024, expected_site_height=1024)
+    
     scaled_img = rescale_intensity(img)
     
     if not calc_per_tile:
@@ -111,8 +113,7 @@ def _calc_image_metrics(img_path):
 def save_to_file(results, savepath):
     # To Dataframe
     logging.info("To dataframe")
-    columns = ["Path", "Target_SNR", "Target_Sharpness_Laplacian", "Target_Var",
-            'Target_Sharpness_Brenner', "Target_Entropy", "Target_Sigma", "Target_HighFreq"]
+    columns = ["Path", 'Target_Sharpness_Brenner']
     
 
     df = pd.DataFrame(results, columns=columns)
@@ -127,32 +128,33 @@ def save_to_file(results, savepath):
     df.to_csv(savepath, index=False)
 
 def get_metrics(tile):
-    snr = image_metrics.calculate_snr(tile)
+    sharpness_brenner = image_metrics.calculate_image_sharpness_brenner(tile)    
+    return (sharpness_brenner,)
+    
+    # snr = image_metrics.calculate_snr(tile)
     # # Check contrast & Sharpness
-    sharpness_laplacian = image_metrics.calculate_image_sharpness_laplacian(tile)
+    # sharpness_laplacian = image_metrics.calculate_image_sharpness_laplacian(tile)
     # return (sharpness_laplacian,)
     # contrast = image_metrics.calculate_image_contrast(tile)
     # Check var
-    var = image_metrics.calculate_var(tile)
+    # var = image_metrics.calculate_var(tile)
     # Check blurness:
-    sharpness_brenner = image_metrics.calculate_image_sharpness_brenner(tile)    
-    entropy = image_metrics.calculate_entropy(tile)
-    sigma = image_metrics.calculate_sigma(tile)
-    high_freq = image_metrics.calculate_high_freq_power(tile)
-    # largest_area = calculate_largest_uniform_area(tile)
-    # fractal_dim = calculate_fractal_dim(tile)
-    return snr,sharpness_laplacian,var,sharpness_brenner, entropy, sigma,high_freq
+    # entropy = image_metrics.calculate_entropy(tile)
+    # sigma = image_metrics.calculate_sigma(tile)
+    # high_freq = image_metrics.calculate_high_freq_power(tile)
+    # # largest_area = calculate_largest_uniform_area(tile)
+    # # fractal_dim = calculate_fractal_dim(tile)
 
 def main():
     # cell_lines = ['WT']
     # conditions = ['Untreated']#, 'stress']
     # markers = #['DAPI']#["DAPI"]#['NONO', 'G3BP1']
-    batches = ['batch4','batch5','batch6', 'batch9']#['batch7', 'batch8', 'batch3', 'batch4','batch5','batch6', 'batch9']#, 'batch8']#['batch6_16bit_no_downsample']
+    batches = [os.path.join('FUS_lines_stress_2024_sorted', 'batch1')]#['batch4','batch5','batch6', 'batch9']#['batch7', 'batch8', 'batch3', 'batch4','batch5','batch6', 'batch9']#, 'batch8']#['batch6_16bit_no_downsample']
     # raw_base_path = '/home/labs/hornsteinlab/Collaboration/MOmaps/input/images/raw/SpinningDisk/'
     
     
-    log_file_path = "/home/labs/hornsteinlab/Collaboration/MOmaps_Sagy/MOmaps/sandbox/outliers_detection/log_all_batches_all_metrics_tile_fix.txt"
-    savepath = "/home/labs/hornsteinlab/Collaboration/MOmaps_Sagy/MOmaps/sandbox/outliers_detection/raw_metrics_all_batches_all_metrics_tile_fix.csv"
+    log_file_path = "/home/labs/hornsteinlab/Collaboration/MOmaps_Sagy/MOmaps/sandbox/outliers_detection/log_fus.txt"
+    savepath = "/home/labs/hornsteinlab/Collaboration/MOmaps_Sagy/MOmaps/sandbox/outliers_detection/raw_metrics_fus.csv"
     
     init_logging(log_file_path)
     
