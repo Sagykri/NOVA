@@ -8,7 +8,7 @@ class Config():
     def __init__(self):
         super().__init__()
 
-        self.LOGGING_PATH = "logs"
+        self.LOGGING_PATH = os.path.join('tools', 'images_organizer', 'neurons_FUS_version', 'logs')
         self.KEY_CELL_LINES = "cell_lines"
         self.KEY_MARKERS_ALIAS_ORDERED = "markers_alias_ordered"
         self.KEY_MARKERS = "markers"
@@ -28,10 +28,10 @@ class Config():
         #####################################
 
         # Path to source folder (root)
-        self.SRC_ROOT_PATH = "/home/labs/hornsteinlab/Collaboration/MOmaps/input/images/raw/FUS_lines_stress_2024_unordered"
+        self.SRC_ROOT_PATH = "/home/labs/hornsteinlab/Collaboration/MOmaps/input/images/raw/SpinningDisk/FUS_lines_stress_2024_unordered"
 
         # Path to destination folder (root)
-        self.DST_ROOT_PATH = "/home/labs/hornsteinlab/Collaboration/MOmaps/input/images/raw/FUS_lines_stress_2024_sorted"
+        self.DST_ROOT_PATH = "/home/labs/hornsteinlab/Collaboration/MOmaps/input/images/raw/SpinningDisk/FUS_lines_stress_2024_sorted"
 
         # Names of folders to handle
         # - For selecting all folders in SRC_ROOT_PATH - set FOLDERS to None or delete the assignment 
@@ -55,6 +55,9 @@ class Config():
 
         # If set to False, the files will be *copied* to DST_ROOT_PATH, otherwise, the files will be *cut*/*moved* to DST_ROOT_PATH
         self.CUT_FILES = False
+        
+        # Raise exception when index couldn't be found in the config?
+        self.RAISE_ON_MISSING_INDEX = True
 
         self.FILENAME_POSTFIX = ""
         ##################################
@@ -71,12 +74,12 @@ class Config():
                     "Etoposide": [(1201,1300),(1301,1400)],
                     "Untreated": [(1901, 2000), (1801, 1900)]
                 },
-                "FUS_Heterozygous": {
+                "FUSHeterozygous": {
                     "MG132": [(301,400),(201,300)],
                     "ML240": [(801,900),(901,1000)],
                     "Etoposide": [(1501,1600),(1401,1500)],
                 },
-                "FUS_Revertant": {
+                "FUSRevertant": {
                     "MG132": [(401,500),(501,600)],
                     "ML240": [(1101,1200),(1001,1100)],
                     "Etoposide": [(1601,1700),(1701,1800)],

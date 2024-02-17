@@ -11,7 +11,7 @@ class Utils():
     def __init__(self, config:Config):
         self.config = config
         
-    def __get_cell_line_and_condition_and_rep_by_index(self, index):
+    def __get_cell_line_and_condition_and_rep_by_index(self, index, raise_on_missing_index=True):
         assert self.config.KEY_CELL_LINES in self.config.CONFIG, f"Could not find '{self.config.KEY_CELL_LINES}' in config"
         for cell_line in self.config.CONFIG[self.config.KEY_CELL_LINES].keys():
             conditions = self.config.CONFIG[self.config.KEY_CELL_LINES][cell_line]
@@ -22,7 +22,11 @@ class Utils():
                     if index >= rng[0] and index <= rng[1]:
                         return cell_line, condition, rep
         
-        raise Exception(f"Could not find cell line for index: {index}") 
+        if raise_on_missing_index:
+            raise Exception(f"Could not find cell line for index: {index}") 
+        
+        logging.warn(f"Could not find cell line for index: {index}. Skipping since 'raise_on_missing_index' is set to False")
+        return (None, )*3
 
     def __get_marker_by_alias(self, alias, panel):
         assert self.config.KEY_MARKERS in self.config.CONFIG, f"Could not find '{self.config.KEY_MARKERS}' in config"
@@ -113,7 +117,7 @@ class Utils():
     def __get_folder_info(self, folder):
         parent_folder = os.path.dirname(folder)
         datestamp, pert1, pert2, pert3, n_days, panels = parent_folder.split('_')
-        batch = "batch"
+        batch = "batch1"
         panel = os.path.basename(folder)
         # lower case the first letter (Panel to panel)
         panel = panel[0].lower() + panel[1:]
@@ -181,7 +185,7 @@ class Utils():
         
         return folder_path, batch, panel
 
-    def copy_files(self, folder_path, panel, batch, cut_files=False):
+    def copy_files(self, folder_path, panel, batch, cut_files=False, raise_on_missing_index=True):
         n_copied = 0
         
         files_names = os.listdir(folder_path)
@@ -197,7 +201,11 @@ class Utils():
             indx = int(indx.replace('s', ''))
                 
             try:
-                matched_cell_line, matched_condition, matched_rep = self.__get_cell_line_and_condition_and_rep_by_index(indx)
+                matched_cell_line, matched_condition, matched_rep = self.__get_cell_line_and_condition_and_rep_by_index(indx, raise_on_missing_index=raise_on_missing_index)
+                if matched_cell_line is None:
+                    # If on_missing_index isn't set to 'raise' and index wasn't find in config, skip
+                    continue
+                
                 matched_marker = self.__get_marker_by_alias(marker_alias, panel)
                     
                 logging.info(f"[{os.path.join(folder_path, f)}] batch={batch},rep={matched_rep}, panel={panel}, condition={matched_condition},cell_line={matched_cell_line}, marker={matched_marker}")

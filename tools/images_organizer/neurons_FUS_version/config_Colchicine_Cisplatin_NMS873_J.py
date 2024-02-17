@@ -33,12 +33,12 @@ class Config_CCN_J(Config):
                     "NMS873": [(1201,1300),(1301,1400)],
                     "Untreated": [(1901, 2000), (1801, 1900)]
                 },
-                "FUS_Heterozygous": {
+                "FUSHeterozygous": {
                     "Colchicine": [(301,400),(201,300)],
                     "Cisplatin": [(801,900),(901,1000)],
                     "NMS873": [(1501,1600),(1401,1500)]
                 },
-                "FUS_Revertant": {
+                "FUSRevertant": {
                     "Colchicine": [(401,500),(501,600)],
                     "Cisplatin": [(1101,1200),(1001,1100)],
                     "NMS873": [(1601,1700),(1701,1800)]
