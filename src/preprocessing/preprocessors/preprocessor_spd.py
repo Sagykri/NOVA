@@ -34,6 +34,8 @@ class SPDPreprocessor(Preprocessor):
         self.nucleus_diameter = get_if_exists(conf, 'NUCLEUS_DIAMETER')
         self.tile_width = get_if_exists(conf, 'TILE_WIDTH')
         self.tile_height = get_if_exists(conf, 'TILE_HEIGHT')
+        self.expected_site_width = get_if_exists(conf, 'EXPECTED_SITE_WIDTH')
+        self.expected_site_height = get_if_exists(conf, 'EXPECTED_SITE_HEIGHT')
         self.to_downsample = get_if_exists(conf, 'TO_DOWNSAMPLE')
         self.to_normalize = get_if_exists(conf, 'TO_NORMALIZE')
         self.cellprob_threshold = get_if_exists(conf, 'CELLPROB_THRESHOLD')
@@ -134,24 +136,30 @@ class SPDPreprocessor(Preprocessor):
             output_path (string): Path to the output (preprocessed) image
         """
         
-        file_path           = input_path
-        save_path           = output_path
-        nucleus_file        = get_if_exists(kwargs, 'nucleus_file')
-        img_nucleus         = get_if_exists(kwargs, 'img_nucleus')
-        tile_width          = self.tile_width
-        tile_height         = self.tile_height
-        to_downsample       = self.to_downsample
-        to_normalize        = self.to_normalize
-        to_denoise          = self.to_denoise
-        to_show             = self.to_show
-        tiles_indexes       = get_if_exists(kwargs, 'tiles_indexes')
-        brenner_bounds      = self.brenner_bounds
+        file_path               = input_path
+        save_path               = output_path
+        nucleus_file            = get_if_exists(kwargs, 'nucleus_file')
+        img_nucleus             = get_if_exists(kwargs, 'img_nucleus')
+        tile_width              = self.tile_width
+        tile_height             = self.tile_height
+        expected_site_width     = self.expected_site_width
+        expected_site_height    = self.expected_site_height
+        to_downsample           = self.to_downsample
+        to_normalize            = self.to_normalize
+        to_denoise              = self.to_denoise
+        to_show                 = self.to_show
+        tiles_indexes           = get_if_exists(kwargs, 'tiles_indexes')
+        brenner_bounds          = self.brenner_bounds
         
         # Changing from skimage.load to cv2.load (with grayscale flag) -> changed to IMREAD_ANYDEPTH to read in 16bit format
         img_target = cv2.imread(file_path, cv2.IMREAD_ANYDEPTH) #used to be IMREAD_GRAYSCALE
+        # 130224 SAGY
+        img_target = preprocessing_utils.handle_img_shape(img_target, expected_site_width=expected_site_width, expected_site_height=expected_site_height)
         
         if img_nucleus is None:
             img_nucleus = cv2.imread(nucleus_file, cv2.IMREAD_ANYDEPTH) #used to be IMREAD_GRAYSCALE
+            # 130224 SAGY
+            img_nucleus = preprocessing_utils.handle_img_shape(img_nucleus, expected_site_width=expected_site_width, expected_site_height=expected_site_height)
         
         # Check if files are corrputed
         if img_target is None or np.size(img_target) == 0:

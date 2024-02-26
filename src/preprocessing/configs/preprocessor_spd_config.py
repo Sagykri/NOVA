@@ -18,6 +18,8 @@ class SPDPreprocessingConfig(PreprocessingConfig):
         self.OUTPUTS_SUBSUBFOLDER = os.path.join(self.OUTPUTS_SUBFOLDER, "spd")
         self.PREPROCESSOR_CLASS_PATH = os.path.join("src", "preprocessing", "preprocessors", "preprocessor_spd", "SPDPreprocessor")
         self.TO_DOWNSAMPLE = False
+        self.EXPECTED_SITE_WIDTH = 1024
+        self.EXPECTED_SITE_HEIGHT = 1024
         self.TILE_WIDTH = 128 
         self.TILE_HEIGHT = 128
         self.WITH_NUCLEUS_DISTANCE = False

@@ -241,6 +241,30 @@ def denoise(show, img):
       plt.show()
     return img
 
+# SAGY 130224
+def handle_img_shape(img, expected_site_width, expected_site_height):
+    expected_w, expected_h = expected_site_width, expected_site_height
+    
+    # If the size is as expected
+    if img.shape[0] == expected_w and img.shape[1] == expected_h:
+        return img
+    
+    # Otherwise:
+    
+    # If the size is not a multiplication of the expected w and h, abort
+    if img.shape[0] % expected_w != 0 or img.shape[1] % expected_h != 0:
+        logging.error(f"img shape {img.shape} is not devisable by {expected_w}") 
+        raise Exception(f"img shape {img.shape} is not devisable by {expected_h}")
+
+    scaling_factor = img.shape[0] // expected_w
+    
+    # else, block_reduce the image
+    logging.info(f"img shape {img.shape} is different thant {expected_w}x{expected_h}. Block reduce the image with block_size={scaling_factor}")
+    img_rescaled = block_reduce(image=img, block_size=scaling_factor, func=np.mean)
+    logging.info(f"img_rescaled shape after block_reduce: {img_rescaled.shape}")
+    
+    return img_rescaled
+
 def segment(img, model, channels=None, 
             diameter=500, cellprob_threshold=0,\
             flow_threshold=0.7,\
@@ -456,6 +480,8 @@ def preprocess_panel(slf, panel, input_folder_root,
                         nucleus_diameter        = slf.nucleus_diameter
                         tile_width              = slf.tile_width
                         tile_height             = slf.tile_height
+                        expected_site_width     = slf.expected_site_width
+                        expected_site_height    = slf.expected_site_height
                         cellprob_threshold      = slf.cellprob_threshold
                         flow_threshold          = slf.flow_threshold
                         to_show                 = slf.to_show
@@ -464,6 +490,9 @@ def preprocess_panel(slf, panel, input_folder_root,
 
                         # Crop DAPI tiles
                         img_nucleus = cv2.imread(nucleus_filepath, cv2.IMREAD_ANYDEPTH) #used to be IMREAD_GRAYSCALE
+                        
+                        # 130224 SAGY
+                        img_nucleus = handle_img_shape(img_nucleus, expected_site_width=expected_site_width, expected_site_height=expected_site_height)
                         
                         logging.info("Rescaling intensity of DAPI")
                         img_nucleus = rescale_intensity(img_nucleus)
