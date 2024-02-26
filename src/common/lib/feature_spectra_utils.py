@@ -177,14 +177,15 @@ def calc_correlation_codebook_vectors(df, corr_method):
     
     ## Correlate the indices histograms    
     corr = mean_spectra_per_marker.corr(method=corr_method)
-    
     # Remove columns or rows that are all nan (which can happen when the data is constant before the correlation)
+    orig_shape = corr.shape
     corr.dropna(axis=0, how='all', inplace=True)
     corr.dropna(axis=1, how='all', inplace=True)
+    print(f'dropping {orig_shape[0] - corr.shape[0]} rows (corr=0) and {orig_shape[1] - corr.shape[1]} columns (corr=0)\nleft with {corr.shape} vectors')
     return corr
 
 def create_codebook_heatmap(hist_df, save_path=None, to_save=False, filename=None, corr_method='pearson', calc_linkage=False, linkage_method='average'):
-    """Compute correlatino between codebook vectors, plot heatmap (clustermap)
+    """Compute correlation between codebook vectors, plot heatmap (clustermap)
 
     Args:
         hist_df (pd.DataFrame): vqindhist of all tiles
@@ -200,7 +201,6 @@ def create_codebook_heatmap(hist_df, save_path=None, to_save=False, filename=Non
         clustermap (seaborn.matrix.ClusterGrid): clustermap object
     """
     corr = calc_correlation_codebook_vectors(hist_df, corr_method)
-    
     # Calculate linkage matrix
     if calc_linkage:
         linkage = scipy.cluster.hierarchy.linkage(corr, 
@@ -570,10 +570,11 @@ def plot_tile_label_pct_in_cluster(tile_score_per_cluster):
     plt.show()
 
 def plot_histograms(axs, cur_groups, first_cond, second_cond, total_spectra_per_marker_ordered, 
-                    color_by_cond, colors, max_per_condition, cluster_counts, plot_delta, label_is_marker=True, plot_cluster_lines=True, 
-                    linewidth=1, show_yscale=True, scale_max=True):
+                    color_by_cond, colors, max_per_condition, cluster_counts, plot_delta, label_is_marker=True, plot_cluster_lines=True,  
+                    linewidth=1, show_yscale=True, scale_max=True, show_xticks=False, cell_lines_dict=None, split_label=True):
     marker_to_organelle = BaseConfig().UMAP_MAPPINGS_MARKERS
-    cell_lines_dict = BaseConfig().UMAP_MAPPINGS_ALS
+    if cell_lines_dict is None:
+        cell_lines_dict = BaseConfig().UMAP_MAPPINGS_ALS
     min_delta, max_delta = None, None
     # plot the histograms
     for i, label in enumerate(cur_groups[::-1]):
@@ -608,9 +609,23 @@ def plot_histograms(axs, cur_groups, first_cond, second_cond, total_spectra_per_
             if label_is_marker:
                 axs[i].fill_between(range(len(d)), d, color=marker_to_organelle[label]['color'], label=label, linewidth=linewidth)
             else:
-                axs[i].fill_between(range(len(d)), d, color=cell_lines_dict[label.split('_')[1]]['color'], label=label, linewidth=linewidth)
-        axs[i].set_xticklabels([])
-        axs[i].set_xticks([])
+                if split_label:
+                    label_for_dict = label.split('_')[1]
+                else:
+                    label_for_dict=label
+                axs[i].fill_between(range(len(d)), d, color=cell_lines_dict[label_for_dict]['color'], label=label, linewidth=linewidth)
+        if not show_xticks:
+            axs[i].set_xticklabels([])
+            axs[i].set_xticks([])
+        else:
+            if i !=0:
+                axs[i].set_xticklabels([])
+                axs[i].set_xticks([])
+            else:
+                idx = d.index.to_list()
+                ticks_labels = [0,1000,400,1500,2045,512]
+                ticks = [idx.index(value) for value in ticks_labels if value in idx]
+                axs[i].set_xticks(ticks, ticks_labels, rotation=45)
         if not show_yscale:
             axs[i].set_yticklabels([])
             axs[i].set_yticks([])
@@ -794,8 +809,8 @@ def plot_heatmap_with_clusters_and_histograms(corr_with_clusters, hist_df, label
                                      clustermap.ax_heatmap.get_position().width,  #width
                                      hist_height #height
                                      ]))
-        axs = plot_histograms(axs[::-1], cur_groups, first_cond, second_cond, total_spectra_per_marker_ordered, 
-                        color_by_cond, colors, max_per_condition, cluster_counts, plot_delta, label_is_marker)
+        axs = plot_histograms(axs=axs[::-1], cur_groups=cur_groups, first_cond=first_cond, second_cond=second_cond, total_spectra_per_marker_ordered=total_spectra_per_marker_ordered, 
+                        color_by_cond=color_by_cond, colors=colors, max_per_condition=max_per_condition, cluster_counts=cluster_counts, plot_delta=plot_delta, label_is_marker=label_is_marker)
         fig.subplots_adjust(hspace=0)
         if to_save:
             fig.savefig(os.path.join(save_path, hist_filename),bbox_inches='tight', dpi=300)
@@ -804,7 +819,7 @@ def plot_heatmap_with_clusters_and_histograms(corr_with_clusters, hist_df, label
 
 def plot_hists_supp_1A(hist_df, labels, corr_with_clusters, hierarchical_order=None, sort=False, color_by_cond=False, plot_delta=False, 
                        to_save=False, colormap_name='viridis',figsize=(5,5), first_cond='stress', second_cond='Untreated', 
-                       save_path=None, filename=None, colors = {"Untreated": "#52C5D5", 'stress': "#F7810F"}, to_mean=True, plot_cluster_lines=True, scale_max=False):
+                       save_path=None, filename=None, colors = {"Untreated": "#52C5D5", 'stress': "#F7810F"}, to_mean=True, plot_cluster_lines=True, scale_max=False, label_is_marker=False, show_xticks=False, cell_lines_dict=None, split_label=True):
     real_labels = []
     for label in labels:
         if label not in np.unique(hist_df.label):
@@ -819,11 +834,9 @@ def plot_hists_supp_1A(hist_df, labels, corr_with_clusters, hierarchical_order=N
     total_spectra_per_marker_ordered.set_index('label', inplace=True)
     if to_mean:
         total_spectra_per_marker_ordered = hist_df_cur.groupby('label').mean()
-
     #re-order by the indices order
     if sort:
         total_spectra_per_marker_ordered=total_spectra_per_marker_ordered[hierarchical_order]
-
     if color_by_cond and scale_max:
         # Set same y label limit for pairs to be compared
         tmp1 = pd.DataFrame(total_spectra_per_marker_ordered.max(axis=1)).reset_index()
@@ -851,25 +864,26 @@ def plot_hists_supp_1A(hist_df, labels, corr_with_clusters, hierarchical_order=N
         elif not color_by_cond:
             # create colors
             colors = [ListedColormap([colormap_name])(0)]*len(cur_groups)
-        axs = plot_histograms(axs[::-1], cur_groups, first_cond, second_cond, total_spectra_per_marker_ordered, False, 
-                    color_by_cond, colors, max_per_condition, cluster_counts, plot_delta, plot_cluster_lines, linewidth=2, show_yscale=False, scale_max=False)
+        axs = plot_histograms(axs=axs[::-1], cur_groups=cur_groups, first_cond=first_cond, second_cond=second_cond, total_spectra_per_marker_ordered=total_spectra_per_marker_ordered, label_is_marker=label_is_marker, 
+                    color_by_cond=color_by_cond, colors=colors, max_per_condition=max_per_condition, cluster_counts=cluster_counts, plot_delta=plot_delta, plot_cluster_lines=plot_cluster_lines, linewidth=2, show_yscale=False, scale_max=False, show_xticks=show_xticks, cell_lines_dict=cell_lines_dict, split_label=split_label)
     else:
         fig, axs = plt.subplots(nrows = len(cur_groups)*2, figsize=figsize)
         if not color_by_cond:
             # create colors
             colors = [ListedColormap([colormap_name])(0)]*len(cur_groups)*2
         axs = plot_histograms_not_mean(axs[::-1], cur_groups, first_cond, second_cond,total_spectra_per_marker_ordered,
-                                 color_by_cond, colors, max_per_condition, cluster_counts, plot_cluster_lines, show_yscale=False)
+                                 color_by_cond, colors, max_per_condition, cluster_counts, plot_cluster_lines, show_yscale=False, show_xticks=show_xticks)
     
     fig.subplots_adjust(hspace=0)
     if to_save:
         fig.savefig(os.path.join(save_path, filename),bbox_inches='tight', dpi=300)
 
 def plot_histograms_not_mean(axs, cur_groups, first_cond, second_cond, total_spectra_per_marker_ordered, 
-                    color_by_cond, colors, max_per_condition, cluster_counts, plot_cluster_lines=True, show_yscale=True):
+                    color_by_cond, colors, max_per_condition, cluster_counts, plot_cluster_lines=True, show_yscale=True, show_xticks=False):
     # plot the histograms
     for i, label in enumerate(cur_groups[::-1]):
         d = total_spectra_per_marker_ordered.loc[label, :]
+        total_hists_count = len(cur_groups)*d.shape[0]
         for j in range(d.shape[0]):
             cur_d = d.iloc[j,:]
             ax = axs[i*d.shape[0] + j]
@@ -886,8 +900,19 @@ def plot_histograms_not_mean(axs, cur_groups, first_cond, second_cond, total_spe
                 ax.fill_between(range(len(cur_d)), cur_d, color=colors[i], label=label, linewidth=2)
         
             ax.margins(y=0.25)
-            ax.set_xticklabels([])
-            ax.set_xticks([])
+            if not show_xticks:
+                ax.set_xticklabels([])
+                ax.set_xticks([])
+            else:
+                if i*d.shape[0] + j !=0:
+                    ax.set_xticklabels([])
+                    ax.set_xticks([])
+                else:
+                    idx = d.columns.to_list()
+                    ticks_labels = [0,1000,400,1500,2045,512]
+                    ticks = [idx.index(value) for value in ticks_labels if value in idx]
+                    ax.set_xticks(ticks, ticks_labels)
+                    # ax.tick_params(axis='x', rotation=45)
             ax.tick_params(axis='y', labelsize=4, length=0, pad=0.1)
             ax.text(1.02, 0.5, label.replace('_', ' '), transform=ax.transAxes,
                     rotation=0, va='center', ha='left')
@@ -922,6 +947,7 @@ def plot_heatmap_with_clusters_supp_1A(corr_with_clusters, save_path=None, to_sa
     kws = dict(cbar_kws=dict(ticks=[-1,0,1]))
     clustermap = sns.clustermap(corr_with_clusters.drop(columns=['cluster']), center=0, cmap=cmap, vmin=-1, vmax=1, 
                                 figsize=figsize, xticklabels=False, yticklabels=False, col_colors=corr_with_clusters['cluster'].map(col_colors_df), **kws)
+
     clustermap.ax_row_dendrogram.set_visible(False)
 
     # calc clusters locations
