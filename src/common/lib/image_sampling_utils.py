@@ -1,6 +1,8 @@
 import logging
 import random
 import os
+import numpy as np
+import re
 
 
 BASE_DIR = os.path.join('/home','labs','hornsteinlab','Collaboration','MOmaps')
@@ -175,6 +177,39 @@ def sample_images_all_markers_all_lines(input_dir_batch=None, _sample_size_per_m
         
     return images_paths
 
-
-
+def sample_raw_images(input_dir_batch, marker, cell_line, condition, sample_size, rep, panel=None):
+    if marker == "DAPI":
+        if panel is None:
+            raise Exception("Doesn't support DAPI") #since exists in multiple panels
     
+    def __get_panel_by_marker(marker):
+        for root, dirs, files in os.walk(os.path.join(input_dir_batch, cell_line)):
+            if marker in dirs:
+                panel_pattern = r'/panel[A-Z]/'
+                panel = re.search(panel_pattern, root).group(0).strip('/')
+                return panel
+    
+    if panel is None:
+        panel = __get_panel_by_marker(marker)
+    
+    marker_folder_path = os.path.join(input_dir_batch, cell_line, panel, condition, rep, marker)
+    
+    files_paths = np.asarray(os.listdir(marker_folder_path))
+    files_paths = files_paths[np.random.choice(np.arange(len(files_paths)), sample_size)]
+    
+    files_paths = np.asarray([os.path.join(marker_folder_path, f) for f in files_paths])
+    
+    return files_paths
+
+
+def sample_processed_images(input_dir_batch, marker, cell_line, condition, sample_size, reps=None):
+    marker_folder_path = os.path.join(input_dir_batch, cell_line, condition, marker)
+    
+    files_paths = np.asarray(os.listdir(marker_folder_path))
+    if reps is not None:
+        files_paths = np.asarray([p for p in files_paths if p.startswith('rep1_')])
+    files_paths = files_paths[np.random.choice(np.arange(len(files_paths)), sample_size)]
+    
+    files_paths = np.asarray([os.path.join(marker_folder_path, f) for f in files_paths])
+    
+    return files_paths    

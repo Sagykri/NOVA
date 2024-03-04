@@ -166,7 +166,7 @@ def convert_to_list(array_string):
     int_list = [int(x) for x in string_list]
     return int_list
 
-def log_files_qc(LOGS_PATH):
+def log_files_qc(LOGS_PATH, only_wt_cond = True):
     files_pds = []
 
     # Go over all files under logs
@@ -223,11 +223,10 @@ def log_files_qc(LOGS_PATH):
     df.loc[df.cell_line=='FUSHomo', 'cell_line'] = 'FUSHomozygous'
     df.loc[df.condition=='stressed', 'condition'] = 'stress'
 
-    df['cell_line_cond'] = df['cell_line']
-    df.loc[df.cell_line=='WT', 'cell_line_cond'] = df.cell_line + " " + df.condition
-    df.loc[df.batch=='Perturbations', 'cell_line_cond'] = df.cell_line + " " + df.condition
-
-    if 'dox' in np.unique(df.condition) or 'HPBCD' in np.unique(df.condition) or 'LPS' in np.unique(df.condition):
+    if only_wt_cond:
+        df['cell_line_cond'] = df['cell_line']
+        df.loc[df.cell_line=='WT', 'cell_line_cond'] = df.cell_line + " " + df.condition
+    else:
         df['cell_line_cond'] = df.cell_line + " " + df.condition
 
     df['site_cell_count_sum'] = df['cells_counts'].apply(get_array_sum)
@@ -1147,15 +1146,15 @@ def plot_hm_combine_batches(df,  batches, reps, rows, columns):
     plt.suptitle('Mean of whole cells count in valid tiles', fontsize=20, color="navy")
     plt.show()
 
-def show_site_survival_dapi_brenner(df_dapi, batches, line_colors, panels):
+def show_site_survival_dapi_brenner(df_dapi, batches, line_colors, panels, figsize=(5,5)):
     dapi_filter_by_brenner = df_dapi.groupby(['batch','cell_line_cond','panel','rep']).index.count().reset_index()
     dapi_filter_by_brenner=add_empty_lines(dapi_filter_by_brenner, batches, line_colors, panels)
     dapi_filter_by_brenner.sort_values(by=['batch','cell_line_cond','panel','rep'], inplace=True)
     dapi_filter_by_brenner.reset_index(inplace=True, drop=True)
-    plot_filtering_heatmap(dapi_filter_by_brenner, extra_index='panel',xlabel='% site survival Brenner on DAPI')
+    plot_filtering_heatmap(dapi_filter_by_brenner, extra_index='panel',xlabel='% site survival Brenner on DAPI', figsize=figsize)
     return dapi_filter_by_brenner
 
-def show_site_survival_dapi_cellpose(df_dapi, batches, dapi_filter_by_brenner, line_colors, panels):
+def show_site_survival_dapi_cellpose(df_dapi, batches, dapi_filter_by_brenner, line_colors, panels, figsize=(5,5)):
     dapi_filter_by_cellpose = df_dapi[df_dapi.site_cell_count!=0]
     dapi_filter_by_cellpose = dapi_filter_by_cellpose.groupby(['batch','cell_line_cond','panel','rep']).index.count().reset_index()
     dapi_filter_by_cellpose=add_empty_lines(dapi_filter_by_cellpose, batches, line_colors, panels)
@@ -1165,10 +1164,10 @@ def show_site_survival_dapi_cellpose(df_dapi, batches, dapi_filter_by_brenner, l
     dapi_filter_by_cellpose_per = dapi_filter_by_cellpose.copy()
     dapi_filter_by_cellpose_per['index'] = round(dapi_filter_by_cellpose_per['index']*100 / dapi_filter_by_brenner['index'])
     dapi_filter_by_cellpose_per.fillna(0, inplace=True)
-    plot_filtering_heatmap(dapi_filter_by_cellpose_per, extra_index='panel', xlabel='% Site survival Cellpose', second=dapi_filter_by_cellpose)
+    plot_filtering_heatmap(dapi_filter_by_cellpose_per, extra_index='panel', xlabel='% Site survival Cellpose', second=dapi_filter_by_cellpose, figsize=figsize)
     return dapi_filter_by_cellpose
 
-def show_site_survival_dapi_tiling(df_dapi, batches, dapi_filter_by_cellpose, line_colors, panels):
+def show_site_survival_dapi_tiling(df_dapi, batches, dapi_filter_by_cellpose, line_colors, panels, figsize=(5,5)):
     dapi_filter_by_tiling = df_dapi[(df_dapi.site_cell_count!=0) & (df_dapi.n_valid_tiles!=0)]
     dapi_filter_by_tiling = dapi_filter_by_tiling.groupby(['batch','cell_line_cond','panel','rep']).index.count().reset_index()
     dapi_filter_by_tiling=add_empty_lines(dapi_filter_by_tiling, batches, line_colors, panels)
@@ -1179,10 +1178,10 @@ def show_site_survival_dapi_tiling(df_dapi, batches, dapi_filter_by_cellpose, li
     dapi_filter_by_tiling_per['index'] = round(dapi_filter_by_tiling_per['index']*100 / dapi_filter_by_cellpose['index'])
     dapi_filter_by_tiling_per.fillna(0, inplace=True)
     plot_filtering_heatmap(dapi_filter_by_tiling_per, extra_index='panel', xlabel='% Site survival tiling', 
-                       second=dapi_filter_by_tiling)
+                       second=dapi_filter_by_tiling, figsize=figsize)
     return dapi_filter_by_tiling
 
-def show_site_survival_target_brenner(df_dapi, df_target, dapi_filter_by_tiling):
+def show_site_survival_target_brenner(df_dapi, df_target, dapi_filter_by_tiling, figsize=(6,8), markers=markers):
     pass_dapi = df_dapi[(df_dapi.site_cell_count!=0) & (df_dapi.n_valid_tiles!=0)] # take only DAPI's that passed so far (Brenner & Cellpose & tiling)
     passs = pd.concat([pass_dapi,df_target])
     pass_target = pd.DataFrame(columns=['batch','rep','marker','panel']) # create empty df for results
@@ -1207,7 +1206,7 @@ def show_site_survival_target_brenner(df_dapi, df_target, dapi_filter_by_tiling)
     pass_target_per['index'] = round(merge['index_pass']*100 / merge['index_dapi'])
     plot_filtering_heatmap(pass_target_per.drop(columns=['level_0','panel']), extra_index='marker', 
                         xlabel = '% Site survival by Brenner on target channel', second=pass_target,
-                        figsize=(6,8))
+                        figsize=figsize)
     return
 
 def calc_total_sums(df_target, df_dapi, stats):

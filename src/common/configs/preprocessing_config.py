@@ -35,3 +35,5 @@ class PreprocessingConfig(BaseConfig):
         self.FLOW_THRESHOLD = 0.4
         self.TO_DENOISE = False    
         self.WITH_NUCLEUS_DISTANCE = False
+        
+        self.DELETE_MARKER_FOLDER_IF_EXISTS = False

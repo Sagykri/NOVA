@@ -95,6 +95,7 @@ class BaseConfig():
             'CLTC': {self.UMAP_MAPPINGS_ALIAS_KEY: 'Coated Vesicles', self.UMAP_MAPPINGS_COLOR_KEY: '#32AC0E'},
             'KIF5A': {self.UMAP_MAPPINGS_ALIAS_KEY: 'Transport machinery', self.UMAP_MAPPINGS_COLOR_KEY: '#ACE142'},
             'SCNA': {self.UMAP_MAPPINGS_ALIAS_KEY: 'Presynapse', self.UMAP_MAPPINGS_COLOR_KEY: '#DEDB23'},
+            'SNCA': {self.UMAP_MAPPINGS_ALIAS_KEY: 'Presynapse', self.UMAP_MAPPINGS_COLOR_KEY: '#DEDB23'},
             'CD41': {self.UMAP_MAPPINGS_ALIAS_KEY: 'Integrin puncta', self.UMAP_MAPPINGS_COLOR_KEY: '#F04521'},
             'SQSTM1': {self.UMAP_MAPPINGS_ALIAS_KEY: 'Autophagosomes', self.UMAP_MAPPINGS_COLOR_KEY: '#FFBF0D'},
             'G3BP1': {self.UMAP_MAPPINGS_ALIAS_KEY: 'Stress Granules', self.UMAP_MAPPINGS_COLOR_KEY: '#A80358'},
@@ -105,6 +106,19 @@ class BaseConfig():
             'PSD95': {self.UMAP_MAPPINGS_ALIAS_KEY: 'Postsynapse', self.UMAP_MAPPINGS_COLOR_KEY: '#F1CBDD'},            
             
             'FMRP': {self.UMAP_MAPPINGS_ALIAS_KEY: 'FMRP', self.UMAP_MAPPINGS_COLOR_KEY: 'gray'}
+        }
+        
+        self.UMAP_MAPPINGS_CONDITION_FUS = {
+            'Untreated': {self.UMAP_MAPPINGS_ALIAS_KEY: 'Untreated', self.UMAP_MAPPINGS_COLOR_KEY: '#52C5D5'},
+            'BMAA': {self.UMAP_MAPPINGS_ALIAS_KEY: 'BMAA', self.UMAP_MAPPINGS_COLOR_KEY: '#90278E'},
+            'Cisplatin': {self.UMAP_MAPPINGS_ALIAS_KEY: 'Cisplatin', self.UMAP_MAPPINGS_COLOR_KEY: '#AB7A5B'},
+            'Colchicine': {self.UMAP_MAPPINGS_ALIAS_KEY: 'Colchicine', self.UMAP_MAPPINGS_COLOR_KEY: '#FF98BB'},
+            'DMSO': {self.UMAP_MAPPINGS_ALIAS_KEY: 'DMSO', self.UMAP_MAPPINGS_COLOR_KEY: '#F08F21'},
+            'Etoposide': {self.UMAP_MAPPINGS_ALIAS_KEY: 'Etoposide', self.UMAP_MAPPINGS_COLOR_KEY: '#37378D'},
+            'MG132': {self.UMAP_MAPPINGS_ALIAS_KEY: 'MG132', self.UMAP_MAPPINGS_COLOR_KEY: '#4343FE'},
+            'ML240': {self.UMAP_MAPPINGS_ALIAS_KEY: 'ML240', self.UMAP_MAPPINGS_COLOR_KEY: '#06A0E9'},
+            'NMS873': {self.UMAP_MAPPINGS_ALIAS_KEY: 'NMS873', self.UMAP_MAPPINGS_COLOR_KEY: '#168FB2'},
+            'SA': {self.UMAP_MAPPINGS_ALIAS_KEY: 'SA', self.UMAP_MAPPINGS_COLOR_KEY: '#F7810F'},
         }
         
         # Set the UMAPS mapping here!

@@ -42,6 +42,7 @@ class SPDPreprocessor(Preprocessor):
         self.flow_threshold = get_if_exists(conf, 'FLOW_THRESHOLD')
         self.to_denoise = get_if_exists(conf, 'TO_DENOISE')
         self.cell_lines_to_include = get_if_exists(conf, 'CELL_LINES_TO_INCLUDE')
+        self.delete_marker_folder_if_exists = get_if_exists(conf, 'DELETE_MARKER_FOLDER_IF_EXISTS', False)
         self.conf = conf
         
         if self.conf.SELECTIVE_INPUT_PATHS is not None:
@@ -124,7 +125,9 @@ class SPDPreprocessor(Preprocessor):
                 #    preprocessing_utils.preprocess_panel(self, p, input_folder_root, output_folder_root, input_folder_root_cell_line, 
                 #                                            cp_model, raw_f, cell_line, logging_df, timing_df)
                 # print("/n/n/n/n/n/n/nXXXXXXXXX For running it sequentially")
-                with multiprocessing.Pool(len(panels)) as pool:
+                n_processes = 3  # 280224 - changed from len(panels) to 3 due to Wexac threads limit (for gpu-long)
+                logging.info(f"n_processes={n_processes}")
+                with multiprocessing.Pool(processes=n_processes) as pool:
                    pool.starmap(preprocessing_utils.preprocess_panel, args)
                      
                         

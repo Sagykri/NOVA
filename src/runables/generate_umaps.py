@@ -25,6 +25,8 @@ def generate_umaps():
     config_path_model = sys.argv[1]
     config_path_data = sys.argv[2]
 
+    jobid = os.getenv('LSB_JOBID')
+
     config_model = load_config_file(config_path_model, 'model')
     config_data = load_config_file(config_path_data, 'data', config_model.CONFIGS_USED_FOLDER)
     
@@ -36,9 +38,11 @@ def generate_umaps():
     else:
         output_folder_path = config_model.MODEL_OUTPUT_FOLDER
 
-    assert os.path.isdir(output_folder_path) and os.path.exists(output_folder_path), f"{output_folder_path} is an invalid output folder path or doesn't exists"
+    if not os.path.exists(output_folder_path):
+        logging.info(f"{output_folder_path} doesn't exists. Creating it")
+        os.makedirs(output_folder_path)
 
-    logging.info("init")
+    logging.info(f"init (jobid: {jobid})")
     logging.info("[Generate UMAPs]")
     
     logging.info(f"Is GPU available: {torch.cuda.is_available()}")
@@ -54,9 +58,6 @@ def generate_umaps():
     
     logging.info("Init model")
     model = Model(config_model)
-    
-    logging.info(f"Loading model (Path: {config_model.MODEL_PATH})")
-    model.load_model(num_fc_output_classes=len(unique_markers))
     
     __generate_with_load(config_model, config_data, model, output_folder_path)
 
@@ -97,7 +98,7 @@ def __generate_with_load(config_model, config_data, model, output_folder_path):
         if not os.path.exists(__savepath_parent):
             os.makedirs(__savepath_parent)
         
-        colormap = get_if_exists(config_data, 'COLORMAP', 'Set1')
+        colormap = get_if_exists(config_data, 'COLORMAP', 'tab20')
         size = get_if_exists(config_data, 'SIZE', 0.8)
         alpha = get_if_exists(config_data, 'ALPHA', 0.7)
         map_labels_function = get_if_exists(config_data, 'MAP_LABELS_FUNCTION', None)

@@ -71,10 +71,8 @@ def _multiproc_calcualte_metrics_for_batch(images_paths):
     logging.info(f"Total of {n_images} images were sampled.")
     
     
-    results = []
     with Pool() as mp_pool:    
-        for img_metric in mp_pool.map(_calc_image_metrics, ([img_path for img_path in images_paths])):
-            results.append(img_metric) 
+        results = mp_pool.map(_calc_image_metrics, (images_paths))
         
         mp_pool.close()
         mp_pool.join()
@@ -94,7 +92,7 @@ def _calc_image_metrics(img_path):
         return None
     
     # img = img[12:-12,12:-12]
-    handle_img_shape(img, expected_site_width=1024, expected_site_height=1024)
+    img = handle_img_shape(img, expected_site_width=1024, expected_site_height=1024)
     
     scaled_img = rescale_intensity(img)
     
@@ -130,20 +128,7 @@ def save_to_file(results, savepath):
 def get_metrics(tile):
     sharpness_brenner = image_metrics.calculate_image_sharpness_brenner(tile)    
     return (sharpness_brenner,)
-    
-    # snr = image_metrics.calculate_snr(tile)
-    # # Check contrast & Sharpness
-    # sharpness_laplacian = image_metrics.calculate_image_sharpness_laplacian(tile)
-    # return (sharpness_laplacian,)
-    # contrast = image_metrics.calculate_image_contrast(tile)
-    # Check var
-    # var = image_metrics.calculate_var(tile)
-    # Check blurness:
-    # entropy = image_metrics.calculate_entropy(tile)
-    # sigma = image_metrics.calculate_sigma(tile)
-    # high_freq = image_metrics.calculate_high_freq_power(tile)
-    # # largest_area = calculate_largest_uniform_area(tile)
-    # # fractal_dim = calculate_fractal_dim(tile)
+
 
 def main():
     # cell_lines = ['WT']
@@ -153,8 +138,8 @@ def main():
     # raw_base_path = '/home/labs/hornsteinlab/Collaboration/MOmaps/input/images/raw/SpinningDisk/'
     
     
-    log_file_path = "/home/labs/hornsteinlab/Collaboration/MOmaps_Sagy/MOmaps/sandbox/outliers_detection/log_fus.txt"
-    savepath = "/home/labs/hornsteinlab/Collaboration/MOmaps_Sagy/MOmaps/sandbox/outliers_detection/raw_metrics_fus.csv"
+    log_file_path = "/home/labs/hornsteinlab/Collaboration/MOmaps/sandbox/outliers_detection/brenner_values/log_fus_fixed200224_2.txt"
+    savepath = "/home/labs/hornsteinlab/Collaboration/MOmaps/sandbox/outliers_detection/brenner_values/raw_metrics_fus_fixed200224_2.csv"
     
     init_logging(log_file_path)
     
@@ -167,7 +152,7 @@ def main():
         results_batch = calculate_metrics_for_batch(batch_name)
         logging.info(f"Appending metrics from batch {batch_name}")
         results.extend(results_batch)
-        save_to_file(results, f"{savepath}_checkpoint_{batch_name}")
+        save_to_file(results, f"{savepath}_checkpoint_{batch_name.replace(os.sep, '.')}")
     
     save_to_file(results, savepath)
     

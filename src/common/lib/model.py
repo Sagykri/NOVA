@@ -329,8 +329,13 @@ class Model():
         
         return analytics
     
-    def generate_dummy_analytics(self):
-        analytics = AnalysisOpenCell(None, self.model)
+    def generate_dummy_analytics(self):        
+        if self.model is not None:
+            trainer = self.model
+        else:
+            trainer = DummyTrainer(self.conf.MODEL_OUTPUT_FOLDER)
+        
+        analytics = AnalysisOpenCell(None, trainer)
         
         self.analytics = analytics
         
@@ -509,3 +514,7 @@ class Model():
         
         return umap_data
     
+    
+class DummyTrainer():
+    def __init__(self, homepath):
+        self.savepath_dict = {'homepath': homepath}

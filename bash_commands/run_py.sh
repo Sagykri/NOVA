@@ -21,7 +21,7 @@
 # ./bash_commands/run_py.sh ./src/runables/generate_embeddings -g -m 40000 -b 40 -a ./src/models/neuroself/configs/model_config/TLNeuroselfB78NoDSModelConfig ./src/datasets/configs/embeddings_data_config/EmbeddingsB9DatasetConfig -j generate_embeddings_vq2
 
 # Generate vqindhist embeddings (spectral_features)
-# ./bash_commands/run_py.sh ./src/runables/generate_spectral_features -g -m 40000 -b 40 -a ./src/models/neuroself/configs/model_config/TLNeuroselfNiemannPickB14ModelConfig ./src/datasets/configs/embeddings_data_config/EmbeddingsNPB3DatasetConfig -j indhist_NP_3 -q high_gpu_gsla
+# ./bash_commands/run_py.sh ./src/runables/generate_spectral_features -g -m 40000 -b 40 -a ./src/models/neuroself/configs/model_config/TLNeuroselfB78NoDSModelConfig ./src/datasets/configs/embeddings_data_config/EmbeddingsNPB3DatasetConfig -j indhist_NP_3 -q high_gpu_gsla
 
 # Generate UMAP0s
 # ./bash_commands/run_py.sh ./src/runables/generate_umaps -g -m 40000 -b 10 -a ./src/models/neuroself/configs/model_config/TLNeuroselfB78NoDSModelConfig ./src/datasets/configs/embeddings_data_config/EmbeddingsB6DatasetConfig /home/labs/hornsteinlab/Collaboration/MOmaps/outputs/figures/manuscript/fig2/neuroself/ -j gen_umaps_b6_stress
@@ -32,6 +32,10 @@
 
 # Generate UMAP1
 # ./bash_commands/run_py.sh ./src/runables/generate_umap1_vqindhist -g -m 20000 -b 10 -a ./src/models/neuroself/configs/model_config/TLNeuroselfB78NoDSModelConfig ./src/figures/figures_config/NeuronsUMAP1B78FigureConfig /home/labs/hornsteinlab/Collaboration/MOmaps/outputs/figures/manuscript/fig2/panelC/ -j umap1
+
+# Calculate distances
+# ./bash_commands/run_py.sh ./src/runables/calculate_embeddings_distances -m 40000 -a ./src/models/neuroself/configs/model_config/TLNeuroselfB78NoDSModelConfig ./src/datasets/configs/embeddings_data_config/EmbeddingsB9DatasetConfig all -q new-long -j distances
+
 
 # Test GPU
 # ./bash_commands/run_py.sh ./tests/test_gpu  -m 1000 -g

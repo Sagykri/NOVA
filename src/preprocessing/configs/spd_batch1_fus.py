@@ -17,3 +17,7 @@ class SPD_Batch1_FUS(SPDPreprocessingConfig):
         self.TILE_WIDTH = 128
         self.TILE_HEIGHT = 128
         self.LOGS_FOLDER = os.path.join(self.OUTPUTS_SUBSUBFOLDER, 'logs', "preprocessing_FUS", 'batch1')
+        
+        self.BRENNER_BOUNDS_PATH =  os.path.join(os.getenv("MOMAPS_HOME"), 'src', 'preprocessing', 'sites_validity_bounds_FUS.csv')
+        self.DELETE_MARKER_FOLDER_IF_EXISTS = True
+        self.MARKERS_TO_INCLUDE = ['NEMO', 'DCP1A', 'SNCA', 'PSD95', 'FMRP', 'SQSTM1', 'TDP43', 'TOMM20']

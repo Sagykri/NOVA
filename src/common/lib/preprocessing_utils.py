@@ -22,6 +22,7 @@ from shapely.geometry import Polygon
 from skimage import io
 import skimage.exposure
 from pathlib import Path
+import shutil
 
 def crop_frame(original_image, w=12,h=12):
 
@@ -426,6 +427,9 @@ def preprocess_panel(slf, panel, input_folder_root,
 
         format_output_filename = lambda filename, ext: f"{filename}_{panel}_{cell_line}{ext}"
         
+        if slf.delete_marker_folder_if_exists:
+            marker_folders_removed = []
+        
         for input_folder, output_folder in zip(input_folders, output_folders):
             markers = os.listdir(input_folder)
             rep = os.path.basename(input_folder)
@@ -445,6 +449,13 @@ def preprocess_panel(slf, panel, input_folder_root,
                 logging.info(f"Marker: {marker}")
                 logging.info(f"Subfolder {input_subfolder}")
                 
+                if slf.delete_marker_folder_if_exists:
+                    if marker not in marker_folders_removed:
+                        marker_folders_removed.append(marker)
+                        if os.path.exists(output_subfolder) and os.path.isdir(output_subfolder):
+                            shutil.rmtree(output_subfolder)
+                            logging.info(f"'delete_folder_if_exists' was set to True, therefore, deleting existing folder to override it: {output_subfolder}")
+                        
                 
                 for f in os.listdir(input_subfolder):
                     filename, ext = os.path.splitext(f)

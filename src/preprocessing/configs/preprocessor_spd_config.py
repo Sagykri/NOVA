@@ -25,3 +25,4 @@ class SPDPreprocessingConfig(PreprocessingConfig):
         self.WITH_NUCLEUS_DISTANCE = False
         self.CELL_LINES_TO_INCLUDE = None
         self.BRENNER_BOUNDS_PATH =  os.path.join(os.getenv("MOMAPS_HOME"), 'src', 'preprocessing', 'sites_validity_bounds.csv')
+        self.DELETE_MARKER_FOLDER_IF_EXISTS = False

@@ -47,6 +47,52 @@ custom_palette = [line_colors[line] for line in lines_order]
 expected_dapi_raw = 1100
 expected_raw=2200
 
+# regular neurons FUS pertubations
+fus_panels = pd.DataFrame( [['KIF5A','TDP43','FMRP','CLTC','DCP1A','TOMM20','NCL','ANXA11','Calreticulin','mitotracker'],
+                             ['G3BP1','NONO','SQSTM1',np.nan,np.nan,np.nan,np.nan,np.nan,np.nan,'PML'],
+                        ['PURA','CD41','Phalloidin','PSD95', 'NEMO', 'GM130', 'FUS', 'SNCA', 'LAMP1', 'PEX14'],
+                        ['DAPI']*10], columns=['A','B','C','D','E','F','G','H','I','J'],
+                        index=['Cy5', 'mCherry', 'GFP','DAPI'])
+fus_markers = ['G3BP1','NONO','SQSTM1','PSD95','NEMO',
+           'GM130','NCL','ANXA11','Calreticulin','mitotracker',
+            'KIF5A','TDP43','FMRP','CLTC','DCP1A',
+            'TOMM20','FUS','SNCA','LAMP1','PML',
+            'PURA','CD41','Phalloidin', 'PEX14','DAPI']
+
+fus_marker_info = pd.DataFrame([[['Cy5']]*10 + [['mCherry']]*4 + [['GFP']]*10,
+                          [['A'],['B'],['C'],['D'],['E'],['F'],['G'],['H'],['I'],['J'],
+                          ['A'],['B'],['C'],['J'],
+                          ['A'],['B'],['C'],['D'],['E'],['F'],['G'],['H'],['I'],['J']]], index=['Antibody','panel'],
+                         columns = ['KIF5A','TDP43','FMRP','CLTC','DCP1A','TOMM20','NCL','ANXA11','Calreticulin','mitotracker',
+                                 'G3BP1','NONO','SQSTM1','PML',
+                                 'PURA','CD41','Phalloidin', 'PSD95', 'NEMO', 'GM130', 'FUS', 'SNCA', 'LAMP1', 'PEX14']).T  #order here is important - taken from Lena's sheet
+fus_cell_lines = ['KOLF', 'FUSRevertant', 'FUSHeterozygous'] #'SCNA',
+fus_cell_lines_to_cond = {'KOLF':['Untreated','BMAA','Cisplatin','Colchicine', 'DMSO', 'Etoposide', 'MG132', 'ML240', 'NMS873', 'SA'],
+                      'FUSRevertant':['BMAA','Cisplatin','Colchicine', 'DMSO', 'Etoposide', 'MG132', 'ML240', 'NMS873', 'SA'],
+                      'FUSHeterozygous':['BMAA','Cisplatin','Colchicine', 'DMSO', 'Etoposide', 'MG132', 'ML240', 'NMS873', 'SA']} #'SCNA':['Untreated'],
+fus_cell_lines_for_disp = {f'{k}_{c}':f'{k}_{c}' for k,conds in fus_cell_lines_to_cond.items() for c in conds}
+# fus_cell_lines_for_disp = {'FUSHomozygous_Untreated':'FUSHomozygous', 'TDP43_Untreated':'TDP43', 
+#                        'TBK1_Untreated':'TBK1', 'WT_stress':'WT_stress', 'WT_Untreated':'WT_Untreated',
+#                         'FUSRevertant_Untreated':'FUSRevertant',
+#                         'OPTN_Untreated':'OPTN', 'FUSHeterozygous_Untreated':'FUSHeterozygous'} #'SCNA_Untreated':'SCNA',
+fus_reps = ['rep1','rep2']
+fus_colorblind_palette = sns.color_palette('colorblind')
+fus_line_colors = {f'{k} {c}': fus_colorblind_palette[i%len(fus_colorblind_palette)] 
+                   for i, (k,conds) in enumerate(fus_cell_lines_to_cond.items())
+                   for c in conds}
+# fus_line_colors = {
+#     'KOLF Untreated': colorblind_palette[9],
+#     'KOLF BMAA': colorblind_palette[3],
+    
+#     'FUSHeterozygous': colorblind_palette[0],
+#     'FUSRevertant': colorblind_palette[2],
+    
+# }
+fus_lines_order = fus_line_colors.keys()
+fus_custom_palette = [fus_line_colors[line] for line in fus_line_colors]
+fus_expected_dapi_raw = 1000
+# expected_raw=2200 # Unused
+
 # Microglia
 microglia_cell_lines_to_cond = {'FUSHomozygous':['Untreated'], 'TDP43':['Untreated'], 'TBK1':['Untreated'],
                       'WT':['Untreated'],'SCNA':['Untreated'], 'FUSRevertant':['Untreated'],

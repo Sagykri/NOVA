@@ -28,10 +28,15 @@ def generate_umaps():
     config_data = load_config_file(config_path_data, 'data', config_model.CONFIGS_USED_FOLDER)
     output_folder_path = sys.argv[3] #if len(sys.argv) > 3 else config_model.MODEL_OUTPUT_FOLDER
     delta = True if len(sys.argv)>4 else False
-    assert os.path.isdir(output_folder_path) and os.path.exists(output_folder_path), f"{output_folder_path} is an invalid output folder path or doesn't exists"
+    
+    if not os.path.exists(output_folder_path):
+        logging.info(f"{output_folder_path} doesn't exists. Creating it")
+        os.makedirs(output_folder_path)
+    
+    # assert os.path.isdir(output_folder_path) and os.path.exists(output_folder_path), f"{output_folder_path} is an invalid output folder path or doesn't exists"
 
     logging.info("init")
-    logging.info("[Gnerate UMAP1]")
+    logging.info("[Generate UMAP1]")
     
     logging.info(f"Is GPU available: {torch.cuda.is_available()}")
     logging.info(f"Num GPUs Available: {torch.cuda.device_count()}")
@@ -46,9 +51,6 @@ def generate_umaps():
     
     logging.info("Init model")
     model = Model(config_model)
-    
-    logging.info(f"Loading model (Path: {config_model.MODEL_PATH})")
-    model.load_model(num_fc_output_classes=len(unique_markers))
     
     __generate_with_load(config_model, config_data, model, output_folder_path, delta)
     return None
@@ -146,7 +148,8 @@ def __generate_with_load(config_model, config_data, model, output_folder_path, d
                     reset_umap=True,
                     map_labels_function=map_labels_function,
                     config_data=config_data,
-                    ordered_names = ordered_names)
+                    ordered_names = ordered_names,
+                    outliers_fraction=0.01)
     
     logging.info(f"UMAP saved successfully to {savepath}")
     return None

@@ -37,8 +37,10 @@ def run_synthetic_multiplexing():
     else:
         output_folder_path = config_model.MODEL_OUTPUT_FOLDER
     
-    assert os.path.isdir(output_folder_path) and os.path.exists(output_folder_path), f"{output_folder_path} is an invalid output folder path or doesn't exists"
-
+    if not os.path.exists(output_folder_path):
+        logging.info(f"{output_folder_path} doesn't exists. Creating it")
+        os.makedirs(output_folder_path)
+    
     logging.info(f"init - jobid: {jobid}")
     logging.info("[Synthetic Multiplexing]")
     
@@ -54,9 +56,6 @@ def run_synthetic_multiplexing():
     
     logging.info("Init model")
     model = Model(config_model)
-    
-    logging.info(f"Loading model (Path: {config_model.MODEL_PATH})")
-    model.load_model(num_fc_output_classes=len(unique_markers))
     
     logging.info("Multiplex!")
     embeddings_type = get_if_exists(config_data,

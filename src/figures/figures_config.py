@@ -1066,3 +1066,1013 @@ class FigSup6DConfig(DatasetConfig):
 #         self.ALPHA = 0.7
         
 
+###################################################################################
+
+#########################################################    
+### FUS Perturbations ###
+#########################################################     
+
+class FUSPertUMAP1B1FigureConfig(DatasetConfig):
+    def __init__(self):
+        super().__init__()
+
+        # Batches used for model development
+        self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "spd2", "SpinningDisk", 'FUS_lines_stress_2024_sorted', f) for f in 
+                        ["batch1"]]
+        
+        self.SPLIT_DATA = False 
+        self.EXPERIMENT_TYPE = 'fus'    
+        
+        # Local/Global embeddings
+        self.EMBEDDINGS_LAYER = 'vqindhist1' 
+
+        # UMAP1 vqindhist:
+        self.CELL_LINES_CONDS = ['KOLF_Untreated']
+        
+        # How labels are shown in legend
+        self.MAP_LABELS_FUNCTION = "lambda self: lambda labels: __import__('numpy').asarray([l.split('_')[0] for l in labels])"
+        
+        # Colors 
+        self.UMAP_MAPPINGS = self.UMAP_MAPPINGS_MARKERS
+        
+        self.MARKERS_TO_EXCLUDE = ['FMRP']
+
+        # Set the size of the dots
+        self.SIZE = 0.3
+        # Set the alpha of the dots (0=max opacity, 1=no opacity)
+        self.ALPHA = 0.7
+        
+        
+class FUSPertUMAP1B1Rep1FigureConfig(DatasetConfig):
+    def __init__(self):
+        super().__init__()
+
+        # Batches used for model development
+        self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "spd2", "SpinningDisk", 'FUS_lines_stress_2024_sorted', f) for f in 
+                        ["batch1"]]
+        
+        self.SPLIT_DATA = False 
+        self.EXPERIMENT_TYPE = 'fus'    
+        
+        # Local/Global embeddings
+        self.EMBEDDINGS_LAYER = 'vqindhist1' 
+
+        # UMAP1 vqindhist:
+        self.CELL_LINES_CONDS = ['KOLF_Untreated']
+        
+        self.REPS       = ['rep1']
+        
+        # How labels are shown in legend
+        self.MAP_LABELS_FUNCTION = "lambda self: lambda labels: __import__('numpy').asarray([l.split('_')[0] for l in labels])"
+        
+        # Colors 
+        self.UMAP_MAPPINGS = self.UMAP_MAPPINGS_MARKERS
+        
+        self.MARKERS_TO_EXCLUDE = ['FMRP']
+
+        # Set the size of the dots
+        self.SIZE = 0.3
+        # Set the alpha of the dots (0=max opacity, 1=no opacity)
+        self.ALPHA = 0.7
+        
+class FUSPertUMAP1B1Rep2FigureConfig(DatasetConfig):
+    def __init__(self):
+        super().__init__()
+
+        # Batches used for model development
+        self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "spd2", "SpinningDisk", 'FUS_lines_stress_2024_sorted', f) for f in 
+                        ["batch1"]]
+        
+        self.SPLIT_DATA = False 
+        self.EXPERIMENT_TYPE = 'fus'    
+        
+        # Local/Global embeddings
+        self.EMBEDDINGS_LAYER = 'vqindhist1' 
+
+        # UMAP1 vqindhist:
+        self.CELL_LINES_CONDS = ['KOLF_Untreated']
+        
+        self.REPS       = ['rep2']
+        
+        # How labels are shown in legend
+        self.MAP_LABELS_FUNCTION = "lambda self: lambda labels: __import__('numpy').asarray([l.split('_')[0] for l in labels])"
+        
+        # Colors 
+        self.UMAP_MAPPINGS = self.UMAP_MAPPINGS_MARKERS
+        
+        self.MARKERS_TO_EXCLUDE = ['FMRP']
+
+        # Set the size of the dots
+        self.SIZE = 15
+        # Set the alpha of the dots (0=max opacity, 1=no opacity)
+        self.ALPHA = 0.7
+        
+class FUSPertUMAP1B1DMSOFigureConfig(DatasetConfig):
+    def __init__(self):
+        super().__init__()
+
+        # Batches used for model development
+        self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "spd2", "SpinningDisk", 'FUS_lines_stress_2024_sorted', f) for f in 
+                        ["batch1"]]
+        
+        self.SPLIT_DATA = False 
+        self.EXPERIMENT_TYPE = 'fus'    
+        
+        # Local/Global embeddings
+        self.EMBEDDINGS_LAYER = 'vqindhist1' 
+
+        # UMAP1 vqindhist:
+        self.CELL_LINES_CONDS = ['KOLF_DMSO']
+        
+        # How labels are shown in legend
+        self.MAP_LABELS_FUNCTION = "lambda self: lambda labels: __import__('numpy').asarray([l.split('_')[0] for l in labels])"
+        
+        # Colors 
+        self.UMAP_MAPPINGS = self.UMAP_MAPPINGS_MARKERS
+        
+        self.MARKERS_TO_EXCLUDE = ['FMRP']
+
+        # Set the size of the dots
+        self.SIZE = 0.3
+        # Set the alpha of the dots (0=max opacity, 1=no opacity)
+        self.ALPHA = 0.7
+        
+class FUSPertUMAP0B1KOLFUntreatedSAFigureConfig(DatasetConfig):
+    def __init__(self):
+        super().__init__()
+
+        # Batches used for model development
+        self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "spd2", "SpinningDisk", 'FUS_lines_stress_2024_sorted', f) for f in 
+                        ["batch1"]]
+        
+        self.SPLIT_DATA = False 
+        self.EXPERIMENT_TYPE = 'fus'    
+        
+        # Local/Global embeddings
+        self.EMBEDDINGS_LAYER = 'vqvec2' 
+
+        # UMAP1 vqindhist:
+        self.CELL_LINES = ['KOLF']
+        self.CONDITIONS = ['Untreated', 'SA']
+        
+        self.MAP_LABELS_FUNCTION = "lambda self: lambda labels: __import__('numpy').asarray([l.split('_')[1] for l in labels])"
+
+        
+        # Colors 
+        self.UMAP_MAPPINGS = self.UMAP_MAPPINGS_CONDITION_FUS
+        
+        # self.MARKERS_TO_EXCLUDE = ['FMRP']
+
+        # Set the size of the dots
+        self.SIZE = 15
+        # Set the alpha of the dots (0=max opacity, 1=no opacity)
+        self.ALPHA = 0.7
+        
+class FUSPertUMAP0B1KOLFUntreatedSARep1FigureConfig(DatasetConfig):
+    def __init__(self):
+        super().__init__()
+
+        # Batches used for model development
+        self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "spd2", "SpinningDisk", 'FUS_lines_stress_2024_sorted', f) for f in 
+                        ["batch1"]]
+        
+        self.SPLIT_DATA = False 
+        self.EXPERIMENT_TYPE = 'fus'    
+        
+        # Local/Global embeddings
+        self.EMBEDDINGS_LAYER = 'vqvec2' 
+
+        # UMAP1 vqindhist:
+        self.CELL_LINES = ['KOLF']
+        self.CONDITIONS = ['Untreated', 'SA']
+        self.REPS = ['rep1']
+        
+        self.MAP_LABELS_FUNCTION = "lambda self: lambda labels: __import__('numpy').asarray([l.split('_')[1] for l in labels])"
+
+        
+        # Colors 
+        self.UMAP_MAPPINGS = self.UMAP_MAPPINGS_CONDITION_FUS
+        
+        # self.MARKERS_TO_EXCLUDE = ['FMRP']
+
+        # Set the size of the dots
+        self.SIZE = 15
+        # Set the alpha of the dots (0=max opacity, 1=no opacity)
+        self.ALPHA = 0.7
+        
+class FUSPertUMAP0B1KOLFDMSOSARep2FigureConfig(DatasetConfig):
+    def __init__(self):
+        super().__init__()
+
+        # Batches used for model development
+        self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "spd2", "SpinningDisk", 'FUS_lines_stress_2024_sorted', f) for f in 
+                        ["batch1"]]
+        
+        self.SPLIT_DATA = False 
+        self.EXPERIMENT_TYPE = 'fus'    
+        
+        # Local/Global embeddings
+        self.EMBEDDINGS_LAYER = 'vqvec2' 
+
+        # UMAP1 vqindhist:
+        self.CELL_LINES = ['KOLF']
+        self.CONDITIONS = ['DMSO', 'SA']
+        self.REPS = ['rep2']
+        
+        self.MAP_LABELS_FUNCTION = "lambda self: lambda labels: __import__('numpy').asarray([l.split('_')[1] for l in labels])"
+
+        
+        # Colors 
+        self.UMAP_MAPPINGS = None#self.UMAP_MAPPINGS_CONDITION_FUS
+        self.COLORMAP = 'Set1'
+        # self.MARKERS_TO_EXCLUDE = ['FMRP']
+
+        # Set the size of the dots
+        self.SIZE = 15
+        # Set the alpha of the dots (0=max opacity, 1=no opacity)
+        self.ALPHA = 0.7
+        
+class FUSPertUMAP0B1KOLFDMSOUntreatedRep2FigureConfig(DatasetConfig):
+    def __init__(self):
+        super().__init__()
+
+        # Batches used for model development
+        self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "spd2", "SpinningDisk", 'FUS_lines_stress_2024_sorted', f) for f in 
+                        ["batch1"]]
+        
+        self.SPLIT_DATA = False 
+        self.EXPERIMENT_TYPE = 'fus'    
+        
+        # Local/Global embeddings
+        self.EMBEDDINGS_LAYER = 'vqvec2' 
+
+        # UMAP1 vqindhist:
+        self.CELL_LINES = ['KOLF']
+        self.CONDITIONS = ['DMSO', 'Untreated']
+        self.REPS = ['rep2']
+        
+        self.MAP_LABELS_FUNCTION = "lambda self: lambda labels: __import__('numpy').asarray([l.split('_')[1] for l in labels])"
+
+        
+        # Colors 
+        self.UMAP_MAPPINGS = self.UMAP_MAPPINGS_CONDITION_FUS
+        
+        # self.MARKERS_TO_EXCLUDE = ['FMRP']
+
+        # Set the size of the dots
+        self.SIZE = 15
+        # Set the alpha of the dots (0=max opacity, 1=no opacity)
+        self.ALPHA = 0.7
+        
+class FUSPertUMAP0B1KOLFUntreatedSARep2FigureConfig(DatasetConfig):
+    def __init__(self):
+        super().__init__()
+
+        # Batches used for model development
+        self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "spd2", "SpinningDisk", 'FUS_lines_stress_2024_sorted', f) for f in 
+                        ["batch1"]]
+        
+        self.SPLIT_DATA = False 
+        self.EXPERIMENT_TYPE = 'fus'    
+        
+        # Local/Global embeddings
+        self.EMBEDDINGS_LAYER = 'vqvec2' 
+
+        # UMAP1 vqindhist:
+        self.CELL_LINES = ['KOLF']
+        self.CONDITIONS = ['Untreated', 'SA']
+        self.REPS = ['rep2']
+        
+        self.MAP_LABELS_FUNCTION = "lambda self: lambda labels: __import__('numpy').asarray([l.split('_')[1] for l in labels])"
+
+        
+        # Colors 
+        self.UMAP_MAPPINGS = self.UMAP_MAPPINGS_CONDITION_FUS
+        
+        # self.MARKERS_TO_EXCLUDE = ['FMRP']
+
+        # Set the size of the dots
+        self.SIZE = 30
+        # Set the alpha of the dots (0=max opacity, 1=no opacity)
+        self.ALPHA = 0.7
+        
+class FUSPertUMAP0B1KOLFUntreatedCisplatinRep2FigureConfig(DatasetConfig):
+    def __init__(self):
+        super().__init__()
+
+        # Batches used for model development
+        self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "spd2", "SpinningDisk", 'FUS_lines_stress_2024_sorted', f) for f in 
+                        ["batch1"]]
+        
+        self.SPLIT_DATA = False 
+        self.EXPERIMENT_TYPE = 'fus'    
+        
+        # Local/Global embeddings
+        self.EMBEDDINGS_LAYER = 'vqvec2' 
+
+        # UMAP1 vqindhist:
+        self.CELL_LINES = ['KOLF']
+        self.CONDITIONS = ['Untreated', 'Cisplatin']
+        self.REPS = ['rep2']
+        
+        self.MAP_LABELS_FUNCTION = "lambda self: lambda labels: __import__('numpy').asarray([l.split('_')[1] for l in labels])"
+
+        
+        # Colors 
+        self.UMAP_MAPPINGS = self.UMAP_MAPPINGS_CONDITION_FUS
+        
+        # self.MARKERS_TO_EXCLUDE = ['FMRP']
+
+        # Set the size of the dots
+        self.SIZE = 30
+        # Set the alpha of the dots (0=max opacity, 1=no opacity)
+        self.ALPHA = 0.7
+
+class FUSPertUMAP0B1KOLFUntreatedColchicineRep2FigureConfig(DatasetConfig):
+    def __init__(self):
+        super().__init__()
+
+        # Batches used for model development
+        self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "spd2", "SpinningDisk", 'FUS_lines_stress_2024_sorted', f) for f in 
+                        ["batch1"]]
+        
+        self.SPLIT_DATA = False 
+        self.EXPERIMENT_TYPE = 'fus'    
+        
+        # Local/Global embeddings
+        self.EMBEDDINGS_LAYER = 'vqvec2' 
+
+        # UMAP1 vqindhist:
+        self.CELL_LINES = ['KOLF']
+        self.CONDITIONS = ['Untreated', 'Colchicine']
+        self.REPS = ['rep2']
+        
+        self.MAP_LABELS_FUNCTION = "lambda self: lambda labels: __import__('numpy').asarray([l.split('_')[1] for l in labels])"
+
+        
+        # Colors 
+        self.UMAP_MAPPINGS = self.UMAP_MAPPINGS_CONDITION_FUS
+        
+        # self.MARKERS_TO_EXCLUDE = ['FMRP']
+
+        # Set the size of the dots
+        self.SIZE = 30
+        # Set the alpha of the dots (0=max opacity, 1=no opacity)
+        self.ALPHA = 0.7
+        
+        
+class FUSPertUMAP0B1KOLFFUSHetDMSOCisplatinRep2FigureConfig(DatasetConfig):
+    def __init__(self):
+        super().__init__()
+
+        # Batches used for model development
+        self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "spd2", "SpinningDisk", 'FUS_lines_stress_2024_sorted', f) for f in 
+                        ["batch1"]]
+        
+        self.SPLIT_DATA = False 
+        self.EXPERIMENT_TYPE = 'fus'    
+        
+        # Local/Global embeddings
+        self.EMBEDDINGS_LAYER = 'vqvec2' 
+
+        # UMAP1 vqindhist:
+        self.CELL_LINES = ['KOLF', 'FUSHeterozygous']
+        self.CONDITIONS = ['DMSO', 'Cisplatin']
+        self.REPS = ['rep2']
+        
+        # self.MAP_LABELS_FUNCTION = "lambda self: lambda labels: __import__('numpy').asarray([l.split('_')[1] for l in labels])"
+
+        
+        # Colors 
+        self.UMAP_MAPPINGS = None#self.UMAP_MAPPINGS_CONDITION_FUS
+        self.COLORMAP = 'Set1'
+        # self.MARKERS_TO_EXCLUDE = ['FMRP']
+
+        # Set the size of the dots
+        self.SIZE = 30
+        # Set the alpha of the dots (0=max opacity, 1=no opacity)
+        self.ALPHA = 0.7
+
+class FUSPertUMAP0B1KOLFFUSHetDMSOColchicineRep2FigureConfig(DatasetConfig):
+    def __init__(self):
+        super().__init__()
+
+        # Batches used for model development
+        self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "spd2", "SpinningDisk", 'FUS_lines_stress_2024_sorted', f) for f in 
+                        ["batch1"]]
+        
+        self.SPLIT_DATA = False 
+        self.EXPERIMENT_TYPE = 'fus'    
+        
+        # Local/Global embeddings
+        self.EMBEDDINGS_LAYER = 'vqvec2' 
+
+        # UMAP1 vqindhist:
+        self.CELL_LINES = ['KOLF', 'FUSHeterozygous']
+        self.CONDITIONS = ['DMSO', 'Colchicine']
+        self.REPS = ['rep2']
+        
+        # self.MAP_LABELS_FUNCTION = "lambda self: lambda labels: __import__('numpy').asarray([l.split('_')[1] for l in labels])"
+
+        
+        # Colors 
+        self.UMAP_MAPPINGS = None#self.UMAP_MAPPINGS_CONDITION_FUS
+        self.COLORMAP = 'Set1'
+        
+        # self.MARKERS_TO_EXCLUDE = ['FMRP']
+
+        # Set the size of the dots
+        self.SIZE = 30
+        # Set the alpha of the dots (0=max opacity, 1=no opacity)
+        self.ALPHA = 0.7
+
+
+class FUSPertUMAP0B1KOLFUntreatedBothRepsFigureConfig(DatasetConfig):
+    def __init__(self):
+        super().__init__()
+
+        # Batches used for model development
+        self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "spd2", "SpinningDisk", 'FUS_lines_stress_2024_sorted', f) for f in 
+                        ["batch1"]]
+        
+        self.SPLIT_DATA = False 
+        self.EXPERIMENT_TYPE = 'fus'    
+        self.ADD_REP_TO_LABEL = True
+        
+        # Local/Global embeddings
+        self.EMBEDDINGS_LAYER = 'vqvec2' 
+
+        # UMAP1 vqindhist:
+        self.CELL_LINES = ['KOLF']
+        self.CONDITIONS = ['Untreated']
+        self.REPS = ['rep1', 'rep2']
+        
+        # self.MAP_LABELS_FUNCTION = "lambda self: lambda labels: __import__('numpy').asarray([l.split('_')[1] for l in labels])"
+
+        
+        # Colors 
+        self.UMAP_MAPPINGS = None
+        self.COLORMAP = 'Set1'
+        
+        # self.MARKERS_TO_EXCLUDE = ['FMRP']
+
+        # Set the size of the dots
+        self.SIZE = 30
+        # Set the alpha of the dots (0=max opacity, 1=no opacity)
+        self.ALPHA = 0.7
+
+class FUSPertUMAP0B1KOLFDMSOBothRepsFigureConfig(DatasetConfig):
+    def __init__(self):
+        super().__init__()
+
+        # Batches used for model development
+        self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "spd2", "SpinningDisk", 'FUS_lines_stress_2024_sorted', f) for f in 
+                        ["batch1"]]
+        
+        self.SPLIT_DATA = False 
+        self.EXPERIMENT_TYPE = 'fus'    
+        self.ADD_REP_TO_LABEL = True
+        
+        # Local/Global embeddings
+        self.EMBEDDINGS_LAYER = 'vqvec2' 
+
+        # UMAP1 vqindhist:
+        self.CELL_LINES = ['KOLF']
+        self.CONDITIONS = ['DMSO']
+        self.REPS = ['rep1', 'rep2']
+        
+        # self.MAP_LABELS_FUNCTION = "lambda self: lambda labels: __import__('numpy').asarray([l.split('_')[1] for l in labels])"
+
+        
+        # Colors 
+        self.UMAP_MAPPINGS = None
+        self.COLORMAP = 'Set1'
+        
+        # self.MARKERS_TO_EXCLUDE = ['FMRP']
+
+        # Set the size of the dots
+        self.SIZE = 30
+        # Set the alpha of the dots (0=max opacity, 1=no opacity)
+        self.ALPHA = 0.7
+
+class FUSPertB1_NeuronsB6_Rep2_KOLF_UMAP0_FigureConfig(DatasetConfig):
+    def __init__(self):
+        super().__init__()
+
+        # Batches used for model development
+        self.INPUT_FOLDERS = ["batch1", "neurons_batch6"]
+        
+        self.SPLIT_DATA = False 
+        self.EXPERIMENT_TYPE = 'fus'    
+        self.ADD_BATCH_TO_LABEL = True
+        
+        # Local/Global embeddings
+        self.EMBEDDINGS_LAYER = 'vqindhist1' 
+
+        # UMAP1 vqindhist:
+        self.CELL_LINES_CONDS = ['WT_Untreated', 'WT_stress', 'KOLF_Untreated', 'KOLF_SA']
+        self.REPS = ['rep2']
+        self.MARKERS_TO_EXCLUDE = ['TIA1', 'FMRP']
+        
+        # Colors 
+        self.UMAP_MAPPINGS = None # self.UMAP_MAPPINGS_CONDITION_FUS
+        self.COLORMAP = 'Set1'
+        # self.MARKERS_TO_EXCLUDE = ['FMRP']
+
+        # Set the size of the dots
+        self.SIZE = 5
+        # Set the alpha of the dots (0=max opacity, 1=no opacity)
+        self.ALPHA = 0.7
+        
+class FUSPertB1_NeuronsB6_Rep2_KOLF_DMSO_Untreated_UMAP0_FigureConfig(DatasetConfig):
+    def __init__(self):
+        super().__init__()
+
+        # Batches used for model development
+        self.INPUT_FOLDERS = ["batch1", "neurons_batch6"]
+        
+        self.SPLIT_DATA = False 
+        self.EXPERIMENT_TYPE = 'fus'    
+        self.ADD_BATCH_TO_LABEL = True
+        
+        # Local/Global embeddings
+        self.EMBEDDINGS_LAYER = 'vqindhist1' 
+
+        # UMAP1 vqindhist:
+        self.CELL_LINES_CONDS = ['WT_Untreated', 'WT_stress', 'KOLF_DMSO', 'KOLF_SA']
+        self.REPS = ['rep2']
+        self.MARKERS_TO_EXCLUDE = ['TIA1', 'FMRP']
+        
+        # Colors 
+        self.UMAP_MAPPINGS = None # self.UMAP_MAPPINGS_CONDITION_FUS
+        self.COLORMAP = 'Set1'
+        # self.MARKERS_TO_EXCLUDE = ['FMRP']
+
+        # Set the size of the dots
+        self.SIZE = 5
+        # Set the alpha of the dots (0=max opacity, 1=no opacity)
+        self.ALPHA = 0.7
+        
+        
+class FUSPertUMAP0B1FUS_FUSHet_DMSO_VS_ALL_KOLF_FigureConfig(DatasetConfig):
+    def __init__(self):
+        super().__init__()
+        
+
+        # Batches used for model development
+        self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "spd2", "SpinningDisk", 'FUS_lines_stress_2024_sorted', f) for f in 
+                        ["batch1"]]
+        
+        self.SPLIT_DATA = False 
+        self.EXPERIMENT_TYPE = 'fus'    
+        self.REPS       = ['rep2']
+        
+        # Local/Global embeddings
+        self.EMBEDDINGS_LAYER = 'vqindhist2' 
+                
+
+        # UMAP1 vqindhist:
+        self.CELL_LINES_CONDS = ['KOLF_DMSO', 'KOLF_BMAA',
+                                 'KOLF_Cisplatin', 'KOLF_Colchicine',
+                                 'KOLF_Etoposide', 'KOLF_MG132',
+                                 'KOLF_ML240', 'KOLF_NMS873', 'KOLF_SA',
+                                 'FUSHeterozygous_DMSO', 'FUSRevertant_DMSO']
+        
+        # How labels are shown in legend
+        # self.MAP_LABELS_FUNCTION = "lambda self: lambda labels: __import__('numpy').asarray([l.split('_')[0] for l in labels])"
+        
+        # Colors 
+        self.UMAP_MAPPINGS = None#self.UMAP_MAPPINGS_ALS
+        self.COLORMAP = 'tab20'
+        # NEMO has batch effect!
+        self.MARKERS = ['FUS']
+
+        # Set the size of the dots
+        self.SIZE = 5
+        # Set the alpha of the dots (0=max opacity, 1=no opacity)
+        self.ALPHA = 0.7
+        
+class FUSPertUMAP0B1_PML_PSD95_FUSHet_DMSO_VS_ALL_KOLF_FigureConfig(DatasetConfig):
+    def __init__(self):
+        super().__init__()
+        
+
+        # Batches used for model development
+        self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "spd2", "SpinningDisk", 'FUS_lines_stress_2024_sorted', f) for f in 
+                        ["batch1"]]
+        
+        self.SPLIT_DATA = False 
+        self.EXPERIMENT_TYPE = 'fus'    
+        self.REPS       = ['rep2']
+        
+        # Local/Global embeddings
+        self.EMBEDDINGS_LAYER = 'vqindhist2' 
+                
+
+        # UMAP1 vqindhist:
+        self.CELL_LINES_CONDS = ['KOLF_DMSO', 'KOLF_BMAA',
+                                 'KOLF_Cisplatin', 'KOLF_Colchicine',
+                                 'KOLF_Etoposide', 'KOLF_MG132',
+                                 'KOLF_ML240', 'KOLF_NMS873', 'KOLF_SA',
+                                 'FUSHeterozygous_DMSO', 'FUSRevertant_DMSO']
+        
+        # How labels are shown in legend
+        # self.MAP_LABELS_FUNCTION = "lambda self: lambda labels: __import__('numpy').asarray([l.split('_')[0] for l in labels])"
+        
+        # Colors 
+        self.UMAP_MAPPINGS = None#self.UMAP_MAPPINGS_ALS
+        self.COLORMAP = 'tab20'
+        self.MARKERS = ['PML', 'PSD95']
+
+        # Set the size of the dots
+        self.SIZE = 5
+        # Set the alpha of the dots (0=max opacity, 1=no opacity)
+        self.ALPHA = 0.7
+
+class FUSPertUMAP0B1_PML_PSD95_FUSHet_ALL_VS_KOLF_DMSO_FigureConfig(DatasetConfig):
+    def __init__(self):
+        super().__init__()
+        
+
+        # Batches used for model development
+        self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "spd2", "SpinningDisk", 'FUS_lines_stress_2024_sorted', f) for f in 
+                        ["batch1"]]
+        
+        self.SPLIT_DATA = False 
+        self.EXPERIMENT_TYPE = 'fus'    
+        self.REPS       = ['rep2']
+        
+        # Local/Global embeddings
+        self.EMBEDDINGS_LAYER = 'vqindhist2' 
+                
+
+        # UMAP1 vqindhist:
+        self.CELL_LINES_CONDS = ['KOLF_DMSO', 
+                                 'FUSHeterozygous_DMSO',
+                                 'FUSHeterozygous_BMAA',
+                                 'FUSHeterozygous_Cisplatin', 'FUSHeterozygous_Colchicine',
+                                 'FUSHeterozygous_Etoposide', 'FUSHeterozygous_MG132',
+                                 'FUSHeterozygous_ML240', 'FUSHeterozygous_NMS873', 'FUSHeterozygous_SA',
+                                 'FUSRevertant_DMSO']
+        
+        # How labels are shown in legend
+        # self.MAP_LABELS_FUNCTION = "lambda self: lambda labels: __import__('numpy').asarray([l.split('_')[0] for l in labels])"
+        
+        # Colors 
+        self.UMAP_MAPPINGS = None#self.UMAP_MAPPINGS_ALS
+        self.COLORMAP = 'tab20'
+        self.MARKERS = ['PML', 'PSD95']
+
+        # Set the size of the dots
+        self.SIZE = 5
+        # Set the alpha of the dots (0=max opacity, 1=no opacity)
+        self.ALPHA = 0.7
+
+class FUSPertUMAP2B1FigureConfig(DatasetConfig):
+    def __init__(self):
+        super().__init__()
+        
+
+        # Batches used for model development
+        self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "spd2", "SpinningDisk", 'FUS_lines_stress_2024_sorted', f) for f in 
+                        ["batch1"]]
+        
+        self.SPLIT_DATA = False 
+        self.EXPERIMENT_TYPE = 'fus'    
+        self.REPS       = ['rep1', 'rep2']
+        
+        # Local/Global embeddings
+        self.EMBEDDINGS_LAYER = 'vqindhist2' 
+                
+
+        # UMAP1 vqindhist:
+        self.CELL_LINES_CONDS = ['KOLF_DMSO', 'KOLF_BMAA',
+                                 'KOLF_Cisplatin', 'KOLF_Colchicine',
+                                 'KOLF_Etoposide', 'KOLF_MG132',
+                                 'KOLF_ML240', 'KOLF_NMS873', 'KOLF_SA',
+                                 'FUSHeterozygous_DMSO', 'FUSRevertant_DMSO']
+        
+        # How labels are shown in legend
+        # self.MAP_LABELS_FUNCTION = "lambda self: lambda labels: __import__('numpy').asarray([l.split('_')[0] for l in labels])"
+        
+        # Colors 
+        self.UMAP_MAPPINGS = None#self.UMAP_MAPPINGS_ALS
+        self.COLORMAP = 'tab20'
+        # NEMO has batch effect!
+        self.MARKERS_TO_EXCLUDE = ['FMRP', 'TIA1']
+
+        # Set the size of the dots
+        self.SIZE = 10
+        # Set the alpha of the dots (0=max opacity, 1=no opacity)
+        self.ALPHA = 0.7
+        
+class FUSPertUMAP2B1NEMOFigureConfig(DatasetConfig):
+    def __init__(self):
+        super().__init__()
+        
+
+        # Batches used for model development
+        self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "spd2", "SpinningDisk", 'FUS_lines_stress_2024_sorted', f) for f in 
+                        ["batch1"]]
+        
+        self.SPLIT_DATA = False 
+        self.EXPERIMENT_TYPE = 'fus'    
+        self.REPS       = ['rep1', 'rep2']
+        
+        # Local/Global embeddings
+        self.EMBEDDINGS_LAYER = 'vqindhist2' 
+                
+
+        # UMAP1 vqindhist:
+        self.CELL_LINES_CONDS = ['KOLF_DMSO', 'KOLF_BMAA',
+                                 'KOLF_Cisplatin', 'KOLF_Colchicine',
+                                 'KOLF_Etoposide', 'KOLF_MG132',
+                                 'KOLF_ML240', 'KOLF_NMS873', 'KOLF_SA',
+                                 'FUSHeterozygous_DMSO', 'FUSRevertant_DMSO']
+        
+        # How labels are shown in legend
+        # self.MAP_LABELS_FUNCTION = "lambda self: lambda labels: __import__('numpy').asarray([l.split('_')[0] for l in labels])"
+        
+        # Colors 
+        self.UMAP_MAPPINGS = None#self.UMAP_MAPPINGS_ALS
+        self.COLORMAP = 'tab20'
+        # NEMO has batch effect!
+        self.MARKERS_TO_EXCLUDE = ['NEMO','FMRP', 'TIA1']
+
+        # Set the size of the dots
+        self.SIZE = 10
+        # Set the alpha of the dots (0=max opacity, 1=no opacity)
+        self.ALPHA = 0.7
+        
+class FUSPertUMAP2B1FUSFigureConfig(DatasetConfig):
+    def __init__(self):
+        super().__init__()
+        
+
+        # Batches used for model development
+        self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "spd2", "SpinningDisk", 'FUS_lines_stress_2024_sorted', f) for f in 
+                        ["batch1"]]
+        
+        self.SPLIT_DATA = False 
+        self.EXPERIMENT_TYPE = 'fus'    
+        self.REPS       = ['rep1', 'rep2']
+        
+        # Local/Global embeddings
+        self.EMBEDDINGS_LAYER = 'vqindhist2' 
+                
+
+        # UMAP1 vqindhist:
+        self.CELL_LINES_CONDS = ['KOLF_DMSO', 'KOLF_BMAA',
+                                 'KOLF_Cisplatin', 'KOLF_Colchicine',
+                                 'KOLF_Etoposide', 'KOLF_MG132',
+                                 'KOLF_ML240', 'KOLF_NMS873', 'KOLF_SA',
+                                 'FUSHeterozygous_DMSO', 'FUSRevertant_DMSO']
+        
+        # How labels are shown in legend
+        # self.MAP_LABELS_FUNCTION = "lambda self: lambda labels: __import__('numpy').asarray([l.split('_')[0] for l in labels])"
+        
+        # Colors 
+        self.UMAP_MAPPINGS = None#self.UMAP_MAPPINGS_ALS
+        self.COLORMAP = 'tab20'
+        # NEMO has batch effect!
+        self.MARKERS_TO_EXCLUDE = ['FUS','FMRP', 'TIA1']
+
+        # Set the size of the dots
+        self.SIZE = 10
+        # Set the alpha of the dots (0=max opacity, 1=no opacity)
+        self.ALPHA = 0.7
+        
+class FUSPertUMAP2B1FUSNEMOFigureConfig(DatasetConfig):
+    def __init__(self):
+        super().__init__()
+        
+
+        # Batches used for model development
+        self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "spd2", "SpinningDisk", 'FUS_lines_stress_2024_sorted', f) for f in 
+                        ["batch1"]]
+        
+        self.SPLIT_DATA = False 
+        self.EXPERIMENT_TYPE = 'fus'    
+        self.REPS       = ['rep1', 'rep2']
+        
+        # Local/Global embeddings
+        self.EMBEDDINGS_LAYER = 'vqindhist2' 
+                
+
+        # UMAP1 vqindhist:
+        self.CELL_LINES_CONDS = ['KOLF_DMSO', 'KOLF_BMAA',
+                                 'KOLF_Cisplatin', 'KOLF_Colchicine',
+                                 'KOLF_Etoposide', 'KOLF_MG132',
+                                 'KOLF_ML240', 'KOLF_NMS873', 'KOLF_SA',
+                                 'FUSHeterozygous_DMSO', 'FUSRevertant_DMSO']
+        
+        # How labels are shown in legend
+        # self.MAP_LABELS_FUNCTION = "lambda self: lambda labels: __import__('numpy').asarray([l.split('_')[0] for l in labels])"
+        
+        # Colors 
+        self.UMAP_MAPPINGS = None#self.UMAP_MAPPINGS_ALS
+        self.COLORMAP = 'tab20'
+        # NEMO has batch effect!
+        self.MARKERS_TO_EXCLUDE = ['FUS','NEMO', 'FMRP', 'TIA1']
+
+        # Set the size of the dots
+        self.SIZE = 10
+        # Set the alpha of the dots (0=max opacity, 1=no opacity)
+        self.ALPHA = 0.7
+        
+class FUSPertUMAP2B1NEMOOnlyFigureConfig(DatasetConfig):
+    def __init__(self):
+        super().__init__()
+        
+
+        # Batches used for model development
+        self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "spd2", "SpinningDisk", 'FUS_lines_stress_2024_sorted', f) for f in 
+                        ["batch1"]]
+        
+        self.SPLIT_DATA = False 
+        self.EXPERIMENT_TYPE = 'fus'    
+        self.REPS       = ['rep1', 'rep2']
+        
+        # Local/Global embeddings
+        self.EMBEDDINGS_LAYER = 'vqindhist2' 
+                
+
+        # UMAP1 vqindhist:
+        self.CELL_LINES_CONDS = ['KOLF_DMSO', 'KOLF_BMAA',
+                                 'KOLF_Cisplatin', 'KOLF_Colchicine',
+                                 'KOLF_Etoposide', 'KOLF_MG132',
+                                 'KOLF_ML240', 'KOLF_NMS873', 'KOLF_SA',
+                                 'FUSHeterozygous_DMSO', 'FUSRevertant_DMSO']
+        
+        # How labels are shown in legend
+        # self.MAP_LABELS_FUNCTION = "lambda self: lambda labels: __import__('numpy').asarray([l.split('_')[0] for l in labels])"
+        
+        # Colors 
+        self.UMAP_MAPPINGS = None#self.UMAP_MAPPINGS_ALS
+        self.COLORMAP = 'tab20'
+        # NEMO has batch effect!
+        self.MARKERS_TO_EXCLUDE = ['NEMO']
+
+        # Set the size of the dots
+        self.SIZE = 5
+        # Set the alpha of the dots (0=max opacity, 1=no opacity)
+        self.ALPHA = 0.7
+        
+class FUSPertUMAP2B1FUSNEMOOnlyFigureConfig(DatasetConfig):
+    def __init__(self):
+        super().__init__()
+        
+
+        # Batches used for model development
+        self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "spd2", "SpinningDisk", 'FUS_lines_stress_2024_sorted', f) for f in 
+                        ["batch1"]]
+        
+        self.SPLIT_DATA = False 
+        self.EXPERIMENT_TYPE = 'fus'    
+        self.REPS       = ['rep1', 'rep2']
+        
+        # Local/Global embeddings
+        self.EMBEDDINGS_LAYER = 'vqindhist2' 
+                
+
+        # UMAP1 vqindhist:
+        self.CELL_LINES_CONDS = ['KOLF_DMSO', 'KOLF_BMAA',
+                                 'KOLF_Cisplatin', 'KOLF_Colchicine',
+                                 'KOLF_Etoposide', 'KOLF_MG132',
+                                 'KOLF_ML240', 'KOLF_NMS873', 'KOLF_SA',
+                                 'FUSHeterozygous_DMSO', 'FUSRevertant_DMSO']
+        
+        # How labels are shown in legend
+        # self.MAP_LABELS_FUNCTION = "lambda self: lambda labels: __import__('numpy').asarray([l.split('_')[0] for l in labels])"
+        
+        # Colors 
+        self.UMAP_MAPPINGS = None#self.UMAP_MAPPINGS_ALS
+        self.COLORMAP = 'tab20'
+        # NEMO has batch effect!
+        self.MARKERS_TO_EXCLUDE = ['FUS','NEMO']
+
+        # Set the size of the dots
+        self.SIZE = 5
+        # Set the alpha of the dots (0=max opacity, 1=no opacity)
+        self.ALPHA = 0.7
+        
+
+class FUSPertUMAP2B1NEMOOnly_KOLF_DMSO_FUSHet_ALL_FigureConfig(DatasetConfig):
+    def __init__(self):
+        super().__init__()
+        
+
+        # Batches used for model development
+        self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "spd2", "SpinningDisk", 'FUS_lines_stress_2024_sorted', f) for f in 
+                        ["batch1"]]
+        
+        self.SPLIT_DATA = False 
+        self.EXPERIMENT_TYPE = 'fus'    
+        self.REPS       = ['rep1', 'rep2']
+        
+        # Local/Global embeddings
+        self.EMBEDDINGS_LAYER = 'vqindhist2' 
+                
+
+        # UMAP1 vqindhist:
+        self.CELL_LINES_CONDS = ['KOLF_DMSO', 
+                                 'FUSHeterozygous_DMSO',
+                                 'FUSHeterozygous_BMAA',
+                                 'FUSHeterozygous_Cisplatin', 'FUSHeterozygous_Colchicine',
+                                 'FUSHeterozygous_Etoposide', 'FUSHeterozygous_MG132',
+                                 'FUSHeterozygous_ML240', 'FUSHeterozygous_NMS873', 'FUSHeterozygous_SA',
+                                 'FUSRevertant_DMSO']
+        
+        # How labels are shown in legend
+        # self.MAP_LABELS_FUNCTION = "lambda self: lambda labels: __import__('numpy').asarray([l.split('_')[0] for l in labels])"
+        
+        # Colors 
+        self.UMAP_MAPPINGS = None#self.UMAP_MAPPINGS_ALS
+        self.COLORMAP = 'tab20'
+        # NEMO has batch effect!
+        self.MARKERS_TO_EXCLUDE = ['NEMO']
+
+        # Set the size of the dots
+        self.SIZE = 5
+        # Set the alpha of the dots (0=max opacity, 1=no opacity)
+        self.ALPHA = 0.7
+        
+class FUSPertUMAP2B1FUSNEMOOnly_KOLF_DMSO_FUSHet_ALL_FigureConfig(DatasetConfig):
+    def __init__(self):
+        super().__init__()
+        
+
+        # Batches used for model development
+        self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "spd2", "SpinningDisk", 'FUS_lines_stress_2024_sorted', f) for f in 
+                        ["batch1"]]
+        
+        self.SPLIT_DATA = False 
+        self.EXPERIMENT_TYPE = 'fus'    
+        self.REPS       = ['rep1', 'rep2']
+        
+        # Local/Global embeddings
+        self.EMBEDDINGS_LAYER = 'vqindhist2' 
+                
+
+        # UMAP1 vqindhist:
+        self.CELL_LINES_CONDS = ['KOLF_DMSO', 
+                                 'FUSHeterozygous_DMSO',
+                                 'FUSHeterozygous_BMAA',
+                                 'FUSHeterozygous_Cisplatin', 'FUSHeterozygous_Colchicine',
+                                 'FUSHeterozygous_Etoposide', 'FUSHeterozygous_MG132',
+                                 'FUSHeterozygous_ML240', 'FUSHeterozygous_NMS873', 'FUSHeterozygous_SA',
+                                 'FUSRevertant_DMSO']
+        
+        # How labels are shown in legend
+        # self.MAP_LABELS_FUNCTION = "lambda self: lambda labels: __import__('numpy').asarray([l.split('_')[0] for l in labels])"
+        
+        # Colors 
+        self.UMAP_MAPPINGS = None#self.UMAP_MAPPINGS_ALS
+        self.COLORMAP = 'tab20'
+        # NEMO has batch effect!
+        self.MARKERS_TO_EXCLUDE = ['FUS','NEMO']
+
+        # Set the size of the dots
+        self.SIZE = 5
+        # Set the alpha of the dots (0=max opacity, 1=no opacity)
+        self.ALPHA = 0.7
+        
+class FUSPertUMAP2B1_FUS_NEMO_PML_PSD95_KOLF_DMSO_FUSHet_ALL_FigureConfig(DatasetConfig):
+    def __init__(self):
+        super().__init__()
+        
+
+        # Batches used for model development
+        self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "spd2", "SpinningDisk", 'FUS_lines_stress_2024_sorted', f) for f in 
+                        ["batch1"]]
+        
+        self.SPLIT_DATA = False 
+        self.EXPERIMENT_TYPE = 'fus'    
+        self.REPS       = ['rep1', 'rep2']
+        
+        # Local/Global embeddings
+        self.EMBEDDINGS_LAYER = 'vqindhist2' 
+                
+
+        # UMAP1 vqindhist:
+        self.CELL_LINES_CONDS = ['KOLF_DMSO', 
+                                 'FUSHeterozygous_DMSO',
+                                 'FUSHeterozygous_BMAA',
+                                 'FUSHeterozygous_Cisplatin', 'FUSHeterozygous_Colchicine',
+                                 'FUSHeterozygous_Etoposide', 'FUSHeterozygous_MG132',
+                                 'FUSHeterozygous_ML240', 'FUSHeterozygous_NMS873', 'FUSHeterozygous_SA',
+                                 'FUSRevertant_DMSO']
+        
+        # How labels are shown in legend
+        # self.MAP_LABELS_FUNCTION = "lambda self: lambda labels: __import__('numpy').asarray([l.split('_')[0] for l in labels])"
+        
+        # Colors 
+        self.UMAP_MAPPINGS = None#self.UMAP_MAPPINGS_ALS
+        self.COLORMAP = 'tab20'
+        # NEMO has batch effect!
+        self.MARKERS_TO_EXCLUDE = ['FUS','NEMO', 'PML', 'PSD95']
+
+        # Set the size of the dots
+        self.SIZE = 5
+        # Set the alpha of the dots (0=max opacity, 1=no opacity)
+        self.ALPHA = 0.7

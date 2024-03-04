@@ -300,6 +300,124 @@ class EmbeddingsB6_add_brenner_cellposeDatasetConfig(DatasetConfig):
         self.ALPHA = 0.7
         #######################################
 
+
+############################################################
+# FUS Perturbations
+############################################################        
+class EmbeddingsFUSB1DatasetConfig(DatasetConfig):
+    def __init__(self):
+        super().__init__()
+
+        self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "spd2", "SpinningDisk", 'FUS_lines_stress_2024_sorted', f) for f in 
+                        ["batch1"]]
+        
+        self.SPLIT_DATA = False
+        self.EXPERIMENT_TYPE = 'fus'
+        self.ADD_REP_TO_LABEL = True
+        self.ADD_BATCH_TO_LABEL = True
+
+        # self.CELL_LINES = ['WT']#, 'FUSHeterozygous', 'FUSRevertant']
+        # self.REPS = ['rep2'] # Can be : ['rep1', 'rep2'] or ['rep1'] or ['rep2']
+        # self.MARKERS = ['G3BP1']#, 'DAPI', 'Phalloidin', 'DCP1A']
+        # # self.MARKERS_TO_EXCLUDE = ['FMRP', 'TIA1']
+        
+        # Local/Global embeddings
+        self.EMBEDDINGS_LAYER = 'vqvec2' # 'vqvec2', 'vqindhist1', 'vqindhist2'
+        
+        self.MAP_LABELS_FUNCTION = "lambda self: lambda labels: __import__('numpy').asarray([l.split('_')[-2-int(self.ADD_REP_TO_LABEL)] for l in labels])"
+
+        # Set the colormap, for example: {"Untreated": "#52C5D5", 'stress': "#F7810F"} 
+        self.COLORMAP = {"Untreated": "#52C5D5", 'stress': "#F7810F"}
+
+        # Set the size of the dots
+        self.SIZE = 30
+        # Set the alpha of the dots (0=max opacity, 1=no opacity)
+        self.ALPHA = 0.7
+        #######################################
+
+class EmbeddingsFUSB1Hist1DatasetConfig(DatasetConfig):
+    def __init__(self):
+        super().__init__()
+
+        self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "spd2", "SpinningDisk", 'FUS_lines_stress_2024_sorted', f) for f in 
+                        ["batch1"]]
+        
+        self.SPLIT_DATA = False
+        self.EXPERIMENT_TYPE = 'fus'
+        self.ADD_REP_TO_LABEL = True
+        self.ADD_BATCH_TO_LABEL = True
+        # Local/Global embeddings
+        self.EMBEDDINGS_LAYER = 'vqindhist1' # 'vqvec2', 'vqindhist1', 'vqindhist2'
+        
+        self.MAP_LABELS_FUNCTION = "lambda self: lambda labels: __import__('numpy').asarray([l.split('_')[-2-int(self.ADD_REP_TO_LABEL)] for l in labels])"
+
+        # Set the colormap, for example: {"Untreated": "#52C5D5", 'stress': "#F7810F"} 
+        self.COLORMAP = {"Untreated": "#52C5D5", 'stress': "#F7810F"}
+
+        # Set the size of the dots
+        self.SIZE = 30
+        # Set the alpha of the dots (0=max opacity, 1=no opacity)
+        self.ALPHA = 0.7
+        #######################################
+        
+class EmbeddingsFUSB1Hist2DatasetConfig(DatasetConfig):
+    def __init__(self):
+        super().__init__()
+
+        self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "spd2", "SpinningDisk", 'FUS_lines_stress_2024_sorted', f) for f in 
+                        ["batch1"]]
+        
+        self.SPLIT_DATA = False
+        self.EXPERIMENT_TYPE = 'fus'
+        self.ADD_REP_TO_LABEL = True
+        self.ADD_BATCH_TO_LABEL = True
+
+        # Local/Global embeddings
+        self.EMBEDDINGS_LAYER = 'vqindhist2' # 'vqvec2', 'vqindhist1', 'vqindhist2'
+        
+        self.MAP_LABELS_FUNCTION = "lambda self: lambda labels: __import__('numpy').asarray([l.split('_')[-2-int(self.ADD_REP_TO_LABEL)] for l in labels])"
+
+        # Set the colormap, for example: {"Untreated": "#52C5D5", 'stress': "#F7810F"} 
+        self.COLORMAP = {"Untreated": "#52C5D5", 'stress': "#F7810F"}
+
+        # Set the size of the dots
+        self.SIZE = 30
+        # Set the alpha of the dots (0=max opacity, 1=no opacity)
+        self.ALPHA = 0.7
+        #######################################
+        
+class EmbeddingsFUSB1DistDatasetConfig(DatasetConfig):
+    def __init__(self):
+        super().__init__()
+
+        self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "spd2", "SpinningDisk", 'FUS_lines_stress_2024_sorted', f) for f in 
+                        ["batch1"]]
+        
+        self.SPLIT_DATA = False
+        self.EXPERIMENT_TYPE = 'fus'
+        self.ADD_REP_TO_LABEL = True
+        self.ADD_BATCH_TO_LABEL = True
+
+        self.CELL_LINES = ['KOLF', 'FUSHeterozygous', 'FUSRevertant']
+        # self.REPS = ['rep2'] # Can be : ['rep1', 'rep2'] or ['rep1'] or ['rep2']
+        # self.MARKERS = ['G3BP1']#, 'DAPI', 'Phalloidin', 'DCP1A']
+        # # self.MARKERS_TO_EXCLUDE = ['FMRP', 'TIA1']
+        
+        # Local/Global embeddings
+        self.EMBEDDINGS_LAYER = 'vqvec2' # 'vqvec2', 'vqindhist1', 'vqindhist2'
+        
+        self.MAP_LABELS_FUNCTION = "lambda self: lambda labels: __import__('numpy').asarray([l.split('_')[-2-int(self.ADD_REP_TO_LABEL)] for l in labels])"
+
+        # Set the colormap, for example: {"Untreated": "#52C5D5", 'stress': "#F7810F"} 
+        # self.COLORMAP = {"Untreated": "#52C5D5", 'stress': "#F7810F"}
+        self.TRAIN_BATCHES = []
+
+        # Set the size of the dots
+        self.SIZE = 30
+        # Set the alpha of the dots (0=max opacity, 1=no opacity)
+        self.ALPHA = 0.7
+        #######################################
+
 ############################################################
 # deltaNLS
 ############################################################        
