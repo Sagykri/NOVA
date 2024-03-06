@@ -8,13 +8,12 @@ import matplotlib.pyplot as plt
 sys.path.insert(1, os.getenv('MOMAPS_HOME'))
 print(f"MOMAPS_HOME: {os.getenv('MOMAPS_HOME')}")
 
-from cellpose import models
-import cellpose
-from shapely.geometry import Polygon
+
 
 from src.common.lib import image_metrics
 from src.common.lib.preprocessing_utils import rescale_intensity, handle_img_shape, segment
 from src.common.lib.image_sampling_utils import sample_images_all_markers_all_lines, sample_raw_images, sample_processed_images
+from src.common.lib import metrics 
 
 def plot_images(images, paths, n_samples=3, expected_site_width=1024, expected_site_height=1024, figsize=(16,8), suptitle=None):
     fig, ax = plt.subplots(1, n_samples, figsize=figsize)
@@ -54,13 +53,70 @@ def put_tiles_grid(ax, w, h):
         # Draw vertical dashed lines
         ax.plot([i * block_size, i * block_size], [0, h], linestyle='--', lw=1, alpha=0.5, color='pink')
 
+def test_cellpose(images, images_paths):
+    from cellpose import models
+    import cellpose
+    from shapely.geometry import Polygon
+
+    for i, image in enumerate(images):
+        img = np.stack([image, image], axis=-1)
+        kernel = np.array([[-1,-1,-1], [-1,25,-1], [-1,-1,-1]])
+        img_for_seg = cv2.filter2D(img, -1, kernel)
+        cp_model = models.Cellpose(gpu=True, model_type='nuclei')
+        masks, _,_,_ = segment(img=img, channels=[0,0],\
+                                        model=cp_model, diameter=60,#60,\
+                                        cellprob_threshold=0,\
+                                        flow_threshold=0.7, show_plot=True) #channel_axis=-1,
+        binary_mask = masks.copy()
+        binary_mask[binary_mask>0] = 1
+        fig, axs = plt.subplots(ncols=2)
+        axs[0].imshow(image,cmap='gray')#, vmin=0, vmax=1)
+        axs[0].axis('off')
+        axs[0].set_title(images_paths[i])
+        axs[1].imshow(masks)#, cmap='gray')
+        axs[1].axis('off')
+        axs[1].set_title(f'Segmented {len(np.unique(masks))-1} objects')
+        plt.tight_layout()
+        plt.show()
+
+def reconstruct_images(model, images):
+    import torch
+    
+    data_ch = ['target', 'nucleus']
+    img = images.copy()
+    img = np.transpose(img, (0, 3, 1, 2))
+    print(img.shape)
+    torch.cuda.empty_cache()
+    reconstructed = model.model.infer_reconstruction(img)
+    fig, ax = plt.subplots(2, len(data_ch), figsize=(5 * len(data_ch), 5), squeeze=False)
+    for ii, ch in enumerate(data_ch):
+        t0 = np.zeros((2 * 100, 5 * 100))
+        for i, im in enumerate(img[:10, ii, ...]):
+            i0, i1 = np.unravel_index(i, (2, 5))
+            t0[i0 * 100 : (i0 + 1) * 100, i1 * 100 : (i1 + 1) * 100] = im
+        t1 = np.zeros((2 * 100, 5 * 100))
+        for i, im in enumerate(reconstructed[:10, ii, ...]):
+            i0, i1 = np.unravel_index(i, (2, 5))
+            t1[i0 * 100 : (i0 + 1) * 100, i1 * 100 : (i1 + 1) * 100] = im
+        ax[0, ii].imshow(t0, cmap='gray', vmin=0, vmax=1)
+        ax[0, ii].axis('off')
+        ax[0, ii].set_title('input ' + ch)
+        ax[1, ii].imshow(t1, cmap='gray', vmin=0, vmax=1)
+        ax[1, ii].axis('off')
+        ax[1, ii].set_title('output ' + ch)
+
+    mses = metrics.calculate_mse(img, reconstructed)
+    plt.suptitle(f"MSE target: {torch.round(mses['target'], decimals=4)}, nucleus: {torch.round(mses['nucleus'],decimals=4)}")
+    fig.tight_layout()
+    plt.show()
 
 def check_preprocessing_steps(input_dir_batch, sample_size, brenner_path, marker, cell_line, condition, rep, panel=None):
     
     # Sample images for marker
     # Get paths
     images_paths = sample_raw_images(input_dir_batch, marker,
-                                 cell_line=cell_line, condition=condition, sample_size=sample_size, rep=rep, panel=panel)
+                                 cell_line=cell_line, condition=condition, sample_size=sample_size, rep=rep, panel=panel,
+                                 expected_site_width=1024,expected_site_height=1024)
     
 
     # Load images
@@ -71,7 +127,7 @@ def check_preprocessing_steps(input_dir_batch, sample_size, brenner_path, marker
         
     images = np.vstack(images)
         
-    images_processed = np.zeros((images.shape[0], EXPECTED_SITE_WIDTH, EXPECTED_SITE_HEIGHT))
+    images_processed = np.zeros((images.shape[0], expected_site_width, expected_site_height))
     images_paths_processed = images_paths.copy()
     
     plot_images(images_processed, images_paths_processed)
@@ -79,7 +135,7 @@ def check_preprocessing_steps(input_dir_batch, sample_size, brenner_path, marker
     # Handle image sizes
     
     for i in range(len(images)):
-        images_processed[i] = handle_img_shape(images[i], EXPECTED_SITE_WIDTH, EXPECTED_SITE_HEIGHT)
+        images_processed[i] = handle_img_shape(images[i], expected_site_width, expected_site_height)
     
     plot_images(images_processed, images_paths_processed)
     
@@ -120,26 +176,7 @@ def check_preprocessing_steps(input_dir_batch, sample_size, brenner_path, marker
 
 
     # Plot cellpose result
-    for i, image in enumerate(images_processed):
-        img = np.stack([image, image], axis=-1)
-        kernel = np.array([[-1,-1,-1], [-1,25,-1], [-1,-1,-1]])
-        img_for_seg = cv2.filter2D(img, -1, kernel)
-        cp_model = models.Cellpose(gpu=True, model_type='nuclei')
-        masks, _,_,_ = segment(img=img_for_seg, channels=[0,0],\
-                                        model=cp_model, diameter=60,#60,\
-                                        cellprob_threshold=0,\
-                                        flow_threshold=0.7, show_plot=True) #channel_axis=-1,
-        binary_mask = masks.copy()
-        binary_mask[binary_mask>0] = 1
-        fig, axs = plt.subplots(ncols=2)
-        axs[0].imshow(image,cmap='gray')#, vmin=0, vmax=1)
-        axs[0].axis('off')
-        axs[0].set_title(images_paths_processed[i])
-        axs[1].imshow(masks)#, cmap='gray')
-        axs[1].axis('off')
-        axs[1].set_title(f'Segmented {len(np.unique(masks))-1} objects')
-        plt.tight_layout()
-        plt.show()
+    test_cellpose(images_processed, images_paths_processed)
 
 def get_processed_images(input_dir_batch, sample_size, marker, cell_line, condition, reps, figsize=(20,8), plot=True):
     processes_images_path = sample_processed_images(input_dir_batch, marker, cell_line, condition, sample_size, reps=reps)
