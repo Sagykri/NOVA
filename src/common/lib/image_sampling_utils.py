@@ -202,12 +202,12 @@ def sample_raw_images(input_dir_batch, marker, cell_line, condition, sample_size
     return files_paths
 
 
-def sample_processed_images(input_dir_batch, marker, cell_line, condition, sample_size, reps=None):
+def sample_processed_images(input_dir_batch, marker, cell_line, condition, sample_size, rep=None):
     marker_folder_path = os.path.join(input_dir_batch, cell_line, condition, marker)
     
     files_paths = np.asarray(os.listdir(marker_folder_path))
-    if reps is not None:
-        files_paths = np.asarray([p for p in files_paths if p.startswith('rep1_')])
+    if rep is not None:
+        files_paths = np.asarray([p for p in files_paths if p.startswith(f'{rep}_')])
     files_paths = files_paths[np.random.choice(np.arange(len(files_paths)), sample_size)]
     
     files_paths = np.asarray([os.path.join(marker_folder_path, f) for f in files_paths])

@@ -28,13 +28,16 @@ def plot_images(images, paths, n_samples=3, expected_site_width=1024, expected_s
     
 def plot_processed_images(images, paths, n_samples=3, figsize=(16,8)):
     for i in range(n_samples):
+        p, tile_indx = paths[i].rsplit('_',1)
+        tile_indx = int(tile_indx)
+        
         fig, ax = plt.subplots(1, 2, figsize=figsize)
         ax[0].set_title(f'{os.path.basename(paths[i])} - Target')
-        ax[0].imshow(images[i,...,0], cmap='gray', vmin=0, vmax=1)
+        ax[0].imshow(images[tile_indx,...,0], cmap='gray', vmin=0, vmax=1)
         ax[0].set_axis_off()
         
         ax[1].set_title(f'{os.path.basename(paths[i])} - Nucleus')
-        ax[1].imshow(images[i,...,1], cmap='gray', vmin=0, vmax=1)
+        ax[1].imshow(images[tile_indx,...,1], cmap='gray', vmin=0, vmax=1)
         ax[1].set_axis_off()
         plt.show()
     
@@ -110,13 +113,13 @@ def reconstruct_images(model, images):
     fig.tight_layout()
     plt.show()
 
-def check_preprocessing_steps(input_dir_batch, sample_size, brenner_path, marker, cell_line, condition, rep, panel=None):
+def check_preprocessing_steps(input_dir_batch, sample_size, brenner_path, marker, cell_line, condition, rep, panel=None,
+                              expected_site_width=1024,expected_site_height=1024):
     
     # Sample images for marker
     # Get paths
     images_paths = sample_raw_images(input_dir_batch, marker,
-                                 cell_line=cell_line, condition=condition, sample_size=sample_size, rep=rep, panel=panel,
-                                 expected_site_width=1024,expected_site_height=1024)
+                                 cell_line=cell_line, condition=condition, sample_size=sample_size, rep=rep, panel=panel)
     
 
     # Load images
@@ -178,17 +181,27 @@ def check_preprocessing_steps(input_dir_batch, sample_size, brenner_path, marker
     # Plot cellpose result
     test_cellpose(images_processed, images_paths_processed)
 
-def get_processed_images(input_dir_batch, sample_size, marker, cell_line, condition, reps, figsize=(20,8), plot=True):
-    processes_images_path = sample_processed_images(input_dir_batch, marker, cell_line, condition, sample_size, reps=reps)
+def get_processed_images(input_dir_batch, sample_size, marker, cell_line, condition, rep, figsize=(20,8), plot=True, shuffle=True):
+    processes_images_sites_paths = sample_processed_images(input_dir_batch, marker, cell_line, condition, sample_size, rep=rep)
+
+    processes_images_tiles_paths = []
 
     images = []
-    for p in processes_images_path:
-        image = np.load(p)
-        images.append(image)
+    for p in processes_images_sites_paths:
+        image_site = np.load(p)
+        images.append(image_site)
+        processes_images_tiles_paths.append([f'{p}_{i}' for i in range(len(image_site))])
     images = np.vstack(images)
+    processes_images_tiles_paths = np.hstack(processes_images_tiles_paths)
+    
+    if shuffle:
+        indx = np.arange(len(images))
+        np.random.shuffle(indx)
+        images = images[indx]
+        processes_images_tiles_paths = processes_images_tiles_paths[indx]
 
     if plot:
-        plot_processed_images(images, processes_images_path, n_samples=sample_size, figsize=figsize)
+        plot_processed_images(images, processes_images_tiles_paths, n_samples=sample_size, figsize=figsize)
     
-    return images
+    return images, processes_images_tiles_paths
     
