@@ -19,21 +19,29 @@ def plot_images(images, paths, n_samples=3, expected_site_width=1024, expected_s
     fig, ax = plt.subplots(1, n_samples, figsize=figsize)
     if suptitle is not None:
         fig.suptitle(suptitle)
-    for i in range(n_samples):
-        ax[i].set_title(f'{os.path.basename(paths[i])}')
-        put_tiles_grid(ax[i], expected_site_width, expected_site_height)
-        ax[i].imshow(images[i], cmap='gray')
-        ax[i].set_axis_off()
+    
+    def __plot(ax, image, path):
+        ax.set_title(f'{os.path.basename(path)}')
+        put_tiles_grid(ax, expected_site_width, expected_site_height)
+        ax.imshow(image, cmap='gray')
+        ax.set_axis_off()
+    
+    if len(images) == 1:
+        __plot(ax, images[0], paths[0])
+    else:    
+        for i in range(n_samples):
+            __plot(ax[i], images[i], paths[i])
+        
     plt.show()
     
 def plot_processed_images(images, paths, n_samples=3, figsize=(16,8)):
     for i in range(n_samples):
         fig, ax = plt.subplots(1, 2, figsize=figsize)
-        ax[0].set_title(f'{os.path.basename(paths[i])} - Target')
+        ax[0].set_title(f'{os.path.basename(paths[i])} - Target', fontsize=11)
         ax[0].imshow(images[i,...,0], cmap='gray', vmin=0, vmax=1)
         ax[0].set_axis_off()
         
-        ax[1].set_title(f'{os.path.basename(paths[i])} - Nucleus')
+        ax[1].set_title(f'{os.path.basename(paths[i])} - Nucleus', fontsize=11)
         ax[1].imshow(images[i,...,1], cmap='gray', vmin=0, vmax=1)
         ax[1].set_axis_off()
         plt.show()
@@ -57,16 +65,20 @@ def test_cellpose(images, images_paths):
     from cellpose import models
     import cellpose
     from shapely.geometry import Polygon
-
+    
     for i, image in enumerate(images):
         img = np.stack([image, image], axis=-1)
         kernel = np.array([[-1,-1,-1], [-1,25,-1], [-1,-1,-1]])
         img_for_seg = cv2.filter2D(img, -1, kernel)
         cp_model = models.Cellpose(gpu=True, model_type='nuclei')
-        masks, _,_,_ = segment(img=img, channels=[0,0],\
+        masks, _,_,_ = segment(img=img_for_seg, channels=[0,0],\
                                         model=cp_model, diameter=60,#60,\
                                         cellprob_threshold=0,\
                                         flow_threshold=0.7, show_plot=True) #channel_axis=-1,
+        # flow_threshold - The default is flow_threshold=0.4. Increase this threshold if cellpose is not returning as many ROIs as you’d expect. 
+        #                   Similarly, decrease this threshold if cellpose is returning too many ill-shaped ROIs.
+        # cellprob_threshold - The default is cellprob_threshold=0.0. Decrease this threshold if cellpose is not returning as many ROIs as you’d expect. 
+        #                       Similarly, increase this threshold if cellpose is returning too ROIs particularly from dim areas.
         binary_mask = masks.copy()
         binary_mask[binary_mask>0] = 1
         fig, axs = plt.subplots(ncols=2)

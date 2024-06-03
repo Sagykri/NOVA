@@ -1,0 +1,12 @@
+./bash_commands/run_py.sh ./tools/images_organizer/opera_version2/main -m 10000 -j organize_opera_A -a ./tools/images_organizer/opera_version2/config_panels/Config_A -q new-short
+./bash_commands/run_py.sh ./tools/images_organizer/opera_version2/main -m 10000 -j organize_opera_B -a ./tools/images_organizer/opera_version2/config_panels/Config_B -q new-short
+./bash_commands/run_py.sh ./tools/images_organizer/opera_version2/main -m 10000 -j organize_opera_C -a ./tools/images_organizer/opera_version2/config_panels/Config_C -q new-short
+./bash_commands/run_py.sh ./tools/images_organizer/opera_version2/main -m 10000 -j organize_opera_D -a ./tools/images_organizer/opera_version2/config_panels/Config_D -q new-short
+./bash_commands/run_py.sh ./tools/images_organizer/opera_version2/main -m 10000 -j organize_opera_E -a ./tools/images_organizer/opera_version2/config_panels/Config_E -q new-short
+./bash_commands/run_py.sh ./tools/images_organizer/opera_version2/main -m 10000 -j organize_opera_F -a ./tools/images_organizer/opera_version2/config_panels/Config_F -q new-short
+./bash_commands/run_py.sh ./tools/images_organizer/opera_version2/main -m 10000 -j organize_opera_G -a ./tools/images_organizer/opera_version2/config_panels/Config_G -q new-short
+./bash_commands/run_py.sh ./tools/images_organizer/opera_version2/main -m 10000 -j organize_opera_H -a ./tools/images_organizer/opera_version2/config_panels/Config_H -q new-short
+./bash_commands/run_py.sh ./tools/images_organizer/opera_version2/main -m 10000 -j organize_opera_I -a ./tools/images_organizer/opera_version2/config_panels/Config_I -q new-short
+./bash_commands/run_py.sh ./tools/images_organizer/opera_version2/main -m 10000 -j organize_opera_J -a ./tools/images_organizer/opera_version2/config_panels/Config_J -q new-short
+./bash_commands/run_py.sh ./tools/images_organizer/opera_version2/main -m 10000 -j organize_opera_K -a ./tools/images_organizer/opera_version2/config_panels/Config_K -q new-short
+./bash_commands/run_py.sh ./tools/images_organizer/opera_version2/main -m 10000 -j organize_opera_L -a ./tools/images_organizer/opera_version2/config_panels/Config_L -q new-short

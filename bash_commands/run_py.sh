@@ -12,7 +12,7 @@
 # ./bash_commands/run_py.sh ./src/runables/training -g -m 40000 -b 47 -a ./src/models/neuroself/configs/model_config/TLNeuroselfB78NoDSModelConfig ./src/datasets/configs/training_data_config/B78TrainDatasetConfig -j training_neuroself
 
 # Training cytoself:
-# ./bash_commands/run_py.sh ./src/runables/training -g -m 40000 -b 44  -a ./src/models/cytoself_vanilla/configs/config/CytoselfModelConfig ./src/datasets/configs/training_data_config/TrainOpenCellDatasetConfig -j training_cytoself -q high_gpu_gsla
+# ./bash_commands/run_py.sh ./src/runables/training -g -m 40000 -b 44  -a ./src/models/cytoself_vanilla/configs/config/CytoselfModelConfig ./src/datasets/configs/training_data_config/TrainOpenCellDatasetConfig -j training_cytoself -q gsla_high_gpu
 
 # Eval model:
 # ./bash_commands/run_py.sh ./src/runables/eval_model -g -m 10000 -b 25 -a ./src/models/cytoself_vanilla/configs/config/CytoselfModelConfig ./src/datasets/configs/train_config/TrainOpenCellDatasetConfig -q gpu-short -j eval_cytoself
@@ -21,11 +21,15 @@
 # ./bash_commands/run_py.sh ./src/runables/generate_embeddings -g -m 40000 -b 40 -a ./src/models/neuroself/configs/model_config/TLNeuroselfB78NoDSModelConfig ./src/datasets/configs/embeddings_data_config/EmbeddingsB9DatasetConfig -j generate_embeddings_vq2
 
 # Generate vqindhist embeddings (spectral_features)
-# ./bash_commands/run_py.sh ./src/runables/generate_spectral_features -g -m 40000 -b 40 -a ./src/models/neuroself/configs/model_config/TLNeuroselfB78NoDSModelConfig ./src/datasets/configs/embeddings_data_config/EmbeddingsNPB3DatasetConfig -j indhist_NP_3 -q high_gpu_gsla
+# ./bash_commands/run_py.sh ./src/runables/generate_spectral_features -g -m 40000 -b 40 -a ./src/models/neuroself/configs/model_config/TLNeuroselfB78NoDSModelConfig ./src/datasets/configs/embeddings_data_config/EmbeddingsNPB3DatasetConfig -j indhist_NP_3 -q gsla_high_gpu
 
 # Generate UMAP0s
 # ./bash_commands/run_py.sh ./src/runables/generate_umaps -g -m 40000 -b 10 -a ./src/models/neuroself/configs/model_config/TLNeuroselfB78NoDSModelConfig ./src/datasets/configs/embeddings_data_config/EmbeddingsB6DatasetConfig /home/labs/hornsteinlab/Collaboration/MOmaps/outputs/figures/manuscript/fig2/neuroself/ -j gen_umaps_b6_stress
 # ./bash_commands/run_py.sh ./src/runables/generate_umaps -g -m 40000 -b 10 -q high_gpu_gsla -a ./src/models/cytoself_vanilla/configs/config/CytoselfModelConfig ./src/datasets/configs/embeddings_data_config/EmbeddingsU2OSDatasetConfig /home/labs/hornsteinlab/Collaboration/MOmaps/outputs/figures/U2OS -j gen_umaps
+
+# Generate UMAPS0 from vqindhist
+# ./bash_commands/run_py.sh ./src/runables/generate_umaps0_vqindhist -g -m 50000 -b 1 -a ./src/models/neuroself/configs/model_config/TLNeuroselfB78NoDSModelConfig ./src/figures/figures_config/OperaUMAP0_B1FigureConfig /home/labs/hornsteinlab/Collaboration/MOmaps/outputs/figures/Opera_18days/UMAP0 -j umap0_Opera18days -q gpu-short
+
 
 # Generate UMAP2s - Synthetic Multiplexing
 # ./bash_commands/run_py.sh ./src/runables/run_synthetic_multiplexing -g -m 30000 -b 10  -a ./src/models/cytoself_vanilla/configs/config/CytoselfModelConfig ./src/datasets/configs/embeddings_data_config/EmbeddingsU2OSDatasetConfig /home/labs/hornsteinlab/Collaboration/MOmaps/outputs/figures/U2OS -j SM_U2OS
@@ -36,6 +40,8 @@
 # Calculate distances
 # ./bash_commands/run_py.sh ./src/runables/calculate_embeddings_distances -m 40000 -a ./src/models/neuroself/configs/model_config/TLNeuroselfB78NoDSModelConfig ./src/datasets/configs/embeddings_data_config/EmbeddingsB9DatasetConfig all -q new-long -j distances
 
+# Calculate Brenner
+# ./bash_commands/run_py.sh ./src/runables/calculate_brenners -g -m 40000 -b 1 -j calc_brenner
 
 # Test GPU
 # ./bash_commands/run_py.sh ./tests/test_gpu  -m 1000 -g

@@ -815,7 +815,7 @@ def plot_heatmap_with_clusters_and_histograms(corr_with_clusters, hist_df, label
         if to_save:
             fig.savefig(os.path.join(save_path, hist_filename),bbox_inches='tight', dpi=300)
     plt.show()
-    return None
+    return total_spectra_per_marker_ordered
 
 def plot_hists_supp_1A(hist_df, labels, corr_with_clusters, hierarchical_order=None, sort=False, color_by_cond=False, plot_delta=False, 
                        to_save=False, colormap_name='viridis',figsize=(5,5), first_cond='stress', second_cond='Untreated', 

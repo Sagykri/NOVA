@@ -84,7 +84,7 @@ def sample_image_names_per_marker(input_data_dir, sample_size=1, raw=False):
                 logging.info(f"sampled file {target_file} was not a npy. re-sampling.. ")
                 continue
         elif raw:
-            if ext == '.tif':
+            if ext == '.tif' or ext == '.tiff':
                 image_filename = os.path.join(input_data_dir, target_file)
         
                 # Add to list

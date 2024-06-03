@@ -126,6 +126,7 @@ class SPDPreprocessor(Preprocessor):
                 #                                            cp_model, raw_f, cell_line, logging_df, timing_df)
                 # print("/n/n/n/n/n/n/nXXXXXXXXX For running it sequentially")
                 n_processes = 3  # 280224 - changed from len(panels) to 3 due to Wexac threads limit (for gpu-long)
+                # n_processes = os.cpu_count()
                 logging.info(f"n_processes={n_processes}")
                 with multiprocessing.Pool(processes=n_processes) as pool:
                    pool.starmap(preprocessing_utils.preprocess_panel, args)

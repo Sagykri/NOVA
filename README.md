@@ -1,10 +1,15 @@
 
-███╗░░░███╗░█████╗░███╗░░░███╗░█████╗░██████╗░░██████╗
-████╗░████║██╔══██╗████╗░████║██╔══██╗██╔══██╗██╔════╝
-██╔████╔██║██║░░██║██╔████╔██║███████║██████╔╝╚█████╗░
-██║╚██╔╝██║██║░░██║██║╚██╔╝██║██╔══██║██╔═══╝░░╚═══██╗
-██║░╚═╝░██║╚█████╔╝██║░╚═╝░██║██║░░██║██║░░░░░██████╔╝
-╚═╝░░░░░╚═╝░╚════╝░╚═╝░░░░░╚═╝╚═╝░░╚═╝╚═╝░░░░░╚═════╝░
+███╗░░██╗░█████╗░██╗░░░██╗░█████╗░
+████╗░██║██╔══██╗██║░░░██║██╔══██╗
+██╔██╗██║██║░░██║╚██╗░██╔╝███████║
+██║╚████║██║░░██║░╚████╔╝░██╔══██║
+██║░╚███║╚█████╔╝░░╚██╔╝░░██║░░██║
+╚═╝░░╚══╝░╚════╝░░░░╚═╝░░░╚═╝░░╚═╝
+
+
+## Self-supervised model for Organellomics analysis
+NOVA is a self-supervised model for analysing the organelles' topography in neuronal microscopy images. 
+NOVA allows to put them on the same scale and asses how the organellom changes under different chemical and genetics perturbations to the neurons
 
 ## Prerequisites
 

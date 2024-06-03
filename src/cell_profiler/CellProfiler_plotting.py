@@ -198,7 +198,7 @@ def plot_umap0(df, marker,
         true_labels = temp_df.index
         # calculate first 2 UMAP components
         umaps = umap.UMAP(random_state=42, n_components=2, n_jobs=1).fit_transform(temp_df)
-
+        
         # calculate clustering scores
         #scores = calc_clustering_validation_metric(umaps, true_labels, metrics=['ARI'])
 

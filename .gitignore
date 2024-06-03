@@ -7,9 +7,11 @@
 anaconda3/
 logs/
 
+restored_data/
 id_rsa
 id_rsa.pub
 outputs/figures/**/*.eps
+outputs/figures/**/*.npy
 outputs/config_used/*
 outputs/config_used_old/*
 outputs/cell_profiler/*
@@ -24,6 +26,7 @@ data/processed/*
 !input/images/processed/.gitkeep
 
 /tools/lena/models_outputs_Lena/embeddings/**/*.npy
+/tools/lena/UMAPs/**/*.npy
 /sandbox/**/*.npy
 /sandbox/**/*.pdf
 

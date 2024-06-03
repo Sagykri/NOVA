@@ -14,16 +14,16 @@ import os
 from functools import partial
 
 # Global paths
-BATCH_TO_RUN = 'deltaNLS_sort/batch3' 
+BATCH_TO_RUN = 'deltaNLS_sort/batch2' 
 #LINE_TO_RUN = 'WT'
 
 BASE_DIR = os.path.join('/home','labs','hornsteinlab','Collaboration','MOmaps')
 INPUT_DIR = os.path.join(BASE_DIR, 'input','images','raw','SpinningDisk')
 INPUT_DIR_BATCH = os.path.join(INPUT_DIR, BATCH_TO_RUN)
 #INPUT_DIR_LINE = os.path.join(INPUT_DIR_BATCH, LINE_TO_RUN)
-OUTPUT_DIR = os.path.join(BASE_DIR, 'outputs','cell_profiler')
+OUTPUT_DIR = os.path.join(BASE_DIR, 'outputs','cell_profiler', 'Pbody_binning')
 
-LOG_DIR_PATH = os.path.join(OUTPUT_DIR, 'logs')
+LOG_DIR_PATH = os.path.join(BASE_DIR, 'outputs','cell_profiler', 'logs')
 
 
 def set_logging(log_file_path, level=logging.INFO, format=' INFO: %(message)s'):
@@ -187,14 +187,14 @@ def find_marker_folders(batch_path, output_dir, depth=4, individual = False, tox
                     continue
                 
                 #if analyzing specific marker, skip all but that one
-                elif (individual == True) and (marker_name == 'DCP1A'):
-                    logging.info('Running individual analysis of DCP1A')
-                    if len(os.listdir(output_folder)) == 7:
+                elif (individual == True) and (marker_name == 'DCP1A' or marker_name == 'TDP43'):
+                    logging.info('Running P-body binning analysis')
+                    if len(os.listdir(output_folder)) == 6:
                         logging.info(f"Marker already analyzed: {output_folder}")
                         continue
                     else:
                         yield [entry.path, output_folder]   
-                elif (individual == True) and (marker_name != 'DCP1A'):
+                elif (individual == True) and (marker_name != 'DCP1A') and (marker_name != 'TDP43'):
                     continue
                 #for toxicity analysis
                 elif toxicity == True:
@@ -225,7 +225,7 @@ def main():
     #global pipeline
     #pipeline = init_cell_profiler()
     
-    pipeline_path = os.path.join(BASE_DIR,'src','cell_profiler','pipelines','CellProfiler_unbiased-analysis_minimal.cppipe')
+    pipeline_path = os.path.join(BASE_DIR,'src','cell_profiler','pipelines','CP_Pbody_binning.cppipe')
     # create a process pool that uses all cpus
     with Pool(5) as pool:
         # call the analyze_marker() function for each marker folder in parallel

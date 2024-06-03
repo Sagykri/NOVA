@@ -186,7 +186,7 @@ def crop_to_tiles(tile_w, tile_h, img_processed):
 
     return image_processed_tiles
 
-def rescale_intensity(img_current_channel):
+def rescale_intensity(img_current_channel, lower_bound=0.5, upper_bound=99.9):
     """Return image after stretching or shrinking its intensity levels.
 
     The desired intensity range of the input and output, in_range and out_range respectively, 
@@ -201,7 +201,7 @@ def rescale_intensity(img_current_channel):
         img_scaled (numpy ndarray): image in scale of [0,1] after rescaling
     """
     
-    vmin, vmax = np.percentile(img_current_channel, q=(0.5, 99.9))
+    vmin, vmax = np.percentile(img_current_channel, q=(lower_bound, upper_bound))
     img_scaled = skimage.exposure.rescale_intensity(
                                                     img_current_channel,
                                                     in_range=(vmin, vmax),
@@ -254,8 +254,22 @@ def handle_img_shape(img, expected_site_width, expected_site_height):
     
     # If the size is not a multiplication of the expected w and h, abort
     if img.shape[0] % expected_w != 0 or img.shape[1] % expected_h != 0:
-        logging.error(f"img shape {img.shape} is not devisable by {expected_w}") 
-        raise Exception(f"img shape {img.shape} is not devisable by {expected_h}")
+        logging.error(f"img shape {img.shape} is not devisable by {expected_w} (trying to do cropping)")
+        
+        # More than 2fold
+        if img.shape[0] // expected_w > 1:
+            raise Exception(f"img shape {img.shape} is not devisable by {expected_h}")
+        
+        # Less than 2fold, might still be saved
+        n_pixels_diff = img.shape[0] - expected_w
+        if n_pixels_diff % 2 != 0:
+            raise Exception(f"The number of pixels difference is odd {n_pixels_diff}")
+        n_pixels_diff_per_side = n_pixels_diff // 2
+        logging.info(f"Cropping the image, {n_pixels_diff_per_side} from each side")
+        logging.info(f"Before cropping {img.shape}")
+        img = img[n_pixels_diff_per_side:-n_pixels_diff_per_side, n_pixels_diff_per_side:-n_pixels_diff_per_side]
+        logging.info(f"After cropping {img.shape}")
+        return img
 
     scaling_factor = img.shape[0] // expected_w
     
@@ -473,7 +487,7 @@ def preprocess_panel(slf, panel, input_folder_root,
                         logging.info(f"Skipping {os.path.join(input_subfolder, f)} since not in SELECTIVE_INPUT_PATHS")
                         continue
                     
-                    if ext != '.tif':
+                    if ext not in ['.tif', '.tiff']:
                         continue
                     
                     site = filename.split('_')[-1]
@@ -512,7 +526,8 @@ def preprocess_panel(slf, panel, input_folder_root,
                         # If site doesn't pass Brenner's thresholds - filter it out
                         logging.info("Filtering bad site in DAPI by Brenner")
                         if brenner_bounds is None:
-                            raise "brenner_bounds is None"
+                            # raise "brenner_bounds is None"
+                            logging.warn("No brenner bounds!")
                         
                         if brenner_bounds is not None and not __is_site_brenner_valid(img_nucleus, 'DAPI', brenner_bounds, panel):
                             logging.warning(f"Nothing is valid due to Brenner bounds")
