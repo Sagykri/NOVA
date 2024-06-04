@@ -276,6 +276,9 @@ class CytoselfFull(nn.Module):
             self.perplexity[f'perplexity{i + 1}'] = perplexity
             x = encoded
 
+        if out_layer_name == 'fc':
+            return torch.stack(fc_outs)
+        
         decoded_final = self._connect_decoders(encoded_list)
         return tuple([decoded_final] + fc_outs)
 
