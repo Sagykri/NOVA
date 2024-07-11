@@ -16,10 +16,10 @@ class DatasetSPD(Dataset):
     """
     Dataset for SPD images
     """
-    def __init__(self, conf: DatasetConfig):
+    def __init__(self, conf: DatasetConfig, transform=None):
         self.markers_folders_depth = 3
         
-        super().__init__(conf)
+        super().__init__(conf, transform)
     
     def __find_marker_folders(self, batch_path, depth=3):
         """Returns paths of all marker folder in a batch (works with recursion)
@@ -87,7 +87,7 @@ class DatasetSPD(Dataset):
         np.random.seed(self.conf.SEED)
         
         for i, input_folder in enumerate(input_folders):
-            logging.info(f"Input folder: {input_folder}, depth used: {depth}")
+            # logging.info(f"Input folder: {input_folder}, depth used: {depth}")
             
             # Get a list of ALL target marker folder path folders (using recursion)
             marker_subfolder = self.__find_marker_folders(input_folder, depth=depth)
@@ -106,24 +106,24 @@ class DatasetSPD(Dataset):
                 #####################################
                 # Filter: cell line
                 if cell_lines_include is not None and cell_line not in cell_lines_include:
-                    logging.info(f"Skipping cell line (not in cell lines list). {cell_line}")
+                    # logging.info(f"Skipping cell line (not in cell lines list). {cell_line}")
                     continue
                 # cell_line_folder_fullpath = os.path.join(input_folder, cell_line)
                 
                 # Filter: stress condition
                 if conds_include is not None and condition not in conds_include:
-                    logging.info(f"Skipping condition (not in conditions list). {condition}")
+                    # logging.info(f"Skipping condition (not in conditions list). {condition}")
                     continue
                 # cond_folder_fullpath = os.path.join(cell_line_folder_fullpath, condition)
                 
                 # Filter: marker to include
                 if markers is not None and marker_name not in markers:
-                    logging.info(f"Skipping marker (not in markers list). {marker_name}")
+                    # logging.info(f"Skipping marker (not in markers list). {marker_name}")
                     continue
                     
                 # Filter: marker to exclude
                 if markers_to_exclude is not None and marker_name in markers_to_exclude:
-                    logging.info(f"Skipping (in markers to exclude). {marker_name}")
+                    # logging.info(f"Skipping (in markers to exclude). {marker_name}")
                     continue
                 #####################################
                                         
@@ -140,7 +140,7 @@ class DatasetSPD(Dataset):
                         if reps_include is not None:
                             filename_rep = filename.split('_',1)[0]
                             if filename_rep not in reps_include:
-                                logging.info(f"Skipping rep (not in reps list). {filename_rep}")
+                                # logging.info(f"Skipping rep (not in reps list). {filename_rep}")
                                 continue
                         
                         # Hold the full path of a processed image 
@@ -148,7 +148,7 @@ class DatasetSPD(Dataset):
                         # Add to list: the full path of the npy file 
                         processed_files_list.append(image_filename)
                         
-                        logging.info(f"Filepath (npy): {image_filename}")
+                        # logging.info(f"Filepath (npy): {image_filename}")
                         n_images += 1
                     else:
                         logging.info(f"file {target_file} is not a npy. moving on.. ")

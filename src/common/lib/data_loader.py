@@ -22,4 +22,5 @@ def get_dataloader(dataset, batch_size, indexes=None, num_workers=2, shuffle=Tru
                     batch_size=batch_size,
                     shuffle=__shuffle,
                     pin_memory=__pin_memory,
-                    drop_last=False)
+                    drop_last=True) # SAGY 100624
+                    # drop_last=True)
