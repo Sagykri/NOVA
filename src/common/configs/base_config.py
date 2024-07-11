@@ -1,4 +1,5 @@
 import os
+import subprocess
 import sys
 
 sys.path.insert(1, os.getenv("MOMAPS_HOME")) 
@@ -147,9 +148,17 @@ class BaseConfig():
         self.__LOGS_FOLDER = path
         __now = datetime.datetime.now()
         jobid = os.getenv('LSB_JOBID')
-        log_file_path = os.path.join(self.__LOGS_FOLDER, __now.strftime("%d%m%y_%H%M%S_%f") + f'_{jobid}.log')
+        
+        username = 'UnknownUser'
+        if jobid:
+            # Run the bjobs command to get job details
+            result = subprocess.run(['bjobs', '-o', 'user', jobid], capture_output=True, text=True, check=True)
+            # Extract the username from the output
+            username = result.stdout.replace('USER', '').strip()
+        
+        log_file_path = os.path.join(self.__LOGS_FOLDER, __now.strftime("%d%m%y_%H%M%S_%f") + f'_{jobid}_{username}.log')
         if not os.path.exists(self.__LOGS_FOLDER):
             os.makedirs(self.__LOGS_FOLDER)
         init_logging(log_file_path)
-        logging.info(f"[{self.__class__.__name__}] Init (log path: {log_file_path}; JOBID: {jobid})")
+        logging.info(f"[{self.__class__.__name__}] Init (log path: {log_file_path}; JOBID: {jobid} Username: {username})")
         logging.info(f"[{self.__class__.__name__}] MOMAPS_HOME={self.HOME_FOLDER}, MOMAPS_DATA_HOME={self.HOME_DATA_FOLDER}")

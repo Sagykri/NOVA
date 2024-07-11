@@ -86,12 +86,12 @@ class CytoselfFull(nn.Module):
             self.encoders = encoders
 
         # Construct decoders (shallow to deep)
-        if decoders is None:
-            if output_shape is None:
-                output_shape = input_shape
-            self.decoders = self._const_decoders(output_shape, decoder_args)
-        else:
-            self.decoders = decoders
+        # if decoders is None:
+        #     if output_shape is None:
+        #         output_shape = input_shape
+        #     self.decoders = self._const_decoders(output_shape, decoder_args)
+        # else:
+        #     self.decoders = decoders
 
         # Construct VQ layers (same order as encoders)
         self.vq_layers = nn.ModuleList()
@@ -165,51 +165,53 @@ class CytoselfFull(nn.Module):
             encoders.append(efficientenc_b0(**encoder_args[i]))
         return encoders
 
-    def _const_decoders(self, output_shape, decoder_args) -> nn.ModuleList:
-        """
-        Constructs a Module list of decoders
+    #SAGY030624
+    # def _const_decoders(self, output_shape, decoder_args) -> nn.ModuleList:
+    #     """
+    #     Constructs a Module list of decoders
 
-        Parameters
-        ----------
-        output_shape : tuple
-            Output tensor shape
-        decoder_args : dict
-            Additional arguments for decoder
+    #     Parameters
+    #     ----------
+    #     output_shape : tuple
+    #         Output tensor shape
+    #     decoder_args : dict
+    #         Additional arguments for decoder
 
-        Returns
-        -------
-        nn.ModuleList
+    #     Returns
+    #     -------
+    #     nn.ModuleList
 
-        """
-        if decoder_args is None:
-            decoder_args = [{}] * len(self.emb_shapes)
+    #     """
+    #     if decoder_args is None:
+    #         decoder_args = [{}] * len(self.emb_shapes)
 
-        decoders = nn.ModuleList()
-        for i, shp in enumerate(self.emb_shapes):
-            if i == 0:
-                shp = (sum(i[0] for i in self.emb_shapes),) + shp[1:]
-            decoder_args[i].update(
-                {
-                    'input_shape': shp,
-                    'output_shape': output_shape if i == 0 else self.emb_shapes[i - 1],
-                    'linear_output': i == 0,
-                }
-            )
-            decoders.append(DecoderResnet(**decoder_args[i]))
-        return decoders
+    #     decoders = nn.ModuleList()
+    #     for i, shp in enumerate(self.emb_shapes):
+    #         if i == 0:
+    #             shp = (sum(i[0] for i in self.emb_shapes),) + shp[1:]
+    #         decoder_args[i].update(
+    #             {
+    #                 'input_shape': shp,
+    #                 'output_shape': output_shape if i == 0 else self.emb_shapes[i - 1],
+    #                 'linear_output': i == 0,
+    #             }
+    #         )
+    #         decoders.append(DecoderResnet(**decoder_args[i]))
+    #     return decoders
 
-    def _connect_decoders(self, encoded_list):
-        decoding_list = []
-        for i, (encd, dec) in enumerate(zip(encoded_list[::-1], self.decoders[::-1])):
-            if i < len(self.decoders) - 1:
-                decoding_list.append(resize(encd, self.emb_shapes[0][1:], interpolation=InterpolationMode.NEAREST))
-                self.mse_loss[f'reconstruction{len(self.decoders) - i}_loss'] = nn.MSELoss()(
-                    dec(encd), encoded_list[-2 - i]
-                )
-            else:
-                decoding_list.append(encd)
-                decoded_final = dec(torch.cat(decoding_list, 1))
-        return decoded_final
+    #SAGY030624
+    # def _connect_decoders(self, encoded_list):
+    #     decoding_list = []
+    #     for i, (encd, dec) in enumerate(zip(encoded_list[::-1], self.decoders[::-1])):
+    #         if i < len(self.decoders) - 1:
+    #             decoding_list.append(resize(encd, self.emb_shapes[0][1:], interpolation=InterpolationMode.NEAREST))
+    #             self.mse_loss[f'reconstruction{len(self.decoders) - i}_loss'] = nn.MSELoss()(
+    #                 dec(encd), encoded_list[-2 - i]
+    #             )
+    #         else:
+    #             decoding_list.append(encd)
+    #             decoded_final = dec(torch.cat(decoding_list, 1))
+    #     return decoded_final
 
     def forward(self, x: Tensor, output_layer: str = 'decoder0') -> tuple[Tensor, Tensor]:
         """
@@ -276,8 +278,9 @@ class CytoselfFull(nn.Module):
             self.perplexity[f'perplexity{i + 1}'] = perplexity
             x = encoded
 
-        decoded_final = self._connect_decoders(encoded_list)
-        return tuple([decoded_final] + fc_outs)
+        # decoded_final = self._connect_decoders(encoded_list)
+        # return tuple([decoded_final] + fc_outs) #SAGY030624
+        return tuple([None] + fc_outs) #SAGY030624
 
 
 default_block_args = [
