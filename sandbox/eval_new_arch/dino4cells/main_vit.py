@@ -57,6 +57,7 @@ from src.common.lib.data_loader import get_dataloader
 from src.common.lib.dataset import Dataset
 from src.common.lib.utils import init_logging, load_config_file
 from src.datasets.dataset_spd import DatasetSPD
+										  
 
 from sandbox.eval_new_arch.dino4cells.utils import utils
 # from functools import partial
@@ -232,7 +233,18 @@ def train_vit(config, config_data_path):
     logging.info(f"Data loaded: there are {len(dataset)} images.")
 
     # ============ building student and teacher networks ... ============
-    model = vits.vit_base(
+    
+    create_vit = vits.vit_base
+    if config.vit_version == 'base':
+        create_vit = vits.vit_base
+    elif config.vit_version == 'small':
+        create_vit = vits.vit_small
+    elif config.vit_version == 'tiny':
+        create_vit = vits.vit_tiny
+        
+    logging.info(f"Vit version = {config.vit_version} ({create_vit})")
+    
+    model = create_vit(
             img_size=[config.embedding.image_size],
             patch_size=config.patch_size,
             # drop_path_rate=0.1,  # stochastic depth
@@ -296,9 +308,14 @@ def train_vit(config, config_data_path):
     #     config.center_momentum,
     # ).cuda()
     
-    vit_loss = nn.CrossEntropyLoss(label_smoothing=0.2).cuda()
-    # vit_loss = nn.CrossEntropyLoss().cuda()
-
+    # vit_loss = nn.CrossEntropyLoss(label_smoothing=0.2).cuda()
+    
+    if hasattr(config, 'label_smoothing'):
+        logging.info(f"label_smoothing={config.label_smoothing}")
+        vit_loss = nn.CrossEntropyLoss(label_smoothing=config.label_smoothing).cuda()
+    else:
+        logging.info(f"No label_smoothing")
+        vit_loss = nn.CrossEntropyLoss().cuda()
 
     # ============ preparing optimizer ... ============
     params_groups = utils.get_params_groups(model)
@@ -471,9 +488,6 @@ def forward_pass(model, res, vit_loss):
     with torch.cuda.amp.autocast():
         images, targets = res['image'].to(torch.float).cuda(), res['label'].cuda()
         
-        # !!!!!!!!!!!!!!!!!!! Taking only the target channel!!!!!!!!!!!!
-        images = images[:,[0],...]
-        
         logging.info(f"images shape: {images.shape}, targets shape: {targets.shape}")
         # with torch.no_grad():
         #     teacher_output = teacher(
@@ -482,8 +496,13 @@ def forward_pass(model, res, vit_loss):
         # student_output = student(images_global)
         # student_output = torch.vstack([student_output, student(images_local)]) 
         # loss = vit_loss(model, teacher_output, epoch)
-        outputs, preds = model(images, return_predictions=True)
+        preds = model(images)
+										 
+		
         loss = vit_loss(preds, targets)
+																  
+								   
+
     
     return loss
 
@@ -500,7 +519,7 @@ def infer_pass(model, data_loader, return_cls_token=False):
             logging.info(f"batch number: {it}/{len(data_loader)}")
             # with torch.cuda.amp.autocast():
             images, targets = res['image'].to(torch.float).cuda(), res['label'].cuda()
-            outputs, preds = model(images, return_predictions=True)
+            preds, outputs = model(images, return_hidden=True)
             all_predictions.extend(preds.cpu())
             all_labels.extend(targets.cpu())
             
@@ -692,59 +711,6 @@ def train_one_epoch(
 #             1 - self.center_momentum
 #         )
 
-
-class self_normalize(object):
-    def __call__(self, x):
-        min_val = 0
-        max_val = 1
-        
-        data_min = torch.min(x)
-        data_max = torch.max(x)
-        
-        # Compute the scale and min_val for the transformation
-        scale = (max_val - min_val) / (data_max - data_min)
-        scaled_data = scale * (x - data_min) + min_val
-
-        return scaled_data
-    
-        # Z scale, looks bad, probably because we have a lot of black in the image..
-        # m = x.mean((-2, -1), keepdim=True)
-        # s = x.std((-2, -1), unbiased=False, keepdim=True)
-        # x -= m
-        # x /= s + 1e-7
-        # return x
-        
-class RandomResizedCropWithCheck(transforms.RandomResizedCrop):
-    def __init__(self, size, scale=(0.08, 1.0), ratio=(3./4., 4./3.), interpolation=Image.BILINEAR, retries=3):
-        super().__init__(size, scale=scale, ratio=ratio, interpolation=interpolation)
-        self.retries = retries
-
-    def __call__(self, img):
-        self.vars = []
-        self.crops = []
-        
-        for _ in range(self.retries):
-            # Apply the random resized crop transformation
-            crop = super().__call__(img)
-            # Check if the crop is not empty
-            # print(f"crop: {crop.shape}, img: {img.shape}")
-            if self.is_non_empty(crop):
-                return crop
-        # If all retries fail, return the best crop
-        # print(f"otherwise: {self.crops[np.argmax(self.vars)].shape} img: {img.shape}")
-        return self.crops[np.argmax(self.vars)]
-
-    def is_non_empty(self, crop):
-        # Convert the crop to numpy array
-        crop_array = np.array(crop)
-        crop_var = crop_array.var()
-        
-        # Check if the crop has non-zero pixels
-        self.crops.append(crop)
-        self.vars.append(crop_var)
-        
-        return crop_var > 1e-2
-
 class DataAugmentationVIT(object):
     def __init__(self, config):
         self.config = config
@@ -757,6 +723,7 @@ class DataAugmentationVIT(object):
 
         # Define transformations for global and local views
         self.transform = transforms.Compose([
+            # transforms.ToTensor(),
             # RandomResizedCropWithCheck(100, scale=(0.6, 1.0)),
             transforms.RandomHorizontalFlip(),
             transforms.RandomVerticalFlip(),
@@ -771,31 +738,18 @@ class DataAugmentationVIT(object):
             
         ])
 
-        # self.local_transform = transforms.Compose([
-        #     # RandomResizedCropWithCheck(40, scale=(0.2, 0.4)),
-        #     transforms.RandomHorizontalFlip(),
-        #     transforms.RandomVerticalFlip(),
-        #     self_normalize()
-        #     # Warp
-        #     # remove channel (set channel to zeros)
-        #     #rescale protein (rescale intensity - img*=random_factor)
-            
-        #     # Change brightness
-        #     # Change contrast
-            
-            
-        # ])
+     
 
     def __call__(self, image):
-        return self.transform(image)
+        # return self.transform(image)
         
-        # global_crops = []
+        # # global_crops = []
         # local_crops = []
         
-        # global_crops.append(self.global_transform(image))
-        # global_crops.append(self.global_transform(image))
+        # # global_crops.append(self.global_transform(image))
+        # # global_crops.append(self.global_transform(image))
     
-        
+		
         # for _ in range(self.config.local_crops_number):
         #     local_crops.append(self.local_transform(image))
             
@@ -807,9 +761,24 @@ class DataAugmentationVIT(object):
             
         # global_crops = np.vstack(global_crops)
         # local_crops = np.vstack(local_crops)
+        # local_image = self.local_transform(image)
+        # global_image = self.transform(image)
+        img = self.transform(image)
         
-        # return global_crops, local_crops
+        
+        return img
+        
+        # global_images = np.tile(global_image, (self.config.local_crops_number, 1, 1, 1))#np.repeat(global_image, self.config.local_crops_number, axis=0)
+        
+        
+        
+        # local_crops = self.local_transform(image)
+        # local_crops = np.repeat(global_image, self.config.local_crops_number, axis=0)
+        
+        # return global_images, local_crops
 
+									
+							   
 
 # if __name__ == "__main__":
     # parser = argparse.ArgumentParser("DINO", parents=[get_args_parser()])

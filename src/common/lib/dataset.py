@@ -66,12 +66,12 @@ class Dataset(torch.utils.data.Dataset ,metaclass=ABCMeta):
         
         ### FOR SYNTHETIC (020724)
         
-        self.unique_classes = self.unique_ordered_list(['_'.join(m.split('_')[1:]) for m in self.unique_markers])
-        self.unique_markers = self.unique_ordered_list([m.split('_')[0] for m in self.unique_markers])
-        x_paths = self.X_paths.copy()
-        np.random.shuffle(x_paths)
-        _tmp = self.organize_paths(x_paths)
-        self.X_paths, self.y = self.create_index_mapping(_tmp)
+        # self.unique_classes = self.unique_ordered_list(['_'.join(m.split('_')[1:]) for m in self.unique_markers])
+        # self.unique_markers = self.unique_ordered_list([m.split('_')[0] for m in self.unique_markers])
+        # x_paths = self.X_paths.copy()
+        # np.random.shuffle(x_paths)
+        # _tmp = self.organize_paths(x_paths)
+        # self.X_paths, self.y = self.create_index_mapping(_tmp)
         
         ###
         
@@ -158,10 +158,6 @@ class Dataset(torch.utils.data.Dataset ,metaclass=ABCMeta):
         
         return index_mapping, root_mapping
 
-   
-    
-    
-    
     ###
     
         
@@ -194,6 +190,28 @@ class Dataset(torch.utils.data.Dataset ,metaclass=ABCMeta):
         
         return subset
     
+    # Function to apply the transform to each sample in the batch
+    def __apply_transform_per_sample(self, batch, transform):
+        batch_size = batch.size(0)
+        transformed_batch = []
+        for i in range(batch_size):
+            transformed_batch.append(transform(batch[[i]]))
+        transformed_batch = torch.vstack(transformed_batch)
+        return transformed_batch
+    
+    def __apply_paired_transform_batch(self, batch, transform):
+        batch_size = batch.size(0)
+        batch_global = torch.empty_like(batch)
+        batch_local = torch.empty_like(batch)
+        
+        # Apply transform in parallel
+        for i in range(batch_size):
+            img_global, img_local = transform(batch[[i]])
+            batch_global[i] = img_global
+            batch_local[i] = img_local
+            
+        return batch_global, batch_local
+    
     def __getitem__(self, index):
         # logging.info(f"\n\n\n\n __getitem__ {index}")
         'Generate one batch of data'
@@ -205,13 +223,18 @@ class Dataset(torch.utils.data.Dataset ,metaclass=ABCMeta):
         
         is_dual_inputs = utils.get_if_exists(self.conf, 'IS_DUAL_INPUTS', False)
         if is_dual_inputs:
-            if self.transform:    
-                X_batch_global, X_batch_local = self.transform(X_batch)
+            if self.transform:
+                
+                X_batch = torch.from_numpy(X_batch)  
+                X_batch_global, X_batch_local = self.__apply_paired_transform_batch(X_batch, self.transform)
+                
                 return {'image_global': X_batch_global, 'image_local': X_batch_local, 'label': y_batch, 'image_path': paths_batch}        
 
         
         if self.transform:
-            X_batch = self.transform(X_batch)
+            X_batch = torch.from_numpy(X_batch)
+            X_batch = self.__apply_transform_per_sample(X_batch, self.transform)
+            
         
         # if self.transform is not None:
         #     X_batch_global, X_batch_local = self.transform(X_batch)
@@ -226,115 +249,12 @@ class Dataset(torch.utils.data.Dataset ,metaclass=ABCMeta):
         # logging.info(f"Indexes: {indexes}, {self.X_paths[indexes]}")
         # print(indexes)
         X_paths_batch = self.X_paths[indexes]
+        # print(X_paths_batch)
         y_batch = self.y[indexes]
 
         return self.__load_batch(X_paths_batch, y_batch, return_paths=return_paths)
 
-    def __load_batch(self, paths, labels, return_paths=False):
-        'Generates data containing batch_size samples' 
-        X_batch = []
-        y_batch = []
-        paths_batch = []
-        
-        
-        # SAGY_ TESING DIFFERENT ORDERS OF CONCAT - does it make any change?
-        # n_markers = len(paths[0])
-        # order = np.arange(n_markers)
-        # np.random.shuffle(order)
-        # order = [0,2,1,3]#[1,2,3,0]
-        # print(f"order: {order}")
-        # ran = False
-        ##
-        
-        
-        # if self.changable_channel_count:
-        #     # SAGY - TRAINING WITH various channels
-        #     markers_count = len(paths[0])
-        #     _optional_markers_indx = np.arange(markers_count)
-        #     n_markers_to_choose = np.random.randint(1, markers_count+1,1)[0]
-        #     markers_chosen = np.random.choice(_optional_markers_indx, size=n_markers_to_choose, replace=False)
-        #     markers_chosen.sort()
-        # ####
-        
-        # Generate data
-        for i, path in enumerate(paths):
-            imgs =[]
-            
-            # if self.changable_channel_count:
-            #     # SAGY - TRAINING WITH various channels
-            #     for j in markers_chosen:
-            #         # print(path[j])
-            #         im = np.load(path[j])
-            #         imgs.append(im)
-            #     # print('\n')
-            #     #####
-            # else:
-            ## ORIGINAL
-            for p in path:
-                # print(path)
-                im = np.load(p)
-                imgs.append(im)
-            # print('\n')
-            # ###
-                
-                
-            # # SAGY_ TESING DIFFERENT ORDERS OF CONCAT - does it make any change?
-            # for j in order:
-            #     # if i <= 1:
-            #     #     print(path[j])
-                    
-            #     im = np.load(path[j])
-            #     imgs.append(im)
-            # print('\n')
-            # ran = True
-            ####
-            
-            min_samples = min([len(im) for im in imgs])
-            
-            imgs = [im[:min_samples] for im in imgs]
-            # imgs = np.concatenate(imgs, axis=1) # N,100+*|markers|,100,2
-            imgs = np.concatenate(imgs, axis=-1) # N,100,100,2*|markers|
-            
-            n_tiles = imgs.shape[0]
-            
-            if min_samples > 0:
-                X_batch.append(imgs)
-                y_batch.append([labels[i]]*n_tiles)
-            
-        X_batch = np.concatenate(X_batch)
-        y_batch = np.asarray(utils.flat_list_of_lists(y_batch))
-        if return_paths:
-            paths_batch = np.asarray([]) # TODO: FIX IT
-        #     paths_batch = np.asarray(utils.flat_list_of_lists(paths_batch))
-
-        # If the channel axis is the last one, move it to be the second one
-        # (#tiles, 100, 100, #channel) -> (#tiles, #channel, 100, 100)
-        if np.argmin(X_batch.shape[1:]) == len(X_batch.shape) - 2:
-            X_batch = np.moveaxis(X_batch, -1, 1)
-
-        # logging.info(f"y_batch shape: {y_batch.shape}")
-        
-        # logging.info(f"\n\n [load_batch]  X_batch: {X_batch.shape}, y [{np.unique(y_batch)}]: {y_batch.shape}")
-
-        #############################################
-        # NOTE! ************** [WARNING] Repeating the target channel 3 times (dropping the nucleus channel) ************
-        # logging.warn("[WARNING] Repeating the target channel 3 times (dropping the nucleus channel)")
-        # X_batch = X_batch[:,[0], ...]
-        # X_batch = np.repeat(X_batch, 3, axis=1)
-        # X_batch = torch.from_numpy(X_batch)
-        # logging.info(f"Repeated (3) X_batch: {X_batch.shape}")
-        
-        ###############################################################
-        
-        # res = utils.apply_for_all_gpus(utils.getfreegpumem)
-        # logging.info(f"Resources (Free, Used, Total): {res}")
-        # nvidia_smi_info = utils.apply_for_all_gpus(utils.get_nvidia_smi_output)
-        # logging.info(f"nvidia_smi: {nvidia_smi_info}")
-        
-        if return_paths:
-            return X_batch, y_batch, paths_batch
-        
-        return X_batch, y_batch
+    # Synthetic ############# 
 
     # def __load_batch(self, paths, labels, return_paths=False):
     #     'Generates data containing batch_size samples' 
@@ -342,49 +262,76 @@ class Dataset(torch.utils.data.Dataset ,metaclass=ABCMeta):
     #     y_batch = []
     #     paths_batch = []
         
+        
+    #     # SAGY_ TESING DIFFERENT ORDERS OF CONCAT - does it make any change?
+    #     # n_markers = len(paths[0])
+    #     # order = np.arange(n_markers)
+    #     # np.random.shuffle(order)
+    #     # order = [0,2,1,3]#[1,2,3,0]
+    #     # print(f"order: {order}")
+    #     # ran = False
+    #     ##
+        
+        
+    #     # if self.changable_channel_count:
+    #     #     # SAGY - TRAINING WITH various channels
+    #     #     markers_count = len(paths[0])
+    #     #     _optional_markers_indx = np.arange(markers_count)
+    #     #     n_markers_to_choose = np.random.randint(1, markers_count+1,1)[0]
+    #     #     markers_chosen = np.random.choice(_optional_markers_indx, size=n_markers_to_choose, replace=False)
+    #     #     markers_chosen.sort()
+    #     # ####
+        
     #     # Generate data
     #     for i, path in enumerate(paths):
-    #         # logging.info(f"Path: {path}")
-    #         imgs = np.load(path)
+    #         imgs =[]
+            
+    #         # if self.changable_channel_count:
+    #         #     # SAGY - TRAINING WITH various channels
+    #         #     for j in markers_chosen:
+    #         #         # print(path[j])
+    #         #         im = np.load(path[j])
+    #         #         imgs.append(im)
+    #         #     # print('\n')
+    #         #     #####
+    #         # else:
+    #         ## ORIGINAL
+    #         for p in path:
+    #             # print(path)
+    #             im = np.load(p)
+    #             imgs.append(im)
+    #         # print('\n')
+    #         # ###
+                
+                
+    #         # # SAGY_ TESING DIFFERENT ORDERS OF CONCAT - does it make any change?
+    #         # for j in order:
+    #         #     # if i <= 1:
+    #         #     #     print(path[j])
+                    
+    #         #     im = np.load(path[j])
+    #         #     imgs.append(im)
+    #         # print('\n')
+    #         # ran = True
+    #         ####
+            
+    #         min_samples = min([len(im) for im in imgs])
+            
+    #         imgs = [im[:min_samples] for im in imgs]
+    #         # imgs = np.concatenate(imgs, axis=1) # N,100+*|markers|,100,2
+    #         imgs = np.concatenate(imgs, axis=-1) # N,100,100,2*|markers|
             
     #         n_tiles = imgs.shape[0]
             
-    #         augmented_images = []
+    #         if min_samples > 0:
+    #             X_batch.append(imgs)
+    #             y_batch.append([labels[i]]*n_tiles)
             
-    #         # if self.flip or self.rot:
-    #         #     for j in range(n_tiles): 
-    #         #         # Augmentations
-    #         #         img = deepcopy(imgs[j]) if not self.is_aug_inplace else imgs[j]
-    #         #         if self.flip:
-    #         #             img = random_horizontal_flip(img) 
-    #         #             img = random_vertical_flip(img) 
-    #         #         if self.rot:
-    #         #             img = random_choice_rotate(img) 
-                    
-    #         #         if self.is_aug_inplace:
-    #         #             imgs[j] = img
-    #         #         elif not np.array_equal(img, imgs[j]): 
-    #         #             augmented_images.append(img) 
-        
-    #         # Store sample - all the tiles in site
-    #         X_batch.append(imgs)
-    #         y_batch.append([labels[i]]*n_tiles)
-    #         if return_paths:
-    #             paths_batch.append([path]*n_tiles)
-            
-    #         # if not self.is_aug_inplace:
-    #         #     # Append augmented images
-    #         #     if len(augmented_images) > 0: 
-    #         #         augmented_images = np.stack(augmented_images) 
-    #         #         X_batch.append(augmented_images) 
-    #         #         y_batch.append([labels[i]]*len(augmented_images)) 
-    #         #         if return_paths:
-    #         #             paths_batch.append([path]*len(augmented_images))
-        
     #     X_batch = np.concatenate(X_batch)
     #     y_batch = np.asarray(utils.flat_list_of_lists(y_batch))
     #     if return_paths:
-    #         paths_batch = np.asarray(utils.flat_list_of_lists(paths_batch))
+    #         paths_batch = np.asarray([]) # TODO: FIX IT
+    #     #     paths_batch = np.asarray(utils.flat_list_of_lists(paths_batch))
 
     #     # If the channel axis is the last one, move it to be the second one
     #     # (#tiles, 100, 100, #channel) -> (#tiles, #channel, 100, 100)
@@ -397,11 +344,11 @@ class Dataset(torch.utils.data.Dataset ,metaclass=ABCMeta):
 
     #     #############################################
     #     # NOTE! ************** [WARNING] Repeating the target channel 3 times (dropping the nucleus channel) ************
-        # logging.warn("[WARNING] Repeating the target channel 3 times (dropping the nucleus channel)")
-        # X_batch = X_batch[:,[0], ...]
-        # X_batch = np.repeat(X_batch, 3, axis=1)
-        # X_batch = torch.from_numpy(X_batch)
-        # logging.info(f"Repeated (3) X_batch: {X_batch.shape}")
+    #     # logging.warn("[WARNING] Repeating the target channel 3 times (dropping the nucleus channel)")
+    #     # X_batch = X_batch[:,[0], ...]
+    #     # X_batch = np.repeat(X_batch, 3, axis=1)
+    #     # X_batch = torch.from_numpy(X_batch)
+    #     # logging.info(f"Repeated (3) X_batch: {X_batch.shape}")
         
     #     ###############################################################
         
@@ -414,18 +361,94 @@ class Dataset(torch.utils.data.Dataset ,metaclass=ABCMeta):
     #         return X_batch, y_batch, paths_batch
         
     #     return X_batch, y_batch
+
+    #################
+
+
+    def __load_batch(self, paths, labels, return_paths=False):
+        'Generates data containing batch_size samples' 
+        X_batch = []
+        y_batch = []
+        paths_batch = []
+        
+        # Generate data
+        for i, path in enumerate(paths):
+            # logging.info(f"Path: {path}")
+            imgs = np.load(path)
+            
+            n_tiles = imgs.shape[0]
+            
+            augmented_images = []
+            
+            # if self.flip or self.rot:
+            #     for j in range(n_tiles): 
+            #         # Augmentations
+            #         img = deepcopy(imgs[j]) if not self.is_aug_inplace else imgs[j]
+            #         if self.flip:
+            #             img = random_horizontal_flip(img) 
+            #             img = random_vertical_flip(img) 
+            #         if self.rot:
+            #             img = random_choice_rotate(img) 
+                    
+            #         if self.is_aug_inplace:
+            #             imgs[j] = img
+            #         elif not np.array_equal(img, imgs[j]): 
+            #             augmented_images.append(img) 
+        
+            # Store sample - all the tiles in site
+            X_batch.append(imgs)
+            y_batch.append([labels[i]]*n_tiles)
+            if return_paths:
+                paths_batch.append([path]*n_tiles)
+            
+            # if not self.is_aug_inplace:
+            #     # Append augmented images
+            #     if len(augmented_images) > 0: 
+            #         augmented_images = np.stack(augmented_images) 
+            #         X_batch.append(augmented_images) 
+            #         y_batch.append([labels[i]]*len(augmented_images)) 
+            #         if return_paths:
+            #             paths_batch.append([path]*len(augmented_images))
+        
+        X_batch = np.concatenate(X_batch)
+        y_batch = np.asarray(utils.flat_list_of_lists(y_batch))
+        if return_paths:
+            paths_batch = np.asarray(utils.flat_list_of_lists(paths_batch))
+
+        # If the channel axis is the last one, move it to be the second one
+        # (#tiles, 100, 100, #channel) -> (#tiles, #channel, 100, 100)
+        if np.argmin(X_batch.shape[1:]) == len(X_batch.shape) - 2:
+            X_batch = np.moveaxis(X_batch, -1, 1)
+
+        # logging.info(f"y_batch shape: {y_batch.shape}")
+        
+        # logging.info(f"\n\n [load_batch]  X_batch: {X_batch.shape}, y [{np.unique(y_batch)}]: {y_batch.shape}")
+
+        # res = utils.apply_for_all_gpus(utils.getfreegpumem)
+        # logging.info(f"Resources (Free, Used, Total): {res}")
+        # nvidia_smi_info = utils.apply_for_all_gpus(utils.get_nvidia_smi_output)
+        # logging.info(f"nvidia_smi: {nvidia_smi_info}")
+        
+        if return_paths:
+            return X_batch, y_batch, paths_batch
+        
+        return X_batch, y_batch
         
     def id2label(self, y_id):
-        y_label = self.unique_classes[y_id.flatten().astype(int)]
+        # y_label = self.unique_classes[y_id.flatten().astype(int)]
+        y_label = self.unique_markers[y_id.flatten().astype(int)]
         
         return y_label
     
     def __label_converter(self, y, label_format='index'):
-        if self.unique_classes is None:
-            raise ValueError('unique_classes is empty.')
+        # if self.unique_classes is None:
+        if self.unique_markers is None:
+            # raise ValueError('unique_classes is empty.')
+            raise ValueError('unique_markers is empty.')
         else:
             y = y.reshape(-1,)
-            onehot = y[:, None] == self.unique_classes
+            # onehot = y[:, None] == self.unique_classes
+            onehot = y[:, None] == self.unique_markers
             if label_format == 'onehot':
                 output = onehot
             elif label_format == 'index':
@@ -529,14 +552,14 @@ class Dataset(torch.utils.data.Dataset ,metaclass=ABCMeta):
                 
                 output_images = torch.from_numpy(np.vstack(images))
                 output_labels = torch.from_numpy(np.vstack(labels).reshape(-1,))
-                # output_paths = np.vstack(images_paths).reshape(-1,)
+                output_paths = np.vstack(images_paths).reshape(-1,)
                 
                 if shuffle:
                     indexes = np.arange(len(output_images))
                     np.random.shuffle(indexes)
                     output_images = output_images[indexes]
                     output_labels = output_labels[indexes]
-                    # output_paths = output_paths[indexes]
+                    output_paths = output_paths[indexes]
                     
                 # SAGY - TRAINING WITH various channels
                 # channels_count = output_images.shape[1] 
@@ -556,8 +579,8 @@ class Dataset(torch.utils.data.Dataset ,metaclass=ABCMeta):
                 logging.info(f"Image shape: {output_images.shape}, label shape: {output_labels.shape}")
 
                 # logging.info(f"Image shape: {output_images.shape}, label shape: {output_labels.shape}, label unique: {np.unique(output_labels)}")
-                # return {'image': output_images, 'label': output_labels, 'image_path': output_paths}
-                return {'image': output_images, 'label': output_labels}
+                return {'image': output_images, 'label': output_labels, 'image_path': output_paths}
+                # return {'image': output_images, 'label': output_labels}
 
 
         

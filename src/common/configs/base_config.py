@@ -148,6 +148,7 @@ class BaseConfig():
         self.__LOGS_FOLDER = path
         __now = datetime.datetime.now()
         jobid = os.getenv('LSB_JOBID')
+        jobname = os.getenv('LSB_JOBNAME')
         
         username = 'UnknownUser'
         if jobid:
@@ -156,9 +157,9 @@ class BaseConfig():
             # Extract the username from the output
             username = result.stdout.replace('USER', '').strip()
         
-        log_file_path = os.path.join(self.__LOGS_FOLDER, __now.strftime("%d%m%y_%H%M%S_%f") + f'_{jobid}_{username}.log')
+        log_file_path = os.path.join(self.__LOGS_FOLDER, __now.strftime("%d%m%y_%H%M%S_%f") + f'_{jobid}_{username}_{jobname}.log')
         if not os.path.exists(self.__LOGS_FOLDER):
             os.makedirs(self.__LOGS_FOLDER)
         init_logging(log_file_path)
-        logging.info(f"[{self.__class__.__name__}] Init (log path: {log_file_path}; JOBID: {jobid} Username: {username})")
+        logging.info(f"[{self.__class__.__name__}] Init (log path: {log_file_path}; JOBID: {jobid} Username: {username}) JOBNAME: {jobname}")
         logging.info(f"[{self.__class__.__name__}] MOMAPS_HOME={self.HOME_FOLDER}, MOMAPS_DATA_HOME={self.HOME_DATA_FOLDER}")

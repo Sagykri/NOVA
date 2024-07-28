@@ -232,14 +232,26 @@ def train_vit_contrastive(config, config_data_path):
     # )
     logging.info(f"Data loaded: there are {len(dataset)} images.")
 
+    create_vit = vits.vit_base
+    if config.vit_version == 'base':
+        create_vit = vits.vit_base
+    elif config.vit_version == 'small':
+        create_vit = vits.vit_small
+    elif config.vit_version == 'tiny':
+        create_vit = vits.vit_tiny
+        
+    logging.info(f"Vit version = {config.vit_version} ({create_vit})")
+
+    logging.info(f"use intensity change? {config.use_intensity_change}")
+
     # ============ building student and teacher networks ... ============
-    model = vits.vit_base(
+    model = create_vit(
             img_size=[config.embedding.image_size, config.embedding.image_size],
             patch_size=config.patch_size,
             # drop_path_rate=0.1,  # stochastic depth
             # drop_rate=0.3, # can't go together with drop_path_rate - cuda out of memory
-            in_chans=config.num_channels*len(dataset.unique_markers),
-            num_classes=256#len(dataset.unique_markers)
+            in_chans=config.num_channels,# *len(dataset.unique_markers),
+            num_classes=config.num_classes#len(dataset.unique_markers)
     )
     # teacher = vits.vit_base(
     #     img_size=[config.embedding.image_size],
@@ -794,22 +806,29 @@ class DataAugmentationVIT(object):
             
         ])
 
-        self.local_transform = transforms.Compose([
-            RandomResizedCropWithCheck(100, scale=(0.1, 0.25),threshold=5, retries=10),
-            transforms.RandomHorizontalFlip(),
-            transforms.RandomVerticalFlip(),
-            RandomIntensityChange(intensity_range=(0.8, 1.2), p=0.3),
-            # RandomChannelShutdown(channel_index=1, p=0.3),
-            self_normalize()
-            # Warp
-            # remove channel (set channel to zeros)
-            #rescale protein (rescale intensity - img*=random_factor)
-            
-            # Change brightness
-            # Change contrast
-            
-            
-        ])
+        if config.use_intensity_change:
+            self.local_transform = transforms.Compose([
+                RandomResizedCropWithCheck(100, scale=(0.1, 0.25),threshold=5, retries=10),
+                transforms.RandomHorizontalFlip(),
+                transforms.RandomVerticalFlip(),
+                RandomIntensityChange(intensity_range=(0.8, 1.2), p=0.3),
+                # RandomChannelShutdown(channel_index=1, p=0.3),
+                self_normalize()
+                # Warp
+                # remove channel (set channel to zeros)
+                #rescale protein (rescale intensity - img*=random_factor)
+                
+                # Change brightness
+                # Change contrast
+            ])
+        else:
+            self.local_transform = transforms.Compose([
+                RandomResizedCropWithCheck(100, scale=(0.1, 0.25),threshold=5, retries=10),
+                transforms.RandomHorizontalFlip(),
+                transforms.RandomVerticalFlip(),
+                self_normalize()
+                
+            ])
      
 
     def __call__(self, image):
