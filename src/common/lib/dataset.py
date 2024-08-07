@@ -14,8 +14,6 @@ from src.common.configs.dataset_config import DatasetConfig
 import src.common.lib.utils as utils
 from copy import deepcopy
 
-## FOR SYNTHETIC (020724)
-import itertools
 from collections import defaultdict
 ##
 
@@ -88,7 +86,9 @@ class Dataset(torch.utils.data.Dataset ,metaclass=ABCMeta):
         return unique_list
     
     def organize_paths(self, root_paths):
-        organized_paths = defaultdict(lambda: defaultdict(list))
+        # organized_paths = defaultdict(lambda: defaultdict(list))
+
+        organized_paths = defaultdict(lambda: defaultdict(lambda: defaultdict(list)))
         
         ##
         # Shuffling the labels
@@ -119,9 +119,15 @@ class Dataset(torch.utils.data.Dataset ,metaclass=ABCMeta):
             parts = path.split(os.sep)
             root = os.path.join(parts[-4], parts[-3])
             subfolder = parts[-2]
-            organized_paths[root][subfolder].append(path)
+            ## Grouping also by REP
+            rep = parts[-1].split("_",1)[0]
+            batch = parts[-5]
+            batch_rep = '_'.join([batch, rep])
+            organized_paths[root][subfolder][batch_rep].append(path)
+            ##
+            
+            # organized_paths[root][subfolder].append(path)
         return organized_paths
-
 
     def create_index_mapping(self, organized_paths):
         to_sort = True
@@ -129,26 +135,31 @@ class Dataset(torch.utils.data.Dataset ,metaclass=ABCMeta):
         
         index_mapping = []
         root_mapping = []
-        for root, subfolders in organized_paths.items():
-            num_files = min(len(files) for files in subfolders.values())
-            for i in range(num_files):
-                combo = []
-                for subfolder, files in subfolders.items(): 
-                    # for l in range(4): # SAGY _ REPLICATE THE SAME MARKER for testing
-                    #     combo.append(files[i % len(files)])
-                    combo.append(files[(i) % len(files)])
-                if to_sort:
-                    combo.sort() # SAGY _ KEEP THE ORDER OF MARKERS THE SAME!
-                
-                # SAGY _ CHANGING THE ORDER OF THE MARKERSR for testing
-                # combo = combo[::-1]
-                ###
-                
-                if i >= len(index_mapping):
-                    index_mapping.append([])
-                    root_mapping.append([])
-                index_mapping[i].append(combo)
-                root_mapping[i].append(root.replace(os.sep,'_'))
+
+        batchs_reps = list(list(list(organized_paths.values())[0].values())[0].keys())
+        for cls, files_paths in organized_paths.items():
+            # files_paths.keys() -> markers
+            # files_paths.values() -> files paths per marker
+            for batch_rep in batchs_reps:
+                possible_groups_count = min(len(files[batch_rep]) for files in files_paths.values())
+                for i in range(possible_groups_count):
+                    combo = []
+                    for marker, marker_files_paths_per_rep in files_paths.items(): 
+                        marker_files_paths = marker_files_paths_per_rep[batch_rep] 
+                        # for l in range(4): # SAGY _ REPLICATE THE SAME MARKER for testing
+                        #     combo.append(files[i % len(files)])
+                        combo.append(marker_files_paths[(i) % len(marker_files_paths)])
+                    if to_sort:
+                        combo.sort() # SAGY _ KEEP THE ORDER OF MARKERS THE SAME!
+                    # SAGY _ CHANGING THE ORDER OF THE MARKERSR for testing
+                    # combo = combo[::-1]
+                    ###
+                    
+                    if i >= len(index_mapping):
+                        index_mapping.append([])
+                        root_mapping.append([])
+                    index_mapping[i].append(combo)
+                    root_mapping[i].append(cls.replace(os.sep,'_'))
                 
         index_mapping = utils.flat_list_of_lists(index_mapping)
         root_mapping = utils.flat_list_of_lists(root_mapping)
@@ -157,6 +168,44 @@ class Dataset(torch.utils.data.Dataset ,metaclass=ABCMeta):
         root_mapping = np.asarray(root_mapping)
         
         return index_mapping, root_mapping
+
+
+
+    # def create_index_mapping(self, organized_paths):
+    #     to_sort = True
+    #     print(f"to_sort = {to_sort}")
+        
+    #     index_mapping = []
+    #     root_mapping = []
+    #     for cls, files_paths in organized_paths.items():
+    #         # files_paths.keys() -> markers
+    #         # files_paths.values() -> files paths per marker
+    #         possible_groups_count = min(len(files) for files in files_paths.values())
+    #         for i in range(possible_groups_count):
+    #             combo = []
+    #             for marker, marker_files_paths in files_paths.items(): 
+    #                 # for l in range(4): # SAGY _ REPLICATE THE SAME MARKER for testing
+    #                 #     combo.append(files[i % len(files)])
+    #                 combo.append(marker_files_paths[(i) % len(marker_files_paths)])
+    #             if to_sort:
+    #                 combo.sort() # SAGY _ KEEP THE ORDER OF MARKERS THE SAME!
+    #             # SAGY _ CHANGING THE ORDER OF THE MARKERSR for testing
+    #             # combo = combo[::-1]
+    #             ###
+                
+    #             if i >= len(index_mapping):
+    #                 index_mapping.append([])
+    #                 root_mapping.append([])
+    #             index_mapping[i].append(combo)
+    #             root_mapping[i].append(cls.replace(os.sep,'_'))
+                
+    #     index_mapping = utils.flat_list_of_lists(index_mapping)
+    #     root_mapping = utils.flat_list_of_lists(root_mapping)
+        
+    #     index_mapping = np.asarray(index_mapping)
+    #     root_mapping = np.asarray(root_mapping)
+        
+    #     return index_mapping, root_mapping
 
     ###
     
@@ -254,7 +303,7 @@ class Dataset(torch.utils.data.Dataset ,metaclass=ABCMeta):
 
         return self.__load_batch(X_paths_batch, y_batch, return_paths=return_paths)
 
-    # Synthetic ############# 
+    # FOR SYNTHETIC (020724) ############# 
 
     # def __load_batch(self, paths, labels, return_paths=False):
     #     'Generates data containing batch_size samples' 
@@ -362,6 +411,28 @@ class Dataset(torch.utils.data.Dataset ,metaclass=ABCMeta):
         
     #     return X_batch, y_batch
 
+
+    # def id2label(self, y_id):
+    #     y_label = self.unique_classes[y_id.flatten().astype(int)]
+        
+    #     return y_label
+    
+    # def __label_converter(self, y, label_format='index'):
+    #     if self.unique_classes is None:
+    #         raise ValueError('unique_classes is empty.')
+    #     else:
+    #         y = y.reshape(-1,)
+    #         onehot = y[:, None] == self.unique_classes
+    #         if label_format == 'onehot':
+    #             output = onehot
+    #         elif label_format == 'index':
+    #             output = onehot.argmax(1)
+    #         else:
+    #             output = y
+
+    #         output = output.reshape(-1,1)
+    #         return output
+
     #################
 
 
@@ -435,19 +506,15 @@ class Dataset(torch.utils.data.Dataset ,metaclass=ABCMeta):
         return X_batch, y_batch
         
     def id2label(self, y_id):
-        # y_label = self.unique_classes[y_id.flatten().astype(int)]
         y_label = self.unique_markers[y_id.flatten().astype(int)]
         
         return y_label
     
     def __label_converter(self, y, label_format='index'):
-        # if self.unique_classes is None:
         if self.unique_markers is None:
-            # raise ValueError('unique_classes is empty.')
             raise ValueError('unique_markers is empty.')
         else:
             y = y.reshape(-1,)
-            # onehot = y[:, None] == self.unique_classes
             onehot = y[:, None] == self.unique_markers
             if label_format == 'onehot':
                 output = onehot

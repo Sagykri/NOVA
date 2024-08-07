@@ -133,7 +133,6 @@ class Block(nn.Module):
         
         return x
 
-
 class PatchEmbed(nn.Module):
     """ Image to Patch Embedding
     """
@@ -199,13 +198,9 @@ class VisionTransformer(nn.Module):
         self.patch_embed = PatchEmbed(
             img_size=img_size[0], patch_size=patch_size, in_chans=in_chans, embed_dim=embed_dim)
         num_patches = self.patch_embed.num_patches
-        # print(f"num_patches={num_patches}")
-        # if pos_emb_size is None: # SAGY
-            # pos_emb_size = num_patches
 
         self.cls_token = nn.Parameter(torch.zeros(1, 1, embed_dim))
-        self.pos_embed = nn.Parameter(torch.zeros(1, num_patches + 1, embed_dim)) # SAGY
-        # self.pos_embed = nn.Parameter(torch.zeros(1, 3025+1, embed_dim)) # SAGY
+        self.pos_embed = nn.Parameter(torch.zeros(1, num_patches + 1, embed_dim)) 
         self.pos_drop = nn.Dropout(p=drop_rate)
 
         dpr = [x.item() for x in torch.linspace(0, drop_path_rate, depth)]  # stochastic depth decay rule
@@ -214,6 +209,8 @@ class VisionTransformer(nn.Module):
                 dim=embed_dim, num_heads=num_heads, mlp_ratio=mlp_ratio, qkv_bias=qkv_bias, qk_scale=qk_scale,
                 drop=drop_rate, attn_drop=attn_drop_rate, drop_path=dpr[i], norm_layer=norm_layer)
             for i in range(depth)])
+
+        
         self.norm = norm_layer(embed_dim)
 
         # Classifier head
@@ -276,7 +273,7 @@ class VisionTransformer(nn.Module):
         return self.pos_drop(x)
 
 
-    # SAGY _ (080724) PatchEmbeddings for each dual channel separatly!
+    # SAGY _ FOR SYNTHETIC (080724) PatchEmbeddings for each dual channel separatly!
     # def prepare_tokens(self, x):
     #     B, nc, w, h = x.shape
         
@@ -299,6 +296,8 @@ class VisionTransformer(nn.Module):
     #     x = x + pos_encoding
 
     #     return self.pos_drop(x)
+    
+    # #####
 
     def forward(self, x, return_hidden=False):
         x = self.prepare_tokens(x)
@@ -310,19 +309,6 @@ class VisionTransformer(nn.Module):
             return self.head(x[:, 0]), x[:, 0]
         else:
             return self.head(x[:, 0])
-
-    # def forward(self, x, return_predictions=False):
-    #     x = self.prepare_tokens(x)
-    #     for blk in self.blocks:
-    #         x = blk(x)
-    #     x = self.norm(x)
-        
-    #     # SAGY 170624
-    #     if return_predictions:
-    #         return x[:, 0], self.head(x[:, 0])
-    #     else:
-    #         # SAGY - NOTE! It always return only the CLS token!!
-    #         return x[:, 0]
 
     def get_last_selfattention(self, x):
         x = self.prepare_tokens(x)
