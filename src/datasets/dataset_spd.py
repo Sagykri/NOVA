@@ -69,6 +69,7 @@ class DatasetSPD(Dataset):
         condition_l             =   self.add_condition_to_label
         line_l                  =   self.add_line_to_label
         batch_l                 =   self.add_batch_to_label
+        rep_l                   =   self.add_rep_to_label
         cell_type_l             =   self.add_type_to_label
         markers                 =   self.markers
         markers_to_exclude      =   self.markers_to_exclude
@@ -153,26 +154,49 @@ class DatasetSPD(Dataset):
                     else:
                         logging.info(f"file {target_file} is not a npy. moving on.. ")
                         continue
-                
+                    
+                    # Save images label (same label to all site)
+                    lbl = marker_name
+                    if line_l:
+                        lbl += f"_{cell_line}"
+                    if condition_l:
+                        lbl += f"_{condition}"
+                    if batch_l:
+                        batch_postfix = f"{os.path.basename(input_folder)}"
+                        lbl += f"_{batch_postfix}"
+                    if rep_l:
+                        filename_rep = filename.split('_',1)[0]
+                        lbl += f"_{filename_rep}"
+                        
+                    # Save all unique markers names
+                    if lbl not in unique_markers: 
+                        unique_markers.append(lbl)
+                    
+                    labels += [lbl]
+                    
+                    
                 # Save when there is change between markers/conditions
                 labels_changepoints.append(n_images)
                 #####################################
-                # Save images label (same label to all site)
-                lbl = marker_name
-                if line_l:
-                    lbl += f"_{cell_line}"
-                if condition_l:
-                    lbl += f"_{condition}"
-                if batch_l:
-                    batch_postfix = f"{os.path.basename(input_folder)}"
-                    lbl += f"_{batch_postfix}"
+                
+                # # Save images label (same label to all site)
+                # lbl = marker_name
+                # if line_l:
+                #     lbl += f"_{cell_line}"
+                # if condition_l:
+                #     lbl += f"_{condition}"
+                # if batch_l:
+                #     batch_postfix = f"{os.path.basename(input_folder)}"
+                #     lbl += f"_{batch_postfix}"
+                # if rep_l:
+                #     filename_rep = filename.split('_',1)[0]
+                #     lbl += f"_{filename_rep}"
                     
+                # # Save all unique markers names
+                # if lbl not in unique_markers: 
+                #     unique_markers.append(lbl)
                 
-                # Save all unique markers names
-                if lbl not in unique_markers: 
-                    unique_markers.append(lbl)
-                
-                labels += [lbl] * n_images
+                # labels += [lbl] * n_images
                 
                 # Nancy: currently, data folder doesn't contain "neurons"/"microglia"
                 #if cell_type_l:

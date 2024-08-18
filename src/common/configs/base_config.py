@@ -61,6 +61,7 @@ class BaseConfig():
             'OPTN_Untreated': {self.UMAP_MAPPINGS_ALIAS_KEY: 'OPTN', self.UMAP_MAPPINGS_COLOR_KEY: '#FF98BB'},
             'TBK1_Untreated': {self.UMAP_MAPPINGS_ALIAS_KEY: 'TBK1', self.UMAP_MAPPINGS_COLOR_KEY: '#319278'},
             'SCNA_Untreated': {self.UMAP_MAPPINGS_ALIAS_KEY: 'SCNA', self.UMAP_MAPPINGS_COLOR_KEY: 'black'},
+            'SNCA_Untreated': {self.UMAP_MAPPINGS_ALIAS_KEY: 'SNCA', self.UMAP_MAPPINGS_COLOR_KEY: 'black'},
             'TDP43_Untreated': {self.UMAP_MAPPINGS_ALIAS_KEY: 'TDP43', self.UMAP_MAPPINGS_COLOR_KEY: '#A8559E'},
         }
         self.UMAP_MAPPINGS_ALS['WT'] = self.UMAP_MAPPINGS_ALS['WT_Untreated']
@@ -70,6 +71,7 @@ class BaseConfig():
         self.UMAP_MAPPINGS_ALS['OPTN'] = self.UMAP_MAPPINGS_ALS['OPTN_Untreated']
         self.UMAP_MAPPINGS_ALS['TBK1'] = self.UMAP_MAPPINGS_ALS['TBK1_Untreated']
         self.UMAP_MAPPINGS_ALS['SCNA'] = self.UMAP_MAPPINGS_ALS['SCNA_Untreated']
+        self.UMAP_MAPPINGS_ALS['SNCA'] = self.UMAP_MAPPINGS_ALS['SNCA_Untreated']
         self.UMAP_MAPPINGS_ALS['TDP43'] = self.UMAP_MAPPINGS_ALS['TDP43_Untreated']
 
         

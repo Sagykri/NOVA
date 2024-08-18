@@ -89,7 +89,7 @@ def train_vit_contrastive(config_path, config_data_path):
         logging.info(f"config_path = {config_path}, config_data_path = {config_data_path}")
     print(f"config_path = {config_path}, config_data_path = {config_data_path}")
 
-    writer = SummaryWriter(log_dir=os.path.join(config.tensorboard_root_folder, f"{__now}_{jobid}_{username}"))
+    writer = SummaryWriter(log_dir=os.path.join(config.tensorboard_root_folder, f"{__now}_{jobid}_{username}_{jobname}"))
 
 
     utils.fix_random_seeds(config.seed)

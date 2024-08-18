@@ -43,6 +43,7 @@ class Dataset(torch.utils.data.Dataset ,metaclass=ABCMeta):
         self.add_condition_to_label = conf.ADD_CONDITION_TO_LABEL
         self.add_line_to_label = conf.ADD_LINE_TO_LABEL
         self.add_batch_to_label = conf.ADD_BATCH_TO_LABEL
+        self.add_rep_to_label   = conf.ADD_REP_TO_LABEL
         self.add_type_to_label = conf.ADD_TYPE_TO_LABEL
         self.markers = conf.MARKERS
         self.markers_to_exclude = conf.MARKERS_TO_EXCLUDE
