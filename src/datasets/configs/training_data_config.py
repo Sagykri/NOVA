@@ -35,15 +35,36 @@ class B78TrainDatasetConfig(DatasetConfig):
         self.SPLIT_DATA = True
         self.MARKERS_TO_EXCLUDE = self.MARKERS_TO_EXCLUDE + ['DAPI']
 
-class B78NoDSTrainDatasetConfig(DatasetConfig):
+class B78Train2pretextDatasetConfig(DatasetConfig):
     def __init__(self):
         super().__init__()
 
         self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "spd2", "SpinningDisk", f) for f in 
-                        ["batch7_16bit_no_downsample", "batch8_16bit_no_downsample"]]
+                        ["batch7", "batch8"]]
 
         self.SPLIT_DATA = True
-        self.MARKERS_TO_EXCLUDE = self.MARKERS_TO_EXCLUDE + ['DAPI']
+        self.MARKERS_TO_EXCLUDE = ['DAPI']
+        self.IS_AUG_INPLACE = True
+        self.SPLIT_LABELS = True
+
+class B78NoDSTrainDatasetConfig(DatasetConfig):
+    def __init__(self):
+        super().__init__()
+        self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "spd2", "SpinningDisk", f) for f in 
+                        ["batch7", "batch8"]]
+
+        self.SPLIT_DATA = True
+        self.MARKERS_TO_EXCLUDE = ['TIA1','DAPI']
+        # self.MARKERS = ['G3BP1','PML','FUS','PURA']
+# class B78NoDSTrainDatasetConfig(DatasetConfig):
+#     def __init__(self):
+#         super().__init__()
+
+#         self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "spd2", "SpinningDisk", f) for f in 
+#                         ["batch7_16bit_no_downsample", "batch8_16bit_no_downsample"]]
+
+#         self.SPLIT_DATA = True
+#         self.MARKERS_TO_EXCLUDE = self.MARKERS_TO_EXCLUDE + ['DAPI']
 
 ############################################################
 # NiemannPick

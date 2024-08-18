@@ -29,9 +29,10 @@ def random_choice_rotate(image):
 
 
 class Dataset(torch.utils.data.Dataset ,metaclass=ABCMeta):
-    def __init__(self, conf: DatasetConfig):
+    def __init__(self, conf: DatasetConfig, transform=None):
         self.__set_params(conf)
-        
+        self.transform = transform
+
     def __set_params(self, conf: DatasetConfig):
         self.input_folders = conf.INPUT_FOLDERS
         self.add_condition_to_label = conf.ADD_CONDITION_TO_LABEL
@@ -52,7 +53,9 @@ class Dataset(torch.utils.data.Dataset ,metaclass=ABCMeta):
         self.reps = conf.REPS
 
         self.conf = conf
-        
+        # TO support spliting labels
+        self.split_labels = conf.SPLIT_LABELS
+
         self.X_paths, self.y, self.unique_markers = self._load_data_paths()  
         
         # PATCH...
@@ -87,6 +90,15 @@ class Dataset(torch.utils.data.Dataset ,metaclass=ABCMeta):
         
         return subset
     
+    # Function to apply the transform to each sample in the batch
+    def __apply_transform_per_sample(self, batch, transform):
+        batch_size = batch.size(0)
+        transformed_batch = []
+        for i in range(batch_size):
+            transformed_batch.append(transform(batch[[i]]))
+        transformed_batch = torch.vstack(transformed_batch)
+        return transformed_batch
+    
     def __getitem__(self, index):
         logging.info(f"\n\n\n\n __getitem__ {index}")
         'Generate one batch of data'
@@ -96,6 +108,11 @@ class Dataset(torch.utils.data.Dataset ,metaclass=ABCMeta):
         y_batch = self.__label_converter(y_batch, label_format='index')
         paths_batch = paths_batch.reshape(-1,1)
         
+        if self.transform:
+            logging.info(f'applying transform!')
+            X_batch = torch.from_numpy(X_batch)
+            X_batch = self.__apply_transform_per_sample(X_batch, self.transform)
+            
         return {'image': X_batch, 'label': y_batch, 'image_path': paths_batch}
         
 
@@ -123,20 +140,20 @@ class Dataset(torch.utils.data.Dataset ,metaclass=ABCMeta):
             
             augmented_images = []
             
-            if self.flip or self.rot:
-                for j in range(n_tiles): 
-                    # Augmentations
-                    img = np.copy(imgs[j]) if not self.is_aug_inplace else imgs[j]
-                    if self.flip:
-                        img = random_horizontal_flip(img) 
-                        img = random_vertical_flip(img) 
-                    if self.rot:
-                        img = random_choice_rotate(img) 
+            # if self.flip or self.rot:
+            #     for j in range(n_tiles): 
+            #         # Augmentations
+            #         img = np.copy(imgs[j]) if not self.is_aug_inplace else imgs[j]
+            #         if self.flip:
+            #             img = random_horizontal_flip(img) 
+            #             img = random_vertical_flip(img) 
+            #         if self.rot:
+            #             img = random_choice_rotate(img) 
                     
-                    if self.is_aug_inplace:
-                        imgs[j] = img
-                    elif not np.array_equal(img, imgs[j]): 
-                        augmented_images.append(img) 
+            #         if self.is_aug_inplace:
+            #             imgs[j] = img
+            #         elif not np.array_equal(img, imgs[j]): 
+            #             augmented_images.append(img) 
         
             # Store sample - all the tiles in site
             X_batch.append(imgs)
@@ -144,14 +161,14 @@ class Dataset(torch.utils.data.Dataset ,metaclass=ABCMeta):
             if return_paths:
                 paths_batch.append([path]*n_tiles)
             
-            if not self.is_aug_inplace:
-                # Append augmented images
-                if len(augmented_images) > 0: 
-                    augmented_images = np.stack(augmented_images) 
-                    X_batch.append(augmented_images) 
-                    y_batch.append([labels[i]]*len(augmented_images)) 
-                    if return_paths:
-                        paths_batch.append([path]*len(augmented_images))
+            # if not self.is_aug_inplace:
+            #     # Append augmented images
+            #     if len(augmented_images) > 0: 
+            #         augmented_images = np.stack(augmented_images) 
+            #         X_batch.append(augmented_images) 
+            #         y_batch.append([labels[i]]*len(augmented_images)) 
+            #         if return_paths:
+            #             paths_batch.append([path]*len(augmented_images))
         
         X_batch = np.concatenate(X_batch)
         y_batch = np.asarray(utils.flat_list_of_lists(y_batch))
@@ -170,10 +187,10 @@ class Dataset(torch.utils.data.Dataset ,metaclass=ABCMeta):
         
         ###############################################################
         
-        res = utils.apply_for_all_gpus(utils.getfreegpumem)
-        logging.info(f"Resources (Free, Used, Total): {res}")
-        nvidia_smi_info = utils.apply_for_all_gpus(utils.get_nvidia_smi_output)
-        logging.info(f"nvidia_smi: {nvidia_smi_info}")
+        # res = utils.apply_for_all_gpus(utils.getfreegpumem)
+        # logging.info(f"Resources (Free, Used, Total): {res}")
+        # nvidia_smi_info = utils.apply_for_all_gpus(utils.get_nvidia_smi_output)
+        # logging.info(f"nvidia_smi: {nvidia_smi_info}")
         
         if return_paths:
             return X_batch, y_batch, paths_batch
@@ -186,30 +203,62 @@ class Dataset(torch.utils.data.Dataset ,metaclass=ABCMeta):
         return y_label
     
     def __label_converter(self, y, label_format='index'):
+        def get_cond_array(y):
+            def get_cond(label):
+                parts = label.split('_')
+                return '_'.join(parts[1:])
+            return np.asarray([get_cond(label) for label in y])
+            # return torch.tensor([get_cond(label) for label in y])
+
+        def get_marker_array(y):
+            def get_marker(label):
+                parts = label.split('_')
+                return parts[0]
+            # return torch.tensor([get_marker(label) for label in y])
+            return np.asarray([get_marker(label) for label in y])
+
         if self.unique_markers is None:
             raise ValueError('unique_markers is empty.')
         else:
             y = y.reshape(-1,)
-            onehot = y[:, None] == self.unique_markers
-            if label_format == 'onehot':
-                output = onehot
-            elif label_format == 'index':
-                output = onehot.argmax(1)
+            if self.split_labels:
+                y_markers = get_marker_array(y)
+                y_conds = get_cond_array(y)
+                marker_onehot = y_markers[:,None] == self.unique_markers[0]
+                cond_onehot = y_conds[:,None] == self.unique_markers[1]
+                if label_format == 'index':
+                    output = np.array([marker_onehot.argmax(1), cond_onehot.argmax(1)])
             else:
-                output = y
+                onehot = y[:, None] == self.unique_markers
+                if label_format == 'onehot':
+                    output = onehot
+                elif label_format == 'index':
+                    output = onehot.argmax(1)
+                else:
+                    output = y
 
-            output = output.reshape(-1,1)
+                output = output.reshape(-1,1)
             return output
     
     @staticmethod
-    def get_collate_fn(shuffle=False):
+    def get_collate_fn(split_labels, shuffle=False):
         def collate_fn(batch):
+
+            res = utils.apply_for_all_gpus(utils.getfreegpumem)
+            logging.info(f"Resources (Free, Used, Total): {res}")
+            
             images = [b['image'] for b in batch]
-            labels = [b['label'] for b in batch]
+            if split_labels:
+                labels = [b['label'].transpose() for b in batch]
+            else:
+                labels = [b['label'] for b in batch]
             images_paths = [b['image_path'] for b in batch]
             
             output_images = torch.from_numpy(np.vstack(images))
-            output_labels = torch.from_numpy(np.vstack(labels).reshape(-1,))
+            if split_labels:
+                output_labels = torch.from_numpy(np.vstack(labels))
+            else:
+                output_labels = torch.from_numpy(np.vstack(labels).reshape(-1,))
             output_paths = np.vstack(images_paths).reshape(-1,)
             
             if shuffle:

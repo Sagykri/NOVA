@@ -31,7 +31,9 @@ class CytoselfFull(nn.Module):
         self,
         emb_shapes: Collection[tuple[int, int]],
         vq_args: Union[dict, Collection[dict]],
-        num_class: int,
+        # num_class: int,
+        num_class: tuple[int, int], # Noam adding pretext
+        num_pretext : int=1,  # Noam adding pretext
         input_shape: Optional[tuple[int, int, int]] = None,
         output_shape: Optional[tuple[int, int, int]] = None,
         fc_input_type: str = 'vqvec',
@@ -79,6 +81,9 @@ class CytoselfFull(nn.Module):
         vq_args, emb_shapes = calc_emb_dim(vq_args, emb_shapes)
         self.emb_shapes = emb_shapes
 
+        #Noam
+        self.num_pretext = num_pretext
+        self.num_class = num_class
         # Construct encoders (from the one close to input data to the one to far from)
         if encoders is None:
             self.encoders = self._const_encoders(input_shape, encoder_args)
@@ -106,30 +111,35 @@ class CytoselfFull(nn.Module):
         if fc_args is None:
             fc_args = {}
         fc_args.update({k: v for k, v in fc_args_default.items() if k not in fc_args})
-        fc_args = duplicate_kwargs(fc_args, emb_shapes)
+        fc_args = duplicate_kwargs(fc_args, emb_shapes * num_pretext) #noam
 
         self.fc_layers = nn.ModuleList()
-        for i, shp in enumerate(emb_shapes):
+        for i, shp in enumerate(emb_shapes*num_pretext): #noam
             # SAGY
-            # logging.info(shp)
-            
             arg = fc_args[i]
             if fc_input_type == 'vqind':
                 arg['in_channels'] = np.prod(shp[1:])
             elif fc_input_type == 'vqindhist':
-                arg['in_channels'] = vq_args[i]['num_embeddings']
+                arg['in_channels'] = vq_args[i]['num_embeddings'] #TODO need to fix i here if using two pretexts.. i now goes until 3 (not 1)
             else:
                 arg['in_channels'] = np.prod(shp)
             # SAGY
             # logging.info(f"type: {fc_input_type}, inchannels: {arg['in_channels']}")
             
-            
-            arg['out_channels'] = num_class
+            #noam
+            logging.info(f'num_class: {num_class}')
+            if num_pretext==1:
+                arg['out_channels'] = num_class[0]
+            else:
+                arg['out_channels'] = num_class[i//num_pretext]
+            logging.info(f"in_channels:{arg['in_channels']}")
+            logging.info(f"out_channels:{arg['out_channels']}")
             self.fc_layers.append(FCblock(**arg))
         self.fc_loss = None
         self.fc_input_type = fc_input_type
         if fc_output_idx == 'all':
-            self.fc_output_idx = [i + 1 for i in range(len(emb_shapes))]
+            # self.fc_output_idx = [i + 1 for i in range(len(emb_shapes))]
+            self.fc_output_idx = [i+1 for i in range(len(emb_shapes))] * num_pretext
         else:
             self.fc_output_idx = fc_output_idx
 
@@ -263,22 +273,36 @@ class CytoselfFull(nn.Module):
 
             if i + 1 in self.fc_output_idx:
                 if self.fc_input_type == 'vqvec':
-                    fcout = self.fc_layers[i](quantized.reshape(quantized.size(0), -1))
+                    num_pretext = int(len(self.fc_layers)/len(self.encoders))
+                    if num_pretext>1:
+                        fcout = [self.fc_layers[i](quantized.reshape(quantized.size(0), -1)),
+                                self.fc_layers[i+num_pretext](quantized.reshape(quantized.size(0), -1))]
+                    else:
+                        fcout = [self.fc_layers[i](quantized.reshape(quantized.size(0), -1))]
                 elif self.fc_input_type == 'vqind':
                     fcout = self.fc_layers[i](_encoding_indices.reshape(_encoding_indices.size(0), -1))
+                    if num_pretext>1:
+                        logging.warning(f'fc_input_type:{self.fc_input_type} is not supported for num_pretext:{num_pretext}!')
                 elif self.fc_input_type == 'vqindhist':
                     fcout = self.fc_layers[i](softmax_histogram)
+                    if num_pretext>1:
+                        logging.warning(f'fc_input_type:{self.fc_input_type} is not supported for num_pretext:{num_pretext}!')
                 else:
                     fcout = self.fc_layers[i](encoded.reshape(encoded.size(0), -1))
-                fc_outs.append(fcout)
+                    if num_pretext>1:
+                        logging.warning(f'fc_input_type:{self.fc_input_type} is not supported for num_pretext:{num_pretext}!')
+                fc_outs.extend(fcout)
             encoded_list.append(quantized)
             self.vq_loss[f'vq{i + 1}'] = vq_loss
             self.perplexity[f'perplexity{i + 1}'] = perplexity
             x = encoded
 
         if out_layer_name == 'fc':
-            return torch.stack(fc_outs)
-        
+            if num_pretext>1:
+                return torch.cat((torch.stack(fc_outs[::num_pretext]),
+                              torch.stack(fc_outs[1::num_pretext])), dim=2)
+            else:
+                return torch.stack(fc_outs)
         decoded_final = self._connect_decoders(encoded_list)
         return tuple([decoded_final] + fc_outs)
 

@@ -16,10 +16,10 @@ class DatasetSPD(Dataset):
     """
     Dataset for SPD images
     """
-    def __init__(self, conf: DatasetConfig):
+    def __init__(self, conf: DatasetConfig, transform=None):
         self.markers_folders_depth = 3
         
-        super().__init__(conf)
+        super().__init__(conf, transform)
     
     def __find_marker_folders(self, batch_path, depth=3):
         """Returns paths of all marker folder in a batch (works with recursion)
@@ -76,11 +76,16 @@ class DatasetSPD(Dataset):
         conds_include           =   self.conditions
         depth                   =   self.markers_folders_depth
         reps_include            =   self.reps
+        split_labels            =   self.split_labels
 
         labels_changepoints = [0]
         labels = []
-        # List of strings, each element in the list is marker name (e.g., "NONO")
+        # List of strings, each element in the list is marker name + condition(e.g., "WT_Untreated_NONO")
         unique_markers = []
+        # List of strings, each element in the list is condition(e.g., "WT_Untreated")
+        unique_conds = []
+        # List of strings, each element in the list is marker name(e.g., "NONO")
+        unique_real_markers = []
         # List of strings, each element in the list is a path to a processed image (npy file) 
         processed_files_list = []
 
@@ -169,8 +174,17 @@ class DatasetSPD(Dataset):
                     
                 
                 # Save all unique markers names
-                if lbl not in unique_markers: 
-                    unique_markers.append(lbl)
+                if split_labels:
+                    parts = lbl.split('_')
+                    cond = '_'.join(parts[1:])
+                    marker = parts[0]
+                    if cond not in unique_conds:
+                        unique_conds.append(cond)
+                    if marker not in unique_real_markers:
+                        unique_real_markers.append(marker)
+                else:
+                    if lbl not in unique_markers: 
+                        unique_markers.append(lbl)
                 
                 labels += [lbl] * n_images
                 
@@ -180,8 +194,11 @@ class DatasetSPD(Dataset):
                         
                         
         processed_files_list = np.asarray(processed_files_list)
-        unique_markers = np.asarray(unique_markers)
-        
+        if split_labels:
+            unique_markers = np.asarray([np.array(unique_real_markers), np.array(unique_conds)])   
+        else:
+            unique_markers = np.asarray(np.asarray([unique_markers]))
+            logging.info(f'[dataset_spd] unique_markers.shape: {unique_markers.shape}')
         #####################################
         # Save the labels for entire input_folder
         labels = np.asarray(labels).reshape(-1, 1)

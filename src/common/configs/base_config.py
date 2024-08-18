@@ -105,7 +105,9 @@ class BaseConfig():
             'NEMO': {self.UMAP_MAPPINGS_ALIAS_KEY: 'NEMO granules', self.UMAP_MAPPINGS_COLOR_KEY: '#EF218B'},
             'PSD95': {self.UMAP_MAPPINGS_ALIAS_KEY: 'Postsynapse', self.UMAP_MAPPINGS_COLOR_KEY: '#F1CBDD'},            
             
-            'FMRP': {self.UMAP_MAPPINGS_ALIAS_KEY: 'FMRP', self.UMAP_MAPPINGS_COLOR_KEY: 'gray'}
+            'FMRP': {self.UMAP_MAPPINGS_ALIAS_KEY: 'FMRP', self.UMAP_MAPPINGS_COLOR_KEY: 'gray'},
+            'TDP43B': {self.UMAP_MAPPINGS_ALIAS_KEY: 'TDP43 granules 1', self.UMAP_MAPPINGS_COLOR_KEY: '#06A0E9'},
+            'TDP43N': {self.UMAP_MAPPINGS_ALIAS_KEY: 'TDP43 granules 2', self.UMAP_MAPPINGS_COLOR_KEY: '#06A0E9'},
         }
         
         self.UMAP_MAPPINGS_CONDITION_FUS = {
@@ -141,6 +143,7 @@ class BaseConfig():
     
     @LOGS_FOLDER.setter
     def LOGS_FOLDER(self, path):
+        print('calling LOGS_FOLDER')
         if logging.getLogger().hasHandlers():
             return
     

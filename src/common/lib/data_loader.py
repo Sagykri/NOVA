@@ -9,7 +9,7 @@ print(f"MOMAPS_HOME: {os.getenv('MOMAPS_HOME')}")
 
 from src.common.lib.dataset import Dataset    
 
-def get_dataloader(dataset, batch_size, indexes=None, num_workers=2, shuffle=True):
+def get_dataloader(dataset, batch_size, indexes=None, num_workers=2, shuffle=True, drop_last=True):
     __shuffle = shuffle
     __pin_memory = True
     logging.warning(f"Using subset + shuffle={__shuffle} + pin_memory={__pin_memory}")
@@ -18,8 +18,8 @@ def get_dataloader(dataset, batch_size, indexes=None, num_workers=2, shuffle=Tru
     
     return DataLoader(ds,
                     num_workers=num_workers,
-                    collate_fn=Dataset.get_collate_fn(shuffle=__shuffle),
+                    collate_fn=Dataset.get_collate_fn(shuffle=__shuffle, split_labels = dataset.split_labels),
                     batch_size=batch_size,
                     shuffle=__shuffle,
                     pin_memory=__pin_memory,
-                    drop_last=False)
+                    drop_last=drop_last)
