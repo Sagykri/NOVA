@@ -265,9 +265,9 @@ def _get_cluster_score_per_tile(cluster_assignment, hist_df, norm_by='cluster_si
     
     for cluster_label, cluster_members in cluster_assignment.groupby('cluster'):
         # for each cluster, get the indices (codebook vectors) assigned to it
-        cluster_members = hist_df[cluster_members.index]
+        cluster_hist_df = hist_df[cluster_members.index]
         # calc the sum of the count values (# times a codebook vector used in a tile)
-        score_per_cluster[cluster_label] = cluster_members.sum(axis=1) 
+        score_per_cluster[cluster_label] = cluster_hist_df.sum(axis=1) 
         
         if norm_by=='cluster_size':
             # normalize by the cluster size
@@ -461,9 +461,9 @@ def plot_representative_tiles(tile_score_per_cluster, top_images=8, by_condition
                     ax.axis('off')
                     # Set title for each image
                     split_path = real_path.split(os.sep)
-                    marker, condition, cell_line = split_path[-2], split_path[-3], split_path[-4]
+                    marker, condition, cell_line, batch = split_path[-2], split_path[-3], split_path[-4], split_path[-5]
                     # cluster_score = round(tile_score_per_cluster[tile_score_per_cluster.path==tile_path][f'C{cluster_id}'].values[0]*10**4,3)
-                    ax.set_title(f"{marker}", fontsize=18)
+                    ax.set_title(f"{marker}_{batch}", fontsize=10, rotation=45)
                 
                 if by_conditions[0]!='':
                     # Set title for condition
