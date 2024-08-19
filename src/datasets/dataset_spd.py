@@ -78,7 +78,6 @@ class DatasetSPD(Dataset):
         depth                   =   self.markers_folders_depth
         reps_include            =   self.reps
 
-        labels_changepoints = [0]
         labels = []
         # List of strings, each element in the list is marker name (e.g., "NONO")
         unique_markers = []
@@ -88,7 +87,7 @@ class DatasetSPD(Dataset):
         np.random.seed(self.conf.SEED)
         
         for i, input_folder in enumerate(input_folders):
-            # logging.info(f"Input folder: {input_folder}, depth used: {depth}")
+            logging.info(f"Input folder: {input_folder}, depth used: {depth}")
             
             # Get a list of ALL target marker folder path folders (using recursion)
             marker_subfolder = self.__find_marker_folders(input_folder, depth=depth)
@@ -107,24 +106,22 @@ class DatasetSPD(Dataset):
                 #####################################
                 # Filter: cell line
                 if cell_lines_include is not None and cell_line not in cell_lines_include:
-                    # logging.info(f"Skipping cell line (not in cell lines list). {cell_line}")
+                    logging.info(f"Skipping cell line (not in cell lines list). {cell_line}")
                     continue
-                # cell_line_folder_fullpath = os.path.join(input_folder, cell_line)
                 
                 # Filter: stress condition
                 if conds_include is not None and condition not in conds_include:
-                    # logging.info(f"Skipping condition (not in conditions list). {condition}")
+                    logging.info(f"Skipping condition (not in conditions list). {condition}")
                     continue
-                # cond_folder_fullpath = os.path.join(cell_line_folder_fullpath, condition)
                 
                 # Filter: marker to include
                 if markers is not None and marker_name not in markers:
-                    # logging.info(f"Skipping marker (not in markers list). {marker_name}")
+                    logging.info(f"Skipping marker (not in markers list). {marker_name}")
                     continue
                     
                 # Filter: marker to exclude
                 if markers_to_exclude is not None and marker_name in markers_to_exclude:
-                    # logging.info(f"Skipping (in markers to exclude). {marker_name}")
+                    logging.info(f"Skipping (in markers to exclude). {marker_name}")
                     continue
                 #####################################
                                         
@@ -141,7 +138,7 @@ class DatasetSPD(Dataset):
                         if reps_include is not None:
                             filename_rep = filename.split('_',1)[0]
                             if filename_rep not in reps_include:
-                                # logging.info(f"Skipping rep (not in reps list). {filename_rep}")
+                                logging.info(f"Skipping rep (not in reps list). {filename_rep}")
                                 continue
                         
                         # Hold the full path of a processed image 
@@ -174,34 +171,7 @@ class DatasetSPD(Dataset):
                     
                     labels += [lbl]
                     
-                    
-                # Save when there is change between markers/conditions
-                labels_changepoints.append(n_images)
-                #####################################
-                
-                # # Save images label (same label to all site)
-                # lbl = marker_name
-                # if line_l:
-                #     lbl += f"_{cell_line}"
-                # if condition_l:
-                #     lbl += f"_{condition}"
-                # if batch_l:
-                #     batch_postfix = f"{os.path.basename(input_folder)}"
-                #     lbl += f"_{batch_postfix}"
-                # if rep_l:
-                #     filename_rep = filename.split('_',1)[0]
-                #     lbl += f"_{filename_rep}"
-                    
-                # # Save all unique markers names
-                # if lbl not in unique_markers: 
-                #     unique_markers.append(lbl)
-                
-                # labels += [lbl] * n_images
-                
-                # Nancy: currently, data folder doesn't contain "neurons"/"microglia"
-                #if cell_type_l:
-                #    lbl += f"_{cur_cell_type}"
-                        
+                #####################################      
                         
         processed_files_list = np.asarray(processed_files_list)
         unique_markers = np.asarray(unique_markers)
