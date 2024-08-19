@@ -146,7 +146,6 @@ class BaseConfig():
     
     @LOGS_FOLDER.setter
     def LOGS_FOLDER(self, path):
-        print('calling LOGS_FOLDER')
         if logging.getLogger().hasHandlers():
             return
     
