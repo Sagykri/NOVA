@@ -92,10 +92,11 @@ echo "py_name: $py_name, mem: $mem, use_gpu: $use_gpu, args: $args, gmem: $gmem,
 
 if [ "$use_gpu" = false ]
 then
-  bsub -n 1 -q $queue -m "public_himem_2020_hosts public_2017_hosts" -J $job_name -B -R "rusage[mem=$mem] span[hosts=1]" python $py_name.py $args
+  bsub -n 1 -q $queue -J $job_name -B -R "rusage[mem=$mem] span[hosts=1]" python $py_name.py $args
 else
   bsub -n 1 -q $queue -gpu "num=${ngpu}:gmem=${gmem}G:j_exclusive=yes:aff=yes" -J $job_name -B -R "rusage[mem=$mem] span[hosts=1]" python $py_name.py $args
 fi
 
 
 #  bsub -n 1 -w $wait -q $queue -gpu "num=${ngpu}:gmem=${gmem}G:j_exclusive=yes:aff=yes" -J $job_name -B -R "rusage[mem=$mem] span[hosts=1]" python $py_name.py $args
+# bsub -n 1 -q $queue -m "public_himem_2020_hosts public_2017_hosts" -J $job_name -B -R "rusage[mem=$mem] span[hosts=1]" python $py_name.py $args

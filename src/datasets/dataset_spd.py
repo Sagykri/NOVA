@@ -16,10 +16,10 @@ class DatasetSPD(Dataset):
     """
     Dataset for SPD images
     """
-    def __init__(self, conf: DatasetConfig):
+    def __init__(self, conf: DatasetConfig, transform=None):
         self.markers_folders_depth = 3
         
-        super().__init__(conf)
+        super().__init__(conf, transform)
     
     def __find_marker_folders(self, batch_path, depth=3):
         """Returns paths of all marker folder in a batch (works with recursion)
@@ -69,6 +69,7 @@ class DatasetSPD(Dataset):
         condition_l             =   self.add_condition_to_label
         line_l                  =   self.add_line_to_label
         batch_l                 =   self.add_batch_to_label
+        rep_l                   =   self.add_rep_to_label
         cell_type_l             =   self.add_type_to_label
         markers                 =   self.markers
         markers_to_exclude      =   self.markers_to_exclude
@@ -76,11 +77,15 @@ class DatasetSPD(Dataset):
         conds_include           =   self.conditions
         depth                   =   self.markers_folders_depth
         reps_include            =   self.reps
+        split_labels            =   self.split_labels
 
-        labels_changepoints = [0]
         labels = []
-        # List of strings, each element in the list is marker name (e.g., "NONO")
+        # List of strings, each element in the list is marker name + condition(e.g., "WT_Untreated_NONO")
         unique_markers = []
+        # List of strings, each element in the list is condition(e.g., "WT_Untreated")
+        unique_conds = []
+        # List of strings, each element in the list is marker name(e.g., "NONO")
+        unique_real_markers = []
         # List of strings, each element in the list is a path to a processed image (npy file) 
         processed_files_list = []
 
@@ -93,10 +98,7 @@ class DatasetSPD(Dataset):
             marker_subfolder = self.__find_marker_folders(input_folder, depth=depth)
             
             for marker_folder in marker_subfolder:
-                
-                # Count how many npy files we have for this marker direcroty 
-                n_images = 0
-                
+                                
                 #####################################
                 # Extract experimental settings from marker folder path (avoid multiple nested for loops..)
                 marker_name = os.path.basename(marker_folder)
@@ -108,13 +110,11 @@ class DatasetSPD(Dataset):
                 if cell_lines_include is not None and cell_line not in cell_lines_include:
                     logging.info(f"Skipping cell line (not in cell lines list). {cell_line}")
                     continue
-                # cell_line_folder_fullpath = os.path.join(input_folder, cell_line)
                 
                 # Filter: stress condition
                 if conds_include is not None and condition not in conds_include:
                     logging.info(f"Skipping condition (not in conditions list). {condition}")
                     continue
-                # cond_folder_fullpath = os.path.join(cell_line_folder_fullpath, condition)
                 
                 # Filter: marker to include
                 if markers is not None and marker_name not in markers:
@@ -149,39 +149,47 @@ class DatasetSPD(Dataset):
                         processed_files_list.append(image_filename)
                         
                         logging.info(f"Filepath (npy): {image_filename}")
-                        n_images += 1
                     else:
                         logging.info(f"file {target_file} is not a npy. moving on.. ")
                         continue
-                
-                # Save when there is change between markers/conditions
-                labels_changepoints.append(n_images)
-                #####################################
-                # Save images label (same label to all site)
-                lbl = marker_name
-                if line_l:
-                    lbl += f"_{cell_line}"
-                if condition_l:
-                    lbl += f"_{condition}"
-                if batch_l:
-                    batch_postfix = f"{os.path.basename(input_folder)}"
-                    lbl += f"_{batch_postfix}"
                     
-                
-                # Save all unique markers names
-                if lbl not in unique_markers: 
-                    unique_markers.append(lbl)
-                
-                labels += [lbl] * n_images
-                
-                # Nancy: currently, data folder doesn't contain "neurons"/"microglia"
-                #if cell_type_l:
-                #    lbl += f"_{cur_cell_type}"
+                                
+                    # Save images label (same label to all site)
+                    lbl = marker_name
+                    if line_l:
+                        lbl += f"_{cell_line}"
+                    if condition_l:
+                        lbl += f"_{condition}"
+                    if batch_l:
+                        batch_postfix = f"{os.path.basename(input_folder)}"
+                        lbl += f"_{batch_postfix}"
+                    if rep_l:
+                        filename_rep = filename.split('_',1)[0]
+                        lbl += f"_{filename_rep}"
                         
+                    # Save all unique markers names
+                    if split_labels:
+                        parts = lbl.split('_')
+                        cond = '_'.join(parts[1:])
+                        marker = parts[0]
+                        if cond not in unique_conds:
+                            unique_conds.append(cond)
+                        if marker not in unique_real_markers:
+                            unique_real_markers.append(marker)
+                    else:
+                        if lbl not in unique_markers: 
+                            unique_markers.append(lbl)
+                    
+                    labels += [lbl]
+                    
+                #####################################      
                         
         processed_files_list = np.asarray(processed_files_list)
-        unique_markers = np.asarray(unique_markers)
-        
+        if split_labels:
+            unique_markers = np.asarray([np.array(unique_real_markers), np.array(unique_conds)])   
+        else:
+            unique_markers = np.asarray(np.asarray([unique_markers]))
+            logging.info(f'[dataset_spd] unique_markers.shape: {unique_markers.shape}')
         #####################################
         # Save the labels for entire input_folder
         labels = np.asarray(labels).reshape(-1, 1)

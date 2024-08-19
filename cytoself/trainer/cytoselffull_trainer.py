@@ -43,6 +43,9 @@ class CytoselfFullTrainer(VQVAETrainer):
         if model is None:
             model = CytoselfFull
         super().__init__(train_args, homepath, device, model, model_args)
+        #SAGY170624
+        self.fp16_scaler = torch.cuda.amp.GradScaler()
+
 
     def run_one_batch(
         self,
@@ -91,15 +94,29 @@ class CytoselfFullTrainer(VQVAETrainer):
         if zero_grad:
             self.optimizer.zero_grad()
 
-        model_outputs = self.model(img)
-        loss = self._calc_losses(model_outputs, img, lab, variance, vq_coeff, fc_coeff)
+
+        with torch.cuda.amp.autocast(): # SAGY 170624
+            model_outputs = self.model(img)
+            loss = self._calc_losses(model_outputs, img, lab, variance, vq_coeff, fc_coeff)
         # TODO How to equalize losses?
 
+        del model_outputs
+        del img
+        del lab
+        
         if backward:
-            loss.backward()
+            self.fp16_scaler.scale(loss).backward()
+            self.fp16_scaler.unscale_(self.optimizer)  # Unscale gradients    
+            torch.nn.utils.clip_grad_norm_(self.model.parameters(), max_norm=3.0)  # Clip gradients
+            # loss.backward()
 
         if optimize:
-            self.optimizer.step()
+            # self.optimizer.step()
+            
+            #SAGY170624
+            self.fp16_scaler.step(self.optimizer)  # Update weights
+            self.fp16_scaler.update()
+
 
         output = {'loss': loss.item()}
         # Update additional losses
@@ -142,17 +159,27 @@ class CytoselfFullTrainer(VQVAETrainer):
         A dict of tensors with the loss names and loss values.
 
         """
-        mse_kwargs = {a: kwargs[a] for a in inspect.signature(nn.MSELoss).parameters if a in kwargs}
+        # mse_kwargs = {a: kwargs[a] for a in inspect.signature(nn.MSELoss).parameters if a in kwargs} #SAGY030624
         ce_kwargs = {a: kwargs[a] for a in inspect.signature(nn.CrossEntropyLoss).parameters if a in kwargs}
-        mse_loss_fn, ce_loss_fn = nn.MSELoss(**mse_kwargs), nn.CrossEntropyLoss(**ce_kwargs)
-        self.model.mse_loss['reconstruction1_loss'] = mse_loss_fn(model_outputs[0], img) / variance
+        ce_loss_fn = nn.CrossEntropyLoss(**ce_kwargs) #SAGY030624
+        # mse_loss_fn, ce_loss_fn = nn.MSELoss(**mse_kwargs), nn.CrossEntropyLoss(**ce_kwargs) #SAGY030624
+        # self.model.mse_loss['reconstruction1_loss'] = mse_loss_fn(model_outputs[0], img) / variance #SAGY030624
+        
         # Matching the number of label target to the label output from the model.
         # The image output should always come to the first followed by label outputs.
         # self.model.fc_loss will be an empty dict when there is no label output from the model.
-        self.model.fc_loss = {
+        if self.model.num_pretext>1:
+            self.model.fc_loss = {}
+            fc_types = ['marker','condition']
+            for i, class_probs in enumerate(model_outputs[1:]):
+                self.model.fc_loss[
+                    f'fc{self.model.fc_output_idx[i]}_loss_{fc_types[i//self.model.num_pretext]}'] = ce_loss_fn(class_probs, lab[:,i%self.model.num_pretext])
+        else:
+            self.model.fc_loss = {
             f'fc{self.model.fc_output_idx[j]}_loss': ce_loss_fn(t, i)
             for j, (t, i) in enumerate(zip(model_outputs[1:], [lab] * (len(model_outputs) - 1)))
         }
+        logging.info(f'[calc_loss]: {self.model.fc_loss.keys()}')
         return self._combine_losses(vq_coeff, fc_coeff)
 
     def _update_loss_dict(self, output: dict):
@@ -167,7 +194,7 @@ class CytoselfFullTrainer(VQVAETrainer):
         """
         output.update({k: v.item() for k, v in self.model.fc_loss.items()})
         output.update({k: v.item() for k, v in self.model.perplexity.items()})
-        output.update({k: self.model.mse_loss[k].item() for k in sorted(self.model.mse_loss)})
+        # output.update({k: self.model.mse_loss[k].item() for k in sorted(self.model.mse_loss)})
         vq_loss_dict = {}
         for key0, val0 in self.model.vq_loss.items():
             for key1, val1 in val0.items():
@@ -192,10 +219,10 @@ class CytoselfFullTrainer(VQVAETrainer):
         """
         fc_loss_list = list(self.model.fc_loss.values())
         vq_loss_list = [d['loss'] for d in self.model.vq_loss.values()]
-        mse_loss_list = list(self.model.mse_loss.values())
+        # mse_loss_list = list(self.model.mse_loss.values())
         loss = (
-            +(torch.stack(mse_loss_list).sum() if len(mse_loss_list) > 0 else 0)
-            + vq_coeff * (torch.stack(vq_loss_list).sum() if len(vq_loss_list) > 0 else 0)
+            # +(torch.stack(mse_loss_list).sum() if len(mse_loss_list) > 0 else 0) #SAGY030624
+            vq_coeff * (torch.stack(vq_loss_list).sum() if len(vq_loss_list) > 0 else 0)
             + fc_coeff * (torch.stack(fc_loss_list).sum() if len(fc_loss_list) > 0 else 0)
         )
         return loss

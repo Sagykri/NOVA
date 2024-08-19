@@ -2,7 +2,7 @@ import os
 import sys
 sys.path.insert(1, os.getenv("MOMAPS_HOME"))
 
-from src.common.lib.embeddings_distances_utils import calc_embeddings_distances, unite_batches
+from src.common.lib.embeddings_distances_utils import calc_embeddings_distances, unite_batches, plot_distances_plot
 from src.common.lib.utils import load_config_file, get_if_exists
 import logging
 
@@ -16,13 +16,15 @@ def run_calc_embeddings_distances(config_path_model, config_path_data, embedding
     experiment_type = get_if_exists(config_data, 'EXPERIMENT_TYPE', None)
     assert experiment_type is not None, "EXPERIMENT_TYPE can't be None"    
     embeddings_layer = get_if_exists(config_data, 'EMBEDDINGS_LAYER', 'vqvec2')
-    assert embeddings_layer in ['vqvec2','vqvec1'], f"{embeddings_layer} is not supported"
+    # assert embeddings_layer in ['vqvec2','vqvec1'], f"{embeddings_layer} is not supported"
     distances_main_folder = os.path.join(config_model.MODEL_OUTPUT_FOLDER, 'distances', experiment_type, embeddings_layer)
     os.makedirs(distances_main_folder, exist_ok=True)
     logging.info(f'Saving results in {distances_main_folder}')
-    calc_embeddings_distances(config_model, config_data, distances_main_folder, embeddings_type)
-    unite_batches(distances_main_folder, config_data.INPUT_FOLDERS, files=['between_cell_lines_conds_similarities_rep'])
-
+    compare_identical_reps = False
+    calc_embeddings_distances(config_model, config_data, distances_main_folder, embeddings_type, compare_identical_reps=compare_identical_reps)
+    # unite_batches(distances_main_folder, config_data.INPUT_FOLDERS, files=['between_cell_lines_conds_similarities_rep'])
+    plot_distances_plot(distances_main_folder, convert_markers_names_to_organelles=True,
+                         compare_identical_reps=compare_identical_reps)
 
 
 if __name__ == "__main__":

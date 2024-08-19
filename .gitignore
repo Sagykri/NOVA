@@ -36,6 +36,7 @@ tests/**/*.tif
 Anaconda3-2023.03-Linux-x86_64.sh
 
 *.h5
+*.pth
 /tools/images_organizer/**/*.txt
 
 **/*.fastq
@@ -58,10 +59,12 @@ __pycache__/
 *$py.class
 
 core.*
+events.out.tfevents*
 **/*.h5
 **/*.tif
 **/*.png
 **/*.czi
+*.eps
 **/models/**/*.csv
 
 # C extensions

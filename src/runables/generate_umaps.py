@@ -1,4 +1,5 @@
 import os
+import shutil
 import sys
 
 
@@ -41,12 +42,26 @@ def generate_umaps():
     if not os.path.exists(output_folder_path):
         logging.info(f"{output_folder_path} doesn't exists. Creating it")
         os.makedirs(output_folder_path)
-
+    
     logging.info(f"init (jobid: {jobid})")
     logging.info("[Generate UMAPs]")
     
     logging.info(f"Is GPU available: {torch.cuda.is_available()}")
     logging.info(f"Num GPUs Available: {torch.cuda.device_count()}")
+    
+    __now = datetime.datetime.now()
+    savefolder = os.path.join(output_folder_path,\
+                                'UMAPs',\
+                                    f'{__now.strftime("%d%m%y_%H%M%S_%f")}_{os.path.splitext(os.path.basename(config_model.MODEL_PATH))[0]}')
+
+    if not os.path.exists(savefolder):
+        logging.info(f"Generating savefolder: {savefolder}")
+        os.makedirs(savefolder)
+    
+    # Copy config file to folder
+    config_path_data_filepath = f"{os.sep.join(config_path_data.split(os.sep)[:-1])}.py"
+    logging.info(f"Coppying config file {config_path_data_filepath} to output folder: {savefolder}")
+    shutil.copy2(config_path_data_filepath, savefolder)
         
     __unique_labels_path = os.path.join(config_model.MODEL_OUTPUT_FOLDER, "unique_labels.npy")
     if os.path.exists(__unique_labels_path):
@@ -59,18 +74,18 @@ def generate_umaps():
     logging.info("Init model")
     model = Model(config_model)
     
-    __generate_with_load(config_model, config_data, model, output_folder_path)
+    __generate_with_load(config_data, model, savefolder)
 
 
-def __generate_with_load(config_model, config_data, model, output_folder_path):
+def __generate_with_load(config_data, model, savefolder):
     logging.info("Clearing cache")
     torch.cuda.empty_cache()
     
-    __now = datetime.datetime.now()
     
     model.generate_dummy_analytics()
     embeddings, labels = model.load_embeddings(embeddings_type='testset' if config_data.SPLIT_DATA else 'all',
                                                config_data=config_data)
+
 
     markers = np.unique([m.split('_')[-1] if '_' in m else m for m in np.unique(labels.reshape(-1,))]) 
     logging.info(f"Detected markers: {markers}")
@@ -88,11 +103,8 @@ def __generate_with_load(config_model, config_data, model, output_folder_path):
         embeddings_c, labels_c = np.copy(embeddings[c_indexes]), np.copy(labels[c_indexes].reshape(-1,))
         
         logging.info(f"[{c}] Plot umap...")
-        title = f"{'_'.join([os.path.basename(f) for f in config_data.INPUT_FOLDERS])}_{c}"
-        savepath = os.path.join(output_folder_path,\
-                                'UMAPs',\
-                                    f'{__now.strftime("%d%m%y_%H%M%S_%f")}_{os.path.splitext(os.path.basename(config_model.MODEL_PATH))[0]}',\
-                                        f'{title}') # NANCY
+        title = f"{'_'.join([os.path.basename(f) for f in config_data.INPUT_FOLDERS])}_{'_'.join(config_data.REPS)}_{config_data.EMBEDDINGS_LAYER}_{c}"
+        savepath = os.path.join(savefolder, title) # NANCY
         
         __savepath_parent = os.path.dirname(savepath)
         if not os.path.exists(__savepath_parent):
@@ -115,6 +127,7 @@ def __generate_with_load(config_model, config_data, model, output_folder_path):
                         reset_umap=True,
                         map_labels_function=map_labels_function,
                         config_data=config_data)
+        
         
         logging.info(f"[{c}] UMAP saved successfully to {savepath}")
         

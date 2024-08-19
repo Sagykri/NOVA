@@ -610,7 +610,7 @@ def plot_histograms(axs, cur_groups, first_cond, second_cond, total_spectra_per_
                 axs[i].fill_between(range(len(d)), d, color=marker_to_organelle[label]['color'], label=label, linewidth=linewidth)
             else:
                 if split_label:
-                    label_for_dict = label.split('_')[1]
+                    label_for_dict = '_'.join(label.split('_')[1:3]) #only1!
                 else:
                     label_for_dict=label
                 axs[i].fill_between(range(len(d)), d, color=cell_lines_dict[label_for_dict]['color'], label=label, linewidth=linewidth)
@@ -677,7 +677,8 @@ def plot_heatmap_with_clusters_and_histograms(corr_with_clusters, hist_df, label
                                               first_cond='stress',second_cond='Untreated',
                                               title=None,calc_linkage=False, linkage_method='average',
                                               figsize=(6,5),
-                                              label_is_marker=True):
+                                              label_is_marker=True,
+                                              cell_lines_dict=None):
     # calculate linkage matrix
     if calc_linkage:
         linkage = scipy.cluster.hierarchy.linkage(corr_with_clusters.drop(columns=['cluster']), method=linkage_method, metric='euclidean', optimal_ordering=True)
@@ -757,7 +758,7 @@ def plot_heatmap_with_clusters_and_histograms(corr_with_clusters, hist_df, label
         
         ### PLOT THE HISTOGRAMS ###
         axs = plot_histograms(axs, cur_groups, first_cond, second_cond, total_spectra_per_marker_ordered, 
-                        color_by_cond, colors, max_per_condition, cluster_counts, plot_delta, label_is_marker)
+                        color_by_cond, colors, max_per_condition, cluster_counts, plot_delta, label_is_marker, cell_lines_dict=cell_lines_dict)
     
     # # fix the cbar appearance 
     # clustermap.ax_cbar.set_position([clustermap.ax_col_dendrogram.get_position().x1-0.2, # x location 
@@ -810,7 +811,8 @@ def plot_heatmap_with_clusters_and_histograms(corr_with_clusters, hist_df, label
                                      hist_height #height
                                      ]))
         axs = plot_histograms(axs=axs[::-1], cur_groups=cur_groups, first_cond=first_cond, second_cond=second_cond, total_spectra_per_marker_ordered=total_spectra_per_marker_ordered, 
-                        color_by_cond=color_by_cond, colors=colors, max_per_condition=max_per_condition, cluster_counts=cluster_counts, plot_delta=plot_delta, label_is_marker=label_is_marker)
+                        color_by_cond=color_by_cond, colors=colors, max_per_condition=max_per_condition, cluster_counts=cluster_counts, plot_delta=plot_delta, label_is_marker=label_is_marker,
+                        cell_lines_dict=cell_lines_dict)
         fig.subplots_adjust(hspace=0)
         if to_save:
             fig.savefig(os.path.join(save_path, hist_filename),bbox_inches='tight', dpi=300)

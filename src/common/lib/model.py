@@ -51,6 +51,7 @@ class Model():
         self.model = None
         self.analytics = None
         self.num_class = None
+        self.num_pretext = None
         
     def generate_model_visualization(self, num_class=None, savepath=None):
         savepath = savepath if savepath is not None else os.path.join(self.conf.MODEL_OUTPUT_FOLDER,'model_viz')
@@ -63,7 +64,7 @@ class Model():
         writer.add_graph(trainer.model, dummy_input)
         writer.close()
         
-    def __construct_trainer(self, num_class=None, load_pretrained_model=False):
+    def __construct_trainer(self, num_class=None, num_pretext = None, load_pretrained_model=False):
         pretrained_model_path   = self.pretrained_model_path
         early_stop_patience     = self.early_stop_patience
         learn_rate              = self.learn_rate 
@@ -82,7 +83,8 @@ class Model():
         
         if num_class is None:
             num_class = self.num_class
-        
+        if num_pretext is None:
+            num_pretext = self.conf.NUM_PRETEXT
         model_args = {
             'input_shape': input_shape,
             'emb_shapes': emb_shapes, 
@@ -91,7 +93,8 @@ class Model():
             'fc_output_idx': fc_output_idx,
             'vq_args': vq_args,# NEW
             'num_class': num_class,
-            'fc_input_type': fc_input_type
+            'fc_input_type': fc_input_type,
+            'num_pretext':num_pretext, #NEW
         }
         train_args = {
             'lr': learn_rate,
@@ -115,7 +118,8 @@ class Model():
         if load_pretrained_model and pretrained_model_path is not None and os.path.exists(pretrained_model_path):
             logging.info(f"Loading pretrained model: {pretrained_model_path}")
             pretrained_trainer = self.load_model(pretrained_model_path,
-                                                 num_fc_output_classes=1311,
+                                                 num_fc_output_classes=(1311,),
+                                                 num_pretext = 1,
                                                  load_pretrained_model=False)
             logging.info(f"Copy weights")
             self.__copy_weights(pretrained_trainer.model, trainer.model)
@@ -165,20 +169,29 @@ class Model():
         
         if train_loader is None and valid_loader is None and test_loader is None:
             raise Exception("All loaders are None")
-        
         def __set_num_class(loader):
             if self.num_class is None:
-                self.num_class = len(loader.dataset.unique_markers)
+                # self.num_class = len(loader.dataset.unique_markers)
+                self.num_class = tuple([len(u) for u in loader.dataset.unique_markers])
+                logging.info(f'num_class:{self.num_class}')
         
+        def __set_num_pretext(loader):
+            if self.num_pretext is None:
+                self.num_pretext = self.conf.NUM_PRETEXT
+
         if train_loader is not None:
             self.train_loader = train_loader    
             __set_num_class(self.train_loader)
+            __set_num_pretext(self.train_loader)
+
         if valid_loader is not None:
             self.valid_loader = valid_loader
             __set_num_class(self.valid_loader)
+            __set_num_pretext(self.valid_loader)
         if test_loader is not None:
             self.test_loader = test_loader
             __set_num_class(self.test_loader)
+            __set_num_pretext(self.test_loader)
         
         data_var = self.conf.DATA_VAR
         self.__init_datamanager_dummy(self.train_loader, self.valid_loader, self.test_loader,
@@ -265,7 +278,7 @@ class Model():
         
         return self.model
 
-    def load_model(self, model_path=None, num_fc_output_classes=None, load_pretrained_model=False):
+    def load_model(self, model_path=None, num_fc_output_classes=None, num_pretext = None, load_pretrained_model=False):
         
         """Load model
 
@@ -285,7 +298,7 @@ class Model():
         
         if self.model is not None:
             logging.warning(f"[load_model] Overriding currently loaded model with {model_path}")
-        self.model = self.__construct_trainer(num_fc_output_classes, 
+        self.model = self.__construct_trainer(num_fc_output_classes, num_pretext,
                                               load_pretrained_model=load_pretrained_model)
             
         # if os.path.isdir(model_path):
