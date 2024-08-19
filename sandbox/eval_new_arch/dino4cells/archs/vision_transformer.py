@@ -201,7 +201,6 @@ class VisionTransformer(nn.Module):
         h0 = h // self.patch_embed.patch_size
         # we add a small number to avoid floating point error in the interpolation
         # see discussion at https://github.com/facebookresearch/dino/issues/8
-        # print(f"patch_pos_embed shape: {patch_pos_embed.shape}, w0={w0}, h0={h0}")
         w0, h0 = w0 + 0.1, h0 + 0.1
         
         patch_pos_embed = nn.functional.interpolate(
@@ -233,6 +232,7 @@ class VisionTransformer(nn.Module):
             x = blk(x)
         x = self.norm(x)
         
+        # SAGY 270624
         if return_hidden:
             return self.head(x[:, 0]), x[:, 0]
         else:

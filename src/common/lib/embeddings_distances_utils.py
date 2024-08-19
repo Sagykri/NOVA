@@ -6,18 +6,15 @@ import numpy as np
 import pandas as pd
 import logging
 from copy import deepcopy
-from multiprocessing.pool import ThreadPool
 from scipy.spatial.distance import cdist, pdist
 from itertools import combinations
 from sklearn.metrics.pairwise import pairwise_distances
 from src.common.lib.synthetic_multiplexing import __get_multiplexed_embeddings, __embeddings_to_df
-#from src.common.lib.image_sampling_utils import find_marker_folders
-from src.common.lib.utils import load_config_file, init_logging, get_if_exists
-#from src.common.lib.model import Model
-#from src.common.lib.data_loader import get_dataloader
-#from src.datasets.dataset_spd import DatasetSPD
-from src.common.lib.embeddings_utils import load_embeddings
-import datetime
+from src.common.lib.utils import load_config_file, get_if_exists
+from src.common.lib.embeddings_utils import load_embeddings, load_indhists
+from src.common.configs.base_config import BaseConfig
+import seaborn as sns
+import matplotlib.pyplot as plt
 ###############################################################
 # Utils for calculating distances between  labels, based on the full latent space (Embeddings) 
 ###############################################################
@@ -38,12 +35,15 @@ def fetch_saved_embeddings(config_model, config_data, embeddings_type):
     Returns:
         _type_: pd.DataFrame
     """
-    all_embedings_data, all_labels = load_embeddings(config_model=config_model, 
+    embeddings_layer = get_if_exists(config_data, 'EMBEDDINGS_LAYER', None)
+    if 'vqvec' in embeddings_layer:
+        all_embedings_data, all_labels = load_embeddings(config_model=config_model, 
                                                      config_data= config_data,
                                                      embeddings_type=embeddings_type)
-    
-    all_embedings_data = all_embedings_data.reshape(all_embedings_data.shape[0], -1)
-    logging.info(f"[load_embeddings] {all_embedings_data.shape}, {all_labels.shape}")    
+        all_embedings_data = all_embedings_data.reshape(all_embedings_data.shape[0], -1)
+    elif 'vqindhist' in embeddings_layer:
+        all_embedings_data, all_labels = load_indhists(config_model=config_model, config_data=config_data, embeddings_type=embeddings_type)
+    logging.info(f"[load_embeddings] {all_embedings_data.shape}, {all_labels.shape}, example label: {all_labels[0]}")    
     return all_embedings_data, all_labels
 
 def calc_cellprofiler_distances():
@@ -81,7 +81,7 @@ def calc_cellprofiler_distances():
     between_cell_lines_sep_batch_rep = between_cell_lines_sep_rep_dist(marker_centroids, cell_lines_conditions, markers,
                                                                         distances_main_folder=output_folder, batch_name="CellProfiler")
 
-def create_markers_centroids_df(all_labels, all_embedings_data, exclude_DAPI=True):  
+def create_markers_centroids_df(all_labels, all_embedings_data, config_data, exclude_DAPI=True):  
     """Create a pd.DataFrame of centroids embedddings and experimental settings 
     columns are ['batch','cell_line','condition','rep','marker', 'embeddings_centroid'] 
 
@@ -111,7 +111,12 @@ def create_markers_centroids_df(all_labels, all_embedings_data, exclude_DAPI=Tru
         # similarities.append(mean_marker_similarity)
 
     marker_centroids['label'] = labels
-    marker_centroids[['batch','cell_line','condition','rep','marker']] = marker_centroids.label.str.split('_', expand=True)
+    if config_data.EMBEDDINGS_LAYER in ['vqindhist1','vqindhist2']:
+        marker_centroids[['marker','cell_line','condition','batch','rep']] = marker_centroids.label.str.split('_', expand=True)
+    elif config_data.EMBEDDINGS_LAYER in ['vqvec2']:
+        marker_centroids[['batch','cell_line','condition','rep','marker']] = marker_centroids.label.str.split('_', expand=True)
+    else:
+        logging.warning(f'EMBEDDINGS_LAYER {config_data.EMBEDDINGS_LAYER} is not supported!')
     marker_centroids['embeddings_centroid'] = centroids
     marker_centroids.drop(columns=['label'], inplace=True)
     logging.info(f'[create_markers_centroids_df] created df with shape {marker_centroids.shape}')
@@ -239,12 +244,10 @@ def load_batch_embeddings(input_folder, cell_lines, config_data, config_model, e
         cur_config_data = deepcopy(config_data)
         cur_config_data.INPUT_FOLDERS = [input_folder]
         cur_config_data.CELL_LINES = [cell_line]
-        if batch_name in ['batch7','batch8']:
-            cur_config_data.SPLIT_DATA = True
         # Load saved embeddings
         logging.info(f"[load_batch_embeddings] loading {cell_line} from {batch_name}")
         all_embedings_data, all_labels = fetch_saved_embeddings(config_model, cur_config_data, embeddings_type)
-        cur_marker_centroids = create_markers_centroids_df(all_labels, all_embedings_data, exclude_DAPI=False)
+        cur_marker_centroids = create_markers_centroids_df(all_labels, all_embedings_data, config_data, exclude_DAPI=False)
         del(all_embedings_data)
 
         logging.info(f'Calculated marker_centroids_vectors for {batch_name}, {cell_line}')
@@ -362,69 +365,91 @@ def between_cell_lines_dist(marker_centroids, reps_centroids, cell_lines_conditi
         logging.info(f'calculated between cell_lines_conds distances for {batch_name}')
         return None
 
-def between_cell_lines_sep_rep_dist(marker_centroids, cell_lines_conditions, markers, distances_main_folder, batch_name, dist_func = pairwise_distances):
+def between_cell_lines_sep_rep_dist(marker_centroids, distances_main_folder, 
+                                    dist_func = pairwise_distances, compare_identical_reps=True, dist_metric='euclidean'):
     # given batch, how similar are the cell lines? also treating different reps as batches
     # dist_func should compute pairwise distances between all rows of input matrix, such that the output is a distance matrix D such that D_{i, j} is the distance between 
     # the ith and jth vectors of the given matrix X, like in sklearn.metrics.pairwise_distances
-
+    cell_lines_conditions = marker_centroids.cell_line_condition.unique()
+    markers = marker_centroids.marker.unique()
     if len(cell_lines_conditions) <= 1:
         logging.info(f"Skipping comparison of cell lines since cell lines: {cell_lines_conditions}")
         return None
     elif len(cell_lines_conditions) > 1:
         ## given batch and rep, how similar are the cell lines?
-        between_cell_lines_sep_batch_rep = pd.DataFrame(columns=['batch','rep','marker','cell_line_condition'] + cell_lines_conditions.tolist())
-        for name, group in marker_centroids.groupby(['batch','rep'])[['cell_line_condition', 'marker','embeddings_centroid']]:
+        if compare_identical_reps:
+            between_cell_lines_sep_batch_rep = pd.DataFrame(columns=['batch','rep','marker','cell_line_condition'] + cell_lines_conditions.tolist())
+            for name, group in marker_centroids.groupby(['batch','rep'])[['cell_line_condition', 'marker','embeddings_centroid']]:
+                for marker in markers: 
+                    cur_marker = group[group['marker']==marker]
+                    if cur_marker.shape[0] == 0:
+                        logging.info(f"Skipping comparison of cell_line_conds for {marker} in {name} since cell_line_conds: {cur_marker.shape[0]}")
+                        continue
+                    x = np.stack(cur_marker['embeddings_centroid'].values, axis=0)
+                    cell_lines_conds_similarities = pd.DataFrame(dist_func(x, metric=dist_metric, n_jobs=-1), 
+                                                                columns=cur_marker.cell_line_condition.values, 
+                                                                index=cur_marker.cell_line_condition).reset_index()
+                    num_rows, _ = cell_lines_conds_similarities.shape
+
+                    # # Nullify the diagonal elements
+                    # for i in range(num_rows):
+                    #     cell_lines_conds_similarities.iat[i, i+1] = np.nan
+
+                    # combine marker similiarites in one df
+                    cell_lines_conds_similarities_for_df = cell_lines_conds_similarities
+                    cell_lines_conds_similarities_for_df['batch'] = name[0]
+                    cell_lines_conds_similarities_for_df['rep'] = name[1]
+                    cell_lines_conds_similarities_for_df['marker'] = marker
+                    between_cell_lines_sep_batch_rep = pd.concat([between_cell_lines_sep_batch_rep, cell_lines_conds_similarities_for_df])
+            between_cell_lines_sep_batch_rep.to_csv(os.path.join(distances_main_folder,f'between_cell_lines_conds_similarities_rep.csv'), index=False)
+            return between_cell_lines_sep_batch_rep
+        else:
+            between_cell_lines = pd.DataFrame(columns=['label_1','label_2','dist','marker'])
             for marker in markers: 
-                cur_marker = group[group['marker']==marker]
+                cur_marker = marker_centroids[marker_centroids['marker']==marker].reset_index(drop=True)
                 if cur_marker.shape[0] == 0:
-                    logging.info(f"Skipping comparison of cell_line_conds for {marker} in {name} since cell_line_conds: {cur_marker.shape[0]}")
+                    logging.info(f"Skipping comparison of cell_line_conds for {marker} since cell_line_conds: {cur_marker.shape[0]}")
                     continue
                 x = np.stack(cur_marker['embeddings_centroid'].values, axis=0)
-                cell_lines_conds_similarities = pd.DataFrame(dist_func(x, metric='euclidean', n_jobs=-1), 
-                                                            columns=cur_marker.cell_line_condition.values, 
-                                                            index=cur_marker.cell_line_condition).reset_index()
-                num_rows, _ = cell_lines_conds_similarities.shape
+                labels = cur_marker.cell_line_condition + '_' + cur_marker.batch + '_' + cur_marker.rep
+                dists = pairwise_distances(x, metric=dist_metric, n_jobs=-1)
+                triu_indices = np.triu_indices_from(dists, k=0) # change to k=1 to ignore the diagonal!
+                cell_lines_conds_similarities=pd.DataFrame(data={'label_1':labels[triu_indices[0]].reset_index(drop=True),
+                                'label_2':labels[triu_indices[1]].reset_index(drop=True),
+                                'dist':dists[triu_indices]})
+                cell_lines_conds_similarities['marker']=marker
+                between_cell_lines = pd.concat([between_cell_lines, cell_lines_conds_similarities])
+            between_cell_lines[['cell_line_1','condition_1', 'batch_1','rep_1']] = between_cell_lines['label_1'].str.split('_', expand=True)
+            between_cell_lines[['cell_line_2','condition_2', 'batch_2','rep_2']] = between_cell_lines['label_2'].str.split('_', expand=True)
+            between_cell_lines['cell_line_condition_1'] = between_cell_lines['cell_line_1'] + '_' + between_cell_lines['condition_1']
+            between_cell_lines['cell_line_condition_2'] = between_cell_lines['cell_line_2'] + '_' + between_cell_lines['condition_2']
+            between_cell_lines.drop(columns=['label_1','label_2','cell_line_1','cell_line_2','condition_1','condition_2'], inplace=True)
+            between_cell_lines.to_csv(os.path.join(distances_main_folder,f'between_cell_lines_conds_distances.csv'), index=False)
 
-                # Nullify the diagonal elements
-                for i in range(num_rows):
-                    cell_lines_conds_similarities.iat[i, i+1] = np.nan
-
-                # combine marker similiarites in one df
-                cell_lines_conds_similarities_for_df = cell_lines_conds_similarities
-                cell_lines_conds_similarities_for_df['batch'] = name[0]
-                cell_lines_conds_similarities_for_df['rep'] = name[1]
-                cell_lines_conds_similarities_for_df['marker'] = marker
-                between_cell_lines_sep_batch_rep = pd.concat([between_cell_lines_sep_batch_rep, cell_lines_conds_similarities_for_df])
         #save_excel_with_sheet_name(os.path.join(distances_main_folder,'between_cell_lines_conds_similarities_rep_rep.xlsx'), input_folders, between_cell_lines_sep_batch_rep)
-        between_cell_lines_sep_batch_rep.to_csv(os.path.join(distances_main_folder,f'between_cell_lines_conds_similarities_rep_{batch_name}.csv'), index=False)
-        logging.info(f'calculated between cell_lines_conds distances separated into reps for {batch_name}')
-        return between_cell_lines_sep_batch_rep
+        # logging.info(f'calculated between cell_lines_conds distances separated into reps for {batch_name}')
 
-def calc_embeddings_distances(config_model, config_data, distances_main_folder, embeddings_type):
+def calc_embeddings_distances(config_model, config_data, distances_main_folder, embeddings_type, compare_identical_reps=True):
     """Main function to calculate embeddings distances
     """
     # ------------------------------------------------------------------------------------------ 
-    embeddings_layer = get_if_exists(config_data, 'EMBEDDINGS_LAYER', 'vqvec2')
     train_batches = get_if_exists(config_data, 'TRAIN_BATCHES', None)
     assert train_batches is not None, "train_batches can't be None"    
 
-    EMBEDDINGS_SHAPE = 9216 if embeddings_layer == 'vqvec2' else 40000
-    EMBEDDINGS_NAMES = [f'embeddings_{i}' for i in range(EMBEDDINGS_SHAPE)]
     input_folders = config_data.INPUT_FOLDERS
     cell_lines = config_data.CELL_LINES
     # ------------------------------------------------------------------------------------------ 
     # we need to load embeddings and calc dists of each batch at a time to avoid too much memory usage
     orig_embeddings_type = embeddings_type
+    all_batches_marker_centroids = pd.DataFrame()
     for input_folder in input_folders:
         batch_name = input_folder.split(os.sep)[-1].replace('_16bit_no_downsample','')
         if batch_name in train_batches:
             embeddings_type = 'testset'
+            logging.info(f'setting embeddings_type:{embeddings_type}')
         marker_centroids = load_batch_embeddings(input_folder, cell_lines, config_data, config_model, embeddings_type, batch_name)
         # ------------------------------------------------------------------------------------------  
-        markers = marker_centroids['marker'].unique()
-        reps = marker_centroids['rep'].unique()
         marker_centroids['cell_line_condition'] = marker_centroids['cell_line'] + '_' + marker_centroids['condition']
-        cell_lines_conditions = marker_centroids['cell_line_condition'].unique()
         # Similarity between markers within reps, for a given batch-cellline-condition-rep
         # within_reps_dist(marker_centroids, markers, distances_main_folder, batch_name)
         # ------------------------------------------------------------------------------------------ 
@@ -433,8 +458,12 @@ def calc_embeddings_distances(config_model, config_data, distances_main_folder, 
         # ------------------------------------------------------------------------------------------   
         ## given batch, how similar are the cell lines? 
         #between_cell_lines_dist(marker_centroids, reps_centroids, cell_lines_conditions, markers, distances_main_folder, batch_name, EMBEDDINGS_NAMES)
-        between_cell_lines_sep_rep_dist(marker_centroids, cell_lines_conditions, markers, distances_main_folder, batch_name)
+        if all_batches_marker_centroids.shape[0]==0:
+            all_batches_marker_centroids = marker_centroids
+        else:
+            all_batches_marker_centroids = pd.concat([all_batches_marker_centroids, marker_centroids], ignore_index=True)
         embeddings_type = orig_embeddings_type
+    between_cell_lines_sep_rep_dist(all_batches_marker_centroids, distances_main_folder, compare_identical_reps=compare_identical_reps)
 
     return None
 
@@ -464,6 +493,123 @@ def unite_batches(distances_main_folder, input_folders, files = ['within_reps_si
             new_df = pd.concat([new_df, cur_df])
         new_df.to_csv(os.path.join(distances_main_folder,f'{file}_new.csv'), index=False)
     return None
+
+
+def plot_distances_plot(distances_main_folder, convert_markers_names_to_organelles=False, compare_identical_reps=True):
+    if compare_identical_reps:
+        dists = pd.read_csv(os.path.join(distances_main_folder,'between_cell_lines_conds_similarities_rep.csv'))
+        cell_line_conds = np.unique(dists.cell_line_condition)
+    else:
+        dists = pd.read_csv(os.path.join(distances_main_folder,'between_cell_lines_conds_distances.csv'))
+        cell_line_conds = np.unique(dists.cell_line_condition_1)
+    
+    if convert_markers_names_to_organelles:
+        logging.info("Converting markers names to organelles")
+        # Convert markers names to organelles
+        base_config = BaseConfig()
+        marker_aliases = base_config.UMAP_MAPPINGS_MARKERS
+
+        alias_mapping = {marker: details[base_config.UMAP_MAPPINGS_ALIAS_KEY] for marker, details in marker_aliases.items()}
+        logging.info(f'markers before: {dists["marker"].drop_duplicates()}')
+        dists['marker'] = dists['marker'].map(alias_mapping)
+        logging.info(f'markers after: {dists["marker"].drop_duplicates()}')
+
+
+    for base, target in combinations(cell_line_conds, 2):
+        logging.info(f"{base} Vs. {target}")
+        dists_cond, dists_cond_order = get_dists_between_baseline_and_target(dists, base, target, compare_identical_reps=compare_identical_reps)
+        plot_distances_boxplot(dists_cond, dists_cond_order,
+                    base, target,
+                    transpose=False, figsize = (20,5), savefolder=distances_main_folder, compare_identical_reps=compare_identical_reps)
+
+
+def get_dists_between_baseline_and_target(dists, baseline_label, target_label, scale=True, compare_identical_reps=True):
+    logging.info(f"baseline_label={baseline_label}, target_label={target_label}")
+    dists_filtered = dists.copy()
+    if compare_identical_reps:
+        # Filter by condition
+        # Filter column by cond
+        filtered_columns = [target_label, 'cell_line_condition', 'marker', 'batch','rep']
+        dists_filtered = dists_filtered[filtered_columns]
+        # Filter row by cond
+        dists_filtered = dists_filtered[dists_filtered['cell_line_condition'].str.endswith(f'{baseline_label}')]
+
+        if len(dists_filtered) == 0:
+            logging.info(f"No values for {baseline_label} Vs. {target_label}")
+            return None, None
+
+        if scale:        
+            # min max scale for each group of batch-rep distances:
+            for name, group in dists_filtered.groupby(['batch','rep'])[target_label]:
+                group_min = group.min()
+                group_max = group.max()
+                scaled_group = (group-group_min) / (group_max - group_min)
+                dists_filtered.loc[group.index, target_label] = scaled_group
+        dists_filtered.drop(columns=['batch','rep'], inplace=True)
+        # dists_filtered_order = dists_filtered.groupby("marker")[f'{target_label}'].mean().sort_values(ascending=False).index
+        median_variance = dists_filtered.groupby("marker")[target_label].agg(['median', 'var'])
+        dists_filtered_order = median_variance.sort_values(by=['median', 'var'], ascending=[False, False]).index
+    
+    else:
+        dists_filtered = dists_filtered[((dists_filtered['cell_line_condition_1']==target_label) & \
+                       (dists_filtered['cell_line_condition_2']==baseline_label)) | 
+                       ((dists_filtered['cell_line_condition_1']==baseline_label) & \
+                       (dists_filtered['cell_line_condition_2']==target_label))]
+        # dists_filtered_order = dists_filtered.groupby("marker")['dist'].mean().sort_values(ascending=False).index
+        median_variance = dists_filtered.groupby("marker")['dist'].agg(['median', 'var'])
+        dists_filtered_order = median_variance.sort_values(by=['median', 'var'], ascending=[False, False]).index
+        if len(dists_filtered) == 0:
+            logging.info(f"No values for {baseline_label} Vs. {target_label}")
+            return None, None
+        # cannot do scaling per batch/rep because the distances are not calculcated separatly for each batch/rep!!
+
+    logging.info(f"dists_filtered.shape: {dists_filtered.shape}")
+    return dists_filtered, dists_filtered_order
+
+def plot_distances_boxplot(dists, dists_order, baseline_label, target_label,
+                           title=None, savefolder=None, ax=None, transpose=False, figsize=(6,4), fontsize=13, title_fontsize=20,
+                           compare_identical_reps=True):
+    axis_label = "Distances"
+    
+    if ax is None:
+        _, ax = plt.subplots(figsize=figsize)
+    if not transpose:
+        x = 'marker'
+        y = target_label if compare_identical_reps else 'dist'
+        sns.boxplot(data=dists,x=x,y=y ,ax=ax,fliersize=0,
+                    order=dists_order,linewidth=1, color='gray') 
+        sns.stripplot(data=dists, x=x, y=y, color='black',
+              dodge=True, order=dists_order, size=2, jitter=0, marker='o', ax=ax, edgecolor='k',legend=False)
+        ax.set_xticklabels(ax.get_xticklabels(), rotation=90, fontsize=fontsize)
+            
+        ax.set_ylabel(axis_label)
+        ax.set_xlabel('')
+    else:
+        y = 'marker'
+        x = target_label if compare_identical_reps else 'dist'
+        sns.boxplot(data=dists,x=x,y=y ,ax=ax,fliersize=0,
+                    order=dists_order,linewidth=1, color='gray') 
+        sns.stripplot(data=dists, x=x, y=y, color='black',
+              dodge=True, order=dists_order, size=2, jitter=0, marker='o', ax=ax, edgecolor='k',legend=False)
+        ax.set_xlabel(axis_label)
+        ax.set_ylabel('')
+        
+    title = title if title is not None else f'{baseline_label} VS. {target_label}'
+    ax.set_title(title, fontsize=title_fontsize)
+    
+    plt.tight_layout()
+    if savefolder is not None:
+        folderpath = os.path.join(savefolder)
+        if not os.path.exists(folderpath):
+            os.makedirs(folderpath)
+        savepath = os.path.join(folderpath, f'{baseline_label}_VS_{target_label}')
+        if not compare_identical_reps:
+            savepath += '_all_reps_batches'
+        plt.savefig(f"{savepath}.png", dpi=300)
+        # plt.savefig(f"{savepath}.eps", dpi=300, format='eps')
+        
+    
+    return ax
 
 if __name__ == "__main__":
     calc_cellprofiler_distances()

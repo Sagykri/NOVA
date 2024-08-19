@@ -144,7 +144,7 @@ def between_cell_lines_sep_rep_dist(marker_centroids, distances_main_folder, dis
             between_cell_lines['cell_line_condition_1'] = between_cell_lines['cell_line_1'] + '_' + between_cell_lines['condition_1']
             between_cell_lines['cell_line_condition_2'] = between_cell_lines['cell_line_2'] + '_' + between_cell_lines['condition_2']
             between_cell_lines.drop(columns=['label_1','label_2','cell_line_1','cell_line_2','condition_1','condition_2'], inplace=True)
-            # between_cell_lines.to_csv(os.path.join(distances_main_folder,f'between_cell_lines_conds_distances{suff}.csv'), index=False)
+            between_cell_lines.to_csv(os.path.join(distances_main_folder,f'between_cell_lines_conds_distances{suff}.csv'), index=False)
             return between_cell_lines
 
 def calc_embeddings_distances_for_vit(embeddings, labels, config_data, 

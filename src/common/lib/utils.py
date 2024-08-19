@@ -92,7 +92,7 @@ def load_config_file(path:string, custom_filename:string=None, savefolder:string
         
     savepath = os.path.join(savefolder, f"{custom_filename}.json")
     if not os.path.exists(savefolder):
-        os.makedirs(savefolder)
+        os.makedirs(savefolder, exist_ok=True)
         
     with open(savepath, 'w') as f:
         f.write(json.dumps(config.__dict__))

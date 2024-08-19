@@ -102,7 +102,7 @@ def load_multiple_vit_feaures(batches, embeddings_folder, config_data, training_
     vit_features, labels = [] , []
     set_type = 'testset' if config_data.SPLIT_DATA else 'all'
     for batch in batches:
-        if set_type=='all' and batch in training_batches:
+        if set_type=='all' and training_batches is not None and batch in training_batches:
             cur_set_type='testset'
             logging.info(f'[load_multiple_vit_feaures] loading only testset for {batch} although set_type:{set_type} for DISTANCES!')
         else:

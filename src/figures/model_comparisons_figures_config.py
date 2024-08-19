@@ -53,7 +53,7 @@ class NeuronsUMAP1B78OpencellFigureConfig(DatasetConfig):
         self.EXPERIMENT_TYPE = 'neurons'    
         self.REPS = ['rep2','rep1']
         self.CELL_LINES_CONDS = ['WT_Untreated']
-        self.TRAIN_BATCHES = None
+        self.TRAIN_BATCHES = []
         # How labels are shown in legend
         self.MAP_LABELS_FUNCTION = "lambda self: lambda labels: __import__('numpy').asarray([l.split('_')[0] for l in labels])"
         
@@ -119,7 +119,7 @@ class NeuronsUMAP0B6Rep1StressFigureConfig(DatasetConfig):
         self.MARKERS_TO_EXCLUDE = ['FMRP','TIA1']
         
         self.EXPERIMENT_TYPE = 'neurons'
-        self.TRAIN_BATCHES = None
+        self.TRAIN_BATCHES = []
         self.SPLIT_DATA = False
         self.ADD_REP_TO_LABEL = False
         self.ADD_BATCH_TO_LABEL = False
@@ -149,7 +149,7 @@ class NeuronsUMAP0B6Rep2StressFigureConfig(DatasetConfig):
         self.REPS = ['rep2'] 
         self.CONDITIONS = ['Untreated', 'stress']
         self.MARKERS_TO_EXCLUDE = ['FMRP','TIA1']
-        self.TRAIN_BATCHES = None
+        self.TRAIN_BATCHES = []
         self.EXPERIMENT_TYPE = 'neurons'
         
         self.SPLIT_DATA = False
@@ -181,7 +181,7 @@ class NeuronsUMAP0B6BothRepsStressFigureConfig(DatasetConfig):
         self.REPS = ['rep1','rep2'] 
         self.CONDITIONS = ['Untreated', 'stress']
         self.MARKERS_TO_EXCLUDE = ['FMRP','TIA1']
-        self.TRAIN_BATCHES = None
+        self.TRAIN_BATCHES = []
         self.EXPERIMENT_TYPE = 'neurons'
         
         self.SPLIT_DATA = False
@@ -213,7 +213,7 @@ class NeuronsUMAP0B9Rep1StressFigureConfig(DatasetConfig):
         self.REPS = ['rep1'] 
         self.CONDITIONS = ['Untreated', 'stress']
         self.MARKERS_TO_EXCLUDE = ['FMRP','TIA1']
-        self.TRAIN_BATCHES = None
+        self.TRAIN_BATCHES = []
         self.EXPERIMENT_TYPE = 'neurons'
         
         self.SPLIT_DATA = False
@@ -248,7 +248,7 @@ class NeuronsUMAP0B9Rep2StressFigureConfig(DatasetConfig):
         self.MARKERS_TO_EXCLUDE = ['FMRP','TIA1']
         
         self.EXPERIMENT_TYPE = 'neurons'
-        self.TRAIN_BATCHES = None
+        self.TRAIN_BATCHES = []
         self.SPLIT_DATA = False
         self.ADD_REP_TO_LABEL = False
         self.ADD_BATCH_TO_LABEL = False
@@ -280,7 +280,7 @@ class NeuronsUMAP0B9BothRepsStressFigureConfig(DatasetConfig):
         self.MARKERS_TO_EXCLUDE = ['FMRP','TIA1']
         
         self.EXPERIMENT_TYPE = 'neurons'
-        self.TRAIN_BATCHES = None
+        self.TRAIN_BATCHES = []
         self.SPLIT_DATA = False
         self.ADD_REP_TO_LABEL = True
         self.ADD_BATCH_TO_LABEL = False
@@ -310,7 +310,7 @@ class NeuronsUMAP0B69BothRepsStressFigureConfig(DatasetConfig):
         self.REPS = ['rep1','rep2'] 
         self.CONDITIONS = ['Untreated', 'stress']
         self.MARKERS_TO_EXCLUDE = ['FMRP','TIA1']
-        self.TRAIN_BATCHES = None
+        self.TRAIN_BATCHES = []
         self.EXPERIMENT_TYPE = 'neurons'
         
         self.SPLIT_DATA = False
@@ -1049,38 +1049,6 @@ class NeuronsUMAP0B7Rep1ALS_WT_TDP43_FigureConfig(NeuronsUMAP0B7Rep1ALSFigureCon
         super().__init__()
 
         self.CELL_LINES = ['WT', 'TDP43']
-        
-class NeuronsUMAP0B8Rep1ALSFigureConfig(DatasetConfig):
-    def __init__(self):
-        super().__init__()
-        self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "spd2", "SpinningDisk", f) for f in 
-                        ["batch8"]]
-        
-        # self.CELL_LINES = ['WT']
-        self.REPS = ['rep1'] 
-        self.CONDITIONS = ['Untreated']
-        self.MARKERS_TO_EXCLUDE = ['FMRP','TIA1']
-        self.TRAIN_BATCHES = []
-        self.EXPERIMENT_TYPE = 'neurons'
-        
-        self.SPLIT_DATA = False
-        self.ADD_REP_TO_LABEL = False
-        self.ADD_BATCH_TO_LABEL = False
-        
-        self.MAP_LABELS_FUNCTION = (
-            "lambda self: lambda labels: "
-            "__import__('numpy').asarray(['_'.join("
-            "l.split('_')[-4:-2+self.ADD_BATCH_TO_LABEL] + "
-            "([l.split('_')[-1]] if self.ADD_REP_TO_LABEL else [])"
-            ") for l in labels])"
-        )
-        self.UMAP_MAPPINGS = self.UMAP_MAPPINGS_ALS
-
-        # Set the size of the dots
-        self.SIZE = 30
-        # Set the alpha of the dots (0=max opacity, 1=no opacity)
-        self.ALPHA = 0.7
-        #######################################     
 
 class NeuronsUMAP0B8Rep2ALSFigureConfig(DatasetConfig):
     def __init__(self):
@@ -1762,13 +1730,6 @@ class NeuronsUMAP0Bpera18daysREIMAGEDB2Rep2ALSWithSNCAFigureConfig(NeuronsUMAP0B
         self.REPS = ['rep2'] 
         self.ADD_BATCH_TO_LABEL = False
         
-# class NeuronsUMAP0Bpera18daysREIMAGEDBothBatchesBothRepsALSFigureConfig(NeuronsUMAP0Bpera18daysREIMAGEDALSWithSNCAFigureConfig):
-#     def __init__(self):
-#         super().__init__()
-#         self.UMAP_MAPPINGS = None
-#         self.ADD_REP_TO_LABEL = True
-
-
 ############################################################
 # UMAP0 - dNLS
 ############################################################ 
@@ -3016,3 +2977,215 @@ class NeuronsUMAP0B2Rep1Opera18daysREIMAGEDALS_WT_TDP43_FigureConfig(NeuronsUMAP
         self.CELL_LINES = ['WT', 'TDP43']
         self.REPS = ['rep1'] 
 
+
+
+
+
+
+class NeuronsUMAP2B6BothRepsFigureConfig(DatasetConfig):
+    def __init__(self):
+        super().__init__()
+        self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "spd2", "SpinningDisk", f) for f in 
+                        ["batch6"]]
+        
+        # self.CELL_LINES = ['WT', "FUSHomozygous", "FUSHeterozygous", "FUSRevertant"]
+        self.REPS = ['rep2','rep1'] 
+        self.CONDITIONS = ['Untreated']
+        self.MARKERS_TO_EXCLUDE = ['FMRP','TIA1']
+        
+        self.EXPERIMENT_TYPE = 'neurons'
+        
+        self.SPLIT_DATA = False
+        self.ADD_REP_TO_LABEL = False
+        self.ADD_BATCH_TO_LABEL = False
+        
+        self.MAP_LABELS_FUNCTION = None
+        self.UMAP_MAPPINGS = self.UMAP_MAPPINGS_ALS
+
+        # Set the size of the dots
+        self.SIZE = 30
+        # Set the alpha of the dots (0=max opacity, 1=no opacity)
+        self.ALPHA = 0.7
+        #######################################
+
+class NeuronsUMAP2B6BothRepsNOFUSFigureConfig(DatasetConfig):
+    def __init__(self):
+        super().__init__()
+        self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "spd2", "SpinningDisk", f) for f in 
+                        ["batch6"]]
+        
+        # self.CELL_LINES = ['WT', "FUSHomozygous", "FUSHeterozygous", "FUSRevertant"]
+        self.REPS = ['rep2','rep1'] 
+        self.CONDITIONS = ['Untreated']
+        self.MARKERS_TO_EXCLUDE = ['FMRP','TIA1','FUS']
+        
+        self.EXPERIMENT_TYPE = 'neurons'
+        
+        self.SPLIT_DATA = False
+        self.ADD_REP_TO_LABEL = False
+        self.ADD_BATCH_TO_LABEL = False
+        
+        self.MAP_LABELS_FUNCTION = None
+        self.UMAP_MAPPINGS = self.UMAP_MAPPINGS_ALS
+
+        # Set the size of the dots
+        self.SIZE = 30
+        # Set the alpha of the dots (0=max opacity, 1=no opacity)
+        self.ALPHA = 0.7
+        #######################################
+
+class NeuronsUMAP2B6BothRepsNOFUSNOSCNAFigureConfig(DatasetConfig):
+    def __init__(self):
+        super().__init__()
+        self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "spd2", "SpinningDisk", f) for f in 
+                        ["batch6"]]
+        
+        self.CELL_LINES = ['WT', "FUSHomozygous", "FUSHeterozygous", "FUSRevertant",'OPTN','TBK1','TDP43']
+        self.REPS = ['rep2','rep1'] 
+        self.CONDITIONS = ['Untreated']
+        self.MARKERS_TO_EXCLUDE = ['FMRP','TIA1','FUS']
+        
+        self.EXPERIMENT_TYPE = 'neurons'
+        
+        self.SPLIT_DATA = False
+        self.ADD_REP_TO_LABEL = False
+        self.ADD_BATCH_TO_LABEL = False
+        
+        self.MAP_LABELS_FUNCTION = None
+        self.UMAP_MAPPINGS = self.UMAP_MAPPINGS_ALS
+
+        # Set the size of the dots
+        self.SIZE = 30
+        # Set the alpha of the dots (0=max opacity, 1=no opacity)
+        self.ALPHA = 0.7
+        #######################################
+
+class NeuronsUMAP2B6BothRepsNOSCNAFigureConfig(DatasetConfig):
+    def __init__(self):
+        super().__init__()
+        self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "spd2", "SpinningDisk", f) for f in 
+                        ["batch6"]]
+        
+        self.CELL_LINES = ['WT', "FUSHomozygous", "FUSHeterozygous", "FUSRevertant",'OPTN','TBK1','TDP43']
+        self.REPS = ['rep2','rep1'] 
+        self.CONDITIONS = ['Untreated']
+        self.MARKERS_TO_EXCLUDE = ['FMRP','TIA1']
+        
+        self.EXPERIMENT_TYPE = 'neurons'
+        
+        self.SPLIT_DATA = False
+        self.ADD_REP_TO_LABEL = False
+        self.ADD_BATCH_TO_LABEL = False
+        
+        self.MAP_LABELS_FUNCTION = None
+        self.UMAP_MAPPINGS = self.UMAP_MAPPINGS_ALS
+
+        # Set the size of the dots
+        self.SIZE = 30
+        # Set the alpha of the dots (0=max opacity, 1=no opacity)
+        self.ALPHA = 0.7
+        #######################################
+
+class NeuronsUMAP2B9BothRepsFigureConfig(DatasetConfig):
+    def __init__(self):
+        super().__init__()
+        self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "spd2", "SpinningDisk", f) for f in 
+                        ["batch9"]]
+        
+        # self.CELL_LINES = ['WT', "FUSHomozygous", "FUSHeterozygous", "FUSRevertant"]
+        self.REPS = ['rep2','rep1'] 
+        self.CONDITIONS = ['Untreated']
+        self.MARKERS_TO_EXCLUDE = ['FMRP','TIA1']
+        
+        self.EXPERIMENT_TYPE = 'neurons'
+        
+        self.SPLIT_DATA = False
+        self.ADD_REP_TO_LABEL = False
+        self.ADD_BATCH_TO_LABEL = False
+        
+        self.MAP_LABELS_FUNCTION = None
+        self.UMAP_MAPPINGS = self.UMAP_MAPPINGS_ALS
+
+        # Set the size of the dots
+        self.SIZE = 30
+        # Set the alpha of the dots (0=max opacity, 1=no opacity)
+        self.ALPHA = 0.7
+        #######################################
+
+class NeuronsUMAP2B9BothRepsNOFUSFigureConfig(DatasetConfig):
+    def __init__(self):
+        super().__init__()
+        self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "spd2", "SpinningDisk", f) for f in 
+                        ["batch9"]]
+        
+        # self.CELL_LINES = ['WT', "FUSHomozygous", "FUSHeterozygous", "FUSRevertant"]
+        self.REPS = ['rep2','rep1'] 
+        self.CONDITIONS = ['Untreated']
+        self.MARKERS_TO_EXCLUDE = ['FMRP','TIA1','FUS']
+        
+        self.EXPERIMENT_TYPE = 'neurons'
+        
+        self.SPLIT_DATA = False
+        self.ADD_REP_TO_LABEL = False
+        self.ADD_BATCH_TO_LABEL = False
+        
+        self.MAP_LABELS_FUNCTION = None
+        self.UMAP_MAPPINGS = self.UMAP_MAPPINGS_ALS
+
+        # Set the size of the dots
+        self.SIZE = 30
+        # Set the alpha of the dots (0=max opacity, 1=no opacity)
+        self.ALPHA = 0.7
+        #######################################
+
+class NeuronsUMAP2B9BothRepsNOFUSNOSCNAFigureConfig(DatasetConfig):
+    def __init__(self):
+        super().__init__()
+        self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "spd2", "SpinningDisk", f) for f in 
+                        ["batch9"]]
+        
+        self.CELL_LINES = ['WT', "FUSHomozygous", "FUSHeterozygous", "FUSRevertant",'OPTN','TBK1','TDP43']
+        self.REPS = ['rep2','rep1'] 
+        self.CONDITIONS = ['Untreated']
+        self.MARKERS_TO_EXCLUDE = ['FMRP','TIA1','FUS']
+        
+        self.EXPERIMENT_TYPE = 'neurons'
+        
+        self.SPLIT_DATA = False
+        self.ADD_REP_TO_LABEL = False
+        self.ADD_BATCH_TO_LABEL = False
+        
+        self.MAP_LABELS_FUNCTION = None
+        self.UMAP_MAPPINGS = self.UMAP_MAPPINGS_ALS
+
+        # Set the size of the dots
+        self.SIZE = 30
+        # Set the alpha of the dots (0=max opacity, 1=no opacity)
+        self.ALPHA = 0.7
+        #######################################
+
+class NeuronsUMAP2B9BothRepsNOSCNAFigureConfig(DatasetConfig):
+    def __init__(self):
+        super().__init__()
+        self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "spd2", "SpinningDisk", f) for f in 
+                        ["batch9"]]
+        
+        self.CELL_LINES = ['WT', "FUSHomozygous", "FUSHeterozygous", "FUSRevertant",'OPTN','TBK1','TDP43']
+        self.REPS = ['rep2','rep1'] 
+        self.CONDITIONS = ['Untreated']
+        self.MARKERS_TO_EXCLUDE = ['FMRP','TIA1']
+        
+        self.EXPERIMENT_TYPE = 'neurons'
+        
+        self.SPLIT_DATA = False
+        self.ADD_REP_TO_LABEL = False
+        self.ADD_BATCH_TO_LABEL = False
+        
+        self.MAP_LABELS_FUNCTION = None
+        self.UMAP_MAPPINGS = self.UMAP_MAPPINGS_ALS
+
+        # Set the size of the dots
+        self.SIZE = 30
+        # Set the alpha of the dots (0=max opacity, 1=no opacity)
+        self.ALPHA = 0.7
+        #######################################   

@@ -77,10 +77,15 @@ class DatasetSPD(Dataset):
         conds_include           =   self.conditions
         depth                   =   self.markers_folders_depth
         reps_include            =   self.reps
+        split_labels            =   self.split_labels
 
         labels = []
-        # List of strings, each element in the list is marker name (e.g., "NONO")
+        # List of strings, each element in the list is marker name + condition(e.g., "WT_Untreated_NONO")
         unique_markers = []
+        # List of strings, each element in the list is condition(e.g., "WT_Untreated")
+        unique_conds = []
+        # List of strings, each element in the list is marker name(e.g., "NONO")
+        unique_real_markers = []
         # List of strings, each element in the list is a path to a processed image (npy file) 
         processed_files_list = []
 
@@ -93,10 +98,7 @@ class DatasetSPD(Dataset):
             marker_subfolder = self.__find_marker_folders(input_folder, depth=depth)
             
             for marker_folder in marker_subfolder:
-                
-                # Count how many npy files we have for this marker direcroty 
-                n_images = 0
-                
+                                
                 #####################################
                 # Extract experimental settings from marker folder path (avoid multiple nested for loops..)
                 marker_name = os.path.basename(marker_folder)
@@ -146,12 +148,12 @@ class DatasetSPD(Dataset):
                         # Add to list: the full path of the npy file 
                         processed_files_list.append(image_filename)
                         
-                        # logging.info(f"Filepath (npy): {image_filename}")
-                        n_images += 1
+                        logging.info(f"Filepath (npy): {image_filename}")
                     else:
                         logging.info(f"file {target_file} is not a npy. moving on.. ")
                         continue
                     
+                                
                     # Save images label (same label to all site)
                     lbl = marker_name
                     if line_l:
@@ -166,16 +168,28 @@ class DatasetSPD(Dataset):
                         lbl += f"_{filename_rep}"
                         
                     # Save all unique markers names
-                    if lbl not in unique_markers: 
-                        unique_markers.append(lbl)
+                    if split_labels:
+                        parts = lbl.split('_')
+                        cond = '_'.join(parts[1:])
+                        marker = parts[0]
+                        if cond not in unique_conds:
+                            unique_conds.append(cond)
+                        if marker not in unique_real_markers:
+                            unique_real_markers.append(marker)
+                    else:
+                        if lbl not in unique_markers: 
+                            unique_markers.append(lbl)
                     
                     labels += [lbl]
                     
                 #####################################      
                         
         processed_files_list = np.asarray(processed_files_list)
-        unique_markers = np.asarray(unique_markers)
-        
+        if split_labels:
+            unique_markers = np.asarray([np.array(unique_real_markers), np.array(unique_conds)])   
+        else:
+            unique_markers = np.asarray(np.asarray([unique_markers]))
+            logging.info(f'[dataset_spd] unique_markers.shape: {unique_markers.shape}')
         #####################################
         # Save the labels for entire input_folder
         labels = np.asarray(labels).reshape(-1, 1)

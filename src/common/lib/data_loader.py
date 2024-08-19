@@ -17,7 +17,7 @@ def get_dataloader(dataset, batch_size, indexes=None, num_workers=2, shuffle=Tru
     
     return DataLoader(ds,
                     num_workers=num_workers,
-                    collate_fn=Dataset.get_collate_fn(shuffle=shuffle),
+                    collate_fn=Dataset.get_collate_fn(shuffle=shuffle, split_labels = dataset.split_labels),
                     batch_size=batch_size,
                     shuffle=shuffle,
                     pin_memory=__pin_memory,

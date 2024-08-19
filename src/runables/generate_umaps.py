@@ -74,10 +74,10 @@ def generate_umaps():
     logging.info("Init model")
     model = Model(config_model)
     
-    __generate_with_load(config_model, config_data, model, savefolder)
+    __generate_with_load(config_data, model, savefolder)
 
 
-def __generate_with_load(config_model, config_data, model, savefolder):
+def __generate_with_load(config_data, model, savefolder):
     logging.info("Clearing cache")
     torch.cuda.empty_cache()
     
@@ -103,7 +103,7 @@ def __generate_with_load(config_model, config_data, model, savefolder):
         embeddings_c, labels_c = np.copy(embeddings[c_indexes]), np.copy(labels[c_indexes].reshape(-1,))
         
         logging.info(f"[{c}] Plot umap...")
-        title = f"{'_'.join([os.path.basename(f) for f in config_data.INPUT_FOLDERS])}_{c}"
+        title = f"{'_'.join([os.path.basename(f) for f in config_data.INPUT_FOLDERS])}_{'_'.join(config_data.REPS)}_{config_data.EMBEDDINGS_LAYER}_{c}"
         savepath = os.path.join(savefolder, title) # NANCY
         
         __savepath_parent = os.path.dirname(savepath)

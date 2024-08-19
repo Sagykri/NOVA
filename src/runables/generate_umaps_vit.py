@@ -67,7 +67,7 @@ def generate_umaps():
 def __load_vit_features(model_output_folder, config_data):
     logging.info("Clearing cache")
     torch.cuda.empty_cache()
-    
+    logging.info(f'config_data.TRAIN_BATCHES: {config_data.TRAIN_BATCHES}')
     embeddings, labels = load_vit_features(model_output_folder, config_data, config_data.TRAIN_BATCHES)
     return embeddings, labels
 
@@ -148,8 +148,10 @@ def __generate_umap0(config_data, output_folder_path, embeddings, labels, add_ti
             show_ari=True
                 
         umap_embeddings = compute_umap_embeddings(embeddings_c)
+        cell_line_cond_high = get_if_exists(config_data, 'CELL_LINE_COND_HIGH', None)
         plot_umap_embeddings(umap_embeddings, label_data, config_data, 
-                             savepath=savepath, show_ari=show_ari, title=c)
+                             savepath=savepath, show_ari=show_ari, title=c,
+                             cell_line_cond_high=cell_line_cond_high)
         logging.info(f"[{c}] UMAP saved successfully to {savepath}")
         
 
@@ -200,7 +202,7 @@ def compute_umap_embeddings(embeddings, n_neighbors=15, min_dist=0.1, n_componen
 def plot_umap_embeddings(umap_embeddings, label_data, config_data, savepath = None,
                          title='UMAP projection of Embeddings', outliers_fraction=0.1,
                         dpi=300, figsize=(6,5), ordered_names=None, show_ari=True,
-                        unique_groups=None):
+                        unique_groups=None, cell_line_cond_high = None):
     
     name_color_dict =  config_data.UMAP_MAPPINGS
     name_key=config_data.UMAP_MAPPINGS_ALIAS_KEY
@@ -218,7 +220,17 @@ def plot_umap_embeddings(umap_embeddings, label_data, config_data, savepath = No
         ind = label_data == gp
         ind = ind.reshape(-1,)
         if name_color_dict is not None:
-            _c = np.array([*[name_color_dict[gp][color_key]] * sum(ind)])
+            if cell_line_cond_high is not None:
+                color=False
+                for cl in cell_line_cond_high:
+                    if cl in gp:
+                        color=True
+                if not color:
+                    _c = np.array([*['gray'] * sum(ind)])
+                if color:
+                    _c = np.array([*[name_color_dict[gp][color_key]] * sum(ind)])
+            else:
+                _c = np.array([*[name_color_dict[gp][color_key]] * sum(ind)])
         else:
             _c = np.array([*[plt.get_cmap('tab20')(i)] * sum(ind)])
         ax.scatter(

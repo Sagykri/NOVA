@@ -62,7 +62,7 @@ def load_dataset_for_embeddings(config_data, batch_size, config_model, shuffle=T
     __unique_labels_path = os.path.join(config_model.MODEL_OUTPUT_FOLDER, "unique_labels.npy")
     if os.path.exists(__unique_labels_path):
         logging.info(f"[load_dataset_for_embeddings] unique_labels.npy files has been detected - using it. ({__unique_labels_path})")
-        dataset.unique_markers = np.load(__unique_labels_path)
+        dataset.unique_markers = np.load(__unique_labels_path).reshape((1, -1))
     else:
         logging.warn(f"[load_dataset_for_embeddings] Couldn't find unique_labels file: {__unique_labels_path}")
     
@@ -116,7 +116,8 @@ def load_model_with_dataloader(model, datasets_list):
         logging.exception("[Generate Embeddings] Load model: List of datasets is not supported.")
     
     # Actual load of the model
-    model.load_model()
+    model.load_model(num_pretext = model.num_pretext, num_fc_output_classes = model.num_class)
+
     return model
 
 def save_embeddings_and_labels(embedding_data, embeddings_folders, name):

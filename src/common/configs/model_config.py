@@ -45,3 +45,4 @@ class ModelConfig(BaseConfig):
         self.VQ_ARGS = [{'num_embeddings': 2048, 'embedding_dim': 64},
                         {'num_embeddings': 2048, 'embedding_dim': 64, 'channel_split':9}]
         self.FC_INPUT_TYPE = 'vqvec'
+        self.NUM_PRETEXT = 1
