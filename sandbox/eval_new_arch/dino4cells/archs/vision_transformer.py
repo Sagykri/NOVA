@@ -31,13 +31,9 @@ import sys
 
 import torch.nn.functional as F
 
-# os.environ['MOMAPS_HOME'] = '/home/labs/hornsteinlab/Collaboration/MOmaps_Sagy/MOmaps'
-# os.environ['MOMAPS_DATA_HOME'] = '/home/labs/hornsteinlab/Collaboration/MOmaps/input'
-
 sys.path.insert(1, os.getenv("MOMAPS_HOME"))
 print(f"MOMAPS_HOME: {os.getenv('MOMAPS_HOME')}")
 
-from sandbox.eval_new_arch.dino4cells.archs.vq import VectorQuantizer
 from sandbox.eval_new_arch.dino4cells.utils.utils import trunc_normal_
 
 
@@ -195,9 +191,7 @@ class VisionTransformer(nn.Module):
     def interpolate_pos_encoding(self, x, w, h):
         npatch = x.shape[1] - 1
         N = self.pos_embed.shape[1] - 1
-        # print(f"N={N}, npatch={npatch} x shape: {x.shape}")
         if npatch == N and w == h:
-            # print("No interp")
             return self.pos_embed
         class_pos_embed = self.pos_embed[:, 0]
         patch_pos_embed = self.pos_embed[:, 1:]
@@ -254,7 +248,6 @@ class VisionTransformer(nn.Module):
                 return blk(x, return_attention=True)
             
     def get_all_selfattention(self, x):
-        # xs,attns = [], []
         attns = []
         x = self.prepare_tokens(x)
         for i, blk in enumerate(self.blocks):
