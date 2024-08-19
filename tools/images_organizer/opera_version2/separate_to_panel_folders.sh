@@ -22,6 +22,9 @@ if [ ! -d "$DESTINATION_DIR" ]; then
     mkdir -p "$DESTINATION_DIR"
 fi
 
+
+echo "Source directory: $SOURCE_DIR Destination directory: $DESTINATION_DIR"
+
 # Prepare an array to hold the find command arguments
 FIND_ARGS=(-maxdepth 2 -type f)
 
@@ -35,4 +38,4 @@ FIND_ARGS=("${FIND_ARGS[@]}")
 # Execute find command and move files
 find "$SOURCE_DIR" "${FIND_ARGS[@]}" -exec mv {} "$DESTINATION_DIR" \;
 
-# echo "Files moved successfully."
+echo "Files moved successfully."

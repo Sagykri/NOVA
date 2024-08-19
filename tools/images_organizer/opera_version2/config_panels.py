@@ -8,7 +8,7 @@ import sys
 sys.path.insert(1, os.getenv("MOMAPS_HOME"))
 from tools.images_organizer.opera_version2.config import Config
 
-batch = 'batch2'#'batch1'
+batch = 'batch2'
 
 class Config_A(Config):
     def __init__(self):
@@ -60,11 +60,11 @@ class Config_A(Config):
                 }
             },
             # [DAPI, mCherry, GFP, Cy5]
-            # ch01 - DAPI
-            # ch02 - Cy3 (mCherry)
-            # ch03 - Cy2 (GFP)
-            # ch04 - Cy5
-            self.KEY_MARKERS_ALIAS_ORDERED: ["ch01", "ch02", "ch03", "ch04"],
+            # ch1 - DAPI
+            # ch2 - Cy3 (mCherry)
+            # ch3 - Cy2 (GFP)
+            # ch4 - Cy5
+            self.KEY_MARKERS_ALIAS_ORDERED: ["ch1", "ch2", "ch3", "ch4"],
             self.KEY_MARKERS: {
                 'panelA': ["DAPI", "TOMM20", "PURA", "G3BP1"]
                 },
@@ -122,11 +122,11 @@ class Config_B(Config):
                 }
             },
             # [DAPI, mCherry, GFP, Cy5]
-            # ch01 - DAPI
-            # ch02 - Cy3 (mCherry)
-            # ch03 - Cy2 (GFP)
-            # ch04 - Cy5
-            self.KEY_MARKERS_ALIAS_ORDERED: ["ch01", "ch02", "ch03", "ch04"],
+            # ch1 - DAPI
+            # ch2 - Cy3 (mCherry)
+            # ch3 - Cy2 (GFP)
+            # ch4 - Cy5
+            self.KEY_MARKERS_ALIAS_ORDERED: ["ch1", "ch2", "ch3", "ch4"],
             self.KEY_MARKERS: {
                 'panelB': ["DAPI", "TDP43", "CD41", "AGO2"]
                 },
@@ -183,11 +183,11 @@ class Config_C(Config):
                 }
             },
             # [DAPI, mCherry, GFP, Cy5]
-            # ch01 - DAPI
-            # ch02 - Cy3 (mCherry)
-            # ch03 - Cy2 (GFP)
-            # ch04 - Cy5
-            self.KEY_MARKERS_ALIAS_ORDERED: ["ch01", "ch02", "ch03", "ch04"],
+            # ch1 - DAPI
+            # ch2 - Cy3 (mCherry)
+            # ch3 - Cy2 (GFP)
+            # ch4 - Cy5
+            self.KEY_MARKERS_ALIAS_ORDERED: ["ch1", "ch2", "ch3", "ch4"],
             self.KEY_MARKERS: {
                 'panelC': ["DAPI", "FMRP", "Phalloidin", "SQSTM1"]
                 },
@@ -245,10 +245,10 @@ class Config_D(Config):
                 }
             },
             # [DAPI, Cy5, mCherry]
-            # ch01 - DAPI
-            # ch02 - Cy5
-            # ch03 - Cy3 (mCherry)
-            self.KEY_MARKERS_ALIAS_ORDERED: ["ch01", "ch02", "ch03"],
+            # ch1 - DAPI
+            # ch2 - Cy5
+            # ch3 - Cy3 (mCherry)
+            self.KEY_MARKERS_ALIAS_ORDERED: ["ch1", "ch2", "ch3"],
             self.KEY_MARKERS: {
                 'panelD': ["DAPI", "PSD95", "CLTC"]
                 },
@@ -306,10 +306,10 @@ class Config_E(Config):
                 }
             },
             # [DAPI, Cy5, mCherry]
-            # ch01 - DAPI
-            # ch02 - Cy5
-            # ch03 - Cy3 (mCherry)
-            self.KEY_MARKERS_ALIAS_ORDERED: ["ch01", "ch02", "ch03"],
+            # ch1 - DAPI
+            # ch2 - Cy5
+            # ch3 - Cy3 (mCherry)
+            self.KEY_MARKERS_ALIAS_ORDERED: ["ch1", "ch2", "ch3"],
             self.KEY_MARKERS: {
                 'panelE': ["DAPI", "NEMO", "DCP1A"]
                 },
@@ -366,10 +366,10 @@ class Config_F(Config):
                 }
             },
             # [DAPI, Cy5, mCherry]
-            # ch01 - DAPI
-            # ch02 - Cy5
-            # ch03 - Cy3 (mCherry)
-            self.KEY_MARKERS_ALIAS_ORDERED: ["ch01", "ch02", "ch03"],
+            # ch1 - DAPI
+            # ch2 - Cy5
+            # ch3 - Cy3 (mCherry)
+            self.KEY_MARKERS_ALIAS_ORDERED: ["ch1", "ch2", "ch3"],
             self.KEY_MARKERS: {
                 'panelF': ["DAPI", "GM130", "KIF5A"]
                 },
@@ -427,10 +427,10 @@ class Config_G(Config):
                 }
             },
             # [DAPI, Cy5, mCherry]
-            # ch01 - DAPI
-            # ch02 - Cy5
-            # ch03 - Cy3 (mCherry)
-            self.KEY_MARKERS_ALIAS_ORDERED: ["ch01", "ch02", "ch03"],
+            # ch1 - DAPI
+            # ch2 - Cy5
+            # ch3 - Cy3 (mCherry)
+            self.KEY_MARKERS_ALIAS_ORDERED: ["ch1", "ch2", "ch3"],
             self.KEY_MARKERS: {
                 'panelG': ["DAPI", "FUS", "NCL"]
                 },
@@ -487,10 +487,10 @@ class Config_H(Config):
                 }
             },
             # [DAPI, Cy5, mCherry]
-            # ch01 - DAPI
-            # ch02 - Cy5
-            # ch03 - Cy3 (mCherry)
-            self.KEY_MARKERS_ALIAS_ORDERED: ["ch01", "ch02", "ch03"],
+            # ch1 - DAPI
+            # ch2 - Cy5
+            # ch3 - Cy3 (mCherry)
+            self.KEY_MARKERS_ALIAS_ORDERED: ["ch1", "ch2", "ch3"],
             self.KEY_MARKERS: {
                 'panelH': ["DAPI", "SNCA", "ANXA11"]
                 },
@@ -547,10 +547,10 @@ class Config_I(Config):
                 }
             },
             # [DAPI, Cy5, mCherry]
-            # ch01 - DAPI
-            # ch02 - Cy5
-            # ch03 - Cy3 (mCherry)
-            self.KEY_MARKERS_ALIAS_ORDERED: ["ch01", "ch02", "ch03"],
+            # ch1 - DAPI
+            # ch2 - Cy5
+            # ch3 - Cy3 (mCherry)
+            self.KEY_MARKERS_ALIAS_ORDERED: ["ch1", "ch2", "ch3"],
             self.KEY_MARKERS: {
                 'panelI': ["DAPI", "LAMP1", "Calreticulin"]
                 },
@@ -607,11 +607,11 @@ class Config_J(Config):
                 }
             },
             # [DAPI, mCherry, GFP, Cy5]
-            # ch01 - DAPI
-            # ch02 - Cy3 (mCherry)
-            # ch03 - Cy2 (GFP)
-            # ch04 - Cy5
-            self.KEY_MARKERS_ALIAS_ORDERED: ["ch01", "ch02", "ch03", "ch04"],
+            # ch1 - DAPI
+            # ch2 - Cy3 (mCherry)
+            # ch3 - Cy2 (GFP)
+            # ch4 - Cy5
+            self.KEY_MARKERS_ALIAS_ORDERED: ["ch1", "ch2", "ch3", "ch4"],
             self.KEY_MARKERS: {
                 'panelJ': ["DAPI", "PSPC1", "Tubulin", "HNRNPA1"]
                 },
@@ -668,11 +668,11 @@ class Config_K(Config):
                 }
             },
             # [DAPI, mCherry, GFP, Cy5]
-            # ch01 - DAPI
-            # ch02 - Cy3 (mCherry)
-            # ch03 - Cy2 (GFP) - NONE
-            # ch04 - Cy5
-            self.KEY_MARKERS_ALIAS_ORDERED: ["ch01", "ch02", "ch03", "ch04"],
+            # ch1 - DAPI
+            # ch2 - Cy3 (mCherry)
+            # ch3 - Cy2 (GFP) - NONE
+            # ch4 - Cy5
+            self.KEY_MARKERS_ALIAS_ORDERED: ["ch1", "ch2", "ch3", "ch4"],
             self.KEY_MARKERS: {
                 'panelK': ["DAPI", "VDAC1", None, "NONO"]
                 },
@@ -729,11 +729,11 @@ class Config_L(Config):
                 }
             },
             # [DAPI, mCherry, GFP, Cy5]
-            # ch01 - DAPI
-            # ch02 - Cy3 (mCherry)
-            # ch03 - Cy2 (GFP)
-            # ch04 - Cy5
-            self.KEY_MARKERS_ALIAS_ORDERED: ["ch01", "ch02", "ch03", "ch04"],
+            # ch1 - DAPI
+            # ch2 - Cy3 (mCherry)
+            # ch3 - Cy2 (GFP)
+            # ch4 - Cy5
+            self.KEY_MARKERS_ALIAS_ORDERED: ["ch1", "ch2", "ch3", "ch4"],
             self.KEY_MARKERS: {
                 'panelL': ["DAPI", "PML", "PEX14", "mitotracker"]
                 },

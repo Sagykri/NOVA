@@ -42,6 +42,7 @@ class SPDPreprocessor(Preprocessor):
         self.flow_threshold = get_if_exists(conf, 'FLOW_THRESHOLD')
         self.to_denoise = get_if_exists(conf, 'TO_DENOISE')
         self.cell_lines_to_include = get_if_exists(conf, 'CELL_LINES_TO_INCLUDE')
+        self.conditions_to_include = get_if_exists(conf, 'CONDITIONS_TO_INCLUDE')
         self.delete_marker_folder_if_exists = get_if_exists(conf, 'DELETE_MARKER_FOLDER_IF_EXISTS', False)
         self.conf = conf
         

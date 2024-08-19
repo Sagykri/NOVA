@@ -128,7 +128,7 @@ class Utils():
         # Changed! 190324
         coord, info = file.split('-')
         r, c = coord[1:3], coord[4:6]
-        ch = info[:4]
+        ch = info[:3]#[:4]
         return ch, (r,c)
 
 

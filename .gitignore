@@ -3,7 +3,7 @@
 .vscode/
 .ipynb_checkpoints/
 *.csv
-!/src/preprocessing/*.csv
+!/src/preprocessing/brenner_cutoffs/*.csv
 anaconda3/
 logs/
 

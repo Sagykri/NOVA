@@ -58,8 +58,12 @@ import re
 #             shutil.copy(file_path, dest_dir)
 #             print(f"Copied '{file_path}' to '{dest_dir}'")
 
-# Example usage
-# source_dir = '/home/labs/hornsteinlab/Collaboration/MOmaps/input/images/raw/FUS_lines_stress_2024_unordered/20243001_MG132_ML240_Etoposide_4d_A-C/PanelC/panelC_s1900_s2000_well_E11/renumber/'
+# # Example usage
+# # source_dir = '/home/labs/hornsteinlab/Collaboration/MOmaps/input/images/raw/FUS_lines_stress_2024_unordered/20243001_MG132_ML240_Etoposide_4d_A-C/PanelC/panelC_s1900_s2000_well_E11/renumber/'
+# # dest_dir = '/home/labs/hornsteinlab/Collaboration/MOmaps/input/images/raw/FUS_lines_stress_2024_sorted/batch/WT/panelC/Untreated/rep1/DAPI/'
+# # search_text = 'DAPI'
+
+# source_dir = '/home/labs/hornsteinlab/Collaboration/MOmaps/input/images/'
 # dest_dir = '/home/labs/hornsteinlab/Collaboration/MOmaps/input/images/raw/FUS_lines_stress_2024_sorted/batch/WT/panelC/Untreated/rep1/DAPI/'
 # search_text = 'DAPI'
 # copy_files_with_text_in_name(source_dir, dest_dir, search_text)

@@ -27,7 +27,7 @@ from src.common.lib.image_sampling_utils import sample_images_all_markers_all_li
 
 
 BASE_DIR = os.path.join('/home','labs','hornsteinlab','Collaboration','MOmaps')
-INPUT_DIR = os.path.join(BASE_DIR, 'input', 'images', 'raw', 'SpinningDisk', 'NOVA_d18_neurons_sorted')
+INPUT_DIR = os.path.join(BASE_DIR, 'input', 'images', 'raw', 'Opera18DaysReimaged_sorted')
 calc_per_tile = False # I ran _site_ with this being False! (281123)
 
 def calculate_metrics_for_batch(batch_name, sample_size_per_markers=100, num_markers=36, markers=None):
@@ -87,7 +87,7 @@ def _calc_image_metrics(img_path):
     # Load an tiff image (a site image, 1024x1024)
     img = cv2.imread(img_path, cv2.IMREAD_ANYDEPTH) 
     if img is None:
-        path = img_path.replace("/home/labs/hornsteinlab/Collaboration/MOmaps/input/images/raw/SpinningDisk/NOVA_d18_neurons_sorted/","")
+        path = img_path.replace(os.sep.join(INPUT_DIR),"")
         logging.info(f"{path} is empty!")
         return None
     
@@ -138,8 +138,8 @@ def main():
     # raw_base_path = '/home/labs/hornsteinlab/Collaboration/MOmaps/input/images/raw/SpinningDisk/'
     
     
-    log_file_path = "/home/labs/hornsteinlab/Collaboration/MOmaps/outputs/preprocessing/spd18days/brenner/log280524_all.txt"
-    savepath =      "/home/labs/hornsteinlab/Collaboration/MOmaps/outputs/preprocessing/spd18days/brenner/raw_metrics280524_all.csv"
+    log_file_path = "/home/labs/hornsteinlab/Collaboration/MOmaps/outputs/preprocessing/Opera18Days_Reimaged/brenner/log_230724.txt"
+    savepath =      "/home/labs/hornsteinlab/Collaboration/MOmaps/outputs/preprocessing/Opera18Days_Reimaged/brenner/raw_metrics_230724.csv"
     
     init_logging(log_file_path)
     

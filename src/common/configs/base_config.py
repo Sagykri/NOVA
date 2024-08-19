@@ -71,6 +71,18 @@ class BaseConfig():
         self.UMAP_MAPPINGS_ALS['SCNA'] = self.UMAP_MAPPINGS_ALS['SCNA_Untreated']
         self.UMAP_MAPPINGS_ALS['TDP43'] = self.UMAP_MAPPINGS_ALS['TDP43_Untreated']
 
+        self.UMAP_MAPPINGS_ALS_WITH_CONDITION = {
+            'WT_Untreated': {self.UMAP_MAPPINGS_ALIAS_KEY: 'Wild-Type (-Stress)', self.UMAP_MAPPINGS_COLOR_KEY: '#37AFD7'},
+            'WT_stress': {self.UMAP_MAPPINGS_ALIAS_KEY: 'Wild-Type (+Stress)', self.UMAP_MAPPINGS_COLOR_KEY: '#F7810F'},
+            'FUSHeterozygous_Untreated': {self.UMAP_MAPPINGS_ALIAS_KEY: 'FUS Heterozygous', self.UMAP_MAPPINGS_COLOR_KEY: '#AB7A5B'},
+            'FUSHomozygous_Untreated': {self.UMAP_MAPPINGS_ALIAS_KEY: 'FUS Homozygous (-Stress)', self.UMAP_MAPPINGS_COLOR_KEY: '#78491C'},
+            'FUSHomozygous_stress': {self.UMAP_MAPPINGS_ALIAS_KEY: 'FUS Homozygous (+Stress)', self.UMAP_MAPPINGS_COLOR_KEY: 'red'},
+            'FUSRevertant_Untreated': {self.UMAP_MAPPINGS_ALIAS_KEY: 'FUS Revertant', self.UMAP_MAPPINGS_COLOR_KEY: '#C8C512'},
+            'OPTN_Untreated': {self.UMAP_MAPPINGS_ALIAS_KEY: 'OPTN', self.UMAP_MAPPINGS_COLOR_KEY: '#FF98BB'},
+            'TBK1_Untreated': {self.UMAP_MAPPINGS_ALIAS_KEY: 'TBK1', self.UMAP_MAPPINGS_COLOR_KEY: '#319278'},
+            'SCNA_Untreated': {self.UMAP_MAPPINGS_ALIAS_KEY: 'SCNA', self.UMAP_MAPPINGS_COLOR_KEY: 'black'},
+            'TDP43_Untreated': {self.UMAP_MAPPINGS_ALIAS_KEY: 'TDP43', self.UMAP_MAPPINGS_COLOR_KEY: '#A8559E'},
+        }
         
         self.UMAP_MAPPINGS_DOX = {
             'WT_Untreated': {self.UMAP_MAPPINGS_ALIAS_KEY: 'Wild-Type', self.UMAP_MAPPINGS_COLOR_KEY: '#2FA0C1'},
