@@ -238,37 +238,7 @@ def train_vit_contrastive(config_path, config_data_path):
                 break
         else:
             last_best_val_loss = loss_val_avg
-            early_stopping_patience = config.early_stopping_patience
-
-
-    #     # ============ writing logs ... ============
-        # save_checkpoint(model, optimizer, epoch, config, vit_loss, fp16_scaler, np.inf, "checkpoint")
-    #     save_dict = {
-    #         "model": model.state_dict(),
-    #         "optimizer": optimizer.state_dict(),
-    #         "epoch": epoch,
-    #         "config": config,
-    #         "vit_loss": vit_loss.state_dict(),
-    #         'fp16_scaler': fp16_scaler.state_dict()
-    #     }
-    # #     if fp16_scaler is not None:
-    #     # save_dict["fp16_scaler"] = fp16_scaler.state_dict()
-    # #     utils.save_on_master(save_dict, os.path.join(args.output_dir, "checkpoint.pth"))
-    # #     if args.saveckp_freq and epoch % args.saveckp_freq == 0:
-    #     utils.save_on_master(
-    #         save_dict, os.path.join(config.output_dir, f"checkpoint.pth")
-    #     )
-    #     log_stats = {
-    #         **{f"train_{k}": v for k, v in train_stats.items()},
-    #         "epoch": epoch,
-    #     }
-    #     if utils.is_main_process():
-    #         with (Path(args.output_dir) / "log.txt").open("a") as f:
-    #             f.write(json.dumps(log_stats) + "\n")
-    # total_time = time.time() - start_time
-    # total_time_str = str(datetime.timedelta(seconds=int(total_time)))
-    # logging.info("Training time {}".format(total_time_str))
-    
+            early_stopping_patience = config.early_stopping_patience    
     writer.close()
 
 
@@ -303,16 +273,6 @@ def get_positives(anchor, labels_dicts):
     positive_marker = anchor['marker']
     positive_batch = anchor['batch']
     positive_cell_line_cond = anchor['cell_line_cond']
-    # positive_rep = anchor['rep']
-    # positive_site = anchor['site']
-    # positives = [i for i, lbl in enumerate(labels_dicts) if lbl['marker'] == positive_marker and lbl['batch'] == positive_batch and \
-    #              lbl['cell_line_cond'] == positive_cell_line_cond and lbl['rep'] == positive_rep and lbl['site'] == positive_site \
-    #                 and lbl['index'] != anchor['index']]
-
-    # positives = [i for i, lbl in enumerate(labels_dicts) if lbl['marker'] == positive_marker \
-    #             and lbl['batch'] == positive_batch \
-    #             and lbl['cell_line_cond'] == positive_cell_line_cond \
-    #             and lbl['index'] != anchor['index']]
 
     positives = [i for i, lbl in enumerate(labels_dicts) if lbl['marker'] == positive_marker \
             and lbl['cell_line_cond'] == positive_cell_line_cond \
@@ -328,7 +288,6 @@ def get_negatives(anchor, labels_dicts):
     negative_marker = anchor['marker']
     negative_batch = anchor['batch']
     negatives = [i for i, lbl in enumerate(labels_dicts) if lbl['marker'] == negative_marker and lbl['batch'] == negative_batch and lbl['cell_line_cond'] != anchor['cell_line_cond']]
-    # negatives = [i for i, lbl in enumerate(labels_dicts) if lbl['marker'] == negative_marker and lbl['cell_line_cond'] != anchor['cell_line_cond']]
 
     return negatives
 

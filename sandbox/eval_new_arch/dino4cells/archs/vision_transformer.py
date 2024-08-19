@@ -150,43 +150,6 @@ class PatchEmbed(nn.Module):
         x = self.proj(x).flatten(2).transpose(1, 2)
         return x
 
-### SAGY DIF from ViT
-# def _pos_embed(self, x: torch.Tensor) -> torch.Tensor:
-#         if self.pos_embed is None:
-#             return x.view(x.shape[0], -1, x.shape[-1])
-
-#         if self.dynamic_img_size:
-#             B, H, W, C = x.shape
-#             pos_embed = resample_abs_pos_embed(
-#                 self.pos_embed,
-#                 (H, W),
-#                 num_prefix_tokens=0 if self.no_embed_class else self.num_prefix_tokens,
-#             )
-#             x = x.view(B, -1, C)
-#         else:
-#             pos_embed = self.pos_embed
-
-#         to_cat = []
-#         if self.cls_token is not None:
-#             to_cat.append(self.cls_token.expand(x.shape[0], -1, -1))
-#         if self.reg_token is not None:
-#             to_cat.append(self.reg_token.expand(x.shape[0], -1, -1))
-
-#         if self.no_embed_class:
-#             # deit-3, updated JAX (big vision)
-#             # position embedding does not overlap with class token, add then concat
-#             x = x + pos_embed
-#             if to_cat:
-#                 x = torch.cat(to_cat + [x], dim=1)
-#         else:
-#             # original timm, JAX, and deit vit impl
-#             # pos_embed has entry for class token, concat then add
-#             if to_cat:
-#                 x = torch.cat(to_cat + [x], dim=1)
-#             x = x + pos_embed
-
-#         return self.pos_drop(x)
-
 class VisionTransformer(nn.Module):
     """ Vision Transformer """
     def __init__(self, img_size=[224], patch_size=16, in_chans=3, num_classes=0, embed_dim=768, depth=12,
@@ -252,11 +215,9 @@ class VisionTransformer(nn.Module):
             scale_factor=(w0 / math.sqrt(N), h0 / math.sqrt(N)),
             mode='bicubic',
         )
-        # print(f"patch_pos_embed shape after: {patch_pos_embed.shape}")
         assert int(w0) == patch_pos_embed.shape[-2] and int(h0) == patch_pos_embed.shape[-1]
         patch_pos_embed = patch_pos_embed.permute(0, 2, 3, 1).view(1, -1, dim)
         
-        # print(f"final : {torch.cat((class_pos_embed.unsqueeze(0), patch_pos_embed), dim=1).shape}")
         return torch.cat((class_pos_embed.unsqueeze(0), patch_pos_embed), dim=1)
 
     def prepare_tokens(self, x):
@@ -271,33 +232,6 @@ class VisionTransformer(nn.Module):
         x = x + self.interpolate_pos_encoding(x, w, h)
 
         return self.pos_drop(x)
-
-
-    # SAGY _ FOR SYNTHETIC (080724) PatchEmbeddings for each dual channel separatly!
-    # def prepare_tokens(self, x):
-    #     B, nc, w, h = x.shape
-        
-    #     x = [self.patch_embed(x[:,[c,c+1],...]) for c in range(0,nc,2)]  # patch linear embedding
-    #     num_pathces_per_channel = x[0].shape[1]
-    #     x = torch.hstack(x)
-
-        
-    #     # add the [CLS] token to the embed patch tokens
-    #     cls_tokens = self.cls_token.expand(B, -1, -1)
-    #     x = torch.cat((cls_tokens, x), dim=1)
-
-    #     total_num_of_patches = x.shape[1]
-    #     n_segments = (total_num_of_patches-1) // num_pathces_per_channel
-        
-    #     # add positional encoding to each token
-    #     pos_encoding = [self.pos_embed[:,1:] for i in range(1,n_segments)]
-    #     pos_encoding = torch.hstack(pos_encoding)
-    #     pos_encoding = torch.cat((self.pos_embed[[0]], pos_encoding), dim=1)
-    #     x = x + pos_encoding
-
-    #     return self.pos_drop(x)
-    
-    # #####
 
     def forward(self, x, return_hidden=False):
         x = self.prepare_tokens(x)
@@ -324,11 +258,7 @@ class VisionTransformer(nn.Module):
         attns = []
         x = self.prepare_tokens(x)
         for i, blk in enumerate(self.blocks):
-            # if i < len(self.blocks) - 1:
             x, attn = blk(x, return_both=True)
-            # else:
-                # return blk(x, return_both=True)
-            # xs.append(x)
             attns.append(attn)
             
         return torch.vstack(attns)

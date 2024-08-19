@@ -103,37 +103,14 @@ class Dataset(torch.utils.data.Dataset ,metaclass=ABCMeta):
             transformed_batch.append(transform(batch[[i]]))
         transformed_batch = torch.vstack(transformed_batch)
         return transformed_batch
-    
-    def __apply_paired_transform_batch(self, batch, transform):
-        batch_size = batch.size(0)
-        batch_global = torch.empty_like(batch)
-        batch_local = torch.empty_like(batch)
         
-        # Apply transform in parallel
-        for i in range(batch_size):
-            img_global, img_local = transform(batch[[i]])
-            batch_global[i] = img_global
-            batch_local[i] = img_local
-            
-        return batch_global, batch_local
-    
     def __getitem__(self, index):
         'Generate one batch of data'
         X_batch, y_batch, paths_batch = self.get_batch(index, return_paths=True)
     
         y_batch = self.__label_converter(y_batch, label_format='index')
         paths_batch = paths_batch.reshape(-1,1)
-        
-        is_dual_inputs = utils.get_if_exists(self.conf, 'IS_DUAL_INPUTS', False)
-        if is_dual_inputs:
-            if self.transform:
                 
-                X_batch = torch.from_numpy(X_batch)  
-                X_batch_global, X_batch_local = self.__apply_paired_transform_batch(X_batch, self.transform)
-                
-                return {'image_global': X_batch_global, 'image_local': X_batch_local, 'label': y_batch, 'image_path': paths_batch}        
-
-        
         if self.transform:
             X_batch = torch.from_numpy(X_batch)
             X_batch = self.__apply_transform_per_sample(X_batch, self.transform)
