@@ -60,8 +60,6 @@ class Dataset(torch.utils.data.Dataset ,metaclass=ABCMeta):
         
 
         self.conf = conf
-        # TO support spliting labels
-        self.split_labels = conf.SPLIT_LABELS
 
         self.X_paths, self.y, self.unique_markers = self._load_data_paths()  
         
@@ -191,59 +189,34 @@ class Dataset(torch.utils.data.Dataset ,metaclass=ABCMeta):
         return y_label
     
     def __label_converter(self, y, label_format='index'):
-        def get_cond_array(y):
-            def get_cond(label):
-                parts = label.split('_')
-                return '_'.join(parts[1:])
-            return np.asarray([get_cond(label) for label in y])
-
-        def get_marker_array(y):
-            def get_marker(label):
-                parts = label.split('_')
-                return parts[0]
-            return np.asarray([get_marker(label) for label in y])
 
         if self.unique_markers is None:
             raise ValueError('unique_markers is empty.')
         else:
             y = y.reshape(-1,)
-            if self.split_labels:
-                y_markers = get_marker_array(y)
-                y_conds = get_cond_array(y)
-                marker_onehot = y_markers[:,None] == self.unique_markers[0]
-                cond_onehot = y_conds[:,None] == self.unique_markers[1]
-                if label_format == 'index':
-                    output = np.array([marker_onehot.argmax(1), cond_onehot.argmax(1)])
+            onehot = y[:, None] == self.unique_markers
+            if label_format == 'onehot':
+                output = onehot
+            elif label_format == 'index':
+                output = onehot.argmax(1)
             else:
-                onehot = y[:, None] == self.unique_markers
-                if label_format == 'onehot':
-                    output = onehot
-                elif label_format == 'index':
-                    output = onehot.argmax(1)
-                else:
-                    output = y
+                output = y
 
-                output = output.reshape(-1,1)
+            output = output.reshape(-1,1)
             return output
     
     @staticmethod
-    def get_collate_fn(split_labels, shuffle=False):
+    def get_collate_fn(shuffle=False):
         def collate_fn(batch):
             res = utils.apply_for_all_gpus(utils.getfreegpumem)
             logging.info(f"Resources (Free, Used, Total): {res}")
 
             images = [b['image'] for b in batch]
-            if split_labels:
-                labels = [b['label'].transpose() for b in batch]
-            else:
-                labels = [b['label'] for b in batch]
+            labels = [b['label'] for b in batch]
             images_paths = [b['image_path'] for b in batch]
             
             output_images = torch.from_numpy(np.vstack(images))
-            if split_labels:
-                output_labels = torch.from_numpy(np.vstack(labels))
-            else:
-                output_labels = torch.from_numpy(np.vstack(labels).reshape(-1,))
+            output_labels = torch.from_numpy(np.vstack(labels).reshape(-1,))
             output_paths = np.vstack(images_paths).reshape(-1,)
             
             if shuffle:

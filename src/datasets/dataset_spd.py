@@ -77,7 +77,6 @@ class DatasetSPD(Dataset):
         conds_include           =   self.conditions
         depth                   =   self.markers_folders_depth
         reps_include            =   self.reps
-        split_labels            =   self.split_labels
 
         labels = []
         # List of strings, each element in the list is marker name + condition(e.g., "WT_Untreated_NONO")
@@ -168,28 +167,16 @@ class DatasetSPD(Dataset):
                         lbl += f"_{filename_rep}"
                         
                     # Save all unique markers names
-                    if split_labels:
-                        parts = lbl.split('_')
-                        cond = '_'.join(parts[1:])
-                        marker = parts[0]
-                        if cond not in unique_conds:
-                            unique_conds.append(cond)
-                        if marker not in unique_real_markers:
-                            unique_real_markers.append(marker)
-                    else:
-                        if lbl not in unique_markers: 
-                            unique_markers.append(lbl)
+                    if lbl not in unique_markers: 
+                        unique_markers.append(lbl)
                     
                     labels += [lbl]
                     
                 #####################################      
                         
-        processed_files_list = np.asarray(processed_files_list)
-        if split_labels:
-            unique_markers = np.asarray([np.array(unique_real_markers), np.array(unique_conds)])   
-        else:
-            unique_markers = np.asarray(np.asarray([unique_markers]))
-            logging.info(f'[dataset_spd] unique_markers.shape: {unique_markers.shape}')
+        processed_files_list = np.asarray(processed_files_list)  
+        unique_markers = np.asarray(np.asarray([unique_markers]))
+        logging.info(f'[dataset_spd] unique_markers.shape: {unique_markers.shape}')
         #####################################
         # Save the labels for entire input_folder
         labels = np.asarray(labels).reshape(-1, 1)

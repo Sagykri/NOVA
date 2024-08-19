@@ -323,19 +323,6 @@ class EmbeddingsForFCDatasetConfig(DatasetConfig):
         self.ADD_BATCH_TO_LABEL = False
         self.MARKERS_TO_EXCLUDE = ['DAPI']#,'TIA1']
 
-class EmbeddingsForFC2pretext_DatasetConfig(DatasetConfig):
-    def __init__(self):
-        super().__init__()
-
-        self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "spd2", "SpinningDisk", f) for f in 
-                        [f"batch{i}" for i in [7,8]]]
-        
-        self.SPLIT_DATA = True
-        self.EXPERIMENT_TYPE = 'neurons'
-        self.ADD_REP_TO_LABEL = False
-        self.ADD_BATCH_TO_LABEL = False
-        self.MARKERS_TO_EXCLUDE = ['DAPI']#,'TIA1']
-        self.SPLIT_LABELS = True # True for split pretext model
 
 class EmbeddingsForFCNODECODERDatasetConfig(DatasetConfig):
     def __init__(self):

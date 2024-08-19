@@ -106,32 +106,6 @@ class TLNeuroselfB78NoDSNoDecoderModelConfig(NeuroselfConfig):
         self.DATA_VAR =0.016091262813612773 # 7_16bit_nods: 0.016091262813612773
         # ./bash_commands/run_py.sh ./src/runables/training -g -m 15000 -b 40 -a ./src/models/neuroself/configs/model_config/NeuroselfB7TrainingConfig ./src/datasets/configs/train_config/TrainB7DatasetConfig
 
-
-class TLNeuroselfB78NoDS_sep_pretext_ModelConfig(NeuroselfConfig):
-    def __init__(self):
-        super().__init__()
-        
-        self.OUTPUTS_FOLDER = MODEL_OUTPUT 
-        self.MODEL_OUTPUT_FOLDER = os.path.join(self.OUTPUTS_FOLDER, 'models_outputs_batch78_nods_tl_ep_23_2pretext')
-        
-        self.LOGS_FOLDER = os.path.join(self.MODEL_OUTPUT_FOLDER, 'logs')
-        self.CONFIGS_USED_FOLDER = os.path.join(self.MODEL_OUTPUT_FOLDER, "configs_used", datetime.datetime.now().strftime("%d%m%y_%H%M%S_%f"))
-
-        # Models
-        self.PRETRAINED_MODEL_PATH = os.path.join(self.OUTPUTS_FOLDER,"models_outputs_cytoself_qsplit9", "checkpoints", "checkpoint_ep23.chkp") 
-        self.MODEL_PATH = os.path.join(self.OUTPUTS_FOLDER,"models_outputs_batch78_nods_tl_ep_23_2pretext", "checkpoints", "checkpoint_ep8.chkp")  #None# #SAGY030624 os.path.join(self.MODEL_OUTPUT_FOLDER, 'model_31.pt')
-        self.LAST_CHECKPOINT_PATH = os.path.join(self.MODEL_OUTPUT_FOLDER, 'checkpoints')
-        
-        self.EARLY_STOP_PATIENCE = 10
-        self.LEARN_RATE = 2e-5 #2e-4 #SAGY030624
-        self.BATCH_SIZE = 4
-        self.MAX_EPOCH = 100
-
-        # Was calculated based on 200 images per marker (26) from batch7
-        self.DATA_VAR =0.016091262813612773 # 7_16bit_nods: 0.016091262813612773
-        # ./bash_commands/run_py.sh ./src/runables/training -g -m 15000 -b 40 -a ./src/models/neuroself/configs/model_config/NeuroselfB7TrainingConfig ./src/datasets/configs/train_config/TrainB7DatasetConfig
-        self.NUM_PRETEXT = 2
-        
 ############################################################
 # deltaNLS
 ############################################################        
