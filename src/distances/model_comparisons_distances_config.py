@@ -18,10 +18,11 @@ class NeuronsDistanceConfig(DatasetConfig):
         
         self.SPLIT_DATA = False 
         self.EXPERIMENT_TYPE = 'neurons'    
+        self.BASELINE_CELL_LINE_CONDITION = "WT_Untreated"
         self.TRAIN_BATCHES = []
         self.MARKERS_TO_EXCLUDE = ['FMRP', 'TIA1']
 
-class NeuronsTest78DistanceConfig(DatasetConfig):
+class Neurons69Full78TestDistanceConfig(DatasetConfig):
     def __init__(self):
         super().__init__()
         
@@ -36,9 +37,11 @@ class NeuronsTest78DistanceConfig(DatasetConfig):
         self.EXPERIMENT_TYPE = 'neurons'    
         self.TRAIN_BATCHES = ['batch7','batch8']
         self.MARKERS_TO_EXCLUDE = ['FMRP', 'TIA1']
-        self.BASELINE_CELL_LINE_CONDITION = 'TBK1_Untreated'
+        
+        self.BASELINE_CELL_LINE_CONDITION = "WT_Untreated"
 
-class NeuronsTest78_345_DistanceConfig(DatasetConfig):
+        
+class NeuronsTest78TBK1DistanceConfig(DatasetConfig):
     def __init__(self):
         super().__init__()
         
@@ -47,13 +50,36 @@ class NeuronsTest78_345_DistanceConfig(DatasetConfig):
 
         # Batches used for model development
         self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "spd2", "SpinningDisk", f) for f in 
-                        [f"batch{i}" for i in [3,4,5,6,7,8,9]]]
+                        [f"batch{i}" for i in range(6,10)]]
         
         self.SPLIT_DATA = False 
-        self.EXPERIMENT_TYPE = 'neurons'    
+        self.EXPERIMENT_TYPE = 'neurons'   
+        self.CELL_LINES = ['FUSHomozygous','FUSHeterozygous','FUSRevertant', 'OPTN','TBK1','TDP43']
+        self.CONDITIONS = ['Untreated']
         self.TRAIN_BATCHES = ['batch7','batch8']
         self.MARKERS_TO_EXCLUDE = ['FMRP', 'TIA1']
-        self.BASELINE_CELL_LINE_CONDITION = 'WT_Untreated'
+        
+        self.BASELINE_CELL_LINE_CONDITION = "TBK1_Untreated"
+        
+class NeuronsTest78FUSRevertantDistanceConfig(DatasetConfig):
+    def __init__(self):
+        super().__init__()
+        
+        """UMAP1 of WT untreated - testset of B7-8
+        """
+
+        # Batches used for model development
+        self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "spd2", "SpinningDisk", f) for f in 
+                        [f"batch{i}" for i in range(6,10)]]
+        
+        self.SPLIT_DATA = False 
+        self.EXPERIMENT_TYPE = 'neurons'   
+        self.CELL_LINES = ['FUSHomozygous','FUSHeterozygous','FUSRevertant', 'OPTN','TBK1','TDP43', 'WT']
+        self.CONDITIONS = ['Untreated']
+        self.TRAIN_BATCHES = ['batch7','batch8']
+        self.MARKERS_TO_EXCLUDE = ['FMRP', 'TIA1']
+        
+        self.BASELINE_CELL_LINE_CONDITION = "FUSRevertant_Untreated"
 
 class dNLSDistanceConfig(DatasetConfig):
     def __init__(self):
@@ -93,12 +119,12 @@ class dNLS345DistanceConfig(DatasetConfig):
         
         self.SPLIT_DATA = False
         self.EXPERIMENT_TYPE = 'deltaNLS'
-        
         self.MARKERS_TO_EXCLUDE = ['FMRP','TIA1']
+        self.BASELINE_CELL_LINE_CONDITION = "TDP43_Untreated"
         
         self.ADD_REP_TO_LABEL = False
         self.ADD_BATCH_TO_LABEL = False
-        self.BASELINE_CELL_LINE_CONDITION = 'TDP43_Untreated'
+        self.TRAIN_BATCHES = []
 
 class EmbeddingsDay18DistanceConfig(DatasetConfig):
     def __init__(self):
@@ -109,5 +135,39 @@ class EmbeddingsDay18DistanceConfig(DatasetConfig):
         
         self.SPLIT_DATA = False
         self.EXPERIMENT_TYPE = 'neurons_d18'    
-        self.MARKERS_TO_EXCLUDE = []
+        self.MARKERS_TO_EXCLUDE = None
+        self.TRAIN_BATCHES = []
         
+        self.BASELINE_CELL_LINE_CONDITION = "WT_Untreated"
+
+        
+
+class NeuronsDistanceB78TestConfig(DatasetConfig):
+    def __init__(self):
+        super().__init__()
+        
+
+        # Batches used for model development
+        self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "spd2", "SpinningDisk", f) for f in 
+                        [f"batch7", "batch8"]]
+        
+        self.SPLIT_DATA = True 
+        self.EXPERIMENT_TYPE = 'neurons'    
+        self.TRAIN_BATCHES = []
+        self.MARKERS_TO_EXCLUDE = ['FMRP', 'TIA1'] # The embeddings are already calculated so it doesn't need to be the exact same markers as in the trianing_config
+        
+        self.BASELINE_CELL_LINE_CONDITION = "WT_Untreated"
+
+class NeuronsDistanceB78FullConfig(DatasetConfig):
+    def __init__(self):
+        super().__init__()
+        
+
+        # Batches used for model development
+        self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "spd2", "SpinningDisk", f) for f in 
+                        [f"batch7", "batch8"]]
+        
+        self.SPLIT_DATA = False 
+        self.EXPERIMENT_TYPE = 'neurons'    
+        self.TRAIN_BATCHES = []
+        self.MARKERS_TO_EXCLUDE = ['FMRP', 'TIA1']

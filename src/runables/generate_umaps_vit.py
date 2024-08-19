@@ -1,3 +1,4 @@
+import json
 import os
 import sys
 
@@ -75,9 +76,17 @@ def __generate_umap1(config_data, output_folder_path, embeddings, labels):
         
     title = f"{'_'.join([os.path.basename(f) for f in config_data.INPUT_FOLDERS])}_{'_'.join(config_data.REPS)}"
     __now = datetime.datetime.now()
-    savepath = os.path.join(output_folder_path,\
+   
+    saveroot = os.path.join(output_folder_path,\
                             'UMAPs',\
-                            'UMAP1',
+                            'UMAP1')
+    if not os.path.exists(saveroot):
+        os.makedirs(saveroot, exist_ok=True)
+        
+    with open(os.path.join(saveroot, 'config.json'), 'w') as json_file:
+        json.dump(config_data.__dict__, json_file, indent=4)
+        
+    savepath = os.path.join(saveroot,
                                 f'{__now.strftime("%d%m%y_%H%M%S_%f")}_{title}')    
     map_labels_function = get_if_exists(config_data, 'MAP_LABELS_FUNCTION', None)
     if map_labels_function is not None:
@@ -86,10 +95,11 @@ def __generate_umap1(config_data, output_folder_path, embeddings, labels):
     ordered_marker_names = ["DAPI", 'TDP43', 'PEX14', 'NONO', 'ANXA11', 'FUS', 'Phalloidin', 
                             'PURA', 'mitotracker', 'TOMM20', 'NCL', 'Calreticulin', 'CLTC', 'KIF5A', 'SCNA', 'SQSTM1', 'PML',
                             'DCP1A', 'PSD95', 'LAMP1', 'GM130', 'NEMO', 'CD41', 'G3BP1']
+    ordered_marker_names = get_if_exists(config_data, 'ORDERED_MARKER_NAMES', ordered_marker_names)
     ordered_names = [config_data.UMAP_MAPPINGS[marker]['alias'] for marker in ordered_marker_names]
     
     umap_embeddings = compute_umap_embeddings(embeddings)
-    label_data = map_labels_function(labels)
+    label_data = map_labels_function(labels) if map_labels_function is not None else labels
     logging.info(f'label_data uniqie: {np.unique(label_data)}')
     plot_umap_embeddings(umap_embeddings, label_data, config_data, savepath, 
                         ordered_names = ordered_names, show_ari=False)
@@ -103,6 +113,16 @@ def __generate_umap0(config_data, output_folder_path, embeddings, labels, add_ti
     title = f"{'_'.join([os.path.basename(f) for f in config_data.INPUT_FOLDERS])}_{'_'.join(config_data.REPS)}" #_{__now.strftime('%d%m%y_%H%M%S_%f')}"
     if add_title is not None:
         title = f"{title}_{add_title}"
+    
+    saveroot = os.path.join(output_folder_path,\
+                                'UMAPs',\
+                                    f'{title}')
+    if not os.path.exists(saveroot):
+        os.makedirs(saveroot, exist_ok=True)
+            
+    with open(os.path.join(saveroot, 'config.json'), 'w') as json_file:
+        json.dump(config_data.__dict__, json_file, indent=4)    
+    
     for c in markers:
         logging.info(f"Marker: {c}")
         logging.info(f"[{c}] Selecting indexes of marker")
@@ -116,19 +136,12 @@ def __generate_umap0(config_data, output_folder_path, embeddings, labels, add_ti
         embeddings_c, labels_c = np.copy(embeddings[c_indexes]), np.copy(labels[c_indexes].reshape(-1,))
         
         logging.info(f"[{c}] Plot umap...")
-        savepath = os.path.join(output_folder_path,\
-                                'UMAPs',\
-                                    f'{title}',\
-                                        f'{c}') # NANCY
-        
-        __savepath_parent = os.path.dirname(savepath)
-        if not os.path.exists(__savepath_parent):
-            os.makedirs(__savepath_parent, exist_ok=True)
+        savepath = os.path.join(saveroot, f'{c}') # NANCY
         
         map_labels_function = get_if_exists(config_data, 'MAP_LABELS_FUNCTION', None)
         if map_labels_function is not None:
             map_labels_function = eval(map_labels_function)(config_data)
-        label_data = map_labels_function(labels_c)
+        label_data = map_labels_function(labels_c) if map_labels_function is not None else labels_c
         if np.unique(label_data).shape[0]>10:
             show_ari=False
         else:
@@ -147,10 +160,17 @@ def __generate_sm(config_data, output_folder_path, embeddings, labels, add_title
     if add_title is not None:
         title = f"{title}_{add_title}"
     __now = datetime.datetime.now()
-    savepath = os.path.join(output_folder_path,\
+    
+    saveroot = os.path.join(output_folder_path,\
                             'UMAPs',\
-                            'SM_UMAPs',
-                                f'{__now.strftime("%d%m%y_%H%M%S_%f")}_{title}') 
+                            'SM_UMAPs',title)
+    if not os.path.exists(saveroot):
+        os.makedirs(saveroot, exist_ok=True)
+        
+    with open(os.path.join(saveroot, 'config.json'), 'w') as json_file:
+        json.dump(config_data.__dict__, json_file, indent=4)    
+
+    savepath = os.path.join(saveroot, f'{__now.strftime("%d%m%y_%H%M%S_%f")}_{title}') 
     map_labels_function = get_if_exists(config_data, 'MAP_LABELS_FUNCTION', None)
 
     logging.info(f"[Before concat] Embeddings shape: {embeddings.shape}, Labels shape: {labels.shape}")
@@ -248,7 +268,7 @@ def plot_umap_embeddings(umap_embeddings, label_data, config_data, savepath = No
     #ncol=1, #NOAM: for umap1
     frameon=False,
 )
-    for ll in leg.legend_handles:
+    for ll in leg.legendHandles:
         ll.set_alpha(1)
         ll.set_sizes([max(6, s)]) # SAGY
     ax.set_xlabel('UMAP1') # Nancy for figure 2A - remove axis label - comment this out
