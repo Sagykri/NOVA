@@ -37,8 +37,6 @@ class DatasetConfig(BaseConfig):
         self.AUG_TO_ROT = True
         self.IS_AUG_INPLACE = False
         
-        self.SPLIT_LABELS = False
-
         # How much percentage to sample from the dataset. Set to 1 or None for taking all dataset.
         # Valid values are: 0<SAMPLE_PCT<=1 or SAMPLE_PCT=None (identical to SAMPLE_PCT=1)
         self.SAMPLE_PCT = 1

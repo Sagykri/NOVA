@@ -116,7 +116,7 @@ def load_model_with_dataloader(model, datasets_list):
         logging.exception("[Generate Embeddings] Load model: List of datasets is not supported.")
     
     # Actual load of the model
-    model.load_model(num_pretext = model.num_pretext, num_fc_output_classes = model.num_class)
+    model.load_model(num_fc_output_classes = model.num_class)
 
     return model
 
