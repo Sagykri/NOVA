@@ -5,20 +5,12 @@ sys.path.insert(1, os.getenv("MOMAPS_HOME"))
 import numpy as np
 import pandas as pd
 import logging
-from copy import deepcopy
-# from multiprocessing.pool import ThreadPool
-from scipy.spatial.distance import cdist, pdist
+from scipy.spatial.distance import pdist
 from itertools import combinations
 from sklearn.metrics.pairwise import pairwise_distances
-#from src.common.lib.image_sampling_utils import find_marker_folders
-from src.common.lib.utils import load_config_file, init_logging, get_if_exists
-from src.common.lib.vit_embeddings_utils import load_vit_features
-from src.datasets.dataset_spd import DatasetSPD
 from src.common.configs.base_config import BaseConfig
 import matplotlib.pyplot as plt
 import seaborn as sns
-import datetime
-import torch
 ###############################################################
 # Utils for calculating distances between  labels, based on the full latent space (Embeddings) 
 ###############################################################

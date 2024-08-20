@@ -6,10 +6,8 @@ from src.common.lib.embeddings_distances_utils_vit import calc_embeddings_distan
 from src.common.lib.utils import load_config_file, get_if_exists, init_logging
 import logging
 import datetime
-from sandbox.eval_new_arch.dino4cells.utils import utils
-from sandbox.eval_new_arch.dino4cells.archs import vision_transformer as vits
 import torch
-from src.common.lib.vit_embeddings_utils import load_vit_features
+from src.common.lib.embeddings_utils import load_vit_features
 
 
 def __load_vit_features(model_output_folder, config_data, training_batches=['batch7','batch8']):

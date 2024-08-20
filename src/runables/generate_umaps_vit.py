@@ -6,15 +6,13 @@ sys.path.insert(1, os.getenv("MOMAPS_HOME"))
 print(f"MOMAPS_HOME: {os.getenv('MOMAPS_HOME')}")
 
 import numpy as np
-import pandas as pd
-
 import logging
 import  torch
 import datetime
 import umap
 
 from src.common.lib.utils import get_if_exists, load_config_file, init_logging
-from src.common.lib.vit_embeddings_utils import load_vit_features
+from src.common.lib.embeddings_utils import load_vit_features
 from src.common.lib.synthetic_multiplexing import __embeddings_to_df, __get_multiplexed_embeddings
 from src.common.lib.plotting import plot_umap_embeddings
 
