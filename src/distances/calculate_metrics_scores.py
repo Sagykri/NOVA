@@ -46,7 +46,6 @@ def calculate_metrics_scores(config_path_data, model_output_folder):
         os.makedirs(output_folder_path, exist_ok=True)
 
     train_batches = get_if_exists(config_data, 'TRAIN_BATCHES', None)
-    assert train_batches is not None, "train_batches can't be None for distances" 
 
     embeddings, labels = __load_vit_features(model_output_folder, config_data, train_batches)
 

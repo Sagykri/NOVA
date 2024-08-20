@@ -7,8 +7,7 @@ print(f"MOMAPS_HOME: {os.getenv('MOMAPS_HOME')}")
 
 import numpy as np
 import pandas as pd
-import matplotlib.pyplot as plt
-from matplotlib.gridspec import GridSpec
+
 import logging
 import  torch
 import datetime
@@ -16,8 +15,8 @@ import umap
 
 from src.common.lib.utils import get_if_exists, load_config_file, init_logging
 from src.common.lib.vit_embeddings_utils import load_vit_features
-from src.common.lib.metrics import get_metrics_figure
 from src.common.lib.synthetic_multiplexing import __embeddings_to_df, __get_multiplexed_embeddings
+from src.common.lib.plotting import plot_umap_embeddings
 
 def generate_umaps():
     if len(sys.argv) < 4:
@@ -67,8 +66,10 @@ def generate_umaps():
 def __load_vit_features(model_output_folder, config_data):
     logging.info("Clearing cache")
     torch.cuda.empty_cache()
-    logging.info(f'config_data.TRAIN_BATCHES: {config_data.TRAIN_BATCHES}')
-    embeddings, labels = load_vit_features(model_output_folder, config_data, config_data.TRAIN_BATCHES)
+    train_batches = get_if_exists(config_data, 'TRAIN_BATCHES', None)
+    if train_batches:
+        logging.info(f'config_data.TRAIN_BATCHES: {train_batches}')
+    embeddings, labels = load_vit_features(model_output_folder, config_data, train_batches)
     return embeddings, labels
 
 
@@ -92,11 +93,11 @@ def __generate_umap1(config_data, output_folder_path, embeddings, labels):
     if map_labels_function is not None:
         map_labels_function = eval(map_labels_function)(config_data)
 
-    ordered_marker_names = ["DAPI", 'TDP43', 'PEX14', 'NONO', 'ANXA11', 'FUS', 'Phalloidin', 
-                            'PURA', 'mitotracker', 'TOMM20', 'NCL', 'Calreticulin', 'CLTC', 'KIF5A', 'SCNA', 'SQSTM1', 'PML',
-                            'DCP1A', 'PSD95', 'LAMP1', 'GM130', 'NEMO', 'CD41', 'G3BP1']
-    ordered_marker_names = get_if_exists(config_data, 'ORDERED_MARKER_NAMES', ordered_marker_names)
-    ordered_names = [config_data.UMAP_MAPPINGS[marker]['alias'] for marker in ordered_marker_names]
+    ordered_marker_names = get_if_exists(config_data, 'ORDERED_MARKER_NAMES', None)
+    if ordered_marker_names is not None:
+        ordered_names = [config_data.UMAP_MAPPINGS[marker]['alias'] for marker in ordered_marker_names]
+    else:
+        ordered_names = None
     
     umap_embeddings = compute_umap_embeddings(embeddings)
     label_data = map_labels_function(labels) if map_labels_function is not None else labels
@@ -199,103 +200,6 @@ def compute_umap_embeddings(embeddings, n_neighbors=15, min_dist=0.1, n_componen
     umap_embeddings = reducer.fit_transform(embeddings)
     return umap_embeddings
 
-def plot_umap_embeddings(umap_embeddings, label_data, config_data, savepath = None,
-                         title='UMAP projection of Embeddings', outliers_fraction=0.1,
-                        dpi=300, figsize=(6,5), ordered_names=None, show_ari=True,
-                        unique_groups=None, cell_line_cond_high = None):
-    
-    name_color_dict =  config_data.UMAP_MAPPINGS
-    name_key=config_data.UMAP_MAPPINGS_ALIAS_KEY
-    color_key=config_data.UMAP_MAPPINGS_COLOR_KEY
-    s = config_data.SIZE
-    alpha = config_data.ALPHA
-    if unique_groups is None:
-        unique_groups = np.unique(label_data)
-    fig = plt.figure(figsize=figsize)
-    gs = GridSpec(2,1,height_ratios=[20,1])
-
-    ax = fig.add_subplot(gs[0])
-    for i, gp in enumerate(unique_groups):
-        logging.info(f'adding {gp}')
-        ind = label_data == gp
-        ind = ind.reshape(-1,)
-        if name_color_dict is not None:
-            if cell_line_cond_high is not None:
-                color=False
-                for cl in cell_line_cond_high:
-                    if cl in gp:
-                        color=True
-                if not color:
-                    _c = np.array([*['gray'] * sum(ind)])
-                if color:
-                    _c = np.array([*[name_color_dict[gp][color_key]] * sum(ind)])
-            else:
-                _c = np.array([*[name_color_dict[gp][color_key]] * sum(ind)])
-        else:
-            _c = np.array([*[plt.get_cmap('tab20')(i)] * sum(ind)])
-        ax.scatter(
-            umap_embeddings[ind, 0],
-            umap_embeddings[ind, 1],
-            s=s,
-            alpha=alpha,
-            c=_c,
-            marker = 'o',
-            label=gp if name_color_dict is None else name_color_dict[gp][name_key],
-        )
-        logging.info(f'adding label {gp if name_color_dict is None else name_color_dict[gp][name_key]}')
-        
-    ax.spines['top'].set_visible(False)
-    ax.spines['right'].set_visible(False)
-    hndls, names = ax.get_legend_handles_labels()
-    
-    if ordered_names is not None:
-        logging.info('ordering legend labels!')
-        logging.info(f"names before: {names}")
-        logging.info(f"hndls before : {hndls}")
-        hndls = [handle for name, handle in sorted(zip(names, hndls), key=lambda x: ordered_names.index(x[0]))]
-        names = ordered_names #sorted(ordered_names)
-
-        logging.info(f"names after: {names}")
-        logging.info(f"hndls after : {hndls}")
-
-    leg = ax.legend(
-    hndls,
-    names,
-    prop={'size': 6},
-    bbox_to_anchor=(1, 1),
-    loc='upper left',
-    ncol=1 + len(names) // 25,
-    #ncol=1, #NOAM: for umap1
-    frameon=False,
-)
-    for ll in leg.legendHandles:
-        ll.set_alpha(1)
-        ll.set_sizes([max(6, s)]) # SAGY
-    ax.set_xlabel('UMAP1') # Nancy for figure 2A - remove axis label - comment this out
-    ax.set_ylabel('UMAP2') # Nancy for figure 2A - remove axis label - comment this out
-    ax.set_title(title)
-    
-    ax.set_xticklabels([]) 
-    ax.set_yticklabels([]) 
-    ax.set_xticks([]) 
-    ax.set_yticks([]) 
-        
-    if show_ari:
-        gs_bottom = fig.add_subplot(gs[1])
-        ax, scores = get_metrics_figure(umap_embeddings, label_data, ax=gs_bottom, outliers_fraction=outliers_fraction)
-    fig.tight_layout()
-    
-    if savepath:
-        __savepath_parent = os.path.dirname(savepath)
-        if not os.path.exists(__savepath_parent):
-            os.makedirs(__savepath_parent, exist_ok=True)
-
-        logging.info(f"Saving umap to {savepath}")#SAGY
-        # fig.savefig(f"{savepath}.eps", dpi=dpi, format='eps')
-        fig.savefig(f"{savepath}.png", dpi=dpi)
-        return
-    plt.show()
-    return
 
 if __name__ == "__main__":
     print("Starting generating umaps...")

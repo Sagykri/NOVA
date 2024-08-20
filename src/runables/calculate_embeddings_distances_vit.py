@@ -45,7 +45,6 @@ def run_calc_embeddings_distances():
         suff=''
     
     train_batches = get_if_exists(config_data, 'TRAIN_BATCHES', None)
-    assert train_batches is not None, "train_batches can't be None for distances" 
     
     embeddings, labels = __load_vit_features(model_output_folder, config_data, train_batches)
 

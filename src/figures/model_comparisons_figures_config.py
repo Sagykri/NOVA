@@ -12,7 +12,7 @@ class NeuronsUMAP1B78FigureConfig(DatasetConfig):
     def __init__(self):
         super().__init__()
         
-        """UMAP1 of WT untreated - testset of B7-8
+        """UMAP1 of WT untreated
         """
 
         # Batches used for model development
@@ -32,7 +32,9 @@ class NeuronsUMAP1B78FigureConfig(DatasetConfig):
         self.UMAP_MAPPINGS = self.UMAP_MAPPINGS_MARKERS
         
         self.MARKERS_TO_EXCLUDE = ['FMRP', 'TIA1']
-
+        self.ORDERED_MARKER_NAMES = ["DAPI", 'TDP43', 'PEX14', 'NONO', 'ANXA11', 'FUS', 'Phalloidin', 
+                            'PURA', 'mitotracker', 'TOMM20', 'NCL', 'Calreticulin', 'CLTC', 'KIF5A', 'SCNA', 'SQSTM1', 'PML',
+                            'DCP1A', 'PSD95', 'LAMP1', 'GM130', 'NEMO', 'CD41', 'G3BP1']
         # Set the size of the dots
         self.SIZE = 0.3
         # Set the alpha of the dots (0=max opacity, 1=no opacity)
@@ -42,7 +44,7 @@ class NeuronsUMAP1B78OpencellFigureConfig(DatasetConfig):
     def __init__(self):
         super().__init__()
         
-        """UMAP1 of WT untreated - testset of B7-8
+        """UMAP1 of WT untreated
         """
 
         # Batches used for model development
@@ -53,7 +55,7 @@ class NeuronsUMAP1B78OpencellFigureConfig(DatasetConfig):
         self.EXPERIMENT_TYPE = 'neurons'    
         self.REPS = ['rep2','rep1']
         self.CELL_LINES_CONDS = ['WT_Untreated']
-        self.TRAIN_BATCHES = []
+        
         # How labels are shown in legend
         self.MAP_LABELS_FUNCTION = "lambda self: lambda labels: __import__('numpy').asarray([l.split('_')[0] for l in labels])"
         
@@ -61,7 +63,9 @@ class NeuronsUMAP1B78OpencellFigureConfig(DatasetConfig):
         self.UMAP_MAPPINGS = self.UMAP_MAPPINGS_MARKERS
         
         self.MARKERS_TO_EXCLUDE = ['FMRP', 'TIA1']
-
+        self.ORDERED_MARKER_NAMES = ["DAPI", 'TDP43', 'PEX14', 'NONO', 'ANXA11', 'FUS', 'Phalloidin', 
+                            'PURA', 'mitotracker', 'TOMM20', 'NCL', 'Calreticulin', 'CLTC', 'KIF5A', 'SCNA', 'SQSTM1', 'PML',
+                            'DCP1A', 'PSD95', 'LAMP1', 'GM130', 'NEMO', 'CD41', 'G3BP1']
         # Set the size of the dots
         self.SIZE = 0.3
         # Set the alpha of the dots (0=max opacity, 1=no opacity)
@@ -83,7 +87,7 @@ class NeuronsUMAP1B12Opera18daysREIMAGEDFigureConfig(DatasetConfig):
         self.EXPERIMENT_TYPE = 'neurons_d18'    
         self.REPS = ['rep2','rep1']
         self.CELL_LINES_CONDS = ['WT_Untreated']
-        self.TRAIN_BATCHES = []
+        
         # How labels are shown in legend
         self.MAP_LABELS_FUNCTION = "lambda self: lambda labels: __import__('numpy').asarray([l.split('_')[0] for l in labels])"
         
@@ -119,7 +123,7 @@ class NeuronsUMAP0B6Rep1StressFigureConfig(DatasetConfig):
         self.MARKERS_TO_EXCLUDE = ['FMRP','TIA1']
         
         self.EXPERIMENT_TYPE = 'neurons'
-        self.TRAIN_BATCHES = []
+        
         self.SPLIT_DATA = False
         self.ADD_REP_TO_LABEL = False
         self.ADD_BATCH_TO_LABEL = False
@@ -149,7 +153,7 @@ class NeuronsUMAP0B6Rep2StressFigureConfig(DatasetConfig):
         self.REPS = ['rep2'] 
         self.CONDITIONS = ['Untreated', 'stress']
         self.MARKERS_TO_EXCLUDE = ['FMRP','TIA1']
-        self.TRAIN_BATCHES = []
+        
         self.EXPERIMENT_TYPE = 'neurons'
         
         self.SPLIT_DATA = False
@@ -181,7 +185,7 @@ class NeuronsUMAP0B6BothRepsStressFigureConfig(DatasetConfig):
         self.REPS = ['rep1','rep2'] 
         self.CONDITIONS = ['Untreated', 'stress']
         self.MARKERS_TO_EXCLUDE = ['FMRP','TIA1']
-        self.TRAIN_BATCHES = []
+        
         self.EXPERIMENT_TYPE = 'neurons'
         
         self.SPLIT_DATA = False
@@ -213,7 +217,7 @@ class NeuronsUMAP0B9Rep1StressFigureConfig(DatasetConfig):
         self.REPS = ['rep1'] 
         self.CONDITIONS = ['Untreated', 'stress']
         self.MARKERS_TO_EXCLUDE = ['FMRP','TIA1']
-        self.TRAIN_BATCHES = []
+        
         self.EXPERIMENT_TYPE = 'neurons'
         
         self.SPLIT_DATA = False
@@ -248,7 +252,7 @@ class NeuronsUMAP0B9Rep2StressFigureConfig(DatasetConfig):
         self.MARKERS_TO_EXCLUDE = ['FMRP','TIA1']
         
         self.EXPERIMENT_TYPE = 'neurons'
-        self.TRAIN_BATCHES = []
+        
         self.SPLIT_DATA = False
         self.ADD_REP_TO_LABEL = False
         self.ADD_BATCH_TO_LABEL = False
@@ -280,7 +284,7 @@ class NeuronsUMAP0B9BothRepsStressFigureConfig(DatasetConfig):
         self.MARKERS_TO_EXCLUDE = ['FMRP','TIA1']
         
         self.EXPERIMENT_TYPE = 'neurons'
-        self.TRAIN_BATCHES = []
+        
         self.SPLIT_DATA = False
         self.ADD_REP_TO_LABEL = True
         self.ADD_BATCH_TO_LABEL = False
@@ -310,7 +314,7 @@ class NeuronsUMAP0B69BothRepsStressFigureConfig(DatasetConfig):
         self.REPS = ['rep1','rep2'] 
         self.CONDITIONS = ['Untreated', 'stress']
         self.MARKERS_TO_EXCLUDE = ['FMRP','TIA1']
-        self.TRAIN_BATCHES = []
+        
         self.EXPERIMENT_TYPE = 'neurons'
         
         self.SPLIT_DATA = False
@@ -347,7 +351,7 @@ class NeuronsUMAP0B6BothRepsOnlyWTUntreatedFigureConfig(DatasetConfig):
         self.MARKERS_TO_EXCLUDE = ['FMRP','TIA1']
         
         self.EXPERIMENT_TYPE = 'neurons'
-        self.TRAIN_BATCHES = []
+        
         self.SPLIT_DATA = False
         self.ADD_REP_TO_LABEL = True
         self.ADD_BATCH_TO_LABEL = False
@@ -379,7 +383,7 @@ class NeuronsUMAP0B9BothRepsOnlyWTUntreatedFigureConfig(DatasetConfig):
         self.MARKERS_TO_EXCLUDE = ['FMRP','TIA1']
         
         self.EXPERIMENT_TYPE = 'neurons'
-        self.TRAIN_BATCHES = []
+        
         self.SPLIT_DATA = False
         self.ADD_REP_TO_LABEL = True
         self.ADD_BATCH_TO_LABEL = False
@@ -412,7 +416,7 @@ class NeuronsUMAP0Opera18daysREIMAGEDStressFigureConfig(DatasetConfig):
         self.REPS = ['rep1','rep2'] 
         self.CONDITIONS = ['Untreated', 'stress']
         self.MARKERS_TO_EXCLUDE = ['FMRP','TIA1']
-        self.TRAIN_BATCHES = []
+        
         self.EXPERIMENT_TYPE = 'neurons_d18'
         
         self.SPLIT_DATA = False
@@ -513,7 +517,7 @@ class NeuronsUMAP0B6Rep1ALSFigureConfig(DatasetConfig):
         self.REPS = ['rep1'] 
         self.CONDITIONS = ['Untreated']
         self.MARKERS_TO_EXCLUDE = ['FMRP','TIA1']
-        self.TRAIN_BATCHES = []
+        
         self.EXPERIMENT_TYPE = 'neurons'
         
         self.SPLIT_DATA = False
@@ -545,7 +549,7 @@ class NeuronsUMAP0B6Rep2ALSFigureConfig(DatasetConfig):
         self.REPS = ['rep2'] 
         self.CONDITIONS = ['Untreated']
         self.MARKERS_TO_EXCLUDE = ['FMRP','TIA1']
-        self.TRAIN_BATCHES = []
+        
         self.EXPERIMENT_TYPE = 'neurons'
         
         self.SPLIT_DATA = False
@@ -577,7 +581,7 @@ class NeuronsUMAP0B6BothRepsALSFigureConfig(DatasetConfig):
         self.REPS = ['rep1','rep2'] 
         self.CONDITIONS = ['Untreated']
         self.MARKERS_TO_EXCLUDE = ['FMRP','TIA1']
-        self.TRAIN_BATCHES = None
+        
         self.EXPERIMENT_TYPE = 'neurons'
         
         self.SPLIT_DATA = False
@@ -609,7 +613,7 @@ class NeuronsUMAP0B6BothRepsOnlyFUSLinesOnlyFUSMarkerFigureConfig(DatasetConfig)
         self.REPS = ['rep1','rep2'] 
         self.CONDITIONS = ['Untreated']
         self.MARKERS = ['FUS']
-        self.TRAIN_BATCHES = []
+        
         self.EXPERIMENT_TYPE = 'neurons'
         
         self.SPLIT_DATA = False
@@ -643,7 +647,7 @@ class NeuronsUMAP0B9Rep1ALSFigureConfig(DatasetConfig):
         self.MARKERS_TO_EXCLUDE = ['FMRP','TIA1']
         
         self.EXPERIMENT_TYPE = 'neurons'
-        self.TRAIN_BATCHES = []
+        
         self.SPLIT_DATA = False
         self.ADD_REP_TO_LABEL = False
         self.ADD_BATCH_TO_LABEL = False
@@ -675,7 +679,7 @@ class NeuronsUMAP0B9Rep2ALSFigureConfig(DatasetConfig):
         self.MARKERS_TO_EXCLUDE = ['FMRP','TIA1']
         
         self.EXPERIMENT_TYPE = 'neurons'
-        self.TRAIN_BATCHES = []
+        
         self.SPLIT_DATA = False
         self.ADD_REP_TO_LABEL = False
         self.ADD_BATCH_TO_LABEL = False
@@ -707,7 +711,7 @@ class NeuronsUMAP0B9BothRepsALSFigureConfig(DatasetConfig):
         self.MARKERS_TO_EXCLUDE = ['FMRP','TIA1']
         
         self.EXPERIMENT_TYPE = 'neurons'
-        self.TRAIN_BATCHES = None
+        
         self.SPLIT_DATA = False
         self.ADD_REP_TO_LABEL = True
         self.ADD_BATCH_TO_LABEL = False
@@ -739,7 +743,7 @@ class NeuronsUMAP0B69BothRepsALSFigureConfig(DatasetConfig):
         self.MARKERS_TO_EXCLUDE = ['FMRP','TIA1']
         
         self.EXPERIMENT_TYPE = 'neurons'
-        self.TRAIN_BATCHES = None
+        
         self.SPLIT_DATA = False
         self.ADD_REP_TO_LABEL = False
         self.ADD_BATCH_TO_LABEL = True
@@ -922,7 +926,7 @@ class NeuronsUMAP0B7Rep1ALSFigureConfig(DatasetConfig):
         self.REPS = ['rep1'] 
         self.CONDITIONS = ['Untreated']
         self.MARKERS_TO_EXCLUDE = ['FMRP','TIA1']
-        self.TRAIN_BATCHES = []
+        
         self.EXPERIMENT_TYPE = 'neurons'
         
         self.SPLIT_DATA = False
@@ -954,7 +958,7 @@ class NeuronsUMAP0B7Rep2ALSFigureConfig(DatasetConfig):
         self.REPS = ['rep2'] 
         self.CONDITIONS = ['Untreated']
         self.MARKERS_TO_EXCLUDE = ['FMRP','TIA1']
-        self.TRAIN_BATCHES = []
+        
         self.EXPERIMENT_TYPE = 'neurons'
         
         self.SPLIT_DATA = False
@@ -1060,7 +1064,7 @@ class NeuronsUMAP0B8Rep2ALSFigureConfig(DatasetConfig):
         self.REPS = ['rep2'] 
         self.CONDITIONS = ['Untreated']
         self.MARKERS_TO_EXCLUDE = ['FMRP','TIA1']
-        self.TRAIN_BATCHES = []
+        
         self.EXPERIMENT_TYPE = 'neurons'
         
         self.SPLIT_DATA = False
@@ -1092,7 +1096,7 @@ class NeuronsUMAP0B8Rep1ALSFigureConfig(DatasetConfig):
         self.REPS = ['rep1'] 
         self.CONDITIONS = ['Untreated']
         self.MARKERS_TO_EXCLUDE = ['FMRP','TIA1']
-        self.TRAIN_BATCHES = []
+        
         self.EXPERIMENT_TYPE = 'neurons'
         
         self.SPLIT_DATA = False
@@ -1533,7 +1537,7 @@ class NeuronsUMAP0Bpera18daysREIMAGEDALSFigureConfig(DatasetConfig):
         self.MARKERS_TO_EXCLUDE = ['FMRP','TIA1']
         
         self.EXPERIMENT_TYPE = 'neurons_d18'
-        self.TRAIN_BATCHES = []
+        
         self.SPLIT_DATA = False
         self.ADD_REP_TO_LABEL = False
         self.ADD_BATCH_TO_LABEL = True
@@ -1622,7 +1626,7 @@ class NeuronsUMAP0Bpera18daysREIMAGEDALSWithSNCAFigureConfig(DatasetConfig):
         self.MARKERS_TO_EXCLUDE = ['FMRP','TIA1']
         
         self.EXPERIMENT_TYPE = 'neurons_d18'
-        self.TRAIN_BATCHES = []
+        
         self.SPLIT_DATA = False
         self.ADD_REP_TO_LABEL = False
         self.ADD_BATCH_TO_LABEL = True
@@ -1743,7 +1747,7 @@ class EmbeddingsdNLSB2Rep1DatasetConfig(DatasetConfig):
         self.MARKERS_TO_EXCLUDE = ['FMRP','TIA1']
         
         self.EXPERIMENT_TYPE = 'deltaNLS'
-        self.TRAIN_BATCHES = None
+        
         self.SPLIT_DATA = False
         self.ADD_REP_TO_LABEL = False
         self.ADD_BATCH_TO_LABEL = False
@@ -1773,7 +1777,7 @@ class EmbeddingsdNLSB2Rep2DatasetConfig(DatasetConfig):
         self.MARKERS_TO_EXCLUDE = ['FMRP','TIA1']
         
         self.EXPERIMENT_TYPE = 'deltaNLS'
-        self.TRAIN_BATCHES = None
+        
         self.SPLIT_DATA = False
         self.ADD_REP_TO_LABEL = False
         self.ADD_BATCH_TO_LABEL = False
@@ -1803,7 +1807,7 @@ class EmbeddingsdNLSB3Rep1DatasetConfig(DatasetConfig):
         self.MARKERS_TO_EXCLUDE = ['FMRP','TIA1']
         
         self.EXPERIMENT_TYPE = 'deltaNLS'
-        self.TRAIN_BATCHES = None
+        
         self.SPLIT_DATA = False
         self.ADD_REP_TO_LABEL = False
         self.ADD_BATCH_TO_LABEL = False
@@ -1837,7 +1841,7 @@ class EmbeddingsdNLSB3Rep2DatasetConfig(DatasetConfig):
         self.SPLIT_DATA = False
         self.ADD_REP_TO_LABEL = False
         self.ADD_BATCH_TO_LABEL = False
-        self.TRAIN_BATCHES = None
+        
         self.MAP_LABELS_FUNCTION = (
             "lambda self: lambda labels: "
             "__import__('numpy').asarray(['_'.join("
@@ -1864,7 +1868,7 @@ class EmbeddingsdNLSB3Rep1OnlyTDP43LineOnlyDCP1ADatasetConfig(DatasetConfig):
         self.CELL_LINES = ['TDP43']
         
         self.EXPERIMENT_TYPE = 'deltaNLS'
-        self.TRAIN_BATCHES = []
+        
         self.SPLIT_DATA = False
         self.ADD_REP_TO_LABEL = False
         self.ADD_BATCH_TO_LABEL = False
@@ -1899,7 +1903,7 @@ class EmbeddingsdNLSB3Rep2OnlyTDP43LineOnlyDCP1ADatasetConfig(DatasetConfig):
         self.SPLIT_DATA = False
         self.ADD_REP_TO_LABEL = False
         self.ADD_BATCH_TO_LABEL = False
-        self.TRAIN_BATCHES = []
+        
         self.MAP_LABELS_FUNCTION = (
             "lambda self: lambda labels: "
             "__import__('numpy').asarray(['_'.join("
@@ -1931,7 +1935,7 @@ class EmbeddingsdNLSB3BothRepsOnlyWTOnlyDCP1ADatasetConfig(DatasetConfig):
         self.SPLIT_DATA = False
         self.ADD_REP_TO_LABEL = True
         self.ADD_BATCH_TO_LABEL = False
-        self.TRAIN_BATCHES = []
+        
         self.MAP_LABELS_FUNCTION = (
             "lambda self: lambda labels: "
             "__import__('numpy').asarray(['_'.join("
@@ -1962,7 +1966,7 @@ class EmbeddingsdNLSB3BothRepsOnlyTDP43UntreatedDatasetConfig(DatasetConfig):
         self.SPLIT_DATA = False
         self.ADD_REP_TO_LABEL = True
         self.ADD_BATCH_TO_LABEL = False
-        self.TRAIN_BATCHES = []
+        
         self.MAP_LABELS_FUNCTION = (
             "lambda self: lambda labels: "
             "__import__('numpy').asarray(['_'.join("
@@ -1994,7 +1998,7 @@ class EmbeddingsdNLSB3BothRepsOnlyTDP43DoxDatasetConfig(DatasetConfig):
         self.SPLIT_DATA = False
         self.ADD_REP_TO_LABEL = True
         self.ADD_BATCH_TO_LABEL = False
-        self.TRAIN_BATCHES = []
+        
         self.MAP_LABELS_FUNCTION = (
             "lambda self: lambda labels: "
             "__import__('numpy').asarray(['_'.join("
@@ -2024,7 +2028,7 @@ class EmbeddingsdNLSB3BothRepsJoinedDatasetConfig(DatasetConfig):
         self.SPLIT_DATA = False
         self.ADD_REP_TO_LABEL = False
         self.ADD_BATCH_TO_LABEL = False
-        self.TRAIN_BATCHES = []
+        
         self.MAP_LABELS_FUNCTION = (
             "lambda self: lambda labels: "
             "__import__('numpy').asarray(['_'.join("
@@ -2051,7 +2055,7 @@ class EmbeddingsdNLSB4Rep1OnlyTDP43LineOnlyDCP1ADatasetConfig(DatasetConfig):
         self.CELL_LINES = ['TDP43']
         
         self.EXPERIMENT_TYPE = 'deltaNLS'
-        self.TRAIN_BATCHES = []
+        
         self.SPLIT_DATA = False
         self.ADD_REP_TO_LABEL = False
         self.ADD_BATCH_TO_LABEL = False
@@ -2086,7 +2090,7 @@ class EmbeddingsdNLSB4Rep2OnlyTDP43LineOnlyDCP1ADatasetConfig(DatasetConfig):
         self.SPLIT_DATA = False
         self.ADD_REP_TO_LABEL = False
         self.ADD_BATCH_TO_LABEL = False
-        self.TRAIN_BATCHES = []
+        
         self.MAP_LABELS_FUNCTION = (
             "lambda self: lambda labels: "
             "__import__('numpy').asarray(['_'.join("
@@ -2118,7 +2122,7 @@ class EmbeddingsdNLSB4BothRepsOnlyWTOnlyDCP1ADatasetConfig(DatasetConfig):
         self.SPLIT_DATA = False
         self.ADD_REP_TO_LABEL = True
         self.ADD_BATCH_TO_LABEL = False
-        self.TRAIN_BATCHES = []
+        
         self.MAP_LABELS_FUNCTION = (
             "lambda self: lambda labels: "
             "__import__('numpy').asarray(['_'.join("
@@ -2150,7 +2154,7 @@ class EmbeddingsdNLSB4BothRepsOnlyTDP43UntreatedDatasetConfig(DatasetConfig):
         self.SPLIT_DATA = False
         self.ADD_REP_TO_LABEL = True
         self.ADD_BATCH_TO_LABEL = False
-        self.TRAIN_BATCHES = []
+        
         self.MAP_LABELS_FUNCTION = (
             "lambda self: lambda labels: "
             "__import__('numpy').asarray(['_'.join("
@@ -2182,7 +2186,7 @@ class EmbeddingsdNLSB4BothRepsOnlyTDP43DoxDatasetConfig(DatasetConfig):
         self.SPLIT_DATA = False
         self.ADD_REP_TO_LABEL = True
         self.ADD_BATCH_TO_LABEL = False
-        self.TRAIN_BATCHES = []
+        
         self.MAP_LABELS_FUNCTION = (
             "lambda self: lambda labels: "
             "__import__('numpy').asarray(['_'.join("
@@ -2208,7 +2212,7 @@ class EmbeddingsdNLSB4Rep1DatasetConfig(DatasetConfig):
         self.MARKERS_TO_EXCLUDE = ['FMRP','TIA1']
         
         self.EXPERIMENT_TYPE = 'deltaNLS'
-        self.TRAIN_BATCHES = None
+        
         self.SPLIT_DATA = False
         self.ADD_REP_TO_LABEL = False
         self.ADD_BATCH_TO_LABEL = False
@@ -2238,7 +2242,7 @@ class EmbeddingsdNLSB4Rep2DatasetConfig(DatasetConfig):
         self.MARKERS_TO_EXCLUDE = ['FMRP','TIA1']
         
         self.EXPERIMENT_TYPE = 'deltaNLS'
-        self.TRAIN_BATCHES = None
+        
         self.SPLIT_DATA = False
         self.ADD_REP_TO_LABEL = False
         self.ADD_BATCH_TO_LABEL = False
@@ -2268,7 +2272,7 @@ class EmbeddingsdNLSB5Rep1DatasetConfig(DatasetConfig):
         self.MARKERS_TO_EXCLUDE = ['FMRP','TIA1']
         
         self.EXPERIMENT_TYPE = 'deltaNLS'
-        self.TRAIN_BATCHES = None
+        
         self.SPLIT_DATA = False
         self.ADD_REP_TO_LABEL = False
         self.ADD_BATCH_TO_LABEL = False
@@ -2296,7 +2300,7 @@ class EmbeddingsdNLSB5Rep2DatasetConfig(DatasetConfig):
         
         self.REPS = ['rep2'] 
         self.MARKERS_TO_EXCLUDE = ['FMRP','TIA1']
-        self.TRAIN_BATCHES = None
+        
         self.EXPERIMENT_TYPE = 'deltaNLS'
         
         self.SPLIT_DATA = False
@@ -2334,7 +2338,7 @@ class EmbeddingsdNLSB5BothRepsOnlyTDP43UntreatedDatasetConfig(DatasetConfig):
         self.SPLIT_DATA = False
         self.ADD_REP_TO_LABEL = True
         self.ADD_BATCH_TO_LABEL = False
-        self.TRAIN_BATCHES = []
+        
         self.MAP_LABELS_FUNCTION = (
             "lambda self: lambda labels: "
             "__import__('numpy').asarray(['_'.join("
@@ -2366,7 +2370,7 @@ class EmbeddingsdNLSB2BothRepsOnlyTDP43UntreatedDatasetConfig(DatasetConfig):
         self.SPLIT_DATA = False
         self.ADD_REP_TO_LABEL = True
         self.ADD_BATCH_TO_LABEL = False
-        self.TRAIN_BATCHES = []
+        
         self.MAP_LABELS_FUNCTION = (
             "lambda self: lambda labels: "
             "__import__('numpy').asarray(['_'.join("
@@ -2406,7 +2410,7 @@ class EmbeddingsU2OSRep1FigureConfig(DatasetConfig):
             ") for l in labels])"
         )      
         self.UMAP_MAPPINGS = self.UMAP_MAPPINGS_CONDITION
-        self.TRAIN_BATCHES = None
+        
         # Set the size of the dots
         self.SIZE = 30
         # Set the alpha of the dots (0=max opacity, 1=no opacity)
@@ -2427,7 +2431,7 @@ class NeuronsUMAP2B6Rep2FUSFigureConfig(DatasetConfig):
         self.MARKERS_TO_EXCLUDE = ['FMRP','TIA1']
         
         self.EXPERIMENT_TYPE = 'neurons'
-        self.TRAIN_BATCHES = None
+        
         self.SPLIT_DATA = False
         self.ADD_REP_TO_LABEL = False
         self.ADD_BATCH_TO_LABEL = False
@@ -2453,7 +2457,7 @@ class NeuronsUMAP2B6Rep2FigureConfig(DatasetConfig):
         self.MARKERS_TO_EXCLUDE = ['FMRP','TIA1']
         
         self.EXPERIMENT_TYPE = 'neurons'
-        self.TRAIN_BATCHES = None
+        
         self.SPLIT_DATA = False
         self.ADD_REP_TO_LABEL = False
         self.ADD_BATCH_TO_LABEL = False
@@ -2479,7 +2483,7 @@ class NeuronsUMAP2B6Rep2FUSLinesNOFUSFigureConfig(DatasetConfig):
         self.MARKERS_TO_EXCLUDE = ['FMRP','TIA1',"FUS"]
         
         self.EXPERIMENT_TYPE = 'neurons'
-        self.TRAIN_BATCHES = None
+        
         self.SPLIT_DATA = False
         self.ADD_REP_TO_LABEL = False
         self.ADD_BATCH_TO_LABEL = False
@@ -2504,7 +2508,7 @@ class NeuronsUMAP2B6Rep2NOFUSFigureConfig(DatasetConfig):
         self.MARKERS_TO_EXCLUDE = ['FMRP','TIA1',"FUS"]
         
         self.EXPERIMENT_TYPE = 'neurons'
-        self.TRAIN_BATCHES = None
+        
         self.SPLIT_DATA = False
         self.ADD_REP_TO_LABEL = False
         self.ADD_BATCH_TO_LABEL = False
@@ -2530,7 +2534,7 @@ class NeuronsUMAP2B6Rep2NOFUSLinesFigureConfig(DatasetConfig):
         self.MARKERS_TO_EXCLUDE = ['FMRP','TIA1']
         
         self.EXPERIMENT_TYPE = 'neurons'
-        self.TRAIN_BATCHES = None
+        
         self.SPLIT_DATA = False
         self.ADD_REP_TO_LABEL = False
         self.ADD_BATCH_TO_LABEL = False
@@ -2554,7 +2558,7 @@ class dNLSUMAP2B3BothRepsFigureConfig(DatasetConfig):
         self.MARKERS_TO_EXCLUDE = ['FMRP','TIA1']
         
         self.EXPERIMENT_TYPE = 'deltaNLS'
-        self.TRAIN_BATCHES = None
+        
         self.SPLIT_DATA = False
         self.ADD_REP_TO_LABEL = False
         self.ADD_BATCH_TO_LABEL = False
@@ -2579,7 +2583,7 @@ class dNLSUMAP2B3BothRepsWithoutWTFigureConfig(DatasetConfig):
         self.MARKERS_TO_EXCLUDE = ['FMRP','TIA1']
         
         self.EXPERIMENT_TYPE = 'deltaNLS'
-        self.TRAIN_BATCHES = []
+        
         self.SPLIT_DATA = False
         self.ADD_REP_TO_LABEL = False
         self.ADD_BATCH_TO_LABEL = False
@@ -2607,7 +2611,7 @@ class NeuronsUMAP2Bpera18daysREIMAGEDALSFigureConfig(DatasetConfig):
         self.MARKERS_TO_EXCLUDE = ['FMRP','TIA1']
         
         self.EXPERIMENT_TYPE = 'neurons_d18'
-        self.TRAIN_BATCHES = []
+        
         self.SPLIT_DATA = False
         self.ADD_REP_TO_LABEL = False
         self.ADD_BATCH_TO_LABEL = False
@@ -2679,7 +2683,7 @@ class NeuronsUMAP2Bpera18daysREIMAGEDALSWithSNCAFigureConfig(DatasetConfig):
         self.MARKERS_TO_EXCLUDE = ['FMRP','TIA1']
         
         self.EXPERIMENT_TYPE = 'neurons_d18'
-        self.TRAIN_BATCHES = []
+        
         self.SPLIT_DATA = False
         self.ADD_REP_TO_LABEL = False
         self.ADD_BATCH_TO_LABEL = False
@@ -2751,7 +2755,7 @@ class NeuronsUMAP0B1Opera18daysREIMAGEDALSFigureConfig(DatasetConfig):
         self.MARKERS_TO_EXCLUDE = ['FMRP','TIA1']
         
         self.EXPERIMENT_TYPE = 'neurons_d18'
-        self.TRAIN_BATCHES = []
+        
         self.SPLIT_DATA = False
         self.ADD_REP_TO_LABEL = False
         self.ADD_BATCH_TO_LABEL = False
@@ -2783,7 +2787,7 @@ class NeuronsUMAP0B2Opera18daysREIMAGEDALSFigureConfig(DatasetConfig):
         self.MARKERS_TO_EXCLUDE = ['FMRP','TIA1']
         
         self.EXPERIMENT_TYPE = 'neurons_d18'
-        self.TRAIN_BATCHES = []
+        
         self.SPLIT_DATA = False
         self.ADD_REP_TO_LABEL = False
         self.ADD_BATCH_TO_LABEL = False

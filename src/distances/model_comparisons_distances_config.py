@@ -19,7 +19,7 @@ class NeuronsDistanceConfig(DatasetConfig):
         self.SPLIT_DATA = False 
         self.EXPERIMENT_TYPE = 'neurons'    
         self.BASELINE_CELL_LINE_CONDITION = "WT_Untreated"
-        self.TRAIN_BATCHES = []
+        
         self.MARKERS_TO_EXCLUDE = ['FMRP', 'TIA1']
 
 class Neurons69Full78TestDistanceConfig(DatasetConfig):
@@ -94,7 +94,6 @@ class dNLSDistanceConfig(DatasetConfig):
         
         self.ADD_REP_TO_LABEL = False
         self.ADD_BATCH_TO_LABEL = False
-        self.TRAIN_BATCHES = []
 
 class dNLSTest25DistanceConfig(DatasetConfig):
     def __init__(self):
@@ -124,7 +123,7 @@ class dNLS345DistanceConfig(DatasetConfig):
         
         self.ADD_REP_TO_LABEL = False
         self.ADD_BATCH_TO_LABEL = False
-        self.TRAIN_BATCHES = []
+        
 
 class EmbeddingsDay18DistanceConfig(DatasetConfig):
     def __init__(self):
@@ -136,7 +135,7 @@ class EmbeddingsDay18DistanceConfig(DatasetConfig):
         self.SPLIT_DATA = False
         self.EXPERIMENT_TYPE = 'neurons_d18'    
         self.MARKERS_TO_EXCLUDE = None
-        self.TRAIN_BATCHES = []
+        
         
         self.BASELINE_CELL_LINE_CONDITION = "WT_Untreated"
 
@@ -153,7 +152,7 @@ class NeuronsDistanceB78TestConfig(DatasetConfig):
         
         self.SPLIT_DATA = True 
         self.EXPERIMENT_TYPE = 'neurons'    
-        self.TRAIN_BATCHES = []
+        
         self.MARKERS_TO_EXCLUDE = ['FMRP', 'TIA1'] # The embeddings are already calculated so it doesn't need to be the exact same markers as in the trianing_config
         
         self.BASELINE_CELL_LINE_CONDITION = "WT_Untreated"
@@ -169,5 +168,5 @@ class NeuronsDistanceB78FullConfig(DatasetConfig):
         
         self.SPLIT_DATA = False 
         self.EXPERIMENT_TYPE = 'neurons'    
-        self.TRAIN_BATCHES = []
+        
         self.MARKERS_TO_EXCLUDE = ['FMRP', 'TIA1']
