@@ -5,10 +5,9 @@ sys.path.insert(1, os.getenv("MOMAPS_HOME"))
 
 import numpy as np
 import pandas as pd
-import itertools  
 import logging
 
-from src.common.lib.utils import flat_list_of_lists, get_if_exists, load_config_file, init_logging
+from src.common.lib.utils import get_if_exists
 
 def load_vit_features(model_output_folder, config_data, training_batches=['batch7','batch8']):
     """Loads the vit vectors 
@@ -50,7 +49,7 @@ def load_vit_features(model_output_folder, config_data, training_batches=['batch
 
     batches = [folder.split(os.sep)[-1].split('_')[0] for folder in input_folders]
     embeddnigs_folder = os.path.join(model_output_folder,"embeddings", experiment_type)
-    vit_features, labels = load_multiple_vit_feaures(batches = batches,
+    vit_features, labels = load_multiple_vit_features(batches = batches,
                                                     embeddings_folder = embeddnigs_folder,
                                                     config_data=config_data,
                                                     training_batches=training_batches)
@@ -59,12 +58,7 @@ def load_vit_features(model_output_folder, config_data, training_batches=['batch
     labels = np.concatenate(labels)
     vit_df = pd.DataFrame(vit_features)
     vit_df['label'] = labels
-    def rearrange_string(s, config_data):
-            parts = s.split('_')
-            if config_data.EXPERIMENT_TYPE == 'U2OS':
-                return f"{parts[6]}_{parts[3]}_{parts[4]}_{parts[0]}_{parts[5]}"
-            else:
-                return f"{parts[4]}_{parts[1]}_{parts[2]}_{parts[0]}_{parts[3]}"
+    
     
     vit_df['label'] = vit_df['label'].apply(lambda x: rearrange_string(x, config_data))
     
@@ -88,15 +82,17 @@ def load_vit_features(model_output_folder, config_data, training_batches=['batch
     logging.info(f'[load_vit_features] example label: {all_labels[0]}')
     return all_embedings_data, all_labels
 
-def load_multiple_vit_feaures(batches, embeddings_folder, config_data, training_batches=['batch7','batch8']):
+def load_multiple_vit_features(batches, embeddings_folder, config_data, training_batches=['batch7','batch8']):
     
-    """Load vqinhist1, labels and paths of tiles in given batches
+    """Load embeddings and labels in given batches
     Args:        
         batches (list of strings): list of batch folder names (e.g., ['batch6', 'batch7'])
         embeddings_folder (string): full path to stored embeddings
+        config_data: dataset config is used to check if data needs to be split (train/val/test)
+        training_batches (list of string or None): is used for the case where we want to load mulitple batches, while some of them needs to be splitted and some of them not.
     Returns:
-        vit_features: list of np.arrays from shape (# cell lines). each np.array is in shape (# tiles, 2048)
-        labels: list of np.arrays from shape (# cell lines). each np.array is in shape (# tiles) and the stored value is full label
+        vit_features: list of np.arrays from shape (# batches). each np.array is in shape (# tiles, 128)
+        labels: list of np.arrays from shape (# batches). each np.array is in shape (# tiles) and the stored value is full label
     """
     
     vit_features, labels = [] , []
@@ -114,3 +110,9 @@ def load_multiple_vit_feaures(batches, embeddings_folder, config_data, training_
         labels.append(cur_labels)
     return vit_features, labels
 
+def rearrange_string(s, config_data):
+            parts = s.split('_')
+            if config_data.EXPERIMENT_TYPE == 'U2OS':
+                return f"{parts[6]}_{parts[3]}_{parts[4]}_{parts[0]}_{parts[5]}"
+            else:
+                return f"{parts[4]}_{parts[1]}_{parts[2]}_{parts[0]}_{parts[3]}"
