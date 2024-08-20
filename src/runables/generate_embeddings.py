@@ -15,14 +15,12 @@ from src.datasets.dataset_spd import DatasetSPD
 from src.common.lib.dataset import Dataset
 from src.common.lib.utils import load_config_file
 
-# from sandbox.eval_new_arch.dino4cells.main_vit import infer_pass
-from sandbox.eval_new_arch.dino4cells.main_vit_contrastive import infer_pass
+from sandbox.eval_new_arch.dino4cells.main_vit_fine_tuning import infer_pass
 from sandbox.eval_new_arch.dino4cells.utils import utils
 from sandbox.eval_new_arch.dino4cells.archs import vision_transformer as vits
-import re
 import torch.backends.cudnn as cudnn
 
-from src.common.lib.utils import load_config_file, get_if_exists, init_logging
+from src.common.lib.utils import load_config_file, init_logging
 import datetime
 
 class DictToObject:
@@ -37,7 +35,6 @@ class DictToObject:
 def save_embeddings_with_dataloader(dataset, config, data_config, model, output_folder_path, set_type='testset'):
     data_loader = get_dataloader(dataset, config.batch_size_per_gpu, num_workers=config.num_workers, drop_last=False)
     logging.info(f"Data loaded: there are {len(dataset)} images.")
-
 
     embeddings, _, _, labels = infer_pass(model, data_loader)
     logging.info(f'total embeddings: {embeddings.shape}')
@@ -120,7 +117,7 @@ def generate_embeddings():
     ).cuda()
 
     
-    chkp_path = sys.argv[4] #"/home/labs/hornsteinlab/Collaboration/MOmaps_Sagy/MOmaps/sandbox/eval_new_arch/vit_contrastive/checkpoints/checkpoints_240624_232822_472218_with_shuffle/checkpoint_best.pth"
+    chkp_path = sys.argv[4]
     model = utils.load_model_from_checkpoint(chkp_path, model)
     
     if config_data.SPLIT_DATA: # we need to load all the training markers (remove DAPI), then split, then load only DAPI and split, then concat them, This is because DAPI wasn't in the training
@@ -144,7 +141,7 @@ def generate_embeddings():
                 dataset_subset.X_paths = np.concatenate((dataset_subset.X_paths, dataset_DAPI_subset.X_paths), axis=0)
                 dataset_subset.y = np.concatenate((dataset_subset.y, dataset_DAPI_subset.y), axis=0)
             save_embeddings_with_dataloader(dataset_subset, config, config_data, model, output_folder_path, set_type)
-            # rm(dataset_subset)
+            
     else:
         dataset_subset = DatasetSPD(config_data)
         save_embeddings_with_dataloader(dataset_subset, config, config_data, model, output_folder_path, set_type='all')
