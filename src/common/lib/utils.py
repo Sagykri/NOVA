@@ -12,6 +12,7 @@ import string
 import numpy as np
 import pandas as pd
 import datetime
+import subprocess
 
 def get_if_exists(container:object, param_name: string, default_value=None):
     """Get value of param in container if it exists, otherwise return default value
@@ -258,3 +259,21 @@ class LogDF(object):
         self.__df.to_csv(self.__path, index=index, mode=mode, header=mode=='w')
         
         return self.__path
+
+def handle_log(model_output_folder):
+    # logs
+    jobid = os.getenv('LSB_JOBID')
+    jobname = os.getenv('LSB_JOBNAME')
+    username = 'UnknownUser'
+    if jobid:
+        # Run the bjobs command to get job details
+        result = subprocess.run(['bjobs', '-o', 'user', jobid], capture_output=True, text=True, check=True)
+        # Extract the username from the output
+        username = result.stdout.replace('USER', '').strip()
+            
+    __now = datetime.datetime.now()
+    logs_folder = os.path.join(model_output_folder, "logs")
+    if not os.path.exists(logs_folder):
+        os.makedirs(logs_folder, exist_ok=True)
+    log_file_path = os.path.join(logs_folder, __now.strftime("%d%m%y_%H%M%S_%f") + f'_{jobid}_{username}_{jobname}.log')
+    init_logging(log_file_path)

@@ -15,7 +15,7 @@ def generate_embeddings_with_model():
     if len(sys.argv) < 3:
         raise ValueError("Invalid arguments. Must supply trained model path (.pth) and data config.")
     
-    model = Model.load_from_pth(pth=sys.argv[1])
+    model = Model.load_from_checkpoint(pth=sys.argv[1])  ## TODO change this to the true func!!
     config_path_data = sys.argv[2]
     config_data = load_config_file(config_path_data) 
     embeddings, labels = generate_embeddings(model, config_path_data)
