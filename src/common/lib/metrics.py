@@ -7,27 +7,6 @@ import sklearn.cluster as cluster
 import pandas as pd
 import logging
 
-def calculate_mse(inpt, reconstructed):
-  """Calculate MSE
-
-  Args:
-      inpt (torch.tensor|nparray): Input images
-      reconstructed (torch.tensor|nparray): Reconstructed images
-
-  Returns:
-      dict: {'target': MSE score, 'nuclues': MSE score} 
-  """
-  if not torch.is_tensor(inpt):
-    inpt = torch.from_numpy(inpt)
-  if not torch.is_tensor(reconstructed):
-    reconstructed = torch.from_numpy(reconstructed)
-    
-  data_ch = ['target', 'nucleus']
-  mses = {}
-  for ii, ch in enumerate(data_ch):
-      mses[ch] = torch.nn.functional.mse_loss(inpt[:, ii, ...], reconstructed[:, ii, ...])
-  return mses
-
 def cluster_without_outliers(X, n_clusters, outliers_fraction=0.1, n_init=10, random_state=42):
   from k_means_constrained import KMeansConstrained
   

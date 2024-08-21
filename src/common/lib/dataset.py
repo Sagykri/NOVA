@@ -70,18 +70,6 @@ class Dataset(torch.utils.data.Dataset ,metaclass=ABCMeta):
     def _load_data_paths(self):
         pass
     
-    """
-    # TODO: (take from improvement/preprocessing)
-    def get_variance():
-        from src.common.lib.image_sampling_utils import sample_images_all_markers_all_lines
-    
-        paths = sample_images_all_markers_all_lines(50)
-        
-        images = np.concatenate([np.load(path) for path in paths])
-        
-        return np.var(images)
-    """
-    
     def __len__(self):
         return len(self.y)
     
