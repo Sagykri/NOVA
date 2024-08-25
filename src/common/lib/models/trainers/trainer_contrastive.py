@@ -63,8 +63,15 @@ class TrainerContrastive(TrainerBase):
         
         return self.loss_infoNCE(query, positive, negative)
     
-    def forward(self, X:torch.Tensor) -> Dict:
-        """Applying the forward pass
+    def forward(self, model: torch.nn.Module, X:torch.Tensor) -> Dict:
+        """Applying the forward pass (running the model on the given data)
+
+        Args:
+            model (torch.nn.Module): The model
+            X (torch.Tensor): The data to feed into the model
+
+        Returns:
+            Dict: {outputs: The model outputs, targets: The true labels}
         """
         with torch.cuda.amp.autocast():
             images = X['image'].to(torch.float).cuda()
@@ -78,7 +85,7 @@ class TrainerContrastive(TrainerBase):
             all_idx = np.unique(anchor_idx + list(np.unique(flat_list_of_lists(negative_idx))) + positive_idx)
             
             # now we want to create embeddings only for the images that can be used as anchor/positive/negative
-            embeddings = self.nova_model(images[all_idx])
+            embeddings = model(images[all_idx])
 
             # because we took only the images that can be used as anchor/positive/negative, now the original indices are not true anymore and we need to convert them
             sorter = np.argsort(all_idx)

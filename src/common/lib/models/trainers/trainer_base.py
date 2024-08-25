@@ -35,10 +35,11 @@ class TrainerBase():
         pass
     
     @abstractmethod
-    def forward(self, X: torch.Tensor) -> Dict:
+    def forward(self, model: torch.nn.Module, X: torch.Tensor) -> Dict:
         """Applying the forward pass (running the model on the given data)
 
         Args:
+            model (torch.nn.Module): The model
             X (torch.Tensor): The data to feed into the model
 
         Returns:
@@ -53,10 +54,6 @@ class TrainerBase():
         
         # Save training config into the model
         nova_model.training_config = self.training_config
-        
-        self.nova_model = nova_model
-        self.data_loader_train = data_loader_train
-        self.data_loader_val = data_loader_val
                 
         self.__training_loop(nova_model, data_loader_train, data_loader_val)
         
@@ -272,11 +269,22 @@ class TrainerBase():
         
         return False
         
-    def __run_one_epoch(self, data_loader_train: DataLoader, data_loader_val: DataLoader, current_epoch: int)->float:
+    def __run_one_epoch(self, model: torch.nn.Module, data_loader_train: DataLoader, data_loader_val: DataLoader, current_epoch: int)->float:
+        """Run one epoch on the training set and then one on the validation set
+
+        Args:
+            model (torch.nn.Module): The model
+            data_loader_train (DataLoader): The dataloader to get the training dataset from
+            data_loader_val (DataLoader): The dataloader to get the validation dataset from
+            current_epoch (int): The number of the current epoch
+
+        Returns:
+            float: The average loss on the validation set
+        """
         logging.info(f"Epoch: [{current_epoch}/{self.max_epochs}]")
         
-        loss_train_avg = self.__run_one_epoch_train(current_epoch, data_loader_train)
-        loss_val_avg = self.__run_one_epoch_eval(current_epoch, data_loader_val)
+        loss_train_avg = self.__run_one_epoch_train(model, current_epoch, data_loader_train)
+        loss_val_avg = self.__run_one_epoch_eval(model, current_epoch, data_loader_val)
         
         self.tensorboard_writer.add_scalars('Loss', {'Training': loss_train_avg, 'Validation': loss_val_avg}, current_epoch)
         
@@ -304,7 +312,7 @@ class TrainerBase():
             self.__handle_scehdulers(current_epoch, data_loader)
 
             # calc loss value
-            model_output = self.forward(res)
+            model_output = self.forward(model, res)
             with torch.cuda.amp.autocast():
                 loss = self.loss(**model_output)
             current_loss_value = loss.item()
@@ -386,7 +394,7 @@ class TrainerBase():
             loss_val_avg = 0
             for it, res in enumerate(data_loader):
                 logging.info(f"[Validation epoch={current_epoch}] batch number: {it}/{len(data_loader)}")
-                model_output = self.forward(res)
+                model_output = self.forward(model, res)
                 with torch.cuda.amp.autocast():
                     loss = self.loss(**model_output)
                     

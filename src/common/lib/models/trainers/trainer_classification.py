@@ -23,10 +23,11 @@ class TrainerClassification(TrainerBase):
         """
         return self.loss_CE(outputs, targets)
     
-    def forward(self, X:torch.Tensor) -> Dict:
+    def forward(self, model: torch.nn.Module, X:torch.Tensor) -> Dict:
         """Applying the forward pass (running the model on the given data)
 
         Args:
+            model (torch.nn.Module): The model
             X (torch.Tensor): The data to feed into the model
 
         Returns:
@@ -36,7 +37,7 @@ class TrainerClassification(TrainerBase):
             images, targets = X['image'].to(torch.float).cuda(), X['label'].cuda()
             
             logging.info(f"images shape: {images.shape}, targets shape: {targets.shape}")
-            outputs = self.nova_model(images)          
+            outputs = model(images)          
             
         return {'outputs': outputs, 'targets': targets}
     
