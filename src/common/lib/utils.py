@@ -126,6 +126,16 @@ def get_class(path:string):
     module_class = module.__dict__[class_in_module]
     
     return module_class
+
+def fix_random_seeds(seed=1):
+    import torch
+    
+    """
+    Fix random seeds.
+    """
+    torch.manual_seed(seed)
+    torch.cuda.manual_seed_all(seed)
+    np.random.seed(seed)
         
 def init_logging(path:string):
     """Init logging.

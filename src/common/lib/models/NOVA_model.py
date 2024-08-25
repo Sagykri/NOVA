@@ -1,13 +1,12 @@
 import os
 import sys
-import torch
 import numpy as np
 from typing import Self
 
 sys.path.insert(1, os.getenv("MOMAPS_HOME"))
 
 from src.common.lib.utils import get_if_exists
-from src.common.lib.models.model_utils import load_checkpoint_from_file
+from src.common.lib.models.checkpoint_utils import CheckpointInfo
 from src.common.lib import embeddings_utils
 from src.common.configs.dataset_config import DatasetConfig
 from src.common.configs.model_config import ModelConfig
@@ -74,11 +73,11 @@ class NOVAModel():
         Returns:
             model (NOVAModel): The NOVA model
         """
-        checkpoint = load_checkpoint_from_file(ckp_path)
-        state_dict = checkpoint['model']
-        model_config = checkpoint['model_config']
-        training_config = checkpoint['training_config'] 
-        dataset_config = checkpoint['dataset_config'] 
+        checkpoint:CheckpointInfo = CheckpointInfo.load_from_checkpoint_filepath(ckp_path)
+        state_dict = checkpoint.model_dict
+        model_config = checkpoint.model_config
+        training_config = checkpoint.training_config 
+        dataset_config = checkpoint.dataset_config 
         
         nova_model = NOVAModel(model_config)
         nova_model.model.load_state_dict(state_dict)
