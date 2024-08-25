@@ -264,6 +264,7 @@ def handle_log(model_output_folder):
     # logs
     jobid = os.getenv('LSB_JOBID')
     jobname = os.getenv('LSB_JOBNAME')
+    jobname = jobname.replace('/','').replace('.','')
     username = 'UnknownUser'
     if jobid:
         # Run the bjobs command to get job details
