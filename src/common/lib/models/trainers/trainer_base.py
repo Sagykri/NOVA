@@ -18,7 +18,7 @@ from src.common.lib.models.NOVA_model import NOVAModel
 from common.lib.models.checkpoint_info import CheckpointInfo
 from src.common.configs.trainer_config import TrainerConfig
 
-class __EarlyStoppingInfo():
+class _EarlyStoppingInfo():
     """Holds information for handeling the early stopping
     """
     def __init__(self, counter:int):
@@ -117,7 +117,7 @@ class TrainerBase():
         self.checkpoint_last_filename:str = 'checkpoint_last'
         self.checkpoint_best_filename:str = 'checkpoint_best'
         
-        self.early_stopping_info:__EarlyStoppingInfo = __EarlyStoppingInfo(self.early_stopping_patience)
+        self.early_stopping_info:_EarlyStoppingInfo = _EarlyStoppingInfo(self.early_stopping_patience)
         self.starting_epoch:int = 0
         self.optimizer:torch.optim.Optimizer = None
         self.scaler:torch.cuda.amp.GradScaler = torch.cuda.amp.GradScaler()
@@ -162,7 +162,7 @@ class TrainerBase():
         self.starting_epoch = checkpoint.epoch + 1
         self.optimizer.load_state_dict(checkpoint.optimizier_dict)
         self.description = checkpoint.description
-        self.early_stopping_info = __EarlyStoppingInfo(checkpoint.early_stopping_counter)
+        self.early_stopping_info = _EarlyStoppingInfo(checkpoint.early_stopping_counter)
         
         logging.info(f"Checkpoint has been loaded successfully. Starting epoch was set to {self.starting_epoch}")
         

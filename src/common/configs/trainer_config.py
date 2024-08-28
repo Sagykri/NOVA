@@ -63,7 +63,7 @@ class ContrastiveTrainerConfig(BaseConfig):
         self.WEIGHT_DECAY_END:float = 0.4
         self.BATCH_SIZE:int = 300
         self.DESCRIPTION:str = "Pretrained model trained with CE loss on the Opencell dataset"
-        self.TRAINER_CLASS_PATH:str = os.path.join("src", "common", "lib", "models", "trainers", "trainer_classification", "TrainerClassification")
+        self.TRAINER_CLASS_PATH:str = os.path.join("src", "common", "lib", "models", "trainers", "trainer_contrastive", "TrainerContrastive")
 
         self.PRETRAINED_MODEL_NUM_CLASSES = 1311
         self.PRETRAINED_MODEL_PATH = os.path.join(os.getenv("MOMAPS_HOME"), "outputs", "vit_models", "opencell_new", "checkpoints_010824_171221_851216_26417_training_pretrained_model", "checkpoint_best.pth")

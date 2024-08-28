@@ -12,7 +12,7 @@ from src.common.lib.models.trainers.trainer_base import TrainerBase
 from src.common.configs.trainer_config import TrainerConfig
 from src.common.lib.utils import flat_list_of_lists, get_if_exists
 
-class _LabelInfo:
+class __LabelInfo:
         def __init__(self,
                      batch:str,
                      cell_line_cond:str,
@@ -99,7 +99,7 @@ class TrainerContrastive(TrainerBase):
             'negative_idx': negative_idx
         }
     
-    def __get_positives(self, anchor:_LabelInfo, labels_dicts: List[_LabelInfo])->List[int]:
+    def __get_positives(self, anchor:__LabelInfo, labels_dicts: List[__LabelInfo])->List[int]:
         """given an anchor, we define positive as:
         # the same marker, batch, cell line, cond
         # different rep
@@ -122,7 +122,7 @@ class TrainerContrastive(TrainerBase):
                 and lbl.index != anchor.index]
         return positives
         
-    def __get_negatives(self, anchor:_LabelInfo, labels_dicts: List[_LabelInfo])->List[int]:
+    def __get_negatives(self, anchor:__LabelInfo, labels_dicts: List[__LabelInfo])->List[int]:
         """given an anchor, we define negative as:
         the same marker, batch
         different cell line, cond
@@ -163,7 +163,7 @@ class TrainerContrastive(TrainerBase):
             And, the embeddings in indices [3,6,8,12,20] can be used as negatives.
         """
         labels_list = [p.split(os.sep)[-5:] for p in paths]
-        labels_dicts = [_LabelInfo(
+        labels_dicts = [__LabelInfo(
                             batch=l[0],
                             cell_line_cond='_'.join(l[1:3]),
                             marker=l[3],
