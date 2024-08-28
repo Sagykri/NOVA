@@ -2,7 +2,6 @@ from src.common.configs.dataset_config import DatasetConfig
 from src.common.configs.trainer_config import TrainerConfig ## TODO SAGY CHANGE
 
 from src.Analysis.analyzer_umap import AnalyzerUMAP
-from src.common.lib.utils import handle_log, get_if_exists
 
 import logging
 import numpy as np
@@ -12,33 +11,35 @@ class AnalyzerUMAP0(AnalyzerUMAP):
         super().__init__(trainer_conf, data_conf)
 
 
-    def calculate(self, embeddings, labels):
-        model_output_folder = self.output_folder_path
-        handle_log(model_output_folder)
+    def calculate(self, embeddings:np.ndarray, labels:np.ndarray)->None:
+        """Calculate UMAP embeddings from given embeddings, separatly for each marker in the given embeddings.
+        Then save all together in the self.features attribute
+
+        Args:
+            embeddings (np.ndarray): The embeddings
+            labels (np.ndarray): The corresponding labels of the embeddings
+        """
 
         markers = np.unique([m.split('_')[0] if '_' in m else m for m in np.unique(labels.reshape(-1,))]) 
-        logging.info(f"Detected markers: {markers}")
+        logging.info(f"[AnalyzerUMAP0.calculate] Detected markers: {markers}")
         
         umap_embeddings = None
-        for c in markers:
-            logging.info(f"Marker: {c}")
-            logging.info(f"[{c}] Selecting indexes of marker")
-            c_indexes = np.where(np.char.startswith(labels.astype(str), f"{c}_"))[0]
-            logging.info(f"[{c}] {len(c_indexes)} indexes have been selected")
+        for marker in markers:
+            logging.info(f"Marker: {marker}")
+            indices = np.where(np.char.startswith(labels.astype(str), f"{marker}_"))[0]
+            logging.info(f"{len(indices)} indexes have been selected")
 
-            if len(c_indexes) == 0:
-                logging.info(f"[{c}] Not exists in embedding. Skipping to the next one")
+            if len(indices) == 0:
+                logging.info(f"No data for marker {marker}, skipping.")
                 continue
 
-            embeddings_c, labels_c = np.copy(embeddings[c_indexes]), np.copy(labels[c_indexes].reshape(-1,))
-            
-            logging.info(f"[{c}] calc umap...")
-            
-            c_umap_embeddings = self.__compute_umap_embeddings(embeddings_c)
-            c_features = np.hstack([c_umap_embeddings, labels_c.reshape(-1,1)])
+            marker_embeddings, marker_labels = np.copy(embeddings[indices]), np.copy(labels[indices].reshape(-1,))
+                        
+            marker_umap_embeddings = self._compute_umap_embeddings(marker_embeddings)
+            marker_umap_embeddings = np.hstack([marker_umap_embeddings, marker_labels.reshape(-1,1)])
             if umap_embeddings is None:
-                umap_embeddings = c_features
+                umap_embeddings = marker_umap_embeddings
             else:
-                umap_embeddings = np.concatenate([umap_embeddings, c_features])
+                umap_embeddings = np.concatenate([umap_embeddings, marker_umap_embeddings])
             
         self.features = umap_embeddings

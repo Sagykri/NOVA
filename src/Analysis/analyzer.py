@@ -1,17 +1,22 @@
 
-from abc import ABC, abstractmethod
+from abc import abstractmethod
 
 from src.common.configs.dataset_config import DatasetConfig
-from src.common.configs.trainer_config import TrainerConfig ## TODO SAGY CHANGE
+from src.common.configs.trainer_config import TrainerConfig
+import numpy as np
 
-
-class Analyzer(ABC):
+class Analyzer():
     def __init__(self, trainer_conf: TrainerConfig, data_conf: DatasetConfig):
         self.__set_params(trainer_conf, data_conf)
-        self.features = None
+        self.features:np.ndarray = None
 
-    def __set_params(self, trainer_conf: TrainerConfig, data_conf: DatasetConfig):
-        
+    def __set_params(self, trainer_conf: TrainerConfig, data_conf: DatasetConfig)->None:
+        """Extracting params from the configuration
+
+        Args:
+            trainer_conf (TrainerConfig): trainer configuration
+            data_conf (DatasetConfig): data configuration
+        """
         self.input_folders = data_conf.INPUT_FOLDERS
         self.experiment_type = data_conf.EXPERIMENT_TYPE
         self.reps = data_conf.REPS
@@ -27,17 +32,27 @@ class Analyzer(ABC):
         
         self.data_conf = data_conf
 
-        self.output_folder_path = trainer_conf.OUTPUT_FOLDER_PATH
+        self.output_folder_path = trainer_conf.OUTPUTS_FOLDER
 
     @abstractmethod
-    def calculate(self, embeddings):
+    def calculate(self, embeddings:np.ndarray, labels:np.ndarray)->None:
+        """Calculate features from given embeddings, save in the self.features attribute
+
+        Args:
+            embeddings (np.ndarray): The embeddings
+            labels (np.ndarray): The corresponding labels of the embeddings
+        """
         pass
 
     @abstractmethod
-    def load(self):
+    def load(self)->None:
+        """load the saved features into the self.features attribute
+        """
         pass
 
     @abstractmethod
-    def save(self):
+    def save(self)->None:
+        """save the calculated features in path derived from self.output_folder_path
+        """
         pass
 
