@@ -43,7 +43,10 @@ class CheckpointInfo():
         Returns:
             CheckpointInfo: An instance of CheckpointInfo
         """
-        checkpoint = load_checkpoint_from_file(checkpoint_path)
+        assert os.path.exists(checkpoint_path), f"{checkpoint_path} doesn't exist"
+        assert os.path.isfile(checkpoint_path), f"{checkpoint_path} isn't a file"
+        
+        checkpoint = torch.load(checkpoint_path, map_location='cuda' if torch.cuda.is_available() else "cpu")
         return CheckpointInfo.load_from_checkpoint_object(checkpoint)
         
     @staticmethod
@@ -67,38 +70,12 @@ class CheckpointInfo():
         Args:
             output_filepath (str): The path to save the file to
         """
-        save_checkpoint(self, output_filepath)
-        
-
-def load_checkpoint_from_file(ckp_path:str):
-    """Load checkpoint from file
-
-    Args:
-        ckp_path (str): The path to the checkpoint
-
-    Returns:
-        Any: The checkpoint
-    """
-    assert os.path.exists(ckp_path), f"{ckp_path} doesn't exist"
-    assert os.path.isfile(ckp_path), f"{ckp_path} isn't a file"
-    
-    checkpoint = torch.load(ckp_path, map_location='cuda' if torch.cuda.is_available() else "cpu")
-    return checkpoint
-
-def save_checkpoint(checkpoint_info: CheckpointInfo, output_filepath:str)->None:
-    """Save checkpoints info to file
-
-    Args:
-        checkpoint_info (CheckpointInfo): The info to be saved
-        output_filepath (str): The path to save the info into
-
-    """
-    outputdir = os.path.dirname(output_filepath)
-    if not os.path.exists(outputdir):
-        logging.info(f"{outputdir} doesn't exist. Creating dir")
-        os.makedirs(outputdir)
-        
-    logging.info(f"Saving checkpoint to file {output_filepath}")
-    torch.save(
-        checkpoint_info.__dict__, output_filepath
-    )
+        outputdir = os.path.dirname(output_filepath)
+        if not os.path.exists(outputdir):
+            logging.info(f"{outputdir} doesn't exist. Creating dir")
+            os.makedirs(outputdir)
+            
+        logging.info(f"Saving checkpoint to file {output_filepath}")
+        torch.save(
+            self.__dict__, output_filepath
+        )

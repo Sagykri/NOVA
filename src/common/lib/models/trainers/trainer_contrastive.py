@@ -2,7 +2,6 @@ import logging
 import os
 import random
 import sys
-from common.lib.models.trainers import fine_tuning_utils
 import torch
 from typing import Dict, List, Self
 import numpy as np
@@ -32,8 +31,8 @@ class TrainerContrastive(TrainerBase):
     def __init__(self, conf:TrainerConfig)->Self:
         super().__init__(conf)
         
-        self.negative_count = get_if_exists(self.training_config, 'NEGATIVE_COUNT', 5)
-        self.loss_infoNCE = InfoNCE(negative_mode = 'paired')
+        self.negative_count:int = get_if_exists(self.training_config, 'NEGATIVE_COUNT', 5)
+        self.loss_infoNCE:InfoNCE = InfoNCE(negative_mode = 'paired')
         
         self.__try_freezing_layers()
         
@@ -63,7 +62,7 @@ class TrainerContrastive(TrainerBase):
         
         return self.loss_infoNCE(query, positive, negative)
     
-    def forward(self, model: torch.nn.Module, X:torch.Tensor) -> Dict:
+    def forward(self, X:torch.Tensor) -> Dict:
         """Applying the forward pass (running the model on the given data)
 
         Args:
@@ -85,7 +84,7 @@ class TrainerContrastive(TrainerBase):
             all_idx = np.unique(anchor_idx + list(np.unique(flat_list_of_lists(negative_idx))) + positive_idx)
             
             # now we want to create embeddings only for the images that can be used as anchor/positive/negative
-            embeddings = model(images[all_idx])
+            embeddings = self.nova_model.model(images[all_idx])
 
             # because we took only the images that can be used as anchor/positive/negative, now the original indices are not true anymore and we need to convert them
             sorter = np.argsort(all_idx)
@@ -205,6 +204,6 @@ class TrainerContrastive(TrainerBase):
         
         # Freezing the layers
         logging.info(f"Freezing layers: {layers_to_freeze}")
-        _freezed_layers = fine_tuning_utils.freeze_layers(self.nova_model, layers_to_freeze)
+        _freezed_layers = self._freeze_layers(layers_to_freeze)
         logging.info(f"Layers freezed successfully : {_freezed_layers}")
             

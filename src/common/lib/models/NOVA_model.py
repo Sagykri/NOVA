@@ -6,7 +6,7 @@ from typing import Self
 sys.path.insert(1, os.getenv("MOMAPS_HOME"))
 
 from src.common.lib.utils import get_if_exists
-from src.common.lib.models.checkpoint_utils import CheckpointInfo
+from common.lib.models.checkpoint_info import CheckpointInfo
 from src.common.lib import embeddings_utils
 from src.common.configs.dataset_config import DatasetConfig
 from src.common.configs.model_config import ModelConfig

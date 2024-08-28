@@ -19,7 +19,8 @@ from cellpose import models
 
 from src.common.lib.preprocessor import Preprocessor
 from src.common.lib import preprocessing_utils
-from src.common.lib.utils import LogDF, get_if_exists
+from src.common.lib.utils import get_if_exists
+from src.common.lib.log_df import LogDF
 from src.preprocessing.configs.preprocessor_spd_config import SPDPreprocessingConfig
 
 class SPDPreprocessor(Preprocessor):

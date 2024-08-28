@@ -1,21 +1,21 @@
+from typing import Callable, Dict, List
 import torch
 import torch.nn.functional as F
-import logging
 import numpy as np
-import matplotlib.pyplot as plt
+from torch.nn import Module
 
 
-def compare_models(pretrained, finetuned, func, skip_head=True):
+def compare_models(pretrained:Module, finetuned:Module, comparison_func: Callable[[torch.Tensor,torch.Tensor], float], skip_head:bool=True)->Dict[str, float]:
     """Comparing two models weights using the given func function
 
     Args:
         pretrained (Module): The pretrained model
         finetuned (Module): The finetuned model
-        func (function(pre_layer_weights, fine_layer_weights)): The comparison function to apply on the weights. Should be func(pretrained_layer_weights, finetuned_layer_weights)
+        comparison_func (Callable[[torch.Tensor,torch.Tensor], float]): The comparison function to apply on the weights. Should be func(pretrained_layer_weights, finetuned_layer_weights)
         skip_head (bool, optional): Should skip the head. Defaults to True.
 
     Returns:
-        dict: Keys are layers, values are the result of func on the weights of this layer
+        Dict[str, float]: Keys are layers, values are the result of comparison_func on the weights of this layer
     """
     results = {}
     
@@ -35,7 +35,7 @@ def compare_models(pretrained, finetuned, func, skip_head=True):
                 w_p = param_p.data
                 w_f = param_f.data
                 
-                res = func(w_p, w_f)
+                res = comparison_func(w_p, w_f)
                 
                 # Saving the result per layer
                 results[name_p] = res
@@ -46,14 +46,18 @@ def compare_models(pretrained, finetuned, func, skip_head=True):
     return results
     
     
-def angle_metrics(wp, wf):
+def angle_metrics(wp:torch.Tensor, wf:torch.Tensor)->float:
     """Angle metrics for comparing two weights
+    (as proposed here: https://arxiv.org/pdf/2312.15681)
     
     theta(L) = arccos( ( wp * wf ) / ( L2(wp) * L2(wf) ) )
 
     Args:
-        wp (_type_): The weights for a single layer in the pretrained model
-        wf (_type_): The weights for a single layer in the finetuned model
+        wp (torch.Tensor): The weights for a single layer in the pretrained model
+        wf (torch.Tensor): The weights for a single layer in the finetuned model
+        
+    Returns:
+        float: The angle between the two weights
     """
     
     # Flat the weights
@@ -71,23 +75,35 @@ def angle_metrics(wp, wf):
     
     return angle.item()
     
-def __get_sorted_dict(metric_dict):
-    # Sort the dictionary by values
-    sorted_metric_values = dict(sorted(metric_dict.items(), key=lambda item: item[1]))
 
-    layers_names = list(sorted_metric_values.keys())
-    metric_values = list(sorted_metric_values.values())
+def get_changed_layers_based_on_cutoff(metric_dict:Dict[str, float], percentile_cutoff:int=50, is_below:bool=True)->List[str]:
+    """Get the names of the layers that have been changed above/below the given percentile cutoff
+
+    Args:
+        metric_dict (Dict[str, float]): Keys are the layers' names, values are the changes
+        percentile_cutoff (int, optional): The cutoff, in percentiles, between 0 to 100. Defaults to 50.
+        is_below (bool, optional): Should we get the layers below the cutoff (above if set to False). Defaults to True.
+        
+    Returns:
+        List[str]: The list of layers that have been changed above/below the given percentile cutoff
+    """
     
-    return layers_names, metric_values
+    def __get_sorted_dict(metric_dict):
+        # Sort the dictionary by values
+        sorted_metric_values = dict(sorted(metric_dict.items(), key=lambda item: item[1]))
+
+        layers_names = list(sorted_metric_values.keys())
+        metric_values = list(sorted_metric_values.values())
+        
+        return layers_names, metric_values
     
-def get_changed_layers(metric_dict, percentile_cutoff=50, is_above=True):
     layers_names, metric_values = __get_sorted_dict(metric_dict)
 
     metric_values_cutoff = np.percentile(metric_values, percentile_cutoff)
     
     # Find the valid indexes and sort them based on the metric_value in descending order
     layers_names = np.asarray(layers_names)
-    if is_above:
+    if is_below:
         valid_layers_indexes = np.where(metric_values >= metric_values_cutoff)[0]
     else:
         valid_layers_indexes = np.where(metric_values <= metric_values_cutoff)[0]
@@ -101,33 +117,4 @@ def get_changed_layers(metric_dict, percentile_cutoff=50, is_above=True):
     
     return changed_layers
     
-def plot_comparison(metric_dict, percentile_cutoff=50):
-    layers_names, metric_values = __get_sorted_dict(metric_dict)
-    
-    metric_values_cutoff = np.percentile(metric_values, percentile_cutoff)
-    
-    # Create the histogram
-    plt.figure(figsize=(10, 40))
-    plt.barh(layers_names, metric_values)
-    plt.axvline(metric_values_cutoff, color='red')
 
-    # Add titles and labels
-    plt.title('Metric per layer')
-    plt.xlabel('Metric')
-    plt.ylabel('Layers')
-    plt.show()
-    
-def freeze_layers(model, layers_names):
-    freezed_layers = []
-    
-    if len(layers_names) == 0:
-        logging.warn("len(layers_names) == 0 -> No layer got frozen")
-        return
-    
-    # Freeze the specified layers
-    for name, param in model.named_parameters():
-        if any(layer_name in name for layer_name in layers_names):
-            param.requires_grad = False
-            freezed_layers.append(name)
-    
-    return freezed_layers

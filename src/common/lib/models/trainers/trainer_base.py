@@ -8,22 +8,32 @@ import numpy as np
 import torch
 from torch.utils.data import DataLoader
 
-from typing import Dict, Self
+from typing import Dict, List, Self
 
 from torch.utils.tensorboard import SummaryWriter
-import torch.backends.cudnn as cudnn
 
 sys.path.insert(1, os.getenv("MOMAPS_HOME"))
-from src.common.lib.utils import fix_random_seeds, get_if_exists
+from src.common.lib.utils import get_if_exists
 from src.common.lib.models.NOVA_model import NOVAModel
-from src.common.lib.models.checkpoint_utils import CheckpointInfo
-from src.common.lib.models.trainers.utils import trainer_utils 
-from src.common.lib.models.trainers.utils.trainer_utils import EarlyStoppingInfo
+from common.lib.models.checkpoint_info import CheckpointInfo
 from src.common.configs.trainer_config import TrainerConfig
 
+class __EarlyStoppingInfo():
+    """Holds information for handeling the early stopping
+    """
+    def __init__(self, counter:int):
+        self.__init_value:int = counter
+        self.reset()
+        
+    def reset(self):
+        """Reset the counter to its initial value
+        """
+        self.counter: int = self.__init_value
+
 class TrainerBase():
-    def __init__(self, conf:TrainerConfig)->Self:
+    def __init__(self, conf:TrainerConfig, nova_model:NOVAModel)->Self:
         self.__set_params(conf)     
+        self.nova_model:NOVAModel = nova_model
         
     @abstractmethod
     def loss(self, **kwargs)->float:
@@ -35,11 +45,10 @@ class TrainerBase():
         pass
     
     @abstractmethod
-    def forward(self, model: torch.nn.Module, X: torch.Tensor) -> Dict:
+    def forward(self, X: torch.Tensor) -> Dict:
         """Applying the forward pass (running the model on the given data)
 
         Args:
-            model (torch.nn.Module): The model
             X (torch.Tensor): The data to feed into the model
 
         Returns:
@@ -47,15 +56,53 @@ class TrainerBase():
         """
         pass
     
-    def train(self, nova_model:NOVAModel, data_loader_train: DataLoader, data_loader_val: DataLoader)->None:
-        self.__init_params_for_training(nova_model, data_loader_train)
+    def train(self, data_loader_train: DataLoader, data_loader_val: DataLoader)->None:
+        """Train the model on the given data_loader_train and validate it on the data_loader_val
+
+        Args:
+            data_loader_train (DataLoader): The dataloader that would provide the dataset for training
+            data_loader_val (DataLoader): The dataloader that would provide the dataset for the validation phase
+        """
         
-        self.__try_restart_from_last_checkpoint(nova_model, data_loader_train)
+        self.__init_params_for_training(data_loader_train)
+        
+        self.__try_restart_from_last_checkpoint(data_loader_train)
         
         # Save training config into the model
-        nova_model.training_config = self.training_config
+        self.nova_model.training_config = self.training_config
                 
-        self.__training_loop(nova_model, data_loader_train, data_loader_val)
+        self.__training_loop(data_loader_train, data_loader_val)
+        
+    #######################
+    # Protected functions
+    #######################
+    
+    def _freeze_layers(self, layers_names:List[str])->List[str]:
+        """Freeze the given layers in the given model
+
+        Args:
+            layers_names (List[str]): The names of the layers to freeze
+
+        Returns:
+            List[str]: The names of the layers that were successfully freezed 
+        """
+        freezed_layers = []
+        
+        if len(layers_names) == 0:
+            logging.warn("len(layers_names) == 0 -> No layer got frozen")
+            return
+        
+        # Freeze the specified layers
+        for name, param in self.nova_model.model.named_parameters():
+            if any(layer_name in name for layer_name in layers_names):
+                param.requires_grad = False
+                freezed_layers.append(name)
+        
+        return freezed_layers
+        
+    #######################
+    # Private functions
+    #######################
         
     def __set_params(self, training_config:TrainerConfig)->None:
         """Extracting params from the configuration
@@ -67,23 +114,19 @@ class TrainerBase():
         
         self.__set_output_dirs()
         
-        self.checkpoint_last_filename = 'checkpoint_last'
-        self.checkpoint_best_filename = 'checkpoint_best'
+        self.checkpoint_last_filename:str = 'checkpoint_last'
+        self.checkpoint_best_filename:str = 'checkpoint_best'
         
-        self.early_stopping_info = EarlyStoppingInfo(self.early_stopping_patience)
-        self.starting_epoch = 0
+        self.early_stopping_info:__EarlyStoppingInfo = __EarlyStoppingInfo(self.early_stopping_patience)
+        self.starting_epoch:int = 0
         self.optimizer:torch.optim.Optimizer = None
         self.scaler:torch.cuda.amp.GradScaler = torch.cuda.amp.GradScaler()
-        self.lr_schedule = None
-        self.wd_schedule = None
-        self.tensorboard_writer = SummaryWriter(log_dir=self.tensorboard_dir)
-        
-        # Make the training reproducable
-        fix_random_seeds(self.training_config.SEED)
-        cudnn.benchmark = False
-        
+        self.lr_schedule:np.ndarray = None
+        self.wd_schedule:np.ndarray = None
+        self.tensorboard_writer:SummaryWriter = SummaryWriter(log_dir=self.tensorboard_dir)
+                
     def __extract_params_from_config(self, training_config: TrainerConfig)->None:
-        self.training_config = training_config
+        self.training_config:TrainerConfig = training_config
         self.max_epochs:int = self.training_config['MAX_EPOCHS'] 
         self.lr:float = self.training_config['LR']
         self.min_lr:float = self.training_config["MIN_LR"]
@@ -119,22 +162,21 @@ class TrainerBase():
         self.starting_epoch = checkpoint.epoch + 1
         self.optimizer.load_state_dict(checkpoint.optimizier_dict)
         self.description = checkpoint.description
-        self.early_stopping_info = EarlyStoppingInfo(checkpoint.early_stopping_counter)
+        self.early_stopping_info = __EarlyStoppingInfo(checkpoint.early_stopping_counter)
         
         logging.info(f"Checkpoint has been loaded successfully. Starting epoch was set to {self.starting_epoch}")
         
-    def __init_params_for_training(self, nova_model: NOVAModel, data_loader: DataLoader)->None:
+    def __init_params_for_training(self, data_loader: DataLoader)->None:
         """Init the needed objects for the training (optimizer, schedulers, etc.)
 
         Args:
-            nova_model (NOVAModel): The NOVA model
             data_loader (torch.utils.data.DataLoader): The dataloader
         """
-        params_groups = trainer_utils.get_params_groups(nova_model.model)
+        params_groups = self.__get_params_groups_for_optimizer()
         self.optimizer = torch.optim.AdamW(params_groups)
 
         # learning rate schedule
-        self.lr_schedule = trainer_utils.cosine_scheduler(
+        self.lr_schedule = self.__get_cosine_scheduler(
             self.lr * (self.batch_size) / 256.0,  # linear scaling rule
             self.min_lr,
             self.max_epochs,
@@ -143,18 +185,17 @@ class TrainerBase():
         )
         
         # weight decay
-        self.wd_schedule = trainer_utils.cosine_scheduler(
+        self.wd_schedule = self.__get_cosine_scheduler(
             self.weight_decay,
             self.weight_decay_end,
             self.max_epochs,
             len(data_loader),
         )       
         
-    def __try_restart_from_last_checkpoint(self, nova_model:NOVAModel, dataloader:DataLoader):
+    def __try_restart_from_last_checkpoint(self, dataloader:DataLoader):
         """Try restrat the training from the last checkpoint
 
         Args:
-            nova_model (NOVAModel, optional): The model being used for the training. 
             dataloader (DataLoader, optional): The dataloader being used for the training. 
         """
         last_checkpoint_file_path = os.path.join(self.checkpoints_dir, f'{self.checkpoint_last_filename}.pth')
@@ -168,14 +209,14 @@ class TrainerBase():
         
         # Test we are restarting from the same configurations
         assert self.training_config.__dict__ == checkpoint.training_config, f"Loaded checkpoint ({last_checkpoint_file_path}) doesn't have the same training configuration"
-        assert nova_model.model_config.__dict__ == checkpoint.model_config, f"Loaded checkpoint ({last_checkpoint_file_path}) doesn't have the same model configuration"
+        assert self.nova_model.model_config.__dict__ == checkpoint.model_config, f"Loaded checkpoint ({last_checkpoint_file_path}) doesn't have the same model configuration"
         assert dataloader.dataset.conf.__dict__ == checkpoint.dataset_config, f"Loaded checkpoint ({last_checkpoint_file_path}) doesn't have the same dataset configuration"
-        assert nova_model.model.state_dict() == checkpoint.model_dict, f"Loaded checkpoint ({last_checkpoint_file_path}) doesn't have the same model"
+        assert self.nova_model.model.state_dict() == checkpoint.model_dict, f"Loaded checkpoint ({last_checkpoint_file_path}) doesn't have the same model"
 
         # Init trainer from checkpoint
         self.__try_init_from_checkpoint(checkpoint)
         
-    def __training_loop(self, nova_model:NOVAModel, data_loader_train: DataLoader, data_loader_val: DataLoader)->None:
+    def __training_loop(self, data_loader_train: DataLoader, data_loader_val: DataLoader)->None:
         """Run the training loop over across all epochs, while handling checkpoint saving and early stopping
 
         Args:
@@ -191,15 +232,15 @@ class TrainerBase():
             
             self.optimizer.zero_grad()
             
-            loss_val_avg = self.__run_one_epoch(nova_model.model, data_loader_train, data_loader_val, epoch)
+            loss_val_avg = self.__run_one_epoch(self.nova_model.model, data_loader_train, data_loader_val, epoch)
             
             # Handle saving the checkpoint
-            checkpoint_info = CheckpointInfo(model_dict = nova_model.model.state_dict(),
+            checkpoint_info = CheckpointInfo(model_dict = self.nova_model.model.state_dict(),
                                                         optimizer_dict=self.optimizer.state_dict(),
                                                         epoch=epoch,
                                                         training_config=self.training_config.__dict__,
                                                         dataset_config=data_loader_train.dataset.conf.__dict__,
-                                                        model_config=nova_model.model_config.__dict__,
+                                                        model_config=self.nova_model.model_config.__dict__,
                                                         scaler_dict=self.scaler.state_dict(),
                                                         loss_val_avg=loss_val_avg,
                                                         early_stopping_counter=self.early_stopping_info.counter,
@@ -269,11 +310,10 @@ class TrainerBase():
         
         return False
         
-    def __run_one_epoch(self, model: torch.nn.Module, data_loader_train: DataLoader, data_loader_val: DataLoader, current_epoch: int)->float:
+    def __run_one_epoch(self, data_loader_train: DataLoader, data_loader_val: DataLoader, current_epoch: int)->float:
         """Run one epoch on the training set and then one on the validation set
 
         Args:
-            model (torch.nn.Module): The model
             data_loader_train (DataLoader): The dataloader to get the training dataset from
             data_loader_val (DataLoader): The dataloader to get the validation dataset from
             current_epoch (int): The number of the current epoch
@@ -283,18 +323,22 @@ class TrainerBase():
         """
         logging.info(f"Epoch: [{current_epoch}/{self.max_epochs}]")
         
-        loss_train_avg = self.__run_one_epoch_train(model, current_epoch, data_loader_train)
-        loss_val_avg = self.__run_one_epoch_eval(model, current_epoch, data_loader_val)
+        
+        logging.info(f"--------------------------------------- TRAINING (epoch={current_epoch}) ---------------------------------------")
+        loss_train_avg = self.__run_one_epoch_train(current_epoch, data_loader_train)
+        
+        
+        logging.info(f"--------------------------------------- EVAL (epoch={current_epoch}) ---------------------------------------")
+        loss_val_avg = self.__run_one_epoch_eval(current_epoch, data_loader_val)
         
         self.tensorboard_writer.add_scalars('Loss', {'Training': loss_train_avg, 'Validation': loss_val_avg}, current_epoch)
         
         return loss_val_avg
 
-    def __run_one_epoch_train(self, model:torch.nn.Module, current_epoch:int, data_loader:DataLoader)->float:
+    def __run_one_epoch_train(self, current_epoch:int, data_loader:DataLoader)->float:
         """Run one epoch on the given dataloader in train mode
 
         Args:
-            model (torch.nn.Module): The model
             current_epoch (int): The current epoch
             data_loader (DataLoader): The dataloader to get the data from
 
@@ -303,16 +347,15 @@ class TrainerBase():
         """
         
         loss_train_avg = 0
-        model.train()
+        self.nova_model.model.train()
         
-        logging.info(f"--------------------------------------- TRAINING (epoch={current_epoch}) ---------------------------------------")
         for it, res in enumerate(data_loader):
             logging.info(f"[Training epoch={current_epoch}] batch number: {it}/{len(data_loader)}")
             
             self.__handle_scehdulers(current_epoch, data_loader)
 
             # calc loss value
-            model_output = self.forward(model, res)
+            model_output = self.forward(res)
             with torch.cuda.amp.autocast():
                 loss = self.loss(**model_output)
             current_loss_value = loss.item()
@@ -325,7 +368,7 @@ class TrainerBase():
             logging.info(f"***** [epoch {current_epoch}] train loss: {current_loss_value} *****")
             
             logging.info("Calculating grads")
-            self.__calculate_gradients(model, loss)
+            self.__calculate_gradients(loss)
                         
             logging.info("Updating model")
             self.__update_model_weights()
@@ -359,16 +402,15 @@ class TrainerBase():
             if i == 0:  # only the first group is regularized
                 param_group["weight_decay"] = self.wd_schedule[it]
     
-    def __calculate_gradients(self, model:torch.nn.Module, loss_value: torch.Tensor):
+    def __calculate_gradients(self, loss_value: torch.Tensor):
         """Calculate gradients based on the loss
 
         Args:
-            model (torch.nn.Module): The model
             loss_value (torch.Tensor): The loss
         """
         self.scaler.scale(loss_value).backward()
         self.scaler.unscale_(self.optimizer)  # Unscale gradients    
-        torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=3.0)  # Clip gradients
+        torch.nn.utils.clip_grad_norm_(self.nova_model.model.parameters(), max_norm=3.0)  # Clip gradients
         
     def __update_model_weights(self):
         """Update the weights of the model
@@ -376,25 +418,23 @@ class TrainerBase():
         self.scaler.step(self.optimizer)  # Update weights
         self.scaler.update()
                     
-    def __run_one_epoch_eval(self, model:torch.nn.Module, current_epoch:int, data_loader:DataLoader)->float:
+    def __run_one_epoch_eval(self, current_epoch:int, data_loader:DataLoader)->float:
         """Run one epoch on the given dataloader in eval mode
 
         Args:
-            model (torch.nn.Module): The model
             current_epoch (int): The current epoch
             data_loader (DataLoader): The dataloader to get the data from
 
         Returns:
             float: The average loss on the validation set
         """
-        logging.info(f"--------------------------------------- EVAL (epoch={current_epoch}) ---------------------------------------")
-        model.eval()
+        self.nova_model.model.eval()
         
         with torch.no_grad():
             loss_val_avg = 0
             for it, res in enumerate(data_loader):
                 logging.info(f"[Validation epoch={current_epoch}] batch number: {it}/{len(data_loader)}")
-                model_output = self.forward(model, res)
+                model_output = self.forward(res)
                 with torch.cuda.amp.autocast():
                     loss = self.loss(**model_output)
                     
@@ -410,4 +450,70 @@ class TrainerBase():
             
         return loss_val_avg
     
-    
+    def __get_params_groups_for_optimizer(self)->List[{Dict}]:
+        """Get params for the optimizier.\n
+        regularized all params except for the bias ones
+
+        Returns:
+            List[{Dict}]: The params
+        """
+        regularized:List[torch.Tensor] = []
+        not_regularized:List[torch.Tensor] = []
+        
+        for name, param in self.nova_model.model.named_parameters():
+            if not param.requires_grad:
+                continue
+            # we do not regularize biases nor Norm parameters
+            if name.endswith(".bias") or len(param.shape) == 1:
+                not_regularized.append(param)
+            else:
+                regularized.append(param)
+        return [{"params": regularized}, {"params": not_regularized, "weight_decay": 0.0}]
+
+    def __get_cosine_scheduler(
+        self,
+        base_value:float, 
+        final_value:float, 
+        epochs:int, 
+        niter_per_ep:int, 
+        warmup_epochs:int=0, 
+        start_warmup_value:int=0)->np.ndarray:
+        """Get cosine scheduler's schedules
+
+        Args:
+            base_value (float): The value to start from
+            final_value (float): The final value to reach to
+            epochs (int): Number of epochs
+            niter_per_ep (int): Number of iterations per epoch
+            warmup_epochs (int, optional): Number of epochs for warmup. Defaults to 0.
+            start_warmup_value (int, optional): The starting value during the warmup. Defaults to 0.
+
+        Returns:
+            np.ndarray: The schedule
+        """
+
+        # Calculate the number of warmup iterations
+        warmup_iters = warmup_epochs * niter_per_ep
+        
+        # Create the warmup schedule if warmup is required
+        if warmup_epochs > 0:
+            warmup_schedule = np.linspace(start_warmup_value, base_value, warmup_iters)
+        else:
+            warmup_schedule = np.array([])
+
+        # Calculate the number of iterations for the cosine schedule
+        total_iters = epochs * niter_per_ep - warmup_iters
+        iters = np.arange(total_iters)
+        
+        # Create the cosine schedule
+        cosine_schedule = final_value + 0.5 * (base_value - final_value) * (
+            1 + np.cos(np.pi * iters / total_iters)
+        )
+
+        # Concatenate warmup and cosine schedules
+        schedule = np.concatenate((warmup_schedule, cosine_schedule))
+        
+        # Ensure the schedule has the correct number of elements
+        assert len(schedule) == epochs * niter_per_ep, "Schedule length does not match the expected number of iterations."
+        
+        return schedule
