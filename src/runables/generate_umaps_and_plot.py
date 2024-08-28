@@ -18,16 +18,14 @@ from src.Analysis.analyzer_umap0 import AnalyzerUMAP0
 from src.Analysis.analyzer_umap1 import AnalyzerUMAP1
 from src.Analysis.analyzer_umap2 import AnalyzerUMAP2
 
-from src.common.configs.dataset_config import DatasetConfig
-from src.common.configs.trainer_config import TrainerConfig
-
 def generate_umaps():
     if len(sys.argv) < 4:
         raise ValueError("Invalid arguments. Must supply trainer config and data config and UMAP type! ('umap0','umap1','umap2').")
     
     config_path_trainer = sys.argv[1]
     config_trainer = load_config_file(config_path_trainer, 'data')
-    model_output_folder = config_trainer.OUTPUT_FOLDER_PATH #TODO: change this to the right name
+    model_output_folder = config_trainer.OUTPUTS_FOLDER #TODO: change this to the right name
+    # model_output_folder = sys.argv[1] # TODO: remove
     handle_log(model_output_folder)
 
     config_path_data = sys.argv[2]
@@ -38,27 +36,27 @@ def generate_umaps():
         logging.info(f'config_data.TRAIN_BATCHES: {train_batches}')
 
     embeddings, labels = load_embeddings(model_output_folder, config_data, train_batches)
-    
+
     umap_type = sys.argv[3]
     if umap_type=='umap0':
-        logging.info("[Generate UMAPs 0 (vit)]")
+        logging.info("[Generate UMAPs 0]")
         u = AnalyzerUMAP0(config_trainer, config_data)
         u.calculate(embeddings, labels)
-        output_folder_path = os.path.join(model_output_folder, 'figures', u.experiment_type,'UMAP', umap_type)
+        output_folder_path = os.path.join(model_output_folder, 'figures', u.experiment_type,'UMAPs', umap_type)
         plot_umap0(u.features, config_data, output_folder_path)
 
     elif umap_type=='umap1':
-        logging.info("[Generate UMAP 1 (vit)]")
+        logging.info("[Generate UMAP 1]")
         u = AnalyzerUMAP1(config_trainer, config_data)
         u.calculate(embeddings, labels)
-        output_folder_path = os.path.join(model_output_folder, 'figures', u.experiment_type,'UMAP', umap_type)
+        output_folder_path = os.path.join(model_output_folder, 'figures', u.experiment_type,'UMAPs', umap_type)
         plot_umap1(u.features, config_data, output_folder_path)
 
     elif umap_type=='umap2':
-        logging.info("[Generate SM (umap2, vit)]")
+        logging.info("[Generate SM (umap2)]")
         u = AnalyzerUMAP2(config_trainer, config_data)
         u.calculate(embeddings, labels)
-        output_folder_path = os.path.join(model_output_folder, 'figures', u.experiment_type,'UMAP', umap_type)
+        output_folder_path = os.path.join(model_output_folder, 'figures', u.experiment_type,'UMAPs', umap_type)
         plot_umap2(u.features, config_data, output_folder_path)
         
 

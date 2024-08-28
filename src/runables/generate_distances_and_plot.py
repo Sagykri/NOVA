@@ -1,4 +1,3 @@
-import json
 import os
 import sys
 
@@ -7,17 +6,14 @@ print(f"MOMAPS_HOME: {os.getenv('MOMAPS_HOME')}")
 
 import numpy as np
 import logging
-import datetime
 
 from src.common.lib.utils import get_if_exists, load_config_file
 from src.common.lib.embeddings_utils import load_embeddings
-from src.common.lib.plotting import _plot_marker_ranking
+from src.common.lib.plotting import _plot_marker_ranking, plot_clustermap, _plot_bubble_plot
 from src.common.lib.utils import handle_log
 
 from src.Analysis.analyzer_distances_ari import AnalyzerDistancesARI
 
-from src.common.configs.dataset_config import DatasetConfig
-from src.common.configs.trainer_config import TrainerConfig
 
 def generate_distances():
     if len(sys.argv) < 3:
@@ -25,7 +21,7 @@ def generate_distances():
     
     config_path_trainer = sys.argv[1]
     config_trainer = load_config_file(config_path_trainer, 'data')
-    model_output_folder = config_trainer.OUTPUTS_FOLDER #TODO: change this to the right name
+    model_output_folder = config_trainer.OUTPUT_FOLDER_PATH #TODO: change this to the right name
     handle_log(model_output_folder)
 
     config_path_data = sys.argv[2]
@@ -40,7 +36,11 @@ def generate_distances():
     logging.info("[Generate distances (vit)]")
     d = AnalyzerDistancesARI(config_trainer, config_data)
     d.calculate(embeddings, labels)
-    d.save()
+    output_folder_path = os.path.join(model_output_folder, 'figures', d.experiment_type, 'distances')
+    _plot_marker_ranking(d.features, config_data, output_folder_path)
+    plot_clustermap(d.features, config_data, output_folder_path)
+    _plot_bubble_plot(d.features, config_data, output_folder_path)
+
         
 
 if __name__ == "__main__":
