@@ -23,7 +23,9 @@ class NeuronsUMAP1B78FigureConfig(DatasetConfig):
         self.SPLIT_DATA = True 
         self.EXPERIMENT_TYPE = 'neurons'    
         self.REPS = ['rep2','rep1']
-        self.CELL_LINES_CONDS = ['WT_Untreated']
+        # self.CELL_LINES_CONDS = ['WT_Untreated']
+        self.CELL_LINES = ['WT']
+        self.CONDITIONS = ['Untreated']
         
         # How labels are shown in legend
         self.MAP_LABELS_FUNCTION = "lambda self: lambda labels: __import__('numpy').asarray([l.split('_')[0] for l in labels])"
@@ -2419,6 +2421,32 @@ class EmbeddingsU2OSRep1FigureConfig(DatasetConfig):
 ############################################################
 # UMAP2
 ############################################################ 
+class NeuronsUMAP2B6Rep2StressFigureConfig(DatasetConfig):
+    def __init__(self):
+        super().__init__()
+        self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "spd2", "SpinningDisk", f) for f in 
+                        ["batch6"]]
+        
+        self.CELL_LINES = ['WT']
+        self.REPS = ['rep2'] 
+        self.MARKERS_TO_EXCLUDE = ['FMRP','TIA1']
+        
+        self.EXPERIMENT_TYPE = 'neurons'
+        
+        self.SPLIT_DATA = False
+        self.ADD_REP_TO_LABEL = False
+        self.ADD_BATCH_TO_LABEL = False
+        
+        self.MAP_LABELS_FUNCTION = "lambda self: lambda labels: __import__('numpy').asarray([l.split('_')[1] for l in labels])"
+
+        self.UMAP_MAPPINGS = self.UMAP_MAPPINGS_CONDITION
+
+        # Set the size of the dots
+        self.SIZE = 30
+        # Set the alpha of the dots (0=max opacity, 1=no opacity)
+        self.ALPHA = 0.7
+        #######################################
+
 class NeuronsUMAP2B6Rep2FUSFigureConfig(DatasetConfig):
     def __init__(self):
         super().__init__()

@@ -188,13 +188,15 @@ def _plot_umap_embeddings(umap_embeddings: np.ndarray,
     _save_or_show_plot(fig, savepath, dpi) 
     return
 
-def plot_distances_plots(distances:pd.DataFrame, config_data:DatasetConfig, output_folder_path:str)->None:
+def plot_distances_plots(distances:pd.DataFrame, config_data:DatasetConfig, output_folder_path:str,
+                         metric:str='ARI_KMeansConstrained')->None:
     """Wrapper function to create the folder of distances plots and plot them
 
     Args:
         distances (pd.DataFrame): dataframe with calculated distances per marker
         config_data (DatasetConfig): dataset config
         output_folder_path (str): root path to save the plots and configuration in
+        metric (str): The metric used to evaluate the distances, e.g., 'ARI_KMeansConstrained', 'dist', etc.
     """
     folder = _generate_folder_name(config_data, include_time=True)
     saveroot = os.path.join(output_folder_path, folder)
@@ -205,11 +207,12 @@ def plot_distances_plots(distances:pd.DataFrame, config_data:DatasetConfig, outp
     
     baseline = config_data.BASELINE_CELL_LINE_CONDITION
 
-    _plot_marker_ranking(distances, baseline, saveroot, metric='ARI_KMeansConstrained')
-    _plot_clustermap(distances, baseline, saveroot, metric='ARI_KMeansConstrained')
-    _plot_bubble_plot(distances, baseline, saveroot, metric='ARI_KMeansConstrained')
+    _plot_marker_ranking(distances, baseline, saveroot, metric=metric, show_effect_size=True)
+    _plot_clustermap(distances, baseline, saveroot, metric=metric)
+    _plot_bubble_plot(distances, baseline, saveroot, metric=metric)
 
-def _plot_marker_ranking(distances:pd.DataFrame, baseline:str, saveroot:str, metric:str)->None:
+def _plot_marker_ranking(distances:pd.DataFrame, baseline:str, saveroot:str, metric:str,
+                         show_effect_size:bool=False)->None:
     """Generate and save a boxplot of marker distances with p-values, separately for each condition.
 
     Args:
@@ -217,6 +220,7 @@ def _plot_marker_ranking(distances:pd.DataFrame, baseline:str, saveroot:str, met
         baseline (str): The name of the 'cell_line_condition' which is the baseline in the calculations
         saveroot (str): Path to the folder where the plot should be saved
         metric (str): The metric used to evaluate the distances, e.g., 'ARI_KMeansConstrained', 'dist', etc.
+        show_effect_size (bool, optional): If True, effect sizes are displayed on the plot. Defaults to False.
     """
     logging.info(f"[plot_marker_ranking]")
     conditions = distances.condition.drop_duplicates().to_list()
@@ -225,7 +229,7 @@ def _plot_marker_ranking(distances:pd.DataFrame, baseline:str, saveroot:str, met
         marker_pvalue = _calc_pvalue_and_effect(distances, baseline, cond, metric)
         savepath = os.path.join(saveroot, f'{cond}_vs_{baseline}_boxplot') 
         _plot_boxplot(distances, baseline, cond, metric, 
-                     marker_pvalue, show_effect_size=True, savepath = savepath)
+                     marker_pvalue, show_effect_size=show_effect_size, savepath = savepath)
 
 def _plot_clustermap(distances:pd.DataFrame, baseline:str, saveroot:str, metric:str)->None:
     """Generate and save a clustermap of marker p-values per condition.
@@ -293,7 +297,7 @@ def _plot_bubble_plot(distances:pd.DataFrame, baseline:str, saveroot:str, metric
     # Perform hierarchical clustering
     linkage_row = _calculate_hierarchical_clustering(marker_pvalue_per_condition)
     linkage_col = _calculate_hierarchical_clustering(marker_pvalue_per_condition.T)
-    
+
     marker_order = _get_order_from_linkage(linkage_row, marker_pvalue_per_condition.index)
     condition_order = _get_order_from_linkage(linkage_col, marker_pvalue_per_condition.columns)
 

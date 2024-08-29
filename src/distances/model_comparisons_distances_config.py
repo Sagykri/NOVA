@@ -124,6 +124,19 @@ class dNLS345DistanceConfig(DatasetConfig):
         self.ADD_REP_TO_LABEL = False
         self.ADD_BATCH_TO_LABEL = False
         
+class dNLS34DistanceConfig(DatasetConfig): # used for the model trained on dNLS
+    def __init__(self):
+        super().__init__()
+        self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "spd2", "SpinningDisk","deltaNLS", f) for f in 
+                        [f"batch{i}" for i in range(3,5)]]
+        
+        self.SPLIT_DATA = False
+        self.EXPERIMENT_TYPE = 'deltaNLS'
+        self.MARKERS_TO_EXCLUDE = ['FMRP','TIA1']
+        self.BASELINE_CELL_LINE_CONDITION = "TDP43_Untreated"
+        self.MARKERS = list(self.UMAP_MAPPINGS_MARKERS.keys())
+        self.ADD_REP_TO_LABEL = False
+        self.ADD_BATCH_TO_LABEL = False
 
 class EmbeddingsDay18DistanceConfig(DatasetConfig):
     def __init__(self):

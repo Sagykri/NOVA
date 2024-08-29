@@ -11,7 +11,6 @@ import datetime
 
 from src.common.lib.utils import get_if_exists, load_config_file
 from src.common.lib.embeddings_utils import load_embeddings
-from src.common.lib.plotting import _plot_marker_ranking
 from src.common.lib.utils import handle_log
 
 from src.Analysis.analyzer_distances_ari import AnalyzerDistancesARI
