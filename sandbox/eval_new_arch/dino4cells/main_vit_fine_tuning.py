@@ -58,7 +58,7 @@ from src.datasets.dataset_spd import DatasetSPD
 
 from sandbox.eval_new_arch.dino4cells.utils import utils
 from sandbox.eval_new_arch.dino4cells.archs import vision_transformer as vits
-from sandbox.eval_new_arch.dino4cells.archs.vision_transformer import DINOHead
+# from sandbox.eval_new_arch.dino4cells.archs.vision_transformer import DINOHead
 
 import sandbox.eval_new_arch.dino4cells.utils.fine_tuning_utils as fine_tuning_utils
 
