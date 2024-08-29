@@ -9,7 +9,7 @@ import numpy as np
 import torch
 from torch.utils.data import DataLoader
 
-from typing import Callable, Dict, List, Union
+from typing import Callable, Dict, List
 
 from torch.utils.tensorboard import SummaryWriter
 

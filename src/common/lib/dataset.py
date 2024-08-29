@@ -36,6 +36,7 @@ def random_choice_rotate(image):
 class Dataset(torch.utils.data.Dataset ,metaclass=ABCMeta):
     def __init__(self, conf: DatasetConfig):
         self.__set_params(conf)
+        self.set_transform(None)
         
     def set_transform(self, transform):
         self.transform = transform

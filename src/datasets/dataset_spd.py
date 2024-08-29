@@ -175,7 +175,7 @@ class DatasetSPD(Dataset):
                 #####################################      
                         
         processed_files_list = np.asarray(processed_files_list)  
-        unique_markers = np.asarray(np.asarray([unique_markers]))
+        unique_markers = np.asarray(unique_markers)
         logging.info(f'[dataset_spd] unique_markers.shape: {unique_markers.shape}')
         #####################################
         # Save the labels for entire input_folder

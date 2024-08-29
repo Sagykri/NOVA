@@ -1,14 +1,16 @@
-from collections import OrderedDict
 import os
 import sys
-from typing import Dict
+import logging
 import numpy as np
+import torch
+from torch.utils.data import DataLoader
+from typing import Dict, Tuple
+from collections import OrderedDict
 
 sys.path.insert(1, os.getenv("MOMAPS_HOME"))
 
 from src.common.lib.utils import get_if_exists
 from src.common.lib.models.checkpoint_info import CheckpointInfo
-# from src.common.lib import embeddings_utils
 from src.common.configs.dataset_config import DatasetConfig
 from src.common.configs.model_config import ModelConfig
 from src.common.lib.models import vision_transformer
@@ -67,8 +69,45 @@ class NOVAModel():
         Returns:
             np.ndarray: The embeddings
         """
-        # return embeddings_utils.generate_embeddings(self, dataset_config)
-        raise NotImplementedError()
+        from common.lib import embeddings_utils
+        
+        return embeddings_utils.generate_embeddings(self, dataset_config)
+    
+    def infer(self, data_loader: DataLoader)->Tuple[np.ndarray[torch.Tensor], np.ndarray[str]]:
+        """Run inference on the data_loader data
+
+        Args:
+            data_loader (DataLoader): The dataloader to run inference on
+
+        Returns:
+            Tuple[np.ndarray[torch.Tensor], np.ndarray[str]]: (all the embeddings, all the labels)
+        """
+        all_embeddings:np.ndarray[torch.Tensor] = np.array([])
+        all_labels:np.ndarray[str] = np.array([])
+        
+        # Move model to cuda
+        self.model = self.model.cuda()
+        
+        # Set model to eval mode
+        self.model.eval()
+        
+        with torch.no_grad():
+            for it, res in enumerate(data_loader):
+                logging.info(f"[Inference] Batch number: {it}/{len(data_loader)}")
+                
+                # extract the X and y from the batch
+                images = res['image'].to(torch.float).cuda()
+                labels_ind = res['label'].numpy()
+                
+                # convert from indexes to the labels
+                labels = data_loader.dataset.id2label(labels_ind)
+                # run the model to get the embeddings
+                embeddings = self.model(images).cpu()
+                
+                all_embeddings = np.append(all_embeddings, embeddings)
+                all_labels = np.append(all_labels, labels)
+        
+        return all_embeddings, all_labels
     
     def is_equal_architecture(self, other_state_dict: Dict)->bool:
         """Check if the given state_dict is equal to self state_dict
