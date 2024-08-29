@@ -4,11 +4,12 @@ import sys
 import datetime
 import logging
 import random
+from typing import Dict, Union
 import numpy as np
 
 
 sys.path.insert(1, os.getenv("MOMAPS_HOME")) 
-from src.common.lib.utils import init_logging
+from src.common.lib.utils import are_dicts_equal_except_keys, init_logging
 
 
 class BaseConfig():
@@ -16,7 +17,7 @@ class BaseConfig():
     Holds the common params such as the input and output path, the logs folder path, and seed.
     """
     def __init__(self):
-        __now = datetime.datetime.now()
+        self.__now_str = datetime.datetime.now().strftime("%d%m%y_%H%M%S_%f")
         
         self.__SEED = 1
 
@@ -33,8 +34,8 @@ class BaseConfig():
         assert self.RAW_FOLDER_ROOT != self.PROCESSED_FOLDER_ROOT, f"RAW_FOLDER_ROOT == PROCESSED_FOLDER_ROOT, {self.RAW_FOLDER_ROOT}"
                 
         # Output
-        self.OUTPUTS_FOLDER = os.path.join(self.HOME_FOLDER, "outputs")
-        self.CONFIGS_USED_FOLDER = os.path.join(self.OUTPUTS_FOLDER, "configs_used", __now.strftime("%d%m%y_%H%M%S_%f"))
+        self.__OUTPUTS_FOLDER = os.path.join(self.HOME_FOLDER, "outputs")
+        self.CONFIGS_USED_FOLDER = os.path.join(self.__OUTPUTS_FOLDER, "configs_used", self.__now_str)
         
         # Logs
         self.__LOGS_FOLDER = os.path.join(self.HOME_FOLDER, 'logs')
@@ -93,7 +94,6 @@ class BaseConfig():
             return
     
         self.__LOGS_FOLDER = path
-        __now = datetime.datetime.now()
         jobid = os.getenv('LSB_JOBID')
         jobname = os.getenv('LSB_JOBNAME')
         
@@ -104,7 +104,7 @@ class BaseConfig():
             # Extract the username from the output
             username = result.stdout.replace('USER', '').strip()
         
-        log_file_path = os.path.join(self.__LOGS_FOLDER, __now.strftime("%d%m%y_%H%M%S_%f") + f'_{jobid}_{username}_{jobname}.log')
+        log_file_path = os.path.join(self.__LOGS_FOLDER, self.__now_str + f'_{jobid}_{username}_{jobname}.log')
         if not os.path.exists(self.__LOGS_FOLDER):
             os.makedirs(self.__LOGS_FOLDER)
             
@@ -112,3 +112,30 @@ class BaseConfig():
         
         logging.info(f"[{self.__class__.__name__}] Init (log path: {log_file_path}; JOBID: {jobid} Username: {username}) JOBNAME: {jobname}")
         logging.info(f"[{self.__class__.__name__}] MOMAPS_HOME={self.HOME_FOLDER}, MOMAPS_DATA_HOME={self.HOME_DATA_FOLDER}")
+
+    @property
+    def OUTPUTS_FOLDER(self)->str:
+        """Get the path to the outputs folder
+
+        Returns:
+            str: The path
+        """
+        return self.__OUTPUTS_FOLDER
+    
+    @OUTPUTS_FOLDER.setter
+    def OUTPUTS_FOLDER(self, path:str)->None:
+        self.__OUTPUTS_FOLDER = path
+        self.LOGS_FOLDER = os.path.join(self.__OUTPUTS_FOLDER, 'logs')
+        
+    def is_equal(self, other)->bool:
+        """Check if this config is equal to the given one
+
+        Args:
+            other (Union[Dict, BaseConfig]): The other config. Can be a dictionary or an BaseConfig object
+
+        Returns:
+            bool: Are they equal?
+        """
+        other_dict = other.__dict__ if isinstance(other, type(self)) else other
+        
+        return are_dicts_equal_except_keys(self.__dict__, other_dict, ["_BaseConfig__now_str", "CONFIGS_USED_FOLDER"])

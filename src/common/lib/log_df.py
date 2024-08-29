@@ -1,22 +1,22 @@
 import datetime
 import os
 import string
-from typing import Any, Self
+from typing import Any, Union
 from matplotlib.axes import Axes
 import pandas as pd
 
 class LogDF(object):
     """Logger for logging dataframes into a csv file
     """
-    def __init__(self, folder_path: string, filename_prefix:str='', index:Axes|None=None,
-                 columns:Axes|None=None, should_write_index:bool=False)->Self:
+    def __init__(self, folder_path: string, filename_prefix:str='', index:Union[Axes, None]=None,
+                 columns:Union[Axes,None]=None, should_write_index:bool=False):
         """Init a logger
 
         Args:
             folder_path (string): The path to the folder where the log should be saved into
             filename_prefix (str, optional): A prefix to the filename. Defaults to ''.
-            index (Axes | None, optional): The index for the dataframe. Defaults to None.
-            columns (Axes | None, optional): The columns for the dataframe. Defaults to None.
+            index (Union[Axes, None], optional): The index for the dataframe. Defaults to None.
+            columns (Union[Axes, None], optional): The columns for the dataframe. Defaults to None.
             should_write_index (bool, optional): Should save the index?. Defaults to False.
         """
         self.__path = os.path.join(folder_path, filename_prefix + datetime.datetime.now().strftime("%d%m%y_%H%M%S_%f") + '.csv')
@@ -34,11 +34,11 @@ class LogDF(object):
     def path(self):
         return self.__path
     
-    def write(self, data:Any|pd.DataFrame)->str:
+    def write(self, data:Union[Any, pd.DataFrame])->str:
         """Write data to file
 
         Args:
-            data (Any | pd.DataFrame): The data to be written. If not a pd.Dataframe, it's converted to one
+            data (Union[Any, pd.DataFrame]): The data to be written. If not a pd.Dataframe, it's converted to one
 
         Raises:
             f: Failing to convert the given data to a pd.DataFrame

@@ -3,16 +3,17 @@ import os
 import random
 import sys
 import torch
-from typing import Dict, List, Self
+from typing import Dict, List
 import numpy as np
 from info_nce import InfoNCE
 
 sys.path.insert(1, os.getenv("MOMAPS_HOME"))
+from src.common.lib.models.NOVA_model import NOVAModel
 from src.common.lib.models.trainers.trainer_base import TrainerBase
 from src.common.configs.trainer_config import TrainerConfig
 from src.common.lib.utils import flat_list_of_lists, get_if_exists
 
-class __LabelInfo:
+class _LabelInfo:
         def __init__(self,
                      batch:str,
                      cell_line_cond:str,
@@ -28,19 +29,30 @@ class __LabelInfo:
             self.index:int = index
 
 class TrainerContrastive(TrainerBase):
-    def __init__(self, conf:TrainerConfig)->Self:
-        super().__init__(conf)
+    def __init__(self, conf:TrainerConfig, nova_model:NOVAModel):
+        """Get an instance
+
+        Args:
+            conf (TrainerConfig): The trainer configuration
+            nova_model (NOVAModel): The NOVA model to train
+        """
+        super().__init__(conf, nova_model)
         
-        self.negative_count:int = get_if_exists(self.training_config, 'NEGATIVE_COUNT', 5)
+        self.negative_count:int = get_if_exists(self.trainer_config, 'NEGATIVE_COUNT', 5)
+        self.pretrained_model_path:str = get_if_exists(self.trainer_config, 'PRETRAINED_MODEL_PATH', None)
+        
         self.loss_infoNCE:InfoNCE = InfoNCE(negative_mode = 'paired')
         
-        self.__try_freezing_layers()
+        if self.pretrained_model_path is not None:
+            # Handle fine-tuning
+            self.__load_weights_from_pretrained_model()
+            self.__try_freezing_layers()
         
-    def loss(self, embeddings:torch.Tensor[float], anchor_idx:List[int], positive_idx:List[int], negative_idx:List[int])->float:
+    def loss(self, embeddings:torch.Tensor, anchor_idx:List[int], positive_idx:List[int], negative_idx:List[int])->float:
         """Calculating the loss value
 
         Args:
-            embeddings (torch.Tensor[float]): The embeddings
+            embeddings (torch.Tensor): The embeddings
             anchor_idx (List[int]): The indexes for the anchors
             positive_idx (List[int]): The indexes for the positive samples
             negative_idx (List[int]): The indexes for the negative samples
@@ -72,25 +84,24 @@ class TrainerContrastive(TrainerBase):
         Returns:
             Dict: {outputs: The model outputs, targets: The true labels}
         """
-        with torch.cuda.amp.autocast():
-            images = X['image'].to(torch.float).cuda()
-            paths = X['image_path']
-            logging.info(f"images shape: {images.shape}, paths shape: {paths.shape}")
+        images = X['image'].to(torch.float).cuda()
+        paths = X['image_path']
+        logging.info(f"images shape: {images.shape}, paths shape: {paths.shape}")
 
-            # first we need to try and pair for each image (anchor), a positive and $negative_count negatives
-            anchor_idx, positive_idx, negative_idx = self.__pair_labels(paths, self.negative_count) 
-            logging.info(f'[InfoNCE] found {len(anchor_idx)}/{images.shape[0]} anchors]')
+        # first we need to try and pair for each image (anchor), a positive and $negative_count negatives
+        anchor_idx, positive_idx, negative_idx = self.__pair_labels(paths, self.negative_count) 
+        logging.info(f'[InfoNCE] found {len(anchor_idx)}/{images.shape[0]} anchors]')
 
-            all_idx = np.unique(anchor_idx + list(np.unique(flat_list_of_lists(negative_idx))) + positive_idx)
-            
-            # now we want to create embeddings only for the images that can be used as anchor/positive/negative
-            embeddings = self.nova_model.model(images[all_idx])
+        all_idx = np.unique(anchor_idx + list(np.unique(flat_list_of_lists(negative_idx))) + positive_idx)
+        
+        # now we want to create embeddings only for the images that can be used as anchor/positive/negative
+        embeddings = self.nova_model.model(images[all_idx])
 
-            # because we took only the images that can be used as anchor/positive/negative, now the original indices are not true anymore and we need to convert them
-            sorter = np.argsort(all_idx)
-            anchor_idx = sorter[np.searchsorted(all_idx, anchor_idx, sorter=sorter)]
-            positive_idx = sorter[np.searchsorted(all_idx, positive_idx, sorter=sorter)]
-            negative_idx = sorter[np.searchsorted(all_idx, negative_idx, sorter=sorter)] 
+        # because we took only the images that can be used as anchor/positive/negative, now the original indices are not true anymore and we need to convert them
+        sorter = np.argsort(all_idx)
+        anchor_idx = sorter[np.searchsorted(all_idx, anchor_idx, sorter=sorter)]
+        positive_idx = sorter[np.searchsorted(all_idx, positive_idx, sorter=sorter)]
+        negative_idx = sorter[np.searchsorted(all_idx, negative_idx, sorter=sorter)] 
         
         return {
             'embeddings': embeddings,
@@ -99,7 +110,7 @@ class TrainerContrastive(TrainerBase):
             'negative_idx': negative_idx
         }
     
-    def __get_positives(self, anchor:__LabelInfo, labels_dicts: List[__LabelInfo])->List[int]:
+    def __get_positives(self, anchor:_LabelInfo, labels_dicts: List[_LabelInfo])->List[int]:
         """given an anchor, we define positive as:
         # the same marker, batch, cell line, cond
         # different rep
@@ -122,7 +133,7 @@ class TrainerContrastive(TrainerBase):
                 and lbl.index != anchor.index]
         return positives
         
-    def __get_negatives(self, anchor:__LabelInfo, labels_dicts: List[__LabelInfo])->List[int]:
+    def __get_negatives(self, anchor:_LabelInfo, labels_dicts: List[_LabelInfo])->List[int]:
         """given an anchor, we define negative as:
         the same marker, batch
         different cell line, cond
@@ -163,7 +174,7 @@ class TrainerContrastive(TrainerBase):
             And, the embeddings in indices [3,6,8,12,20] can be used as negatives.
         """
         labels_list = [p.split(os.sep)[-5:] for p in paths]
-        labels_dicts = [__LabelInfo(
+        labels_dicts = [_LabelInfo(
                             batch=l[0],
                             cell_line_cond='_'.join(l[1:3]),
                             marker=l[3],
@@ -197,7 +208,7 @@ class TrainerContrastive(TrainerBase):
     def __try_freezing_layers(self):
         """Trying to freeze layers based on the LAYERS_TO_FREEZE param in the config, if exists
         """
-        layers_to_freeze = get_if_exists(self.training_config, 'LAYERS_TO_FREEZE', None)
+        layers_to_freeze = get_if_exists(self.trainer_config, 'LAYERS_TO_FREEZE', None)
         if layers_to_freeze is None or len(layers_to_freeze) == 0:
             # No layers to freeze
             return
@@ -207,3 +218,20 @@ class TrainerContrastive(TrainerBase):
         _freezed_layers = self._freeze_layers(layers_to_freeze)
         logging.info(f"Layers freezed successfully : {_freezed_layers}")
             
+    def __load_weights_from_pretrained_model(self):
+        """Loads the weights from a given pretrained model path, while chaning the output dimension of the head to the new num_classes
+        """
+        if self.pretrained_model_path is None:
+            logging.warn("'pretrained_model_path' was set to None. Can't load pretrained model.")
+            return
+        
+        logging.info(f"Loading pretrained model ({self.pretrained_model_path})")
+        pretrained_model = NOVAModel.load_from_checkpoint(self.pretrained_model_path).model
+        
+        # Modifying the head's output dim 
+        logging.info(f"Changing the head output dim from {pretrained_model.head.out_features} to {self.nova_model.num_classes}")
+        pretrained_model.head = torch.nn.Linear(pretrained_model.head.in_features, self.nova_model.num_classes)
+        
+        # Set the modified pretrained model to be the starting point for our model
+        self.nova_model.model = pretrained_model
+        logging.info(f"The updated head is: {self.nova_model.model.head}")

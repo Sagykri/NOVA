@@ -1,37 +1,63 @@
 from abc import abstractmethod
+import datetime
 import logging
 import math
 import os
 import sys
-import tqdm
+from tqdm import tqdm
 import numpy as np
 import torch
 from torch.utils.data import DataLoader
 
-from typing import Dict, List, Self
+from typing import Callable, Dict, List, Union
 
 from torch.utils.tensorboard import SummaryWriter
 
 sys.path.insert(1, os.getenv("MOMAPS_HOME"))
-from src.common.lib.utils import get_if_exists
+from src.common.lib.utils import get_class, get_if_exists
 from src.common.lib.models.NOVA_model import NOVAModel
-from common.lib.models.checkpoint_info import CheckpointInfo
+from src.common.lib.models.checkpoint_info import CheckpointInfo
 from src.common.configs.trainer_config import TrainerConfig
 
 class _EarlyStoppingInfo():
     """Holds information for handeling the early stopping
     """
-    def __init__(self, counter:int):
-        self.__init_value:int = counter
-        self.reset()
+    def __init__(self, init_value:int):
+        """Get an instance
+
+        Args:
+            init_value (int): The number of allowed straight unimproved epochs
+        """
+        self.__init_value:int = init_value
+        self.counter: int = self.__init_value
         
     def reset(self):
         """Reset the counter to its initial value
         """
+        logging.info(f"Improved. Reseting the early stopping counter back to {self.__init_value}")
         self.counter: int = self.__init_value
+        
+    def try_decrease(self)->bool:
+        self.counter -= 1
+        logging.warn(f"No improvement. Early stopping counter is now {self.counter}")
+        
+        if self.is_empty():
+            logging.warn(f"Stopping due to early stopping")
+            return False
+        
+        return True
+    
+    def is_empty(self)->bool:
+        return self.counter <= 0
 
 class TrainerBase():
-    def __init__(self, conf:TrainerConfig, nova_model:NOVAModel)->Self:
+    def __init__(self, conf:TrainerConfig, nova_model:NOVAModel):
+        """Get an instance
+
+        Args:
+            conf (TrainerConfig): The trainer configuration
+            nova_model (NOVAModel): The NOVA model to train
+        """
         self.__set_params(conf)     
         self.nova_model:NOVAModel = nova_model
         
@@ -66,11 +92,18 @@ class TrainerBase():
         
         self.__init_params_for_training(data_loader_train)
         
+        # Move model to gpu
+        self.nova_model.model = self.nova_model.model.cuda()
+        
+        # Set data augmentations
+        data_loader_train.dataset.set_transform(self.data_augmentation)
+        data_loader_val.dataset.set_transform(self.data_augmentation)
+        
         self.__try_restart_from_last_checkpoint(data_loader_train)
         
         # Save training config into the model
-        self.nova_model.training_config = self.training_config
-                
+        self.nova_model.trainer_config = self.trainer_config
+        
         self.__training_loop(data_loader_train, data_loader_val)
         
     #######################
@@ -104,18 +137,18 @@ class TrainerBase():
     # Private functions
     #######################
         
-    def __set_params(self, training_config:TrainerConfig)->None:
+    def __set_params(self, trainer_config:TrainerConfig)->None:
         """Extracting params from the configuration
 
         Args:
-            training_config (TrainingConfig): The training configuration
+            trainer_config (TrainingConfig): The training configuration
         """
-        self.__extract_params_from_config(training_config)
+        self.__extract_params_from_config(trainer_config)
         
         self.__set_output_dirs()
         
-        self.checkpoint_last_filename:str = 'checkpoint_last'
-        self.checkpoint_best_filename:str = 'checkpoint_best'
+        self.checkpoint_last_path:str = os.path.join(self.checkpoints_dir, 'checkpoint_last.pth')
+        self.checkpoint_best_path:str = os.path.join(self.checkpoints_dir, 'checkpoint_best.pth')
         
         self.early_stopping_info:_EarlyStoppingInfo = _EarlyStoppingInfo(self.early_stopping_patience)
         self.starting_epoch:int = 0
@@ -124,20 +157,22 @@ class TrainerBase():
         self.lr_schedule:np.ndarray = None
         self.wd_schedule:np.ndarray = None
         self.tensorboard_writer:SummaryWriter = SummaryWriter(log_dir=self.tensorboard_dir)
+        self.best_avg_val_loss: float = np.inf
                 
-    def __extract_params_from_config(self, training_config: TrainerConfig)->None:
-        self.training_config:TrainerConfig = training_config
-        self.max_epochs:int = self.training_config['MAX_EPOCHS'] 
-        self.lr:float = self.training_config['LR']
-        self.min_lr:float = self.training_config["MIN_LR"]
-        self.warmup_epochs:int = self.training_config["WARMUP_EPOCHS"]
-        self.weight_decay:float = self.training_config['WEIGHT_DECAY']
-        self.weight_decay_end:float = self.training_config['WEIGHT_DECAY_END']
-        self.batch_size:int = self.training_config['BATCH_SIZE']
-        self.num_workers:int = get_if_exists(self.training_config, 'NUM_WORKERS', 6)
-        self.early_stopping_patience:int = get_if_exists(self.training_config, 'EARLY_STOPPING_PATIENCE', 10)
-        self.outputs_folder:str = self.training_config['OUTPUTS_FOLDER']
-        self.description:str = get_if_exists(self.training_config, 'DESCRIPTION', str(type(self)))
+    def __extract_params_from_config(self, trainer_config: TrainerConfig)->None:
+        self.trainer_config:TrainerConfig = trainer_config
+        self.max_epochs:int = self.trainer_config.MAX_EPOCHS 
+        self.lr:float = self.trainer_config.LR
+        self.min_lr:float = self.trainer_config.MIN_LR
+        self.warmup_epochs:int = self.trainer_config.WARMUP_EPOCHS
+        self.weight_decay:float = self.trainer_config.WEIGHT_DECAY
+        self.weight_decay_end:float = self.trainer_config.WEIGHT_DECAY_END
+        self.batch_size:int = self.trainer_config.BATCH_SIZE
+        self.num_workers:int = get_if_exists(self.trainer_config, 'NUM_WORKERS', 6)
+        self.early_stopping_patience:int = get_if_exists(self.trainer_config, 'EARLY_STOPPING_PATIENCE', 10)
+        self.outputs_folder:str = self.trainer_config.OUTPUTS_FOLDER
+        self.description:str = get_if_exists(self.trainer_config, 'DESCRIPTION', str(type(self)))
+        self.data_augmentation_class_path:str = get_if_exists(self.trainer_config, 'DATA_AUGMENTATION_CLASS_PATH', None)
         
     def __set_output_dirs(self)->None:
         """Set the path for the output directories (logs, checkpoints and tensorboard plots)
@@ -146,7 +181,7 @@ class TrainerBase():
         assert self.outputs_folder is not None, "outputs folder can't be None"
         
         self.logs_dir = os.path.join(self.outputs_folder, "logs")
-        self.tensorboard_dir = os.path.join(self.outputs_folder, "tensorboard")
+        self.tensorboard_dir = os.path.join(self.outputs_folder, "tensorboard", f"{datetime.datetime.now().strftime('%d%m%y_%H%M%S_%f')}_JID{os.getenv('LSB_JOBID')}")
         self.checkpoints_dir = os.path.join(self.outputs_folder, "checkpoints")
         
         os.makedirs(self.logs_dir, exist_ok=True)
@@ -160,9 +195,15 @@ class TrainerBase():
             checkpoint (CheckpointInfo): The checkpoint to init from
         """
         self.starting_epoch = checkpoint.epoch + 1
-        self.optimizer.load_state_dict(checkpoint.optimizier_dict)
+        self.optimizer.load_state_dict(checkpoint.optimizer_dict)
+        self.scaler.load_state_dict(checkpoint.scaler_dict)
         self.description = checkpoint.description
         self.early_stopping_info = _EarlyStoppingInfo(checkpoint.early_stopping_counter)
+        self.best_avg_val_loss = checkpoint.best_avg_val_loss
+        self.nova_model.model.load_state_dict(checkpoint.model_dict)
+        
+        torch.set_rng_state(checkpoint.rng_state)
+        torch.cuda.set_rng_state_all(checkpoint.cuda_rng_state)
         
         logging.info(f"Checkpoint has been loaded successfully. Starting epoch was set to {self.starting_epoch}")
         
@@ -192,26 +233,31 @@ class TrainerBase():
             len(data_loader),
         )       
         
+        logging.info(f"Creating data augmentation object (from class {self.data_augmentation_class_path})")
+        data_augmentation_class:Callable = get_class(self.data_augmentation_class_path)
+        
+        logging.info(f"Instantiate data augmentation object from class {data_augmentation_class.__name__}")
+        self.data_augmentation = data_augmentation_class()
+            
     def __try_restart_from_last_checkpoint(self, dataloader:DataLoader):
         """Try restrat the training from the last checkpoint
 
         Args:
             dataloader (DataLoader, optional): The dataloader being used for the training. 
         """
-        last_checkpoint_file_path = os.path.join(self.checkpoints_dir, f'{self.checkpoint_last_filename}.pth')
-        if os.path.exists(last_checkpoint_file_path):  
-            logging.info(f"NOTE: couldn't find a checkpoint file to restart from ({last_checkpoint_file_path})")
+        if not os.path.exists(self.checkpoint_last_path):  
+            logging.info(f"NOTE: couldn't find a checkpoint file to restart from ({self.checkpoint_last_path})")
             return
         
         
-        logging.info(f"Loading checkpoint from file {last_checkpoint_file_path}")
-        checkpoint:CheckpointInfo = CheckpointInfo.load_from_checkpoint_filepath(last_checkpoint_file_path)
+        logging.info(f"Loading checkpoint from file {self.checkpoint_last_path}")
+        checkpoint:CheckpointInfo = CheckpointInfo.load_from_checkpoint_filepath(self.checkpoint_last_path)
         
-        # Test we are restarting from the same configurations
-        assert self.training_config.__dict__ == checkpoint.training_config, f"Loaded checkpoint ({last_checkpoint_file_path}) doesn't have the same training configuration"
-        assert self.nova_model.model_config.__dict__ == checkpoint.model_config, f"Loaded checkpoint ({last_checkpoint_file_path}) doesn't have the same model configuration"
-        assert dataloader.dataset.conf.__dict__ == checkpoint.dataset_config, f"Loaded checkpoint ({last_checkpoint_file_path}) doesn't have the same dataset configuration"
-        assert self.nova_model.model.state_dict() == checkpoint.model_dict, f"Loaded checkpoint ({last_checkpoint_file_path}) doesn't have the same model"
+        # Test that we are restarting from the same configurations
+        assert self.trainer_config.is_equal(checkpoint.trainer_config), f"Loaded checkpoint ({self.checkpoint_last_path}) doesn't have the same training configuration"
+        assert self.nova_model.model_config.is_equal(checkpoint.model_config), f"Loaded checkpoint ({self.checkpoint_last_path}) doesn't have the same model configuration"
+        assert dataloader.dataset.conf.is_equal(checkpoint.dataset_config), f"Loaded checkpoint ({self.checkpoint_last_path}) doesn't have the same dataset configuration"
+        assert self.nova_model.is_equal_architecture(checkpoint.model_dict), f"Loaded checkpoint ({self.checkpoint_last_path}) doesn't have the same model"
 
         # Init trainer from checkpoint
         self.__try_init_from_checkpoint(checkpoint)
@@ -230,85 +276,76 @@ class TrainerBase():
             if epoch < self.starting_epoch:
                 continue
             
+            if self.early_stopping_info.is_empty():
+                # Activate early stopping
+                logging.warn(f"Stopping due to early stopping")
+                break
+            
             self.optimizer.zero_grad()
             
-            loss_val_avg = self.__run_one_epoch(self.nova_model.model, data_loader_train, data_loader_val, epoch)
+            avg_val_loss = self.__run_one_epoch(data_loader_train, data_loader_val, epoch)
+                
+            is_improved = self.__is_better_val_loss(avg_val_loss)
+            
+            if is_improved:
+                # set the current loss to be the best one reached
+                self.best_avg_val_loss = avg_val_loss
+        
+            self.__update_eary_stopping(is_improved)
             
             # Handle saving the checkpoint
             checkpoint_info = CheckpointInfo(model_dict = self.nova_model.model.state_dict(),
                                                         optimizer_dict=self.optimizer.state_dict(),
                                                         epoch=epoch,
-                                                        training_config=self.training_config.__dict__,
-                                                        dataset_config=data_loader_train.dataset.conf.__dict__,
-                                                        model_config=self.nova_model.model_config.__dict__,
+                                                        trainer_config=self.trainer_config,
+                                                        dataset_config=data_loader_train.dataset.conf,
+                                                        model_config=self.nova_model.model_config,
                                                         scaler_dict=self.scaler.state_dict(),
-                                                        loss_val_avg=loss_val_avg,
+                                                        avg_val_loss=avg_val_loss,
+                                                        best_avg_val_loss=self.best_avg_val_loss,
                                                         early_stopping_counter=self.early_stopping_info.counter,
-                                                        description=self.description)
-
-            best_val_loss_avg = self.__get_best_val_loss()
-            self.__handle_save_checkpoint(checkpoint_info, loss_val_avg, best_val_loss_avg)
+                                                        description=self.description)    
             
-            # Handle early stopping
-            is_early_stopping_reached = self.__is_early_stopping_reached(loss_val_avg, best_val_loss_avg)
-            if is_early_stopping_reached:
-                break
+            self.__handle_checkpoint_saving(is_improved, checkpoint_info)
     
-    def __get_best_val_loss(self)->float:
-        savepath_chkp_best = os.path.join(self.checkpoints_dir, self.checkpoint_best_filename)
-        
-        if not os.path.exists(savepath_chkp_best):
-            return np.inf
-        
-        best_checkpoint = torch.load(savepath_chkp_best, map_location="cpu")
-        best_checkpoint_val_loss_avg = best_checkpoint['val_loss_avg']
-        
-        return best_checkpoint_val_loss_avg
-            
-    def __handle_save_checkpoint(self, checkpoint_info: CheckpointInfo, loss_val_avg:float, best_loss_val_avg:float)->None:
-        """Save running checkpoint and best checkpoint if we reached a new best 
+    def __update_eary_stopping(self, is_improved:bool):
+        """Reset the early stopping counter if is_improved=True, otherwise decrease it
 
         Args:
-            checkpoint_info (CheckpointInfo): The info to saved into the checkpoint file
-            loss_val_avg (float): The current average validation loss
-            best_loss_val_avg (float): The best average validation loss so far
+            is_improved (bool): Is improved?
         """
-        
-        savepath_chkp_last = os.path.join(self.checkpoints_dir, self.checkpoint_last_filename)
-        savepath_chkp_best = os.path.join(self.checkpoints_dir, self.checkpoint_best_filename)
-
-        # Save running/latest checkpoint
-        checkpoint_info.save(savepath_chkp_last)
-        
-        # Save best checkpoint
-        
-        # First best checkpoint or new best
-        if loss_val_avg < best_loss_val_avg:
-            # We have a new best checkpoint!
-            checkpoint_info.save(checkpoint_info, savepath_chkp_best)
-                
-    def __is_early_stopping_reached(self, current_loss_value:float, best_loss_value:float)->bool:
-        """Checks if we exhaused enough epochs without any improvement in order to early stop
-
-        Args:
-            current_loss_value (float): The current loss value 
-            best_loss_value (float):  The best loss value to check against
-        """
-        
-        if current_loss_value < best_loss_value:
-            # Improved!
+        if is_improved:
+            # reset early stopping
             self.early_stopping_info.reset()
-            
-            return False
-            
-        # No improvement
-        self.early_stopping_info.counter -= 1
-        logging.warn(f"No improvement. Early stopping counter is now {self.early_stopping_info.counter}")
-        if self.early_stopping_info.counter <= 0:
-            logging.warn(f"Stopping due to early stopping")
-            return True
+            return
         
-        return False
+        # no improvement
+        self.early_stopping_info.try_decrease()
+        
+    def __handle_checkpoint_saving(self, is_improved:bool, checkpoint_info:CheckpointInfo):
+        """Save checkpoint as last, and also as best if is_improved=True
+
+        Args:
+            is_improved (bool): Is improved?
+            checkpoint_info (CheckpointInfo): The checkpoint to save
+        """
+        if is_improved:
+            # Save as best checkpoint
+            checkpoint_info.save(self.checkpoint_best_path)
+            
+        # Save as last checkpoint
+        checkpoint_info.save(self.checkpoint_last_path)
+            
+    def __is_better_val_loss(self, avg_val_loss:float)->bool:
+        """Is the given loss is better than the current best val loss
+
+        Args:
+            avg_val_loss (float): The given val loss
+
+        Returns:
+            bool: Is the given loss the new best?
+        """
+        return avg_val_loss < self.best_avg_val_loss
         
     def __run_one_epoch(self, data_loader_train: DataLoader, data_loader_val: DataLoader, current_epoch: int)->float:
         """Run one epoch on the training set and then one on the validation set
@@ -352,11 +389,12 @@ class TrainerBase():
         for it, res in enumerate(data_loader):
             logging.info(f"[Training epoch={current_epoch}] batch number: {it}/{len(data_loader)}")
             
-            self.__handle_scehdulers(current_epoch, data_loader)
+            self.__handle_scehdulers(it, current_epoch, data_loader)
 
-            # calc loss value
-            model_output = self.forward(res)
             with torch.cuda.amp.autocast():
+                # forward pass
+                model_output = self.forward(res)
+                # calc loss value
                 loss = self.loss(**model_output)
             current_loss_value = loss.item()
             loss_train_avg += current_loss_value
@@ -388,7 +426,7 @@ class TrainerBase():
         
         return loss_train_avg
     
-    def __handle_scehdulers(self, current_epoch:int, data_loader: DataLoader)->None:
+    def __handle_scehdulers(self, current_iteration:int, current_epoch:int, data_loader: DataLoader)->None:
         """Setting the learning rate and weight_decay based on the scheduler
 
         Args:
@@ -396,7 +434,7 @@ class TrainerBase():
             data_loader (DataLoader): The dataloader
         """
         # update weight decay and learning rate according to their schedule
-        it = len(data_loader) * current_epoch + it  # global training iteration
+        it = len(data_loader) * current_epoch + current_iteration  # global training iteration
         for i, param_group in enumerate(self.optimizer.param_groups):
             param_group["lr"] = self.lr_schedule[it]
             if i == 0:  # only the first group is regularized
@@ -450,12 +488,12 @@ class TrainerBase():
             
         return loss_val_avg
     
-    def __get_params_groups_for_optimizer(self)->List[{Dict}]:
+    def __get_params_groups_for_optimizer(self)->List[Dict]:
         """Get params for the optimizier.\n
         regularized all params except for the bias ones
 
         Returns:
-            List[{Dict}]: The params
+            List[Dict]: The params
         """
         regularized:List[torch.Tensor] = []
         not_regularized:List[torch.Tensor] = []

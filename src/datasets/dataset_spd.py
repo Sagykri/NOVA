@@ -16,10 +16,10 @@ class DatasetSPD(Dataset):
     """
     Dataset for SPD images
     """
-    def __init__(self, conf: DatasetConfig, transform=None):
+    def __init__(self, conf: DatasetConfig):
         self.markers_folders_depth = 3
         
-        super().__init__(conf, transform)
+        super().__init__(conf)
     
     def __find_marker_folders(self, batch_path, depth=3):
         """Returns paths of all marker folder in a batch (works with recursion)

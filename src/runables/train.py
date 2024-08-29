@@ -30,9 +30,9 @@ def __extracting_params_from_sys()->Dict:
     dataset_config_path:str = sys.argv[3]
     
     return {
-        model_config_path:model_config_path,
-        trainer_config_path:trainer_config_path,
-        dataset_config_path:dataset_config_path
+        'model_config_path':model_config_path,
+        'trainer_config_path':trainer_config_path,
+        'dataset_config_path':dataset_config_path
     }
 
 def __train(model_config_path:str, trainer_config_path:str, dataset_config_path:str)->None:
@@ -46,17 +46,17 @@ def __train(model_config_path:str, trainer_config_path:str, dataset_config_path:
     logging.info("Initializing the dataloaders")
     dataloader_train, dataloader_val, _ = init_dataloaders_with_config(trainer_config, dataset_config)
     
+    logging.info("Creating the NOVA model")
+    nova_model = NOVAModel(model_config)
+    
     logging.info(f"Creating the trainer (from class {trainer_config.TRAINER_CLASS_PATH})")
     trainer_class: TrainerBase = get_class(trainer_config.TRAINER_CLASS_PATH)
     
-    logging.info(f"Instantiate trainer from class {type(trainer_class)}")
-    trainer: TrainerBase = trainer_class(trainer_config)
-    
-    logging.info("Creating the model")
-    model = NOVAModel(model_config)
+    logging.info(f"Instantiate trainer from class {trainer_class.__name__}")
+    trainer: TrainerBase = trainer_class(trainer_config, nova_model)
     
     logging.info("Training...")
-    trainer.train(model, dataloader_train, dataloader_val)
+    trainer.train(dataloader_train, dataloader_val)
 
 
 if __name__ == "__main__":    
@@ -69,4 +69,5 @@ if __name__ == "__main__":
         raise e
     logging.info("Done")
     
-    
+# Example how to run:    
+# ./bash_commands/run_py.sh ./src/runables/train -g -m 40000 -b 44 -j train -a ./src/common/configs/model_config/ClassificationModelConfig ./src/common/configs/trainer_config/ClassificationTrainerConfig  ./src/datasets/configs/training_data_config/OpenCellTrainDatasetConfig

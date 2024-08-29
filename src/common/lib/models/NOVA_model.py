@@ -1,13 +1,14 @@
+from collections import OrderedDict
 import os
 import sys
+from typing import Dict
 import numpy as np
-from typing import Self
 
 sys.path.insert(1, os.getenv("MOMAPS_HOME"))
 
 from src.common.lib.utils import get_if_exists
-from common.lib.models.checkpoint_info import CheckpointInfo
-from src.common.lib import embeddings_utils
+from src.common.lib.models.checkpoint_info import CheckpointInfo
+# from src.common.lib import embeddings_utils
 from src.common.configs.dataset_config import DatasetConfig
 from src.common.configs.model_config import ModelConfig
 from src.common.lib.models import vision_transformer
@@ -15,6 +16,11 @@ from src.common.lib.models import vision_transformer
 class NOVAModel():
 
     def __init__(self, model_config:ModelConfig):
+        """Get an instance
+
+        Args:
+            model_config (ModelConfig): The model configuration
+        """
         self.__set_params(model_config)
         self.model = self.__get_vit()        
     
@@ -29,7 +35,7 @@ class NOVAModel():
         self.image_size = get_if_exists(self.model_config, 'IMAGE_SIZE', 100)
         self.patch_size = get_if_exists(self.model_config, 'PATCH_SIZE', 14)
         self.num_channels = get_if_exists(self.model_config, 'NUM_CHANNELS', 2)
-        self.num_classes = self.model_config['NUM_CLASSES']
+        self.num_classes = self.model_config.NUM_CLASSES
 
     def __get_vit(self):
         vit_version = self.vit_version
@@ -61,10 +67,34 @@ class NOVAModel():
         Returns:
             np.ndarray: The embeddings
         """
-        return embeddings_utils.generate_embeddings(self, dataset_config)
+        # return embeddings_utils.generate_embeddings(self, dataset_config)
+        raise NotImplementedError()
+    
+    def is_equal_architecture(self, other_state_dict: Dict)->bool:
+        """Check if the given state_dict is equal to self state_dict
+
+        Args:
+            other_state_dict (Dict): The other state dict
+
+        Returns:
+            bool: Is equal?
+        """
+        self_architecture = OrderedDict({key: value.shape for key, value in self.model.state_dict().items()})
+        other_architecture = OrderedDict({key: value.shape for key, value in other_state_dict.items()})
+        
+        # First, check if both shape_dicts have the same keys
+        if self_architecture.keys() != other_architecture.keys():
+            return False
+        
+        # Now compare the shapes for each key
+        for key in self_architecture.keys():
+            if self_architecture[key] != other_architecture[key]:
+                return False
+        
+        return True
     
     @staticmethod
-    def load_from_checkpoint(ckp_path: str)->Self:
+    def load_from_checkpoint(ckp_path: str):
         """Get model from checkpoint
 
         Args:
@@ -73,16 +103,13 @@ class NOVAModel():
         Returns:
             model (NOVAModel): The NOVA model
         """
-        checkpoint:CheckpointInfo = CheckpointInfo.load_from_checkpoint_filepath(ckp_path)
-        state_dict = checkpoint.model_dict
-        model_config = checkpoint.model_config
-        training_config = checkpoint.training_config 
-        dataset_config = checkpoint.dataset_config 
         
-        nova_model = NOVAModel(model_config)
-        nova_model.model.load_state_dict(state_dict)
-        nova_model.training_config = training_config
-        nova_model.dataset_config = dataset_config
+        checkpoint:CheckpointInfo = CheckpointInfo.load_from_checkpoint_filepath(ckp_path)
+        
+        nova_model = NOVAModel(checkpoint.model_config)
+        nova_model.model.load_state_dict(checkpoint.model_dict)
+        nova_model.trainer_config = checkpoint.trainer_config
+        nova_model.dataset_config = checkpoint.dataset_config
         
         return nova_model
         

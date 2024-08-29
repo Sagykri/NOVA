@@ -1,14 +1,10 @@
 import os
-import sys
-from typing import Any, Callable, Dict, Iterable, List, Tuple
+from typing import Any, Callable, Dict, Iterable, List, Tuple, Union
 import uuid
 import importlib
 import json
 import logging
 import string
-
-sys.path.insert(1, os.getenv("MOMAPS_HOME"))
-from src.common.configs.base_config import BaseConfig
 
 def get_if_exists(container:object, param_name: string, default_value:Any=None)->Any:
     """Get value of param in container if it exists, otherwise return default value
@@ -54,7 +50,7 @@ def flat_list_of_lists(l:List[List[Any]])->List[Any]:
     """
     return [item for sublist in l for item in sublist]
   
-def load_config_file(path:string, custom_filename:string=None, savefolder:string=None)->BaseConfig:
+def load_config_file(path:string, custom_filename:string=None, savefolder:string=None):
     """Load config file (and save it to file for documentation)
 
     Args:
@@ -124,6 +120,32 @@ def init_logging(path:string):
                             logging.StreamHandler()
                         ])
     
+def are_dicts_equal_except_keys(dict1:Dict, dict2:Dict, keys_to_ignore:Union[str, List[str]])->bool:
+    """Check whether two dictionaries are equal except for some keys
+
+    Args:
+        dict1 (Dict): The first dictionary
+        dict2 (Dict): The second dictionary
+        keys_to_ignore (Union[str, List[str]]): Name or list of names of the keys to ignore
+
+    Returns:
+        bool: Are they equal?
+    """
+    # Ensure keys_to_ignore is a list, even if a single string is provided
+    if isinstance(keys_to_ignore, str):
+        keys_to_ignore = [keys_to_ignore]
+            
+    # Create shallow copies of the dictionaries to avoid modifying the originals
+    dict1_copy = dict1.copy()
+    dict2_copy = dict2.copy()
+
+    # Remove each key in keys_to_ignore from both dictionaries
+    for key in keys_to_ignore:
+        dict1_copy.pop(key, None)
+        dict2_copy.pop(key, None)
+
+    # Compare the modified dictionaries
+    return dict1_copy == dict2_copy
 
 def gpuinfo(gpuidx:int)->Dict:
     """

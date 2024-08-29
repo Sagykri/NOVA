@@ -1,8 +1,6 @@
 import sys
 import os
-from typing import List, Tuple
-from common.configs.dataset_config import DatasetConfig
-from datasets.dataset_spd import DatasetSPD
+from typing import List, Tuple, Union
 from torch.utils.data import DataLoader
 import logging
 
@@ -10,7 +8,9 @@ sys.path.insert(1, os.getenv("MOMAPS_HOME"))
 print(f"MOMAPS_HOME: {os.getenv('MOMAPS_HOME')}")
 
 
-from common.configs.trainer_config import TrainerConfig
+from src.datasets.dataset_spd import DatasetSPD
+from src.common.configs.dataset_config import DatasetConfig
+from src.common.configs.trainer_config import TrainerConfig
 from src.common.lib.dataset import Dataset    
 
 def get_dataloader(dataset:Dataset, batch_size:int, indexes:List[int]=None, num_workers:int=2, shuffle:bool=True, drop_last:bool=True)->DataLoader:
@@ -37,7 +37,8 @@ def get_dataloader(dataset:Dataset, batch_size:int, indexes:List[int]=None, num_
                     pin_memory=True,
                     drop_last=drop_last)
     
-def init_dataloaders_with_config(trainer_config:TrainerConfig, dataset_config:DatasetConfig, dataset_type:type=DatasetSPD)->DataLoader|Tuple[DataLoader, DataLoader, DataLoader]:
+def init_dataloaders_with_config(trainer_config:TrainerConfig, dataset_config:DatasetConfig,
+                                 dataset_type:type=DatasetSPD)->Union[DataLoader, Tuple[DataLoader, DataLoader, DataLoader]]:
     """Return dataloaders initialized with the dataset config and trainer config.\n
        If SPLIT_DATA is True, it returns dataloaders for train, val and test,\n
        otherwise a single dataloader for the entire dataset is returned
@@ -48,7 +49,7 @@ def init_dataloaders_with_config(trainer_config:TrainerConfig, dataset_config:Da
         dataset_type (type, optional): The type of dataset to init. Defaults to DatasetSPD.
 
     Returns:
-        DataLoader|Tuple[DataLoader, DataLoader, DataLoader]: Dataloader for the entiredata,\n
+        Union[DataLoader, Tuple[DataLoader, DataLoader, DataLoader]]: Dataloader for the entiredata,\n
         or three dataloaders splitted to train, val and test if SPLIT_DATA in the dataset_config is set to True
     """
 
@@ -58,6 +59,7 @@ def init_dataloaders_with_config(trainer_config:TrainerConfig, dataset_config:Da
     
     batch_size = trainer_config.BATCH_SIZE
     num_workers = trainer_config.NUM_WORKERS
+    drop_last = trainer_config.DROP_LAST_BATCH
     logging.info(f"Init dataloaders (batch_size: {batch_size}, num_workers: {num_workers})")
     
     if not dataset_config.SPLIT_DATA:
@@ -66,9 +68,9 @@ def init_dataloaders_with_config(trainer_config:TrainerConfig, dataset_config:Da
     
     logging.info("Split data...")
     train_indexes, val_indexes, test_indexes = dataset.split()
-    dataloader_train, dataloader_val, dataloader_test = get_dataloader(dataset, batch_size, indexes=train_indexes, num_workers=num_workers),\
-                                                        get_dataloader(dataset, batch_size, indexes=val_indexes, num_workers=num_workers), \
-                                                        get_dataloader(dataset, batch_size, indexes=test_indexes, num_workers=num_workers)
+    dataloader_train, dataloader_val, dataloader_test = get_dataloader(dataset, batch_size, indexes=train_indexes, num_workers=num_workers, shuffle=True, drop_last=drop_last),\
+                                                        get_dataloader(dataset, batch_size, indexes=val_indexes, num_workers=num_workers, shuffle=True, drop_last=drop_last), \
+                                                        get_dataloader(dataset, batch_size, indexes=test_indexes, num_workers=num_workers, shuffle=False, drop_last=False)
                                                         
     return dataloader_train, dataloader_val, dataloader_test
                                                             
