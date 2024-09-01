@@ -5,15 +5,12 @@ sys.path.insert(1, os.getenv("MOMAPS_HOME"))
 import numpy as np
 import pandas as pd
 import logging
-import datetime
 import torch
 
-from src.common.lib.utils import get_if_exists, load_config_file, init_logging
+from src.common.lib.utils import get_if_exists, load_config_file
 from src.common.lib.data_loader import get_dataloader
 from src.datasets.dataset_spd import DatasetSPD
 from src.common.lib.dataset import Dataset
-
-from sandbox.eval_new_arch.dino4cells.main_vit_fine_tuning import infer_pass
 
 def load_embeddings(model_output_folder, config_data, training_batches=['batch7','batch8']):
     """Loads the vit embeddings 
@@ -124,19 +121,19 @@ def rearrange_string(s, config_data):
                 return f"{parts[4]}_{parts[1]}_{parts[2]}_{parts[0]}_{parts[3]}"
 
 def generate_embeddings_with_dataloader(dataset, model):
-    data_loader = get_dataloader(dataset, model.trainer_config.batch_size_per_gpu, num_workers=model.trainer_config.num_workers, drop_last=False)
+    data_loader = get_dataloader(dataset, model.trainer_config.BATCH_SIZE, num_workers=model.trainer_config.NUM_WORKERS, drop_last=False)
     logging.info(f"Data loaded: there are {len(dataset)} images.")
 
-    embeddings, _, _, labels = infer_pass(model, data_loader)
+    embeddings, labels = model.infer(data_loader)
     logging.info(f'total embeddings: {embeddings.shape}')
     
     return embeddings, labels
 
 def save_embeddings(model, embeddings, labels, data_config):
-    output_folder_path = model.model_config.output_folder_path
+    output_folder_path = model.trainer_config.OUTPUTS_FOLDER
     os.makedirs(output_folder_path, exist_ok=True)
     
-    unique_batches = np.unique([label.split('_')[0] for label in labels])
+    unique_batches = np.unique([label.split('_')[0] for label in labels[0]])
     logging.info(f'unique_batches: {unique_batches}')
     
     if data_config.SPLIT_DATA:
@@ -171,17 +168,9 @@ def save_embeddings(model, embeddings, labels, data_config):
             logging.info(f'Finished {set_type} set, saved in {batch_save_path}')
 
 def generate_embeddings(model, config_path_data):
-    output_folder_path = model.model_config.output_folder_path
+    output_folder_path = model.trainer_config.OUTPUTS_FOLDER
     os.makedirs(output_folder_path, exist_ok=True)
     
-    logs_folder = os.path.join(output_folder_path, "logs")
-    os.makedirs(logs_folder, exist_ok=True)
-
-    __now = datetime.datetime.now()
-    jobid = os.getenv('LSB_JOBID')
-    init_logging(os.path.join(logs_folder, __now.strftime("%d%m%y_%H%M%S_%f") + f'_{jobid}_embeddings.log'))
-    
-    logging.info(f"init (jobid: {jobid})")
     logging.info(f"Is GPU available: {torch.cuda.is_available()}")
     logging.info(f"Num GPUs Available: {torch.cuda.device_count()}")
 
@@ -202,12 +191,13 @@ def generate_embeddings(model, config_path_data):
                 config_data = load_config_file(config_path_data)
                 config_data.MARKERS = ['DAPI']
                 dataset_DAPI = DatasetSPD(config_data)
-                _, _, test_DAPI_indexes = dataset_DAPI.split()
-                dataset_DAPI_subset = Dataset.get_subset(dataset_DAPI, test_DAPI_indexes) 
-                dataset_subset.unique_markers = np.concatenate((dataset_subset.unique_markers, dataset_DAPI_subset.unique_markers), axis=1)
-                dataset_subset.label = np.concatenate((dataset_subset.label, dataset_DAPI_subset.label), axis=0)
-                dataset_subset.X_paths = np.concatenate((dataset_subset.X_paths, dataset_DAPI_subset.X_paths), axis=0)
-                dataset_subset.y = np.concatenate((dataset_subset.y, dataset_DAPI_subset.y), axis=0)
+                if len(dataset_DAPI) > 0:
+                    _, _, test_DAPI_indexes = dataset_DAPI.split()
+                    dataset_DAPI_subset = Dataset.get_subset(dataset_DAPI, test_DAPI_indexes) 
+                    dataset_subset.unique_markers = np.concatenate((dataset_subset.unique_markers, dataset_DAPI_subset.unique_markers), axis=1) #TODO: test axis (mine was 1, Sagy was 0)
+                    dataset_subset.label = np.concatenate((dataset_subset.label, dataset_DAPI_subset.label), axis=0)
+                    dataset_subset.X_paths = np.concatenate((dataset_subset.X_paths, dataset_DAPI_subset.X_paths), axis=0)
+                    dataset_subset.y = np.concatenate((dataset_subset.y, dataset_DAPI_subset.y), axis=0)
             embeddings, labels = generate_embeddings_with_dataloader(dataset_subset, model)
             all_embeddings.append(embeddings)
             all_labels.append(labels)

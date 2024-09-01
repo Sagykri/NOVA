@@ -24,8 +24,7 @@ def generate_umaps():
     
     config_path_trainer = sys.argv[1]
     config_trainer = load_config_file(config_path_trainer, 'data')
-    model_output_folder = config_trainer.OUTPUTS_FOLDER #TODO: change this to the right name
-    # model_output_folder = sys.argv[1] # TODO: remove
+    model_output_folder = config_trainer.OUTPUTS_FOLDER
     handle_log(model_output_folder)
 
     config_path_data = sys.argv[2]
