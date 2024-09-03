@@ -11,7 +11,7 @@ from src.common.lib.utils import load_config_file
 from src.common.lib.plotting import plot_distances_plots
 from src.common.lib.utils import handle_log
 
-from src.Analysis.analyzer_distances_ari import AnalyzerDistancesARI
+from src.analysis.analyzer_distances_ari import AnalyzerDistancesARI
 
 
 def plot_distances():

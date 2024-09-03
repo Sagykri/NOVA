@@ -6,7 +6,7 @@ import logging
 import math
 import datetime
 
-from typing import Dict
+from typing import Dict, List
 import seaborn as sns
 import matplotlib.pyplot as plt
 import matplotlib.colors as mcolors
@@ -21,7 +21,7 @@ from src.common.lib.metrics import get_metrics_figure
 from src.common.lib.utils import get_if_exists
 from src.common.configs.dataset_config import DatasetConfig
 
-def plot_umap0(features:np.ndarray, config_data:DatasetConfig, output_folder_path:str)->None:
+def plot_umap0(umap_embeddings:np.ndarray[float], labels:np.ndarray[str], config_data:DatasetConfig, output_folder_path:str)->None:
     """Plot 2d UMAP of given embeddings, for each marker separately
 
     Args:
@@ -30,7 +30,6 @@ def plot_umap0(features:np.ndarray, config_data:DatasetConfig, output_folder_pat
         output_folder_path (str): root path to save the plots and configuration in
     """
     logging.info(f"[plot_umap0]")
-    umap_embeddings, labels = features[:,:2], features[:,2]
     markers = np.unique([m.split('_')[0] if '_' in m else m for m in np.unique(labels.reshape(-1,))]) 
     logging.info(f"[plot umap0] Detected markers: {markers}")
     folder = _generate_folder_name(config_data, include_time=True)
@@ -60,7 +59,7 @@ def plot_umap0(features:np.ndarray, config_data:DatasetConfig, output_folder_pat
         _plot_umap_embeddings(marker_umap_embeddings, label_data, config_data, 
                              savepath=savepath, show_ari=show_ari, title=marker)      
 
-def plot_umap1(features:np.ndarray, config_data:DatasetConfig, output_folder_path:str)->None:
+def plot_umap1(umap_embeddings:np.ndarray[float], labels:np.ndarray[str], config_data:DatasetConfig, output_folder_path:str)->None:
     """Plot 2d UMAP of given embeddings, all markers together
 
     Args:
@@ -69,7 +68,6 @@ def plot_umap1(features:np.ndarray, config_data:DatasetConfig, output_folder_pat
         output_folder_path (str): root path to save the plot and configuration in
     """
     logging.info(f"[plot_umap1]")
-    umap_embeddings, labels = features[:,:2], features[:,2]
     folder = _generate_folder_name(config_data, include_time=True)
    
     saveroot = os.path.join(output_folder_path, folder)
@@ -89,7 +87,7 @@ def plot_umap1(features:np.ndarray, config_data:DatasetConfig, output_folder_pat
     _plot_umap_embeddings(umap_embeddings, label_data, config_data, savepath, 
                         ordered_names = ordered_names, show_ari=False)
 
-def plot_umap2(features:np.ndarray, config_data:DatasetConfig, output_folder_path:str)->None:
+def plot_umap2(umap_embeddings:np.ndarray[float], labels:np.ndarray[str], config_data:DatasetConfig, output_folder_path:str)->None:
     """Plot 2d UMAP of given concatenated embeddings
 
     Args:
@@ -98,7 +96,6 @@ def plot_umap2(features:np.ndarray, config_data:DatasetConfig, output_folder_pat
         output_folder_path (str): root path to save the plot and configuration in
     """
     logging.info(f"[plot_umap2]")
-    umap_embeddings, labels = features[:,:2], features[:,2]
     folder = _generate_folder_name(config_data, include_time=True)
     
     saveroot = os.path.join(output_folder_path, folder)
@@ -112,15 +109,15 @@ def plot_umap2(features:np.ndarray, config_data:DatasetConfig, output_folder_pat
     savepath = os.path.join(saveroot, folder) 
     _plot_umap_embeddings(umap_embeddings, label_data, config_data, savepath, show_ari=False)
 
-def _plot_umap_embeddings(umap_embeddings: np.ndarray, 
-                         label_data: np.ndarray, 
+def _plot_umap_embeddings(umap_embeddings: np.ndarray[float], 
+                         label_data: np.ndarray[str], 
                          config_data: DatasetConfig, 
                          savepath: str = None,
                          title: str = 'UMAP projection of Embeddings', 
                          outliers_fraction: float = 0.1,
                          dpi: int = 300, 
                          figsize: tuple = (6,5), 
-                         ordered_names: list = None, 
+                         ordered_names: List = None, 
                          show_ari: bool = True,
                          unique_groups: np.ndarray = None) -> None:
     """Plots UMAP embeddings with given labels and configurations."""
@@ -339,7 +336,7 @@ def _plot_bubble_plot(distances:pd.DataFrame, baseline:str, saveroot:str, metric
     _save_or_show_plot(fig, savepath, dpi=100)
     return 
 
-def _format_UMAP_legend(ax, ordered_names: list, marker_size: int) -> None:
+def _format_UMAP_legend(ax, ordered_names: List[str], marker_size: int) -> None:
     """Formats the legend in the plot."""
     handles, labels = ax.get_legend_handles_labels()
 
@@ -376,7 +373,7 @@ def _save_config(config_data: DatasetConfig, output_folder_path: str) -> None:
     with open(os.path.join(output_folder_path, 'config.json'), 'w') as json_file:
         json.dump(config_data.__dict__, json_file, indent=4)
 
-def _map_labels(labels: np.ndarray, config_data: DatasetConfig) -> np.ndarray:
+def _map_labels(labels: np.ndarray[str], config_data: DatasetConfig) -> np.ndarray[str]:
     """Maps labels based on the provided function in the configuration."""
     map_function = get_if_exists(config_data, 'MAP_LABELS_FUNCTION', None)
     if map_function:

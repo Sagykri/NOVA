@@ -1,22 +1,16 @@
-import json
 import os
 import sys
 
 sys.path.insert(1, os.getenv("MOMAPS_HOME"))
 print(f"MOMAPS_HOME: {os.getenv('MOMAPS_HOME')}")
 
-import numpy as np
 import logging
-import datetime
 
 from src.common.lib.utils import get_if_exists, load_config_file
 from src.common.lib.embeddings_utils import load_embeddings
 from src.common.lib.utils import handle_log
 
-from src.Analysis.analyzer_distances_ari import AnalyzerDistancesARI
-
-from src.common.configs.dataset_config import DatasetConfig
-from src.common.configs.trainer_config import TrainerConfig
+from src.analysis.analyzer_distances_ari import AnalyzerDistancesARI
 
 def generate_distances():
     if len(sys.argv) < 3:
@@ -24,7 +18,7 @@ def generate_distances():
     
     config_path_trainer = sys.argv[1]
     config_trainer = load_config_file(config_path_trainer, 'data')
-    model_output_folder = config_trainer.OUTPUTS_FOLDER #TODO: change this to the right name
+    model_output_folder = config_trainer.OUTPUTS_FOLDER
     handle_log(model_output_folder)
 
     config_path_data = sys.argv[2]

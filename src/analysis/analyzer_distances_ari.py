@@ -1,0 +1,45 @@
+import sys
+import os
+sys.path.insert(1, os.getenv("MOMAPS_HOME"))
+
+import numpy as np
+from typing import Tuple
+from sklearn.metrics import adjusted_rand_score
+
+from src.common.configs.dataset_config import DatasetConfig
+from src.common.configs.trainer_config import TrainerConfig
+from src.common.lib.metrics import cluster_without_outliers
+from src.analysis.analyzer_distances import AnalyzerDistances
+
+class AnalyzerDistancesARI(AnalyzerDistances):
+    def __init__(self, trainer_config: TrainerConfig, data_config: DatasetConfig):
+        super().__init__(trainer_config, data_config)  
+
+    def _compute_score(self, embeddings: np.ndarray[float], labels: np.ndarray[float]) -> Tuple[float,str]:
+        """Compute ARI scores
+        Args:
+            embeddings (np.ndarray[float]): embeddings to calculate scores on
+            labels (np.ndarray[str]): labels of the embeddings to calculate scores on; should contain only 2 unique labels
+
+        Returns:
+            float: the ari with kmeans constrained score 
+            str: the score name
+        """
+        n_clusters = 2
+        kmeans_constrained_labels = cluster_without_outliers(embeddings, n_clusters=n_clusters, outliers_fraction=0.1, n_init=10, random_state=1)
+
+        score = adjusted_rand_score(labels, kmeans_constrained_labels)
+
+        return score, 'ARI_KMeansConstrained'
+    
+    def _get_saving_folder(self)->str:
+        """Get the path to the folder where the features and figures can be saved
+        """
+        model_output_folder = self.output_folder_path
+        
+        output_folder_path = os.path.join(model_output_folder, 'figures', self.data_config.EXPERIMENT_TYPE, 'distances')
+        if not os.path.exists(output_folder_path):
+            os.makedirs(output_folder_path, exist_ok=True)
+
+        return output_folder_path
+

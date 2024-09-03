@@ -184,7 +184,7 @@ class Dataset(torch.utils.data.Dataset ,metaclass=ABCMeta):
         return X_batch, y_batch
         
     def id2label(self, y_id):
-        y_label = self.unique_markers[y_id.flatten().astype(int)]
+        y_label = self.unique_markers.reshape(-1,1)[y_id.flatten().astype(int)]
         
         return y_label
     
