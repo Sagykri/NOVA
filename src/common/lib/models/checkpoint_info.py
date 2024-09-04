@@ -26,20 +26,32 @@ class CheckpointInfo():
                  avg_val_loss:float=np.inf,
                  best_avg_val_loss:float=np.inf,
                  early_stopping_counter:int=0,
+                 trainset_paths:np.ndarray[str]=[],
+                 trainset_labels:np.ndarray[str]=[],
+                 valset_paths:np.ndarray[str]=[],
+                 valset_labels:np.ndarray[str]=[],
+                 testset_paths:np.ndarray[str]=[],
+                 testset_labels:np.ndarray[str]=[],
                  description:str=''):
         """Get an instance
 
          Args:
-             model_dict (Dict, optional): The model state_dict. Defaults to None.
-             optimizer_dict (Dict, optional): The optimizier state_dict. Defaults to None.
-             epoch (int, optional): The epoch number. Defaults to 0.
-             trainer_config (TrainerConfig, optional): The trainer config object. Defaults to None.
-             dataset_config (DatasetConfig, optional): The dataset config object. Defaults to None.
-             model_config (ModelConfig, optional): The model config object. Defaults to None.
-             scaler_dict (Dict, optional): The scaler state_dict. Defaults to None.
-             avg_val_loss (float, optional): The average loss on the validation set. Defaults to np.inf.
-             best_avg_val_loss (float, optional): The best average loss on the validation set. Defaults to np.inf.
-             early_stopping_counter (int, optional): The counter value for the early stopping mechanism. Defaults to 0.
+             model_dict (Dict): The model state_dict. 
+             optimizer_dict (Dict): The optimizier state_dict. 
+             epoch (int): The epoch number. 
+             trainer_config (TrainerConfig): The trainer config object.
+             dataset_config (DatasetConfig): The dataset config object. 
+             model_config (ModelConfig): The model config object. 
+             scaler_dict (Dict): The scaler state_dict. 
+             avg_val_loss (float): The average loss on the validation set. 
+             best_avg_val_loss (float): The best average loss on the validation set. 
+             early_stopping_counter (int): The counter value for the early stopping mechanism. 
+             trainset_paths (np.ndarray[str]): Paths to the trainset files. 
+             trainset_labels (np.ndarray[str]): Labels of the trainset files. 
+             valset_paths (np.ndarray[str]): Paths to the valset files.
+             valset_labels (np.ndarray[str]): Labels to the valset files.
+             testset_paths (np.ndarray[str]): Paths to the testset files.
+             testset_labels (np.ndarray[str]): Labels to the testset files.
              description (str, optional): A description for this checkpoint. Defaults to ''.
          """
         
@@ -59,6 +71,13 @@ class CheckpointInfo():
         self.best_avg_val_loss:float = best_avg_val_loss
         self.early_stopping_counter:int = early_stopping_counter
         self.description:str = description
+        
+        self.trainset_paths:np.ndarray[str] = trainset_paths
+        self.trainset_labels:np.ndarray[str] = trainset_labels
+        self.valset_paths:np.ndarray[str] = valset_paths
+        self.valset_labels:np.ndarray[str] = valset_labels
+        self.testset_paths:np.ndarray[str] = testset_paths
+        self.testset_labels:np.ndarray[str] = testset_labels
         
         self.rng_state = torch.get_rng_state().tolist()
         self.cuda_rng_state = [l.tolist() for l in torch.cuda.get_rng_state_all()]

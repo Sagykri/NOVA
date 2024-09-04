@@ -4,7 +4,7 @@ import logging
 import numpy as np
 import torch
 from torch.utils.data import DataLoader
-from typing import Dict, Tuple
+from typing import Dict, List, Tuple
 from collections import OrderedDict
 
 sys.path.insert(1, os.getenv("MOMAPS_HOME"))
@@ -82,7 +82,7 @@ class NOVAModel():
         Returns:
             Tuple[np.ndarray[torch.Tensor], np.ndarray[str]]: (all the embeddings, all the labels)
         """
-        all_embeddings:np.ndarray[torch.Tensor] = np.array([])
+        all_embeddings:List[torch.Tensor] = []
         all_labels:np.ndarray[str] = np.array([])
         
         # Move model to cuda
@@ -104,8 +104,10 @@ class NOVAModel():
                 # run the model to get the embeddings
                 embeddings = self.model(images).cpu()
                 
-                all_embeddings = np.append(all_embeddings, embeddings)
+                all_embeddings.append(embeddings)
                 all_labels = np.append(all_labels, labels)
+        
+        all_embeddings:np.ndarray[torch.Tensor] = np.vstack(all_embeddings)
         
         return all_embeddings, all_labels
     

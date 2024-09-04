@@ -82,12 +82,13 @@ class TrainerBase():
         """
         pass
     
-    def train(self, data_loader_train: DataLoader, data_loader_val: DataLoader)->None:
+    def train(self, data_loader_train: DataLoader, data_loader_val: DataLoader, data_loader_test: DataLoader)->None:
         """Train the model on the given data_loader_train and validate it on the data_loader_val
 
         Args:
             data_loader_train (DataLoader): The dataloader that would provide the dataset for training
             data_loader_val (DataLoader): The dataloader that would provide the dataset for the validation phase
+            data_loader_test (DataLoader): The dataloader that would provide the dataset for the test phase
         """
         
         self.__init_params_for_training(data_loader_train)
@@ -95,16 +96,28 @@ class TrainerBase():
         # Move model to gpu
         self.nova_model.model = self.nova_model.model.cuda()
         
-        # Set data augmentations
-        data_loader_train.dataset.set_transform(self.data_augmentation)
-        data_loader_val.dataset.set_transform(self.data_augmentation)
+        # Store dataloaders
+        self.data_loader_train: DataLoader = data_loader_train
+        self.data_loader_val: DataLoader = data_loader_val
+        self.data_loader_test: DataLoader = data_loader_test
         
-        self.__try_restart_from_last_checkpoint(data_loader_train)
+        # Set data augmentations
+        self.data_loader_train.dataset.set_transform(self.data_augmentation)
+        self.data_loader_val.dataset.set_transform(self.data_augmentation)
+        
+        self.__try_restart_from_last_checkpoint()
         
         # Save training config into the model
         self.nova_model.trainer_config = self.trainer_config
         
-        self.__training_loop(data_loader_train, data_loader_val)
+        # Run the training loop
+        self.__training_loop()
+        
+        # Close the tensorboard writer
+        self.tensorboard_writer.close()
+        
+        # Save the final model
+        self.__save_model()
         
     #######################
     # Protected functions
@@ -149,6 +162,7 @@ class TrainerBase():
         
         self.checkpoint_last_path:str = os.path.join(self.checkpoints_dir, 'checkpoint_last.pth')
         self.checkpoint_best_path:str = os.path.join(self.checkpoints_dir, 'checkpoint_best.pth')
+        self.final_model_path:str     =  os.path.join(self.outputs_folder, "model.pth")
         
         self.early_stopping_info:_EarlyStoppingInfo = _EarlyStoppingInfo(self.early_stopping_patience)
         self.starting_epoch:int = 0
@@ -202,6 +216,15 @@ class TrainerBase():
         self.best_avg_val_loss = checkpoint.best_avg_val_loss
         self.nova_model.model.load_state_dict(checkpoint.model_dict)
         
+        # Use the exact same dataset as has been used in the checkpoint
+        logging.info("Loading dataset split from checkpoint")
+        self.data_loader_train.dataset.X_paths = checkpoint.trainset_paths
+        self.data_loader_train.dataset.y = checkpoint.trainset_labels
+        self.data_loader_val.dataset.X_paths = checkpoint.valset_paths
+        self.data_loader_val.dataset.y = checkpoint.valset_labels
+        self.data_loader_test.dataset.X_paths = checkpoint.testset_paths
+        self.data_loader_test.dataset.y = checkpoint.testset_labels
+
         torch.set_rng_state(checkpoint.rng_state)
         torch.cuda.set_rng_state_all(checkpoint.cuda_rng_state)
         
@@ -239,11 +262,8 @@ class TrainerBase():
         logging.info(f"Instantiate data augmentation object from class {data_augmentation_class.__name__}")
         self.data_augmentation = data_augmentation_class()
             
-    def __try_restart_from_last_checkpoint(self, dataloader:DataLoader):
+    def __try_restart_from_last_checkpoint(self):
         """Try restrat the training from the last checkpoint
-
-        Args:
-            dataloader (DataLoader, optional): The dataloader being used for the training. 
         """
         if not os.path.exists(self.checkpoint_last_path):  
             logging.info(f"NOTE: couldn't find a checkpoint file to restart from ({self.checkpoint_last_path})")
@@ -256,19 +276,14 @@ class TrainerBase():
         # Test that we are restarting from the same configurations
         assert self.trainer_config.is_equal(checkpoint.trainer_config), f"Loaded checkpoint ({self.checkpoint_last_path}) doesn't have the same training configuration"
         assert self.nova_model.model_config.is_equal(checkpoint.model_config), f"Loaded checkpoint ({self.checkpoint_last_path}) doesn't have the same model configuration"
-        assert dataloader.dataset.conf.is_equal(checkpoint.dataset_config), f"Loaded checkpoint ({self.checkpoint_last_path}) doesn't have the same dataset configuration"
+        assert self.data_loader_train.dataset.conf.is_equal(checkpoint.dataset_config), f"Loaded checkpoint ({self.checkpoint_last_path}) doesn't have the same dataset configuration"
         assert self.nova_model.is_equal_architecture(checkpoint.model_dict), f"Loaded checkpoint ({self.checkpoint_last_path}) doesn't have the same model"
 
         # Init trainer from checkpoint
         self.__try_init_from_checkpoint(checkpoint)
         
-    def __training_loop(self, data_loader_train: DataLoader, data_loader_val: DataLoader)->None:
+    def __training_loop(self)->None:
         """Run the training loop over across all epochs, while handling checkpoint saving and early stopping
-
-        Args:
-            nova_model (NOVAModel): The model to train
-            data_loader_train (DataLoader): The dataloader for the training dataset
-            data_loader_val (DataLoader): The dataloader for the validation dataset
         """
         
         for epoch in tqdm(range(0, self.max_epochs)):
@@ -283,7 +298,7 @@ class TrainerBase():
             
             self.optimizer.zero_grad()
             
-            avg_val_loss = self.__run_one_epoch(data_loader_train, data_loader_val, epoch)
+            avg_val_loss = self.__run_one_epoch(epoch)
                 
             is_improved = self.__is_better_val_loss(avg_val_loss)
             
@@ -298,12 +313,18 @@ class TrainerBase():
                                                         optimizer_dict=self.optimizer.state_dict(),
                                                         epoch=epoch,
                                                         trainer_config=self.trainer_config,
-                                                        dataset_config=data_loader_train.dataset.conf,
+                                                        dataset_config=self.data_loader_train.dataset.conf,
                                                         model_config=self.nova_model.model_config,
                                                         scaler_dict=self.scaler.state_dict(),
                                                         avg_val_loss=avg_val_loss,
                                                         best_avg_val_loss=self.best_avg_val_loss,
                                                         early_stopping_counter=self.early_stopping_info.counter,
+                                                        trainset_paths=self.data_loader_train.dataset.X_paths,
+                                                        trainset_labels=self.data_loader_train.dataset.y,
+                                                        valset_paths=self.data_loader_val.dataset.X_paths,
+                                                        valset_labels=self.data_loader_val.dataset.y,
+                                                        testset_paths=self.data_loader_test.dataset.X_paths,
+                                                        testset_labels=self.data_loader_test.dataset.y,
                                                         description=self.description)    
             
             self.__handle_checkpoint_saving(is_improved, checkpoint_info)
@@ -347,12 +368,10 @@ class TrainerBase():
         """
         return avg_val_loss < self.best_avg_val_loss
         
-    def __run_one_epoch(self, data_loader_train: DataLoader, data_loader_val: DataLoader, current_epoch: int)->float:
+    def __run_one_epoch(self, current_epoch: int)->float:
         """Run one epoch on the training set and then one on the validation set
 
         Args:
-            data_loader_train (DataLoader): The dataloader to get the training dataset from
-            data_loader_val (DataLoader): The dataloader to get the validation dataset from
             current_epoch (int): The number of the current epoch
 
         Returns:
@@ -362,15 +381,17 @@ class TrainerBase():
         
         
         logging.info(f"--------------------------------------- TRAINING (epoch={current_epoch}) ---------------------------------------")
-        loss_train_avg = self.__run_one_epoch_train(current_epoch, data_loader_train)
-        
+        avg_train_loss = self.__run_one_epoch_train(current_epoch, self.data_loader_train)
         
         logging.info(f"--------------------------------------- EVAL (epoch={current_epoch}) ---------------------------------------")
-        loss_val_avg = self.__run_one_epoch_eval(current_epoch, data_loader_val)
+        avg_val_loss = self.__run_one_epoch_eval(current_epoch, self.data_loader_val)
         
-        self.tensorboard_writer.add_scalars('Loss', {'Training': loss_train_avg, 'Validation': loss_val_avg}, current_epoch)
+        logging.info(f"--------------------------------------- TEST (epoch={current_epoch}) ---------------------------------------")
+        avg_test_loss = self.__run_one_epoch_eval(current_epoch, self.data_loader_test, is_testset=True)
+
+        self.tensorboard_writer.add_scalars('1. Loss/All', {'Train': avg_train_loss, 'Validation': avg_val_loss, 'Test': avg_test_loss}, current_epoch)
         
-        return loss_val_avg
+        return avg_val_loss
 
     def __run_one_epoch_train(self, current_epoch:int, data_loader:DataLoader)->float:
         """Run one epoch on the given dataloader in train mode
@@ -383,11 +404,11 @@ class TrainerBase():
             float: The average loss on the training set
         """
         
-        loss_train_avg = 0
         self.nova_model.model.train()
         
+        avg_train_loss = 0
         for it, res in enumerate(data_loader):
-            logging.info(f"[Training epoch={current_epoch}] batch number: {it}/{len(data_loader)}")
+            logging.info(f"[Training epoch={current_epoch}] Batch number: {it}/{len(data_loader)-1}")
             
             self.__handle_scehdulers(it, current_epoch, data_loader)
 
@@ -397,13 +418,13 @@ class TrainerBase():
                 # calc loss value
                 loss = self.loss(**model_output)
             current_loss_value = loss.item()
-            loss_train_avg += current_loss_value
+            avg_train_loss += current_loss_value
 
             if not math.isfinite(current_loss_value):
                 logging.info("Loss is {}, stopping training".format(current_loss_value))
                 raise Exception(f"Loss is {current_loss_value}, stopping training")
                 
-            logging.info(f"***** [epoch {current_epoch}] train loss: {current_loss_value} *****")
+            logging.info(f"***** [epoch {current_epoch}, batch {it}] Train loss: {current_loss_value} *****")
             
             logging.info("Calculating grads")
             self.__calculate_gradients(loss)
@@ -412,19 +433,20 @@ class TrainerBase():
             self.__update_model_weights()
             
             # Write to tensorboard
-            self.tensorboard_writer.add_scalar('Loss/train', current_loss_value, current_epoch * len(data_loader) + it)
-            self.tensorboard_writer.add_scalar('Learning Rate', self.optimizer.param_groups[0]['lr'], current_epoch * len(data_loader) + it)
-            self.tensorboard_writer.add_scalar('Weight Decay', self.optimizer.param_groups[0]['weight_decay'], current_epoch * len(data_loader) + it)
+            self.tensorboard_writer.add_scalar('1. Loss/Train Steps', current_loss_value, current_epoch * len(data_loader) + it)
+            self.tensorboard_writer.add_scalar('2. Optimizer/Learning Rate', self.optimizer.param_groups[0]['lr'], current_epoch * len(data_loader) + it)
+            self.tensorboard_writer.add_scalar('2. Optimizer/Weight Decay', self.optimizer.param_groups[0]['weight_decay'], current_epoch * len(data_loader) + it)
             
             self.optimizer.zero_grad()  # Reset gradients after each update
             
         # Take the average loss on the training set
-        loss_train_avg /= len(data_loader)
+        avg_train_loss /= len(data_loader)
         
-        logging.info(f"***** [epoch {current_epoch}] Averaged train loss: {loss_train_avg} *****")
-        self.tensorboard_writer.add_scalar('Loss/train_avg', loss_train_avg, current_epoch)
+        logging.info(f"***** [epoch {current_epoch}] Averaged train loss: {avg_train_loss} *****")
+        self.tensorboard_writer.add_scalar('1. Loss/Train Epochs', avg_train_loss, current_epoch)
+
         
-        return loss_train_avg
+        return avg_train_loss
     
     def __handle_scehdulers(self, current_iteration:int, current_epoch:int, data_loader: DataLoader)->None:
         """Setting the learning rate and weight_decay based on the scheduler
@@ -456,37 +478,43 @@ class TrainerBase():
         self.scaler.step(self.optimizer)  # Update weights
         self.scaler.update()
                     
-    def __run_one_epoch_eval(self, current_epoch:int, data_loader:DataLoader)->float:
+    def __run_one_epoch_eval(self, current_epoch:int, data_loader:DataLoader, is_testset:bool=False)->float:
         """Run one epoch on the given dataloader in eval mode
 
         Args:
             current_epoch (int): The current epoch
             data_loader (DataLoader): The dataloader to get the data from
-
+            is_testset (bool, optional): Is the dataset is the testset. Default to False (i.e. valset).
         Returns:
             float: The average loss on the validation set
         """
+        
+        title:str = 'Test' if is_testset else 'Val'
+        
         self.nova_model.model.eval()
         
         with torch.no_grad():
-            loss_val_avg = 0
+            avg_eval_loss = 0
             for it, res in enumerate(data_loader):
-                logging.info(f"[Validation epoch={current_epoch}] batch number: {it}/{len(data_loader)}")
-                model_output = self.forward(res)
+                logging.info(f"[{title} epoch={current_epoch}] Batch number: {it}/{len(data_loader)-1}")
                 with torch.cuda.amp.autocast():
+                    # forward pass
+                    model_output = self.forward(res)
+                    # calc loss value
                     loss = self.loss(**model_output)
-                    
-                logging.info(f"***** [epoch {current_epoch}] val loss: {loss.item()} *****")
                 
-                self.tensorboard_writer.add_scalar('Loss/val', loss.item(), current_epoch * len(data_loader) + it)
-                loss_val_avg += loss.item()
+                logging.info(f"***** [epoch {current_epoch}, batch {it}] {title} loss: {loss.item()} *****")
+                
+                self.tensorboard_writer.add_scalar(f'1. Loss/{title} Steps', loss.item(), current_epoch * len(data_loader) + it)
+                avg_eval_loss += loss.item()
                 
             # Take the average loss on the validation set
-            loss_val_avg /= len(data_loader)
-            logging.info(f"***** [epoch {current_epoch}] Averaged val loss: {loss_val_avg} *****")
-            self.tensorboard_writer.add_scalar('Loss/val_avg', loss_val_avg, current_epoch)
+            avg_eval_loss /= len(data_loader)
+            logging.info(f"***** [epoch {current_epoch}] Averaged {title} loss: {avg_eval_loss} *****")
+            self.tensorboard_writer.add_scalar(f'1. Loss/{title} Epochs', avg_eval_loss, current_epoch)
+
             
-        return loss_val_avg
+        return avg_eval_loss
     
     def __get_params_groups_for_optimizer(self)->List[Dict]:
         """Get params for the optimizier.\n
@@ -555,3 +583,10 @@ class TrainerBase():
         assert len(schedule) == epochs * niter_per_ep, "Schedule length does not match the expected number of iterations."
         
         return schedule
+    
+    def __save_model(self):
+        """Saves the final model to a file
+        """
+        logging.log(f"Saving the final model to {self.final_model_path}")
+        torch.save(self.nova_model.model.state_dict(), self.final_model_path)
+        logging.log(f"The final model was saved successfully")

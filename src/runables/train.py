@@ -44,7 +44,7 @@ def __train(model_config_path:str, trainer_config_path:str, dataset_config_path:
     logging.info(f"Is GPU available: {torch.cuda.is_available()}; Num GPUs Available: {torch.cuda.device_count()}")
     
     logging.info("Initializing the dataloaders")
-    dataloader_train, dataloader_val, _ = init_dataloaders_with_config(trainer_config, dataset_config)
+    dataloader_train, dataloader_val, data_loader_test = init_dataloaders_with_config(trainer_config, dataset_config)
     
     logging.info("Creating the NOVA model")
     nova_model = NOVAModel(model_config)
@@ -56,7 +56,7 @@ def __train(model_config_path:str, trainer_config_path:str, dataset_config_path:
     trainer: TrainerBase = trainer_class(trainer_config, nova_model)
     
     logging.info("Training...")
-    trainer.train(dataloader_train, dataloader_val)
+    trainer.train(dataloader_train, dataloader_val, data_loader_test)
 
 
 if __name__ == "__main__":    

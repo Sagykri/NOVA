@@ -30,6 +30,7 @@ data/processed/*
 
 /tools/lena/models_outputs_Lena/embeddings/**/*.npy
 /tools/lena/UMAPs/**/*.npy
+/sandbox/**
 /sandbox/**/*.npy
 /sandbox/**/*.pdf
 

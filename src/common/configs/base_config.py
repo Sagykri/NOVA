@@ -67,7 +67,6 @@ class BaseConfig():
             
             torch.manual_seed(self.__SEED)
             torch.cuda.manual_seed_all(self.__SEED)
-            np.random.seed(self.__SEED)
             cudnn.benchmark = False
         except Exception as e:
             logging.warn(f"Tried to set seed for torch but couldn't find it: {str(e)}.\nIf torch is not in used, please ignore this message.")
