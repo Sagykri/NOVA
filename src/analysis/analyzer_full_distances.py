@@ -1,6 +1,8 @@
 
 import sys
 import os
+
+from src.datasets.label_utils import get_batches_from_input_folders
 sys.path.insert(1, os.getenv("MOMAPS_HOME"))
 
 from abc import abstractmethod
@@ -15,7 +17,7 @@ from sklearn.metrics.pairwise import pairwise_distances
 from src.common.configs.dataset_config import DatasetConfig
 from src.common.configs.trainer_config import TrainerConfig
 from src.analysis.analyzer import Analyzer
-from src.common.lib.utils import get_if_exists, get_unique_cell_lines_conds_from_labels, get_unique_markers_from_labels, get_unique_batches_from_labels, get_batches_from_input_folders
+from src.common.lib.utils import get_if_exists
 
 class AnalyzerDistancesFull(Analyzer):
     def __init__(self, trainer_config: TrainerConfig, data_config: DatasetConfig):

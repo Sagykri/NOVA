@@ -2,19 +2,23 @@ import sys
 import os
 sys.path.insert(1, os.getenv("MOMAPS_HOME"))
 
-from abc import abstractmethod
 
 from src.common.configs.dataset_config import DatasetConfig
 from src.common.configs.trainer_config import TrainerConfig
 from src.analysis.analyzer import Analyzer
 
-import logging
-import os
+from abc import abstractmethod
+from enum import Enum
 import numpy as np
 import umap
 from typing import Tuple
 
 class AnalyzerUMAP(Analyzer):
+    class UMAP_type(Enum):
+        SINGLE_MARKERS = 0
+        MULTIPLE_MARKERS = 1
+        MULTIPLEX_MARKERS = 2
+
     def __init__(self, trainer_config: TrainerConfig, data_config: DatasetConfig):
         """Get an instance
 
@@ -41,47 +45,26 @@ class AnalyzerUMAP(Analyzer):
         pass
     
     
-    def load(self, umap_type:str)->Tuple[np.ndarray[float], np.ndarray[str]]:
+    def load(self, umap_idx:int)->None:
         """load the saved UMAP embeddings into the self.features attribute,
         load the saved labels into the self.labels attribute
 
         Args:
-            umap_type (str): string indicating the umap type ('umap0','umap1','umap2')
+            umap_idx (int): int indicating the umap type (0,1,2)
         """
-        model_output_folder = self.output_folder_path
-
-        output_folder_path = os.path.join(model_output_folder, 'figures', self.data_config.EXPERIMENT_TYPE,'UMAP', umap_type)
-        if not os.path.exists(output_folder_path):
-            logging.info(f"{output_folder_path} doesn't exists. Can't load!")
-            return None
-
-        title = f"{'_'.join([os.path.basename(f) for f in self.data_config.INPUT_FOLDERS])}_{'_'.join(self.data_config.REPS)}"
-        saveroot = os.path.join(output_folder_path,f'{title}')
-        if not os.path.exists(saveroot):
-            logging.info(f"{saveroot} doesn't exists. Can't load!")
-            return None
-        
+        umap_type = self.UMAP_type(umap_idx).name
+        saveroot = self._get_saving_folder(feature_type='UMAPs', umap_type=umap_type)       
         self.features = np.load(f'{saveroot}_{umap_type}.npy')
         self.labels = np.load(f'{saveroot}_{umap_type}_labels.npy')
     
-    def save(self, umap_type:str)->None:
+    def save(self, umap_idx:int)->None:
         """save the calculated UMAP embeddings and labels in path derived from self.output_folder_path
 
         Args:
-            umap_type (str): string indicating the umap type ('umap0','umap1','umap2')
+            umap_idx (int): int indicating the umap type (0,1,2)
         """
-        model_output_folder = self.output_folder_path
-
-        output_folder_path = os.path.join(model_output_folder, 'figures', self.data_config.EXPERIMENT_TYPE,'UMAP', umap_type)
-        if not os.path.exists(output_folder_path):
-            logging.info(f"{output_folder_path} doesn't exists. Creating it")
-            os.makedirs(output_folder_path, exist_ok=True)
-
-        title = f"{'_'.join([os.path.basename(f) for f in self.data_config.INPUT_FOLDERS])}_{'_'.join(self.data_config.REPS)}"
-        saveroot = os.path.join(output_folder_path,f'{title}')
-        if not os.path.exists(saveroot):
-            os.makedirs(saveroot, exist_ok=True)
-        
+        umap_type = self.UMAP_type(umap_idx).name
+        saveroot = self._get_saving_folder(feature_type='UMAPs', umap_type=umap_type)   
         np.save(f'{saveroot}_{umap_type}.npy', self.features)
         np.save(f'{saveroot}_{umap_type}_labels.npy', self.labels)
 

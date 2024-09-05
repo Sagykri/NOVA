@@ -12,23 +12,15 @@ from src.common.lib.utils import handle_log
 
 from src.analysis.analyzer_distances_ari import AnalyzerDistancesARI
 
-def generate_distances():
-    if len(sys.argv) < 3:
-        raise ValueError("Invalid arguments. Must supply trainer config and data config!")
-    
-    config_path_trainer = sys.argv[1]
+def generate_distances(config_path_trainer:str, config_path_data:str )->None:
+   
     config_trainer = load_config_file(config_path_trainer, 'data')
     model_output_folder = config_trainer.OUTPUTS_FOLDER
     handle_log(model_output_folder)
 
-    config_path_data = sys.argv[2]
     config_data = load_config_file(config_path_data, 'data')
-    
-    train_batches = get_if_exists(config_data, 'TRAIN_BATCHES', None)
-    if train_batches:
-        logging.info(f'config_data.TRAIN_BATCHES: {train_batches}')
 
-    embeddings, labels = load_embeddings(model_output_folder, config_data, train_batches)
+    embeddings, labels = load_embeddings(model_output_folder, config_data)
     
     logging.info("[Generate distances (vit)]")
     d = AnalyzerDistancesARI(config_trainer, config_data)
@@ -39,7 +31,13 @@ def generate_distances():
 if __name__ == "__main__":
     print("Starting generating distances...")
     try:
-        generate_distances()
+        if len(sys.argv) < 3:
+            raise ValueError("Invalid arguments. Must supply trainer config and data config!")
+        config_path_trainer = sys.argv[1]
+        config_path_data = sys.argv[2]
+
+        generate_distances(config_path_trainer, config_path_data)
+        
     except Exception as e:
         logging.exception(str(e))
         raise e

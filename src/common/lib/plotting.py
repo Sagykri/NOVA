@@ -4,7 +4,7 @@ import numpy as np
 import pandas as pd
 import logging
 import math
-import datetime
+import importlib
 
 from typing import Dict, List
 import seaborn as sns
@@ -21,24 +21,20 @@ from src.common.lib.metrics import get_metrics_figure
 from src.common.lib.utils import get_if_exists
 from src.common.configs.dataset_config import DatasetConfig
 
-def plot_umap0(umap_embeddings:np.ndarray[float], labels:np.ndarray[str], config_data:DatasetConfig, output_folder_path:str)->None:
+def plot_umap0(umap_embeddings:np.ndarray[float], labels:np.ndarray[str], config_data:DatasetConfig, saveroot:str)->None:
     """Plot 2d UMAP of given embeddings, for each marker separately
 
     Args:
         features (np.ndarray): array containing the umap embeddings and labels
         config_data (DatasetConfig): dataset config
-        output_folder_path (str): root path to save the plots and configuration in
+        saveroot (str): root path to save the plots and configuration in
     """
-    logging.info(f"[plot_umap0]")
     markers = np.unique([m.split('_')[0] if '_' in m else m for m in np.unique(labels.reshape(-1,))]) 
     logging.info(f"[plot umap0] Detected markers: {markers}")
-    folder = _generate_folder_name(config_data, include_time=True)
 
-    saveroot = os.path.join(output_folder_path, folder)
-    if not os.path.exists(saveroot):
+    if saveroot:
         os.makedirs(saveroot, exist_ok=True)
-    
-    _save_config(config_data, saveroot)
+        _save_config(config_data, saveroot)
     
     for marker in markers:
         logging.info(f"[plot_umap0]: Marker: {marker}")
@@ -51,86 +47,77 @@ def plot_umap0(umap_embeddings:np.ndarray[float], labels:np.ndarray[str], config
 
         marker_umap_embeddings, marker_labels = np.copy(umap_embeddings[indices]), np.copy(labels[indices].reshape(-1,))
         
-        savepath = os.path.join(saveroot, f'{marker}')
+        savepath = None
+        if saveroot:
+            savepath = os.path.join(saveroot, f'{marker}')
 
         label_data = _map_labels(marker_labels, config_data)
         show_ari = np.unique(label_data).shape[0] <= 10
                 
-        _plot_umap_embeddings(marker_umap_embeddings, label_data, config_data, 
-                             savepath=savepath, show_ari=show_ari, title=marker)      
+        __plot_umap_embeddings(marker_umap_embeddings, label_data, config_data, 
+                             savepath=savepath, show_metric=show_ari, title=marker)      
 
-def plot_umap1(umap_embeddings:np.ndarray[float], labels:np.ndarray[str], config_data:DatasetConfig, output_folder_path:str)->None:
+def plot_umap1(umap_embeddings:np.ndarray[float], labels:np.ndarray[str], config_data:DatasetConfig, saveroot:str)->None:
     """Plot 2d UMAP of given embeddings, all markers together
 
     Args:
         features (np.ndarray): array containing the umap embeddings and labels
         config_data (DatasetConfig): dataset config
-        output_folder_path (str): root path to save the plot and configuration in
+        saveroot (str): root path to save the plot and configuration in
     """
-    logging.info(f"[plot_umap1]")
-    folder = _generate_folder_name(config_data, include_time=True)
-   
-    saveroot = os.path.join(output_folder_path, folder)
-    if not os.path.exists(saveroot):
+    if saveroot:
         os.makedirs(saveroot, exist_ok=True)
-        
-    _save_config(config_data, saveroot)
-    
+        _save_config(config_data, saveroot)
+        savepath = os.path.join(saveroot,'umap1')
+    else:
+        savepath=None
+
     label_data = _map_labels(labels, config_data)
-    
     ordered_marker_names = get_if_exists(config_data, 'ORDERED_MARKER_NAMES', None)
     if ordered_marker_names is not None:
         ordered_names = [config_data.UMAP_MAPPINGS[marker]['alias'] for marker in ordered_marker_names]
     
-    savepath = os.path.join(saveroot,'umap1')
-    
-    _plot_umap_embeddings(umap_embeddings, label_data, config_data, savepath, 
-                        ordered_names = ordered_names, show_ari=False)
+    __plot_umap_embeddings(umap_embeddings, label_data, config_data, savepath, 
+                        ordered_names = ordered_names, show_metric=False)
 
-def plot_umap2(umap_embeddings:np.ndarray[float], labels:np.ndarray[str], config_data:DatasetConfig, output_folder_path:str)->None:
+def plot_umap2(umap_embeddings:np.ndarray[float], labels:np.ndarray[str], config_data:DatasetConfig, saveroot:str)->None:
     """Plot 2d UMAP of given concatenated embeddings
 
     Args:
         features (np.ndarray): array containing the umap embeddings and labels
         config_data (DatasetConfig): dataset config
-        output_folder_path (str): root path to save the plot and configuration in
+        saveroot (str): root path to save the plot and configuration in
     """
-    logging.info(f"[plot_umap2]")
-    folder = _generate_folder_name(config_data, include_time=True)
-    
-    saveroot = os.path.join(output_folder_path, folder)
-    if not os.path.exists(saveroot):
+    if saveroot:
         os.makedirs(saveroot, exist_ok=True)
-        
-    _save_config(config_data, saveroot)  
-
+        _save_config(config_data, saveroot)
+        savepath = os.path.join(saveroot,'umap2')
+    else:
+        savepath=None
+    
     label_data = _map_labels(labels, config_data)
     
-    savepath = os.path.join(saveroot, folder) 
-    _plot_umap_embeddings(umap_embeddings, label_data, config_data, savepath, show_ari=False)
+    __plot_umap_embeddings(umap_embeddings, label_data, config_data, savepath, show_metric=False)
 
-def _plot_umap_embeddings(umap_embeddings: np.ndarray[float], 
+def __plot_umap_embeddings(umap_embeddings: np.ndarray[float], 
                          label_data: np.ndarray[str], 
-                         config_data: DatasetConfig, 
+                         config_data: DatasetConfig,
                          savepath: str = None,
                          title: str = 'UMAP projection of Embeddings', 
                          outliers_fraction: float = 0.1,
                          dpi: int = 300, 
                          figsize: tuple = (6,5), 
                          ordered_names: List = None, 
-                         show_ari: bool = True,
-                         unique_groups: np.ndarray = None) -> None:
-    """Plots UMAP embeddings with given labels and configurations."""
-    
+                         show_metric: bool = True) -> None:
+    """Plots UMAP embeddings with given labels and configurations.
+    """
     name_color_dict =  config_data.UMAP_MAPPINGS
     name_key=config_data.UMAP_MAPPINGS_ALIAS_KEY
     color_key=config_data.UMAP_MAPPINGS_COLOR_KEY
     marker_size = config_data.SIZE
     alpha = config_data.ALPHA
-    cell_line_cond_high = get_if_exists(config_data, 'CELL_LINE_COND_HIGH', None)
 
-    if unique_groups is None:
-        unique_groups = np.unique(label_data)
+    unique_groups = np.unique(label_data)
     
     fig = plt.figure(figsize=figsize)
     gs = GridSpec(2,1,height_ratios=[20,1])
@@ -138,17 +125,11 @@ def _plot_umap_embeddings(umap_embeddings: np.ndarray[float],
     ax = fig.add_subplot(gs[0])
     for i, group in enumerate(unique_groups):
         logging.info(f'[_plot_umap_embeddings]: adding {group}')
-        indices = label_data == group
-        indices = indices.reshape(-1,)
-        
+        indices = np.where(label_data==group)[0]
         if name_color_dict is not None:
-            if cell_line_cond_high is not None:
-                color = any(cl in group for cl in cell_line_cond_high)
-                color_array = np.array([name_color_dict[group][color_key]] * sum(indices) if color else ['gray'] * sum(indices))
-            else:
-                color_array = np.array([name_color_dict[group][color_key]] * sum(indices))
+            color_array = np.array([name_color_dict[group][color_key]] * indices.shape[0])
         else:
-            color_array = np.array([plt.get_cmap('tab20')(i)] * sum(indices))
+            color_array = np.array([plt.get_cmap('tab20')(i)] * indices.shape[0])
         
         label=group if name_color_dict is None else name_color_dict[group][name_key]
         ax.scatter(
@@ -176,16 +157,20 @@ def _plot_umap_embeddings(umap_embeddings: np.ndarray[float],
 
     _format_UMAP_legend(ax, ordered_names, marker_size)
         
-    if show_ari:
+    if show_metric:
         gs_bottom = fig.add_subplot(gs[1])
         ax, _ = get_metrics_figure(umap_embeddings, label_data, ax=gs_bottom, outliers_fraction=outliers_fraction)
     
     fig.tight_layout()
     
-    _save_or_show_plot(fig, savepath, dpi) 
+    if savepath:
+        _save_or_show_plot(fig, savepath, dpi)
+    else:
+        plt.show()
+        
     return
 
-def plot_distances_plots(distances:pd.DataFrame, config_data:DatasetConfig, output_folder_path:str,
+def plot_distances_plots(distances:pd.DataFrame, config_data:DatasetConfig, saveroot:str,
                          metric:str='ARI_KMeansConstrained')->None:
     """Wrapper function to create the folder of distances plots and plot them
 
@@ -195,20 +180,18 @@ def plot_distances_plots(distances:pd.DataFrame, config_data:DatasetConfig, outp
         output_folder_path (str): root path to save the plots and configuration in
         metric (str): The metric used to evaluate the distances, e.g., 'ARI_KMeansConstrained', 'dist', etc.
     """
-    folder = _generate_folder_name(config_data, include_time=True)
-    saveroot = os.path.join(output_folder_path, folder)
-    if not os.path.exists(saveroot):
+    if saveroot:
         os.makedirs(saveroot, exist_ok=True)
-    
-    _save_config(config_data, saveroot)
-    
+        _save_config(config_data, saveroot)
+    else:
+        saveroot = None
     baseline = config_data.BASELINE_CELL_LINE_CONDITION
 
-    _plot_marker_ranking(distances, baseline, saveroot, metric=metric, show_effect_size=True)
-    _plot_clustermap(distances, baseline, saveroot, metric=metric)
-    _plot_bubble_plot(distances, baseline, saveroot, metric=metric)
+    plot_marker_ranking(distances, baseline, saveroot, metric=metric, show_effect_size=True)
+    plot_clustermap(distances, baseline, saveroot, metric=metric)
+    plot_bubble_plot(distances, baseline, saveroot, metric=metric)
 
-def _plot_marker_ranking(distances:pd.DataFrame, baseline:str, saveroot:str, metric:str,
+def plot_marker_ranking(distances:pd.DataFrame, baseline:str, saveroot:str, metric:str,
                          show_effect_size:bool=False)->None:
     """Generate and save a boxplot of marker distances with p-values, separately for each condition.
 
@@ -224,11 +207,13 @@ def _plot_marker_ranking(distances:pd.DataFrame, baseline:str, saveroot:str, met
     conditions.remove(baseline)
     for cond in conditions:
         marker_pvalue = _calc_pvalue_and_effect(distances, baseline, cond, metric)
-        savepath = os.path.join(saveroot, f'{cond}_vs_{baseline}_boxplot') 
+        savepath = None
+        if saveroot:
+            savepath = os.path.join(saveroot, f'{cond}_vs_{baseline}_boxplot') 
         _plot_boxplot(distances, baseline, cond, metric, 
                      marker_pvalue, show_effect_size=show_effect_size, savepath = savepath)
 
-def _plot_clustermap(distances:pd.DataFrame, baseline:str, saveroot:str, metric:str)->None:
+def plot_clustermap(distances:pd.DataFrame, baseline:str, saveroot:str, metric:str)->None:
     """Generate and save a clustermap of marker p-values per condition.
 
     Args:
@@ -268,11 +253,16 @@ def _plot_clustermap(distances:pd.DataFrame, baseline:str, saveroot:str, metric:
     plt.title(f'vs {baseline}')
     
     # save the plot
-    savepath = os.path.join(saveroot, f'vs_{baseline}_clustermap') 
-    _save_or_show_plot(g, savepath, dpi=100)
+    savepath = None
+    if saveroot:
+        savepath = os.path.join(saveroot, f'vs_{baseline}_clustermap') 
+    if savepath:
+        _save_or_show_plot(g, savepath, dpi=100)
+    else:
+        plt.show()
     return
       
-def _plot_bubble_plot(distances:pd.DataFrame, baseline:str, saveroot:str, metric:str, effect_cmap:str = 'Blues', vmin_d:int =-1, vmax_d:int =10)->None:
+def plot_bubble_plot(distances:pd.DataFrame, baseline:str, saveroot:str, metric:str, effect_cmap:str = 'Blues', vmin_d:int =-1, vmax_d:int =10)->None:
     """Generate and save a bubble plot of marker p-values and effect size per condition.
 
     Args:
@@ -331,9 +321,13 @@ def _plot_bubble_plot(distances:pd.DataFrame, baseline:str, saveroot:str, metric
     # Customize legend
     _customize_legend(s, effect_cmap, norm_d)
 
-
-    savepath = os.path.join(saveroot, f'vs_{baseline}_bubbleplot')
-    _save_or_show_plot(fig, savepath, dpi=100)
+    savepath = None
+    if saveroot:
+        savepath = os.path.join(saveroot, f'vs_{baseline}_bubbleplot')
+    if savepath:
+        _save_or_show_plot(fig, savepath, dpi=100)
+    else:
+        plt.show()
     return 
 
 def _format_UMAP_legend(ax, ordered_names: List[str], marker_size: int) -> None:
@@ -355,17 +349,14 @@ def _format_UMAP_legend(ax, ordered_names: List[str], marker_size: int) -> None:
 
 def _save_or_show_plot(fig, savepath: str, dpi: int, save_png:bool=True, save_eps:bool=False) -> None:
     """Saves the plot if a savepath is provided, otherwise shows the plot."""
-    if savepath:
-        os.makedirs(os.path.dirname(savepath), exist_ok=True)
-        logging.info(f"Saving plot to {savepath}")
-        if save_png:
-            fig.savefig(f"{savepath}.png", dpi=dpi, bbox_inches='tight')
-        elif save_eps:
-            fig.savefig(f"{savepath}.eps", dpi=dpi, format='eps')
-        else:
-            logging.info(f"save_eps and save_png are both False, not saving!")
+    os.makedirs(os.path.dirname(savepath), exist_ok=True)
+    logging.info(f"Saving plot to {savepath}")
+    if save_png:
+        fig.savefig(f"{savepath}.png", dpi=dpi, bbox_inches='tight')
+    elif save_eps:
+        fig.savefig(f"{savepath}.eps", dpi=dpi, format='eps')
     else:
-        plt.show()
+        logging.info(f"save_eps and save_png are both False, not saving!")
 
 def _save_config(config_data: DatasetConfig, output_folder_path: str) -> None:
     """Saves the configuration data to a JSON file."""
@@ -375,24 +366,13 @@ def _save_config(config_data: DatasetConfig, output_folder_path: str) -> None:
 
 def _map_labels(labels: np.ndarray[str], config_data: DatasetConfig) -> np.ndarray[str]:
     """Maps labels based on the provided function in the configuration."""
-    map_function = get_if_exists(config_data, 'MAP_LABELS_FUNCTION', None)
-    if map_function:
-        map_function = eval(map_function)(config_data)
-        return map_function(labels)
+    LABEL_UTILS_MODULE = "src.datasets.label_utils"
+    map_function_name = get_if_exists(config_data, 'MAP_LABELS_FUNCTION', None)
+    if map_function_name:
+        module = importlib.import_module(LABEL_UTILS_MODULE)
+        map_function= getattr(module, map_function_name)
+        return map_function(labels, config_data)
     return labels
-
-def _generate_folder_name(config_data: DatasetConfig, include_time=True) -> str:
-    """Generate a unique output directory based on the current time and configuration."""
-    now = datetime.datetime.now()
-    input_folders = '_'.join([os.path.basename(f) for f in config_data.INPUT_FOLDERS])
-
-    reps = '_'.join(config_data.REPS) if config_data.REPS else "both_reps"
-    cell_lines = '_'.join(config_data.CELL_LINES) if config_data.CELL_LINES else "all_cell_lines"
-    
-    if include_time:
-        return f"{input_folders}_{reps}_{cell_lines}_{now.strftime('%d%m%y_%H%M%S_%f')}"
-    else:
-        return f"{input_folders}_{reps}_{cell_lines}"
 
 def _calc_pvalue_and_effect(distances:pd.DataFrame, baseline:str, condition:str, metric:str)->dict:
     """Calculate the significance and the effect size of the difference between the baseline distances and the condition distances, for each marker.
@@ -503,7 +483,10 @@ def _plot_boxplot(distances:pd.DataFrame, baseline:str, condition:str,
         b.set_xticklabels(labels)
     
     plt.title(f'{condition} vs {baseline}')
-    _save_or_show_plot(fig, savepath, dpi=100)
+    if savepath:
+        _save_or_show_plot(fig, savepath, dpi=100)
+    else:
+        plt.show()
     return
 
 def _convert_pvalue_to_asterisks(pval:float)->str:
@@ -592,8 +575,8 @@ def _calculate_hierarchical_clustering(data):
         # Convert to a condensed distance matrix for rows
         condensed_dists = squareform(pairwise_dists, checks=False)
         # Compute linkage for rows
-        linkage = linkage(condensed_dists, method='average', optimal_ordering=True)
+        linkage_matrix = linkage(condensed_dists, method='average', optimal_ordering=True)
     else:
-        linkage = None
+        linkage_matrix = None
     
-    return linkage
+    return linkage_matrix

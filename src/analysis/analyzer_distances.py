@@ -1,6 +1,8 @@
 
 import sys
 import os
+
+from src.datasets.label_utils import get_unique_parts_from_labels, get_cell_lines_conditions_from_labels, get_markers_from_labels, get_batches_from_labels
 sys.path.insert(1, os.getenv("MOMAPS_HOME"))
 
 from abc import abstractmethod
@@ -14,10 +16,22 @@ import itertools
 from src.common.configs.dataset_config import DatasetConfig
 from src.common.configs.trainer_config import TrainerConfig
 from src.analysis.analyzer import Analyzer
-from src.common.lib.utils import get_if_exists, get_unique_cell_lines_conds_from_labels, get_unique_markers_from_labels, get_unique_batches_from_labels, get_batches_from_input_folders
+from src.common.lib.utils import get_if_exists
 
 class AnalyzerDistances(Analyzer):
+    """AnalyzerDistances class is used to calculating distances between different condtions based on the full embeddings space of the model.
+    It's three main methods are:
+    1. calculate(): to calculate the wanted distances from the embeddings.
+    2. load(): to load the calculated distances that were previusly saved.
+    3. save(): to save the calculated distances.
+    """
     def __init__(self, trainer_config: TrainerConfig, data_config: DatasetConfig):
+        """Get an instance
+
+        Args:
+            trainer_config (TrainerConfig): The trainer config object.
+            data_config (DatasetConfig): The dataset config object. 
+        """
         super().__init__(trainer_config, data_config)
 
 
@@ -30,6 +44,12 @@ class AnalyzerDistances(Analyzer):
             labels (np.ndarray[str]): The corresponding labels of the embeddings
         Returns:
             pd.DataFrame: DataFrame containing the calculated distances
+            The DataFrame will have the following columns:
+            - 'marker': The marker for which the distance was calculated on.
+            - 'batch': The batch for which the distance was calculated on.
+            - 'repA': The rep of the condition data
+            - 'repB': The rep of the baseline data
+            - 'distance_metric': The calculated distance metric (specific name is defined by the specific distance metric).
         """
         # First we must define what is the baseline cell line condition of the calculation: 
         # we always calculate the distance for a given marker between one condition and the baseline condition.
@@ -37,10 +57,9 @@ class AnalyzerDistances(Analyzer):
         assert baseline_cell_line_cond is not None, "BASELINE_CELL_LINE_CONDITION is None. You have to specify the baseline to calculate the distance score against (for example: WT_Untreated or TDP43_Untreated)"
 
         # Next we extract info from our labels: which other conditions we have, which unique markers and batches we can work with
-        conditions = get_unique_cell_lines_conds_from_labels(labels)
-        conditions = np.delete(conditions, np.where(conditions == baseline_cell_line_cond)[0]) # Remove the baseline
-        markers = get_unique_markers_from_labels(labels)
-        batches = get_unique_batches_from_labels(labels)
+        conditions = self._get_conditions_for_distances(labels)
+        markers = get_unique_parts_from_labels(labels, get_markers_from_labels)
+        batches = get_unique_parts_from_labels(labels, get_batches_from_labels, self.data_config)
         logging.info(f"[AnalyzerDistances.calculate] Conditions: {conditions}, markers: {markers}, batches: {batches}, baseline_cell_line_cond: {baseline_cell_line_cond}")
 
         # Finally we can calculate the distances, separatly for each batch and marker
@@ -60,25 +79,17 @@ class AnalyzerDistances(Analyzer):
     def load(self)->None:
         """load the saved distances into the self.features attribute
         """
-        output_folder_path = self._get_saving_folder() #TODO: adjust also analyzer umap to do the same
+        output_folder_path = self._get_saving_folder(feature_type='distances')
         logging.info(f"[save scores]: output_folder_path: {output_folder_path}")
-        batches = get_batches_from_input_folders(self.data_config.INPUT_FODLERS)
-        baseline_cell_line_cond = get_if_exists(self.data_config, 'BASELINE_CELL_LINE_CONDITION', None)
-
-        loadpath = os.path.join(output_folder_path, f"metrics_score_{'_'.join(batches)}_{baseline_cell_line_cond}.csv")
+        loadpath = self._get_save_path(output_folder_path)
         self.features = pd.read_csv(loadpath)
         return None
 
     def save(self):
         """save the calculated distances in path derived from self.output_folder_path
         """
-        output_folder_path = self._get_saving_folder()
-        logging.info(f"[save scores]: output_folder_path: {output_folder_path}")
-        
-        batches = get_batches_from_input_folders(self.data_config.INPUT_FODLERS)
-        baseline_cell_line_cond = get_if_exists(self.data_config, 'BASELINE_CELL_LINE_CONDITION', None)
-
-        savepath = os.path.join(output_folder_path, f"metrics_score_{'_'.join(batches)}_{baseline_cell_line_cond}.csv")
+        output_folder_path = self._get_saving_folder(feature_type='distances')
+        savepath = os.path.join(output_folder_path, self._get_save_path(output_folder_path))
         logging.info(f"Saving scores to {savepath}")
         self.features.to_csv(savepath, index=False)
         return None
@@ -105,10 +116,10 @@ class AnalyzerDistances(Analyzer):
         Args:
             embeddings (np.ndarray[float]): all embeddings to calculate the distance for
             labels (np.ndarray[str]): corresponding labels of the embeddings
-            baseline_cell_line_cond (str): the 'cell_line_condition' that will be the baseline of the distances
-            conditions (List[str]): a list of all the 'cell_line_condition' to compare to baseline
-            batch (str): batch number to calculate the distance for
-            marker (str): marker to calculate the distance for
+            baseline_cell_line_cond (str): the 'cell_line_condition' that will be the baseline of the distances, example: 'WT_Untreated;
+            conditions (List[str]): a list of all the 'cell_line_condition' to compare to baseline, example: ['WT_stress','FUSHomozygous_Untreated']
+            batch (str): batch number to calculate the distance for, example: 'batch6'
+            marker (str): marker to calculate the distance for, example: 'G3BP1'
 
         Returns:
             pd.DataFrame: updated dataframe with the results
@@ -152,12 +163,18 @@ class AnalyzerDistances(Analyzer):
             np.ndarray[int]: first random half of indices
             np.ndarray[int]: second random half of indices
         """
+        np.random.seed(self.data_config.SEED)
         half_size = len(indices) // 2
         part1 = np.random.choice(indices, size=half_size, replace=False)
         part2 = np.setdiff1d(indices, part1)
     
         return part1, part2
     
+    def _get_conditions_for_distances(self, labels:np.ndarray[str])->np.ndarray[str]:
+        conditions = get_unique_parts_from_labels(labels, get_cell_lines_conditions_from_labels, self.data_config)
+        conditions = np.delete(conditions, np.where(conditions == self.data_config.BASELINE_CELL_LINE_CONDITION)[0]) # Remove the baseline
+        return conditions
+
     def _generate_reps_of_baseline(self, labels:np.ndarray[str],
                                    batch:str, marker:str, baseline_cell_line_cond:str)->Tuple[Iterable,Dict]:
         rep1_indices = np.where(np.char.find(labels.astype(str), f'{marker}_{baseline_cell_line_cond}_{batch}_rep1')>-1)[0]

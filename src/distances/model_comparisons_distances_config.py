@@ -19,7 +19,8 @@ class NeuronsDistanceConfig(DatasetConfig):
         self.SPLIT_DATA = False 
         self.EXPERIMENT_TYPE = 'neurons'    
         self.BASELINE_CELL_LINE_CONDITION = "WT_Untreated"
-        
+        self.ADD_BATCH_TO_LABEL = True
+        self.ADD_REP_TO_LABEL = True        
         self.MARKERS_TO_EXCLUDE = ['FMRP', 'TIA1']
 
 class Neurons69Full78TestDistanceConfig(DatasetConfig):
@@ -37,10 +38,10 @@ class Neurons69Full78TestDistanceConfig(DatasetConfig):
         self.EXPERIMENT_TYPE = 'neurons'    
         self.TRAIN_BATCHES = ['batch7','batch8']
         self.MARKERS_TO_EXCLUDE = ['FMRP', 'TIA1']
-        
+        self.ADD_BATCH_TO_LABEL = True
+        self.ADD_REP_TO_LABEL = True
         self.BASELINE_CELL_LINE_CONDITION = "WT_Untreated"
-
-        
+       
 class NeuronsTest78TBK1DistanceConfig(DatasetConfig):
     def __init__(self):
         super().__init__()
@@ -58,7 +59,8 @@ class NeuronsTest78TBK1DistanceConfig(DatasetConfig):
         self.CONDITIONS = ['Untreated']
         self.TRAIN_BATCHES = ['batch7','batch8']
         self.MARKERS_TO_EXCLUDE = ['FMRP', 'TIA1']
-        
+        self.ADD_BATCH_TO_LABEL = True
+        self.ADD_REP_TO_LABEL = True   
         self.BASELINE_CELL_LINE_CONDITION = "TBK1_Untreated"
         
 class NeuronsTest78FUSRevertantDistanceConfig(DatasetConfig):
@@ -78,7 +80,8 @@ class NeuronsTest78FUSRevertantDistanceConfig(DatasetConfig):
         self.CONDITIONS = ['Untreated']
         self.TRAIN_BATCHES = ['batch7','batch8']
         self.MARKERS_TO_EXCLUDE = ['FMRP', 'TIA1']
-        
+        self.ADD_BATCH_TO_LABEL = True
+        self.ADD_REP_TO_LABEL = True          
         self.BASELINE_CELL_LINE_CONDITION = "FUSRevertant_Untreated"
 
 class dNLSDistanceConfig(DatasetConfig):
@@ -92,8 +95,8 @@ class dNLSDistanceConfig(DatasetConfig):
         
         self.MARKERS_TO_EXCLUDE = ['FMRP','TIA1']
         
-        self.ADD_REP_TO_LABEL = False
-        self.ADD_BATCH_TO_LABEL = False
+        self.ADD_BATCH_TO_LABEL = True
+        self.ADD_REP_TO_LABEL = True 
 
 class dNLSTest25DistanceConfig(DatasetConfig):
     def __init__(self):
@@ -106,8 +109,8 @@ class dNLSTest25DistanceConfig(DatasetConfig):
         
         self.MARKERS_TO_EXCLUDE = ['FMRP','TIA1']
         
-        self.ADD_REP_TO_LABEL = False
-        self.ADD_BATCH_TO_LABEL = False
+        self.ADD_BATCH_TO_LABEL = True
+        self.ADD_REP_TO_LABEL = True 
         self.TRAIN_BATCHES = ['batch2','batch5']
 
 class dNLS345DistanceConfig(DatasetConfig):
@@ -121,8 +124,8 @@ class dNLS345DistanceConfig(DatasetConfig):
         self.MARKERS_TO_EXCLUDE = ['FMRP','TIA1']
         self.BASELINE_CELL_LINE_CONDITION = "TDP43_Untreated"
         
-        self.ADD_REP_TO_LABEL = False
-        self.ADD_BATCH_TO_LABEL = False
+        self.ADD_BATCH_TO_LABEL = True
+        self.ADD_REP_TO_LABEL = True 
         
 class dNLS34DistanceConfig(DatasetConfig): # used for the model trained on dNLS
     def __init__(self):
@@ -135,8 +138,8 @@ class dNLS34DistanceConfig(DatasetConfig): # used for the model trained on dNLS
         self.MARKERS_TO_EXCLUDE = ['FMRP','TIA1']
         self.BASELINE_CELL_LINE_CONDITION = "TDP43_Untreated"
         self.MARKERS = list(self.UMAP_MAPPINGS_MARKERS.keys())
-        self.ADD_REP_TO_LABEL = False
-        self.ADD_BATCH_TO_LABEL = False
+        self.ADD_BATCH_TO_LABEL = True
+        self.ADD_REP_TO_LABEL = True 
 
 class EmbeddingsDay18DistanceConfig(DatasetConfig):
     def __init__(self):
@@ -149,7 +152,8 @@ class EmbeddingsDay18DistanceConfig(DatasetConfig):
         self.EXPERIMENT_TYPE = 'neurons_d18'    
         self.MARKERS_TO_EXCLUDE = None
         
-        
+        self.ADD_BATCH_TO_LABEL = True
+        self.ADD_REP_TO_LABEL = True         
         self.BASELINE_CELL_LINE_CONDITION = "WT_Untreated"
 
         
@@ -169,7 +173,8 @@ class NeuronsDistanceB78TestConfig(DatasetConfig):
         self.MARKERS_TO_EXCLUDE = ['FMRP', 'TIA1'] # The embeddings are already calculated so it doesn't need to be the exact same markers as in the trianing_config
         
         self.BASELINE_CELL_LINE_CONDITION = "WT_Untreated"
-
+        self.ADD_BATCH_TO_LABEL = True
+        self.ADD_REP_TO_LABEL = True 
 class NeuronsDistanceB78FullConfig(DatasetConfig):
     def __init__(self):
         super().__init__()
@@ -183,3 +188,5 @@ class NeuronsDistanceB78FullConfig(DatasetConfig):
         self.EXPERIMENT_TYPE = 'neurons'    
         
         self.MARKERS_TO_EXCLUDE = ['FMRP', 'TIA1']
+        self.ADD_BATCH_TO_LABEL = True
+        self.ADD_REP_TO_LABEL = True 

@@ -23,9 +23,11 @@ class AnalyzerUMAP1(AnalyzerUMAP):
         Args:
             embeddings (np.ndarray[float]): The embeddings
             labels (np.ndarray[str]): The corresponding labels of the embeddings
+        Returns:#TODO
         """
         logging.info(f"[AnalyzerUMAP1.calculate] Calulating UMAP")
         umap_embeddings = self._compute_umap_embeddings(embeddings)
 
         self.features = umap_embeddings
         self.labels = labels
+        return umap_embeddings, labels

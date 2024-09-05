@@ -2,6 +2,7 @@ import datetime
 import os
 import sys
 import uuid
+
 sys.path.insert(1, os.getenv("MOMAPS_HOME"))
 
 
@@ -13,8 +14,6 @@ import numpy as np
 import pandas as pd
 import datetime
 import subprocess
-from typing import Tuple, List
-from functools import partial
 
 def get_if_exists(container:object, param_name: string, default_value=None):
     """Get value of param in container if it exists, otherwise return default value
@@ -94,8 +93,7 @@ def load_config_file(path:string, custom_filename:string=None, savefolder:string
         custom_filename = f"{uuid.uuid4().hex}"
         
     savepath = os.path.join(savefolder, f"{custom_filename}.json")
-    if not os.path.exists(savefolder):
-        os.makedirs(savefolder, exist_ok=True)
+    os.makedirs(savefolder, exist_ok=True)
         
     with open(savepath, 'w') as f:
         f.write(json.dumps(config.__dict__))
@@ -276,68 +274,6 @@ def handle_log(model_output_folder):
             
     __now = datetime.datetime.now()
     logs_folder = os.path.join(model_output_folder, "logs")
-    if not os.path.exists(logs_folder):
-        os.makedirs(logs_folder, exist_ok=True)
+    os.makedirs(logs_folder, exist_ok=True)
     log_file_path = os.path.join(logs_folder, __now.strftime("%d%m%y_%H%M%S_%f") + f'_{jobid}_{username}_{jobname}.log')
     init_logging(log_file_path)
-
-def extract_part_from_label(label: str, indices:Tuple[int, int]) -> str:
-    return '_'.join(label.split("_")[indices[0]:indices[1]])
-
-def get_cell_lines_conditions_from_labels(labels: np.ndarray[str]) -> np.ndarray[str]:
-    vectorized_extraction = np.vectorize(partial(extract_part_from_label, indices=(1,3)))
-    cell_line_conditions = vectorized_extraction(labels)
-    return cell_line_conditions
-
-def get_cell_lines_from_labels(labels: np.ndarray[str]) -> np.ndarray[str]:
-    vectorized_extraction = np.vectorize(partial(extract_part_from_label, indices=(1,2)))
-    cell_lines = vectorized_extraction(labels)
-    return cell_lines
-
-def get_conditions_from_labels(labels: np.ndarray[str]) -> np.ndarray[str]:
-    vectorized_extraction = np.vectorize(partial(extract_part_from_label, indices=(2,3)))
-    conditions = vectorized_extraction(labels)
-    return conditions
-
-def get_markers_from_labels(labels: np.ndarray[str]) -> np.ndarray[str]:
-    vectorized_extraction = np.vectorize(partial(extract_part_from_label, indices=(0,1)))
-    markers = vectorized_extraction(labels)
-    return markers
-
-def get_batches_from_labels(labels: np.ndarray[str]) -> np.ndarray[str]:
-    vectorized_extraction = np.vectorize(partial(extract_part_from_label, indices=(3,4)))
-    batches = vectorized_extraction(labels)
-    return batches
-
-def get_reps_from_labels(labels: np.ndarray[str]) -> np.ndarray[str]:
-    vectorized_extraction = np.vectorize(partial(extract_part_from_label, indices=(4,5)))
-    reps = vectorized_extraction(labels)
-    return reps
-
-def get_unique_cell_lines_conds_from_labels(labels:np.ndarray[str])->np.ndarray[str]:
-    cell_line_conditions = np.unique(get_cell_lines_conditions_from_labels(labels))
-    return cell_line_conditions
-
-def get_unique_cell_lines_from_labels(labels:np.ndarray[str])->np.ndarray[str]:
-    cell_line = np.unique(get_cell_lines_from_labels(labels))
-    return cell_line
-
-def get_unique_conditions_from_labels(labels:np.ndarray[str])->np.ndarray[str]:
-    conditions = np.unique(get_conditions_from_labels(labels))
-    return conditions
-
-def get_unique_markers_from_labels(labels:np.ndarray[str])->np.ndarray[str]:
-    markers = np.unique(get_markers_from_labels(labels))
-    return markers
-
-def get_unique_batches_from_labels(labels:np.ndarray[str])->np.ndarray[str]:
-    batches = np.unique(get_batches_from_labels(labels))
-    return batches
-
-def get_unique_reps_from_labels(labels:np.ndarray[str])->np.ndarray[str]:
-    reps = np.unique(get_reps_from_labels(labels))
-    return reps
-
-def get_batches_from_input_folders(input_folders:List[str])->List[str]:
-    batches = [folder.split(os.sep)[-1].split('_')[0] for folder in input_folders]
-    return batches

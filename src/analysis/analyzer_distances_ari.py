@@ -10,6 +10,8 @@ from src.common.configs.dataset_config import DatasetConfig
 from src.common.configs.trainer_config import TrainerConfig
 from src.common.lib.metrics import cluster_without_outliers
 from src.analysis.analyzer_distances import AnalyzerDistances
+from src.common.lib.utils import get_if_exists
+from src.datasets.label_utils import get_batches_from_input_folders
 
 class AnalyzerDistancesARI(AnalyzerDistances):
     def __init__(self, trainer_config: TrainerConfig, data_config: DatasetConfig):
@@ -25,6 +27,7 @@ class AnalyzerDistancesARI(AnalyzerDistances):
             float: the ari with kmeans constrained score 
             str: the score name
         """
+        assert np.unique(labels).shape[0]==2
         n_clusters = 2
         kmeans_constrained_labels = cluster_without_outliers(embeddings, n_clusters=n_clusters, outliers_fraction=0.1, n_init=10, random_state=1)
 
@@ -32,14 +35,10 @@ class AnalyzerDistancesARI(AnalyzerDistances):
 
         return score, 'ARI_KMeansConstrained'
     
-    def _get_saving_folder(self)->str:
-        """Get the path to the folder where the features and figures can be saved
-        """
-        model_output_folder = self.output_folder_path
+    def _get_save_path(self, output_folder_path:str)->str:
         
-        output_folder_path = os.path.join(model_output_folder, 'figures', self.data_config.EXPERIMENT_TYPE, 'distances')
-        if not os.path.exists(output_folder_path):
-            os.makedirs(output_folder_path, exist_ok=True)
+        baseline_cell_line_cond = get_if_exists(self.data_config, 'BASELINE_CELL_LINE_CONDITION', None)
 
-        return output_folder_path
+        savepath = os.path.join(output_folder_path, f"metrics_score_{baseline_cell_line_cond}.csv")
+        return savepath
 
