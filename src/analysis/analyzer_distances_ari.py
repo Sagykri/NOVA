@@ -4,14 +4,12 @@ sys.path.insert(1, os.getenv("MOMAPS_HOME"))
 
 import numpy as np
 from typing import Tuple
-# from sklearn.metrics import adjusted_rand_score
 
 from src.analysis.analyzer_distances import AnalyzerDistances
 from src.common.configs.dataset_config import DatasetConfig
 from src.common.configs.trainer_config import TrainerConfig
 from src.common.lib.metrics import calc_clustering_validation_metric
 from src.common.lib.utils import get_if_exists
-# from src.datasets.label_utils import get_batches_from_input_folders
 
 class AnalyzerDistancesARI(AnalyzerDistances):
     def __init__(self, trainer_config: TrainerConfig, data_config: DatasetConfig):
