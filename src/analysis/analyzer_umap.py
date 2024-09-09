@@ -69,14 +69,20 @@ class AnalyzerUMAP(Analyzer):
         np.save(f'{saveroot}_{umap_type}_labels.npy', self.labels)
 
     def _compute_umap_embeddings(self, embeddings:np.ndarray[float], **kwargs)->np.ndarray:
-        """Protected method to calculate UMAP reduction given embeddings
+        """Protected method to calculate UMAP dimensionality reduction on the provided embeddings.
 
         Args:
-            embeddings (np.ndarray[float]): embeddings to calculate UMAP on
-            **kwargs TODO add
+            embeddings (np.ndarray[float]): The input embeddings to perform UMAP on. 
+            The shape should be (n_samples, n_features), where each row corresponds 
+            to a sample and each column represents a feature.
+            **kwargs: Additional keyword arguments to pass to the UMAP constructor, 
+            such as `n_neighbors`, `min_dist`, `metric`, etc. If `random_state` 
+            is not provided, it will be set to `self.data_config.SEED` to ensure 
+            reproducibility.
 
         Returns:
-            np.ndarray[float]: the UMAP embeddings
+            np.ndarray[float]: The reduced UMAP embeddings with shape (n_samples, n_components),
+                                where `n_components` is typically 2 but can be modified via kwargs.
         """
         if 'random_state' not in kwargs:
             kwargs['random_state'] = self.data_config.SEED

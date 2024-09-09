@@ -38,6 +38,8 @@ class NeuronsUMAP1B78FigureConfig(DatasetConfig):
         self.SIZE = 0.3
         # Set the alpha of the dots (0=max opacity, 1=no opacity)
         self.ALPHA = 0.7
+        # Decide if to show ARI metric on the UMAP
+        self.SHOW_ARI = False
 
 class NeuronsUMAP1B78OpencellFigureConfig(DatasetConfig):
     def __init__(self):
@@ -68,7 +70,8 @@ class NeuronsUMAP1B78OpencellFigureConfig(DatasetConfig):
         self.SIZE = 0.3
         # Set the alpha of the dots (0=max opacity, 1=no opacity)
         self.ALPHA = 0.7
-        
+        # Decide if to show ARI metric on the UMAP
+        self.SHOW_ARI = False
 # opera 18 days (REIMAGED)
 class NeuronsUMAP1B12Opera18daysREIMAGEDFigureConfig(DatasetConfig):
     def __init__(self):
@@ -104,6 +107,8 @@ class NeuronsUMAP1B12Opera18daysREIMAGEDFigureConfig(DatasetConfig):
         self.SIZE = 0.3
         # Set the alpha of the dots (0=max opacity, 1=no opacity)
         self.ALPHA = 0.7
+        # Decide if to show ARI metric on the UMAP
+        self.SHOW_ARI = False
 
 ############################################################
 # UMAP0 - stress
@@ -132,6 +137,8 @@ class NeuronsUMAP0B6Rep1StressFigureConfig(DatasetConfig):
         self.SIZE = 30
         # Set the alpha of the dots (0=max opacity, 1=no opacity)
         self.ALPHA = 0.7
+        # Decide if to show ARI metric on the UMAP
+        self.SHOW_ARI = True
         #######################################     
 
 class NeuronsUMAP0B6Rep2StressFigureConfig(DatasetConfig):
@@ -159,6 +166,8 @@ class NeuronsUMAP0B6Rep2StressFigureConfig(DatasetConfig):
         self.SIZE = 30
         # Set the alpha of the dots (0=max opacity, 1=no opacity)
         self.ALPHA = 0.7
+        # Decide if to show ARI metric on the UMAP
+        self.SHOW_ARI = True
         ####################################### 
 
 class NeuronsUMAP0B6BothRepsStressFigureConfig(DatasetConfig):
@@ -183,6 +192,8 @@ class NeuronsUMAP0B6BothRepsStressFigureConfig(DatasetConfig):
         self.SIZE = 30
         # Set the alpha of the dots (0=max opacity, 1=no opacity)
         self.ALPHA = 0.7
+        # Decide if to show ARI metric on the UMAP
+        self.SHOW_ARI = True
         ####################################### 
 
 class NeuronsUMAP0B9Rep1StressFigureConfig(DatasetConfig):
@@ -209,6 +220,8 @@ class NeuronsUMAP0B9Rep1StressFigureConfig(DatasetConfig):
         self.SIZE = 30
         # Set the alpha of the dots (0=max opacity, 1=no opacity)
         self.ALPHA = 0.7
+        # Decide if to show ARI metric on the UMAP
+        self.SHOW_ARI = True
         #######################################     
 
 class NeuronsUMAP0B9Rep2StressFigureConfig(DatasetConfig):
@@ -234,6 +247,8 @@ class NeuronsUMAP0B9Rep2StressFigureConfig(DatasetConfig):
         self.SIZE = 30
         # Set the alpha of the dots (0=max opacity, 1=no opacity)
         self.ALPHA = 0.7
+        # Decide if to show ARI metric on the UMAP
+        self.SHOW_ARI = True
         ####################################### 
 
 class NeuronsUMAP0B9BothRepsStressFigureConfig(DatasetConfig):
@@ -258,6 +273,8 @@ class NeuronsUMAP0B9BothRepsStressFigureConfig(DatasetConfig):
         self.SIZE = 30
         # Set the alpha of the dots (0=max opacity, 1=no opacity)
         self.ALPHA = 0.7
+        # Decide if to show ARI metric on the UMAP
+        self.SHOW_ARI = True
         ####################################### 
 
 class NeuronsUMAP0B69BothRepsStressFigureConfig(DatasetConfig):
@@ -282,6 +299,8 @@ class NeuronsUMAP0B69BothRepsStressFigureConfig(DatasetConfig):
         self.SIZE = 30
         # Set the alpha of the dots (0=max opacity, 1=no opacity)
         self.ALPHA = 0.7
+        # Decide if to show ARI metric on the UMAP
+        self.SHOW_ARI = True
         ####################################### 
         
 
@@ -310,6 +329,8 @@ class NeuronsUMAP0B6BothRepsOnlyWTUntreatedFigureConfig(DatasetConfig):
         self.SIZE = 30
         # Set the alpha of the dots (0=max opacity, 1=no opacity)
         self.ALPHA = 0.7
+        # Decide if to show ARI metric on the UMAP
+        self.SHOW_ARI = True
         #######################################  
         
 class NeuronsUMAP0B9BothRepsOnlyWTUntreatedFigureConfig(DatasetConfig):
@@ -335,6 +356,8 @@ class NeuronsUMAP0B9BothRepsOnlyWTUntreatedFigureConfig(DatasetConfig):
         self.SIZE = 30
         # Set the alpha of the dots (0=max opacity, 1=no opacity)
         self.ALPHA = 0.7
+        # Decide if to show ARI metric on the UMAP
+        self.SHOW_ARI = True
         #######################################  
         
 
@@ -363,6 +386,8 @@ class NeuronsUMAP0Opera18daysREIMAGEDStressFigureConfig(DatasetConfig):
         self.SIZE = 30
         # Set the alpha of the dots (0=max opacity, 1=no opacity)
         self.ALPHA = 0.7
+        # Decide if to show ARI metric on the UMAP
+        self.SHOW_ARI = True
         ####################################### 
 
 class NeuronsUMAP0Opera18daysREIMAGEDB1BothRepsStressFigureConfig(NeuronsUMAP0Opera18daysREIMAGEDStressFigureConfig):
@@ -458,6 +483,8 @@ class NeuronsUMAP0B6Rep1ALSFigureConfig(DatasetConfig):
         self.SIZE = 30
         # Set the alpha of the dots (0=max opacity, 1=no opacity)
         self.ALPHA = 0.7
+        # Decide if to show ARI metric on the UMAP
+        self.SHOW_ARI = True
         #######################################     
 
 class NeuronsUMAP0B6Rep2ALSFigureConfig(DatasetConfig):
@@ -484,6 +511,8 @@ class NeuronsUMAP0B6Rep2ALSFigureConfig(DatasetConfig):
         self.SIZE = 30
         # Set the alpha of the dots (0=max opacity, 1=no opacity)
         self.ALPHA = 0.7
+        # Decide if to show ARI metric on the UMAP
+        self.SHOW_ARI = True
         ####################################### 
 
 class NeuronsUMAP0B6BothRepsALSFigureConfig(DatasetConfig):
@@ -508,6 +537,8 @@ class NeuronsUMAP0B6BothRepsALSFigureConfig(DatasetConfig):
         self.SIZE = 30
         # Set the alpha of the dots (0=max opacity, 1=no opacity)
         self.ALPHA = 0.7
+        # Decide if to show ARI metric on the UMAP
+        self.SHOW_ARI = False
         ####################################### 
         
 class NeuronsUMAP0B6BothRepsOnlyFUSLinesOnlyFUSMarkerFigureConfig(DatasetConfig):
@@ -532,6 +563,8 @@ class NeuronsUMAP0B6BothRepsOnlyFUSLinesOnlyFUSMarkerFigureConfig(DatasetConfig)
         self.SIZE = 30
         # Set the alpha of the dots (0=max opacity, 1=no opacity)
         self.ALPHA = 0.7
+        # Decide if to show ARI metric on the UMAP
+        self.SHOW_ARI = True
         ####################################### 
 
 class NeuronsUMAP0B9Rep1ALSFigureConfig(DatasetConfig):
@@ -558,6 +591,8 @@ class NeuronsUMAP0B9Rep1ALSFigureConfig(DatasetConfig):
         self.SIZE = 30
         # Set the alpha of the dots (0=max opacity, 1=no opacity)
         self.ALPHA = 0.7
+        # Decide if to show ARI metric on the UMAP
+        self.SHOW_ARI = True
         #######################################     
 
 class NeuronsUMAP0B9Rep2ALSFigureConfig(DatasetConfig):
@@ -584,6 +619,8 @@ class NeuronsUMAP0B9Rep2ALSFigureConfig(DatasetConfig):
         self.SIZE = 30
         # Set the alpha of the dots (0=max opacity, 1=no opacity)
         self.ALPHA = 0.7
+        # Decide if to show ARI metric on the UMAP
+        self.SHOW_ARI = True
         ####################################### 
 
 class NeuronsUMAP0B9BothRepsALSFigureConfig(DatasetConfig):
@@ -608,6 +645,8 @@ class NeuronsUMAP0B9BothRepsALSFigureConfig(DatasetConfig):
         self.SIZE = 30
         # Set the alpha of the dots (0=max opacity, 1=no opacity)
         self.ALPHA = 0.7
+        # Decide if to show ARI metric on the UMAP
+        self.SHOW_ARI = False
         ####################################### 
 
 class NeuronsUMAP0B69BothRepsALSFigureConfig(DatasetConfig):
@@ -632,6 +671,8 @@ class NeuronsUMAP0B69BothRepsALSFigureConfig(DatasetConfig):
         self.SIZE = 30
         # Set the alpha of the dots (0=max opacity, 1=no opacity)
         self.ALPHA = 0.7
+        # Decide if to show ARI metric on the UMAP
+        self.SHOW_ARI = False
         ####################################### 
         
 # ALS - pairs
@@ -809,6 +850,8 @@ class NeuronsUMAP0B7Rep1ALSFigureConfig(DatasetConfig):
         self.SIZE = 30
         # Set the alpha of the dots (0=max opacity, 1=no opacity)
         self.ALPHA = 0.7
+        # Decide if to show ARI metric on the UMAP
+        self.SHOW_ARI = True
         #######################################     
 
 class NeuronsUMAP0B7Rep2ALSFigureConfig(DatasetConfig):
@@ -835,6 +878,8 @@ class NeuronsUMAP0B7Rep2ALSFigureConfig(DatasetConfig):
         self.SIZE = 30
         # Set the alpha of the dots (0=max opacity, 1=no opacity)
         self.ALPHA = 0.7
+        # Decide if to show ARI metric on the UMAP
+        self.SHOW_ARI = True
         ####################################### 
         
 class NeuronsUMAP0B7Rep2ALS_WT_FUSHet_FigureConfig(NeuronsUMAP0B7Rep2ALSFigureConfig):
@@ -935,6 +980,8 @@ class NeuronsUMAP0B8Rep2ALSFigureConfig(DatasetConfig):
         self.SIZE = 30
         # Set the alpha of the dots (0=max opacity, 1=no opacity)
         self.ALPHA = 0.7
+        # Decide if to show ARI metric on the UMAP
+        self.SHOW_ARI = True
         ####################################### 
         
 class NeuronsUMAP0B8Rep1ALSFigureConfig(DatasetConfig):
@@ -961,6 +1008,8 @@ class NeuronsUMAP0B8Rep1ALSFigureConfig(DatasetConfig):
         self.SIZE = 30
         # Set the alpha of the dots (0=max opacity, 1=no opacity)
         self.ALPHA = 0.7
+        # Decide if to show ARI metric on the UMAP
+        self.SHOW_ARI = True
         #######################################     
 #
         
@@ -1393,6 +1442,8 @@ class NeuronsUMAP0Bpera18daysREIMAGEDALSFigureConfig(DatasetConfig):
         self.SIZE = 30
         # Set the alpha of the dots (0=max opacity, 1=no opacity)
         self.ALPHA = 0.7
+        # Decide if to show ARI metric on the UMAP
+        self.SHOW_ARI = False
         ####################################### 
 
 class NeuronsUMAP0Bpera18daysREIMAGEDB1BothRepsALSFigureConfig(NeuronsUMAP0Bpera18daysREIMAGEDALSFigureConfig):
@@ -1418,6 +1469,8 @@ class NeuronsUMAP0Bpera18daysREIMAGEDB1Rep1ALSFigureConfig(NeuronsUMAP0Bpera18da
                         ["batch1"]]
         self.REPS = ['rep1'] 
         self.ADD_BATCH_TO_LABEL = False
+        # Decide if to show ARI metric on the UMAP
+        self.SHOW_ARI = True
 
         
 class NeuronsUMAP0Bpera18daysREIMAGEDB1Rep2ALSFigureConfig(NeuronsUMAP0Bpera18daysREIMAGEDALSFigureConfig):
@@ -1427,7 +1480,8 @@ class NeuronsUMAP0Bpera18daysREIMAGEDB1Rep2ALSFigureConfig(NeuronsUMAP0Bpera18da
                         ["batch1"]]
         self.REPS = ['rep2'] 
         self.ADD_BATCH_TO_LABEL = False
-
+        # Decide if to show ARI metric on the UMAP
+        self.SHOW_ARI = True
         
 class NeuronsUMAP0Bpera18daysREIMAGEDB2Rep1ALSFigureConfig(NeuronsUMAP0Bpera18daysREIMAGEDALSFigureConfig):
     def __init__(self):
@@ -1436,7 +1490,8 @@ class NeuronsUMAP0Bpera18daysREIMAGEDB2Rep1ALSFigureConfig(NeuronsUMAP0Bpera18da
                         ["batch2"]]
         self.REPS = ['rep1'] 
         self.ADD_BATCH_TO_LABEL = False
-        
+        # Decide if to show ARI metric on the UMAP
+        self.SHOW_ARI = True
 class NeuronsUMAP0Bpera18daysREIMAGEDB2Rep2ALSFigureConfig(NeuronsUMAP0Bpera18daysREIMAGEDALSFigureConfig):
     def __init__(self):
         super().__init__()
@@ -1444,7 +1499,8 @@ class NeuronsUMAP0Bpera18daysREIMAGEDB2Rep2ALSFigureConfig(NeuronsUMAP0Bpera18da
                         ["batch2"]]
         self.REPS = ['rep2'] 
         self.ADD_BATCH_TO_LABEL = False
-        
+        # Decide if to show ARI metric on the UMAP
+        self.SHOW_ARI = True        
 class NeuronsUMAP0Bpera18daysREIMAGEDBothBatchesBothRepsALSFigureConfig(NeuronsUMAP0Bpera18daysREIMAGEDALSFigureConfig):
     def __init__(self):
         super().__init__()
@@ -1475,6 +1531,8 @@ class NeuronsUMAP0Bpera18daysREIMAGEDALSWithSNCAFigureConfig(DatasetConfig):
         self.SIZE = 30
         # Set the alpha of the dots (0=max opacity, 1=no opacity)
         self.ALPHA = 0.7
+        # Decide if to show ARI metric on the UMAP
+        self.SHOW_ARI = False
         ####################################### 
 
 class NeuronsUMAP0Bpera18daysREIMAGEDB1BothRepsALSWithSNCAFigureConfig(NeuronsUMAP0Bpera18daysREIMAGEDALSWithSNCAFigureConfig):
@@ -1504,7 +1562,8 @@ class NeuronsUMAP0Bpera18daysREIMAGEDB2BothRepsJoinedALSWithSNCAFigureConfig(Neu
         
         self.MAP_LABELS_FUNCTION = "get_cell_lines_from_labels"
         self.UMAP_MAPPINGS = self.UMAP_MAPPINGS_ALS
-        
+        # Decide if to show ARI metric on the UMAP
+        self.SHOW_ARI = True
         
 class NeuronsUMAP0Bpera18daysREIMAGEDB1BothRepsJoinedALSWithSNCAFigureConfig(NeuronsUMAP0Bpera18daysREIMAGEDALSWithSNCAFigureConfig):
     def __init__(self):
@@ -1513,7 +1572,9 @@ class NeuronsUMAP0Bpera18daysREIMAGEDB1BothRepsJoinedALSWithSNCAFigureConfig(Neu
                         ["batch1"]]
         self.ADD_REP_TO_LABEL = False
         self.ADD_BATCH_TO_LABEL = False
-        
+        # Decide if to show ARI metric on the UMAP
+        self.SHOW_ARI = True
+
         self.MAP_LABELS_FUNCTION = "get_cell_lines_from_labels"
         self.UMAP_MAPPINGS = self.UMAP_MAPPINGS_ALS
         
@@ -1524,7 +1585,8 @@ class NeuronsUMAP0Bpera18daysREIMAGEDB1Rep1ALSWithSNCAFigureConfig(NeuronsUMAP0B
                         ["batch1"]]
         self.REPS = ['rep1'] 
         self.ADD_BATCH_TO_LABEL = False
-
+        # Decide if to show ARI metric on the UMAP
+        self.SHOW_ARI = True
         
 class NeuronsUMAP0Bpera18daysREIMAGEDB1Rep2ALSWithSNCAFigureConfig(NeuronsUMAP0Bpera18daysREIMAGEDALSWithSNCAFigureConfig):
     def __init__(self):
@@ -1533,7 +1595,8 @@ class NeuronsUMAP0Bpera18daysREIMAGEDB1Rep2ALSWithSNCAFigureConfig(NeuronsUMAP0B
                         ["batch1"]]
         self.REPS = ['rep2'] 
         self.ADD_BATCH_TO_LABEL = False
-
+        # Decide if to show ARI metric on the UMAP
+        self.SHOW_ARI = True
         
 class NeuronsUMAP0Bpera18daysREIMAGEDB2Rep1ALSWithSNCAFigureConfig(NeuronsUMAP0Bpera18daysREIMAGEDALSWithSNCAFigureConfig):
     def __init__(self):
@@ -1542,7 +1605,9 @@ class NeuronsUMAP0Bpera18daysREIMAGEDB2Rep1ALSWithSNCAFigureConfig(NeuronsUMAP0B
                         ["batch2"]]
         self.REPS = ['rep1'] 
         self.ADD_BATCH_TO_LABEL = False
-        
+        # Decide if to show ARI metric on the UMAP
+        self.SHOW_ARI = True 
+
 class NeuronsUMAP0Bpera18daysREIMAGEDB2Rep2ALSWithSNCAFigureConfig(NeuronsUMAP0Bpera18daysREIMAGEDALSWithSNCAFigureConfig):
     def __init__(self):
         super().__init__()
@@ -1550,7 +1615,9 @@ class NeuronsUMAP0Bpera18daysREIMAGEDB2Rep2ALSWithSNCAFigureConfig(NeuronsUMAP0B
                         ["batch2"]]
         self.REPS = ['rep2'] 
         self.ADD_BATCH_TO_LABEL = False
-        
+        # Decide if to show ARI metric on the UMAP
+        self.SHOW_ARI = True
+
 ############################################################
 # UMAP0 - dNLS
 ############################################################ 
@@ -1576,6 +1643,8 @@ class EmbeddingsdNLSB2Rep1DatasetConfig(DatasetConfig):
         self.SIZE = 30
         # Set the alpha of the dots (0=max opacity, 1=no opacity)
         self.ALPHA = 0.7
+        # Decide if to show ARI metric on the UMAP
+        self.SHOW_ARI = True
         #######################################     
 
 class EmbeddingsdNLSB2Rep2DatasetConfig(DatasetConfig):
@@ -1600,6 +1669,8 @@ class EmbeddingsdNLSB2Rep2DatasetConfig(DatasetConfig):
         self.SIZE = 30
         # Set the alpha of the dots (0=max opacity, 1=no opacity)
         self.ALPHA = 0.7
+        # Decide if to show ARI metric on the UMAP
+        self.SHOW_ARI = True
         #######################################     
 
 class EmbeddingsdNLSB3Rep1DatasetConfig(DatasetConfig):
@@ -1624,6 +1695,8 @@ class EmbeddingsdNLSB3Rep1DatasetConfig(DatasetConfig):
         self.SIZE = 30
         # Set the alpha of the dots (0=max opacity, 1=no opacity)
         self.ALPHA = 0.7
+        # Decide if to show ARI metric on the UMAP
+        self.SHOW_ARI = True
         #######################################     
 
 class EmbeddingsdNLSB3Rep2DatasetConfig(DatasetConfig):
@@ -1648,6 +1721,8 @@ class EmbeddingsdNLSB3Rep2DatasetConfig(DatasetConfig):
         self.SIZE = 30
         # Set the alpha of the dots (0=max opacity, 1=no opacity)
         self.ALPHA = 0.7
+        # Decide if to show ARI metric on the UMAP
+        self.SHOW_ARI = True
         #######################################    
         
 class EmbeddingsdNLSB3Rep1OnlyTDP43LineOnlyDCP1ADatasetConfig(DatasetConfig):
@@ -1673,6 +1748,8 @@ class EmbeddingsdNLSB3Rep1OnlyTDP43LineOnlyDCP1ADatasetConfig(DatasetConfig):
         self.SIZE = 30
         # Set the alpha of the dots (0=max opacity, 1=no opacity)
         self.ALPHA = 0.7
+        # Decide if to show ARI metric on the UMAP
+        self.SHOW_ARI = True
         #######################################     
 
 class EmbeddingsdNLSB3Rep2OnlyTDP43LineOnlyDCP1ADatasetConfig(DatasetConfig):
@@ -1698,6 +1775,8 @@ class EmbeddingsdNLSB3Rep2OnlyTDP43LineOnlyDCP1ADatasetConfig(DatasetConfig):
         self.SIZE = 30
         # Set the alpha of the dots (0=max opacity, 1=no opacity)
         self.ALPHA = 0.7
+        # Decide if to show ARI metric on the UMAP
+        self.SHOW_ARI = True
         #######################################    
         
 class EmbeddingsdNLSB3BothRepsOnlyWTOnlyDCP1ADatasetConfig(DatasetConfig):
@@ -1723,6 +1802,8 @@ class EmbeddingsdNLSB3BothRepsOnlyWTOnlyDCP1ADatasetConfig(DatasetConfig):
         self.SIZE = 30
         # Set the alpha of the dots (0=max opacity, 1=no opacity)
         self.ALPHA = 0.7
+        # Decide if to show ARI metric on the UMAP
+        self.SHOW_ARI = True
         #######################################  
        
 class EmbeddingsdNLSB3BothRepsOnlyTDP43UntreatedDatasetConfig(DatasetConfig):
@@ -1746,6 +1827,8 @@ class EmbeddingsdNLSB3BothRepsOnlyTDP43UntreatedDatasetConfig(DatasetConfig):
         self.SIZE = 30
         # Set the alpha of the dots (0=max opacity, 1=no opacity)
         self.ALPHA = 0.7
+        # Decide if to show ARI metric on the UMAP
+        self.SHOW_ARI = True
         #######################################  
         
 class EmbeddingsdNLSB3BothRepsOnlyTDP43DoxDatasetConfig(DatasetConfig):
@@ -1767,6 +1850,8 @@ class EmbeddingsdNLSB3BothRepsOnlyTDP43DoxDatasetConfig(DatasetConfig):
         self.SIZE = 30
         # Set the alpha of the dots (0=max opacity, 1=no opacity)
         self.ALPHA = 0.7
+        # Decide if to show ARI metric on the UMAP
+        self.SHOW_ARI = True
         #######################################  
         
 class EmbeddingsdNLSB3BothRepsJoinedDatasetConfig(DatasetConfig):
@@ -1790,6 +1875,8 @@ class EmbeddingsdNLSB3BothRepsJoinedDatasetConfig(DatasetConfig):
         self.SIZE = 30
         # Set the alpha of the dots (0=max opacity, 1=no opacity)
         self.ALPHA = 0.7
+        # Decide if to show ARI metric on the UMAP
+        self.SHOW_ARI = True
         #######################################   
         
 class EmbeddingsdNLSB4Rep1OnlyTDP43LineOnlyDCP1ADatasetConfig(DatasetConfig):
@@ -1815,6 +1902,8 @@ class EmbeddingsdNLSB4Rep1OnlyTDP43LineOnlyDCP1ADatasetConfig(DatasetConfig):
         self.SIZE = 30
         # Set the alpha of the dots (0=max opacity, 1=no opacity)
         self.ALPHA = 0.7
+        # Decide if to show ARI metric on the UMAP
+        self.SHOW_ARI = True
         #######################################     
 
 class EmbeddingsdNLSB4Rep2OnlyTDP43LineOnlyDCP1ADatasetConfig(DatasetConfig):
@@ -1840,6 +1929,8 @@ class EmbeddingsdNLSB4Rep2OnlyTDP43LineOnlyDCP1ADatasetConfig(DatasetConfig):
         self.SIZE = 30
         # Set the alpha of the dots (0=max opacity, 1=no opacity)
         self.ALPHA = 0.7
+        # Decide if to show ARI metric on the UMAP
+        self.SHOW_ARI = True
         #######################################    
         
 class EmbeddingsdNLSB4BothRepsOnlyWTOnlyDCP1ADatasetConfig(DatasetConfig):
@@ -1864,6 +1955,8 @@ class EmbeddingsdNLSB4BothRepsOnlyWTOnlyDCP1ADatasetConfig(DatasetConfig):
         self.SIZE = 30
         # Set the alpha of the dots (0=max opacity, 1=no opacity)
         self.ALPHA = 0.7
+        # Decide if to show ARI metric on the UMAP
+        self.SHOW_ARI = True
         #######################################  
 
 class EmbeddingsdNLSB4BothRepsOnlyTDP43UntreatedDatasetConfig(DatasetConfig):
@@ -1888,6 +1981,8 @@ class EmbeddingsdNLSB4BothRepsOnlyTDP43UntreatedDatasetConfig(DatasetConfig):
         self.SIZE = 30
         # Set the alpha of the dots (0=max opacity, 1=no opacity)
         self.ALPHA = 0.7
+        # Decide if to show ARI metric on the UMAP
+        self.SHOW_ARI = True
         #######################################  
         
 class EmbeddingsdNLSB4BothRepsOnlyTDP43DoxDatasetConfig(DatasetConfig):
@@ -1911,6 +2006,8 @@ class EmbeddingsdNLSB4BothRepsOnlyTDP43DoxDatasetConfig(DatasetConfig):
         self.SIZE = 30
         # Set the alpha of the dots (0=max opacity, 1=no opacity)
         self.ALPHA = 0.7
+        # Decide if to show ARI metric on the UMAP
+        self.SHOW_ARI = True
         #######################################  
 
 class EmbeddingsdNLSB4Rep1DatasetConfig(DatasetConfig):
@@ -1935,6 +2032,8 @@ class EmbeddingsdNLSB4Rep1DatasetConfig(DatasetConfig):
         self.SIZE = 30
         # Set the alpha of the dots (0=max opacity, 1=no opacity)
         self.ALPHA = 0.7
+        # Decide if to show ARI metric on the UMAP
+        self.SHOW_ARI = True
         #######################################     
 
 class EmbeddingsdNLSB4Rep2DatasetConfig(DatasetConfig):
@@ -1959,6 +2058,8 @@ class EmbeddingsdNLSB4Rep2DatasetConfig(DatasetConfig):
         self.SIZE = 30
         # Set the alpha of the dots (0=max opacity, 1=no opacity)
         self.ALPHA = 0.7
+        # Decide if to show ARI metric on the UMAP
+        self.SHOW_ARI = True
         #######################################     
 
 class EmbeddingsdNLSB5Rep1DatasetConfig(DatasetConfig):
@@ -1983,6 +2084,8 @@ class EmbeddingsdNLSB5Rep1DatasetConfig(DatasetConfig):
         self.SIZE = 30
         # Set the alpha of the dots (0=max opacity, 1=no opacity)
         self.ALPHA = 0.7
+        # Decide if to show ARI metric on the UMAP
+        self.SHOW_ARI = True
         #######################################     
 
 class EmbeddingsdNLSB5Rep2DatasetConfig(DatasetConfig):
@@ -2007,6 +2110,8 @@ class EmbeddingsdNLSB5Rep2DatasetConfig(DatasetConfig):
         self.SIZE = 30
         # Set the alpha of the dots (0=max opacity, 1=no opacity)
         self.ALPHA = 0.7
+        # Decide if to show ARI metric on the UMAP
+        self.SHOW_ARI = True
         #######################################     
         
 class EmbeddingsdNLSB5BothRepsOnlyTDP43UntreatedDatasetConfig(DatasetConfig):
@@ -2032,6 +2137,8 @@ class EmbeddingsdNLSB5BothRepsOnlyTDP43UntreatedDatasetConfig(DatasetConfig):
         self.SIZE = 30
         # Set the alpha of the dots (0=max opacity, 1=no opacity)
         self.ALPHA = 0.7
+        # Decide if to show ARI metric on the UMAP
+        self.SHOW_ARI = True
         #######################################  
         
 class EmbeddingsdNLSB2BothRepsOnlyTDP43UntreatedDatasetConfig(DatasetConfig):
@@ -2056,6 +2163,8 @@ class EmbeddingsdNLSB2BothRepsOnlyTDP43UntreatedDatasetConfig(DatasetConfig):
         self.SIZE = 30
         # Set the alpha of the dots (0=max opacity, 1=no opacity)
         self.ALPHA = 0.7
+        # Decide if to show ARI metric on the UMAP
+        self.SHOW_ARI = True
         #######################################  
 
 ############################################################
@@ -2082,7 +2191,8 @@ class EmbeddingsU2OSRep1FigureConfig(DatasetConfig):
         self.SIZE = 30
         # Set the alpha of the dots (0=max opacity, 1=no opacity)
         self.ALPHA = 0.7
-
+        # Decide if to show ARI metric on the UMAP
+        self.SHOW_ARI = True
 ############################################################
 # UMAP2
 ############################################################ 
@@ -2110,6 +2220,8 @@ class NeuronsUMAP2B6Rep2StressFigureConfig(DatasetConfig):
         self.SIZE = 30
         # Set the alpha of the dots (0=max opacity, 1=no opacity)
         self.ALPHA = 0.7
+        # Decide if to show ARI metric on the UMAP
+        self.SHOW_ARI = True
         #######################################
 
 class NeuronsUMAP2B6Rep2FUSFigureConfig(DatasetConfig):
@@ -2136,6 +2248,8 @@ class NeuronsUMAP2B6Rep2FUSFigureConfig(DatasetConfig):
         self.SIZE = 30
         # Set the alpha of the dots (0=max opacity, 1=no opacity)
         self.ALPHA = 0.7
+        # Decide if to show ARI metric on the UMAP
+        self.SHOW_ARI = True
         #######################################
 
 class NeuronsUMAP2B6Rep2FigureConfig(DatasetConfig):
@@ -2162,6 +2276,8 @@ class NeuronsUMAP2B6Rep2FigureConfig(DatasetConfig):
         self.SIZE = 30
         # Set the alpha of the dots (0=max opacity, 1=no opacity)
         self.ALPHA = 0.7
+        # Decide if to show ARI metric on the UMAP
+        self.SHOW_ARI = False
         #######################################
 
 class NeuronsUMAP2B6Rep2FUSLinesNOFUSFigureConfig(DatasetConfig):
@@ -2188,6 +2304,8 @@ class NeuronsUMAP2B6Rep2FUSLinesNOFUSFigureConfig(DatasetConfig):
         self.SIZE = 30
         # Set the alpha of the dots (0=max opacity, 1=no opacity)
         self.ALPHA = 0.7
+        # Decide if to show ARI metric on the UMAP
+        self.SHOW_ARI = True
         #######################################
 
 class NeuronsUMAP2B6Rep2NOFUSFigureConfig(DatasetConfig):
@@ -2213,6 +2331,8 @@ class NeuronsUMAP2B6Rep2NOFUSFigureConfig(DatasetConfig):
         self.SIZE = 30
         # Set the alpha of the dots (0=max opacity, 1=no opacity)
         self.ALPHA = 0.7
+        # Decide if to show ARI metric on the UMAP
+        self.SHOW_ARI = False
         #######################################
 
 class NeuronsUMAP2B6Rep2NOFUSLinesFigureConfig(DatasetConfig):
@@ -2239,6 +2359,8 @@ class NeuronsUMAP2B6Rep2NOFUSLinesFigureConfig(DatasetConfig):
         self.SIZE = 30
         # Set the alpha of the dots (0=max opacity, 1=no opacity)
         self.ALPHA = 0.7
+        # Decide if to show ARI metric on the UMAP
+        self.SHOW_ARI = True
         #######################################
 
 class dNLSUMAP2B3BothRepsFigureConfig(DatasetConfig):
@@ -2247,7 +2369,6 @@ class dNLSUMAP2B3BothRepsFigureConfig(DatasetConfig):
         self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "spd2", "SpinningDisk","deltaNLS", f) for f in 
                         ["batch3"]]
         
-        self.REPS = ['rep2','rep1'] 
         self.MARKERS_TO_EXCLUDE = ['FMRP','TIA1']
         
         self.EXPERIMENT_TYPE = 'deltaNLS'
@@ -2263,6 +2384,8 @@ class dNLSUMAP2B3BothRepsFigureConfig(DatasetConfig):
         self.SIZE = 30
         # Set the alpha of the dots (0=max opacity, 1=no opacity)
         self.ALPHA = 0.7
+        # Decide if to show ARI metric on the UMAP
+        self.SHOW_ARI = True
         #######################################
         
 class dNLSUMAP2B3BothRepsWithoutWTFigureConfig(DatasetConfig):
@@ -2287,6 +2410,8 @@ class dNLSUMAP2B3BothRepsWithoutWTFigureConfig(DatasetConfig):
         self.SIZE = 30
         # Set the alpha of the dots (0=max opacity, 1=no opacity)
         self.ALPHA = 0.7
+        # Decide if to show ARI metric on the UMAP
+        self.SHOW_ARI = True
         #######################################
         
 ## Opera 18 days (REIMAGED)
@@ -2314,6 +2439,8 @@ class NeuronsUMAP2Bpera18daysREIMAGEDALSFigureConfig(DatasetConfig):
         self.SIZE = 30
         # Set the alpha of the dots (0=max opacity, 1=no opacity)
         self.ALPHA = 0.7
+        # Decide if to show ARI metric on the UMAP
+        self.SHOW_ARI = False
         ####################################### 
 
 class NeuronsUMAP2Bpera18daysREIMAGEDB1BothRepsALSFigureConfig(NeuronsUMAP2Bpera18daysREIMAGEDALSFigureConfig):
@@ -2386,6 +2513,8 @@ class NeuronsUMAP2Bpera18daysREIMAGEDALSWithSNCAFigureConfig(DatasetConfig):
         self.SIZE = 30
         # Set the alpha of the dots (0=max opacity, 1=no opacity)
         self.ALPHA = 0.7
+        # Decide if to show ARI metric on the UMAP
+        self.SHOW_ARI = False
         ####################################### 
 
 class NeuronsUMAP2Bpera18daysREIMAGEDB1BothRepsALSWithSNCAFigureConfig(NeuronsUMAP2Bpera18daysREIMAGEDALSWithSNCAFigureConfig):
@@ -2457,6 +2586,8 @@ class NeuronsUMAP0B1Opera18daysREIMAGEDALSFigureConfig(DatasetConfig):
         self.SIZE = 30
         # Set the alpha of the dots (0=max opacity, 1=no opacity)
         self.ALPHA = 0.7
+        # Decide if to show ARI metric on the UMAP
+        self.SHOW_ARI = False
         ####################################### 
         
 class NeuronsUMAP0B2Opera18daysREIMAGEDALSFigureConfig(DatasetConfig):
@@ -2482,6 +2613,8 @@ class NeuronsUMAP0B2Opera18daysREIMAGEDALSFigureConfig(DatasetConfig):
         self.SIZE = 30
         # Set the alpha of the dots (0=max opacity, 1=no opacity)
         self.ALPHA = 0.7
+        # Decide if to show ARI metric on the UMAP
+        self.SHOW_ARI = False
         ####################################### 
 
 class NeuronsUMAP0B1Rep2Opera18daysREIMAGEDALS_WT_FUSHet_FigureConfig(NeuronsUMAP0B1Opera18daysREIMAGEDALSFigureConfig):
@@ -2686,6 +2819,8 @@ class NeuronsUMAP2B6BothRepsFigureConfig(DatasetConfig):
         self.SIZE = 30
         # Set the alpha of the dots (0=max opacity, 1=no opacity)
         self.ALPHA = 0.7
+        # Decide if to show ARI metric on the UMAP
+        self.SHOW_ARI = False
         #######################################
 
 class NeuronsUMAP2B6BothRepsNOFUSFigureConfig(DatasetConfig):
@@ -2711,6 +2846,8 @@ class NeuronsUMAP2B6BothRepsNOFUSFigureConfig(DatasetConfig):
         self.SIZE = 30
         # Set the alpha of the dots (0=max opacity, 1=no opacity)
         self.ALPHA = 0.7
+        # Decide if to show ARI metric on the UMAP
+        self.SHOW_ARI = False
         #######################################
 
 class NeuronsUMAP2B6BothRepsNOFUSNOSCNAFigureConfig(DatasetConfig):
@@ -2736,6 +2873,8 @@ class NeuronsUMAP2B6BothRepsNOFUSNOSCNAFigureConfig(DatasetConfig):
         self.SIZE = 30
         # Set the alpha of the dots (0=max opacity, 1=no opacity)
         self.ALPHA = 0.7
+        # Decide if to show ARI metric on the UMAP
+        self.SHOW_ARI = False
         #######################################
 
 class NeuronsUMAP2B6BothRepsNOSCNAFigureConfig(DatasetConfig):
@@ -2761,6 +2900,8 @@ class NeuronsUMAP2B6BothRepsNOSCNAFigureConfig(DatasetConfig):
         self.SIZE = 30
         # Set the alpha of the dots (0=max opacity, 1=no opacity)
         self.ALPHA = 0.7
+        # Decide if to show ARI metric on the UMAP
+        self.SHOW_ARI = False
         #######################################
 
 class NeuronsUMAP2B9BothRepsFigureConfig(DatasetConfig):
@@ -2786,6 +2927,8 @@ class NeuronsUMAP2B9BothRepsFigureConfig(DatasetConfig):
         self.SIZE = 30
         # Set the alpha of the dots (0=max opacity, 1=no opacity)
         self.ALPHA = 0.7
+        # Decide if to show ARI metric on the UMAP
+        self.SHOW_ARI = False
         #######################################
 
 class NeuronsUMAP2B9BothRepsNOFUSFigureConfig(DatasetConfig):
@@ -2811,6 +2954,8 @@ class NeuronsUMAP2B9BothRepsNOFUSFigureConfig(DatasetConfig):
         self.SIZE = 30
         # Set the alpha of the dots (0=max opacity, 1=no opacity)
         self.ALPHA = 0.7
+        # Decide if to show ARI metric on the UMAP
+        self.SHOW_ARI = False
         #######################################
 
 class NeuronsUMAP2B9BothRepsNOFUSNOSCNAFigureConfig(DatasetConfig):
@@ -2836,6 +2981,8 @@ class NeuronsUMAP2B9BothRepsNOFUSNOSCNAFigureConfig(DatasetConfig):
         self.SIZE = 30
         # Set the alpha of the dots (0=max opacity, 1=no opacity)
         self.ALPHA = 0.7
+        # Decide if to show ARI metric on the UMAP
+        self.SHOW_ARI = False
         #######################################
 
 class NeuronsUMAP2B9BothRepsNOSCNAFigureConfig(DatasetConfig):
@@ -2861,4 +3008,6 @@ class NeuronsUMAP2B9BothRepsNOSCNAFigureConfig(DatasetConfig):
         self.SIZE = 30
         # Set the alpha of the dots (0=max opacity, 1=no opacity)
         self.ALPHA = 0.7
+        # Decide if to show ARI metric on the UMAP
+        self.SHOW_ARI = False
         #######################################   

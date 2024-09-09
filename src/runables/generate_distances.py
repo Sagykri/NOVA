@@ -6,23 +6,22 @@ print(f"MOMAPS_HOME: {os.getenv('MOMAPS_HOME')}")
 
 import logging
 
-from src.common.lib.utils import get_if_exists, load_config_file
+from src.common.lib.utils import load_config_file
 from src.common.lib.embeddings_utils import load_embeddings
-from src.common.lib.utils import handle_log
-
+from src.common.configs.trainer_config import TrainerConfig
+from src.common.configs.dataset_config import DatasetConfig
 from src.analysis.analyzer_distances_ari import AnalyzerDistancesARI
 
 def generate_distances(config_path_trainer:str, config_path_data:str )->None:
    
-    config_trainer = load_config_file(config_path_trainer, 'data')
+    config_trainer:TrainerConfig = load_config_file(config_path_trainer, 'train')
     model_output_folder = config_trainer.OUTPUTS_FOLDER
-    handle_log(model_output_folder)
 
-    config_data = load_config_file(config_path_data, 'data')
+    config_data:DatasetConfig = load_config_file(config_path_data, 'data')
 
     embeddings, labels = load_embeddings(model_output_folder, config_data)
     
-    logging.info("[Generate distances (vit)]")
+    logging.info("[Generate distances]")
     d = AnalyzerDistancesARI(config_trainer, config_data)
     d.calculate(embeddings, labels)
     d.save()

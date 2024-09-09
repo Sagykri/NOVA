@@ -24,13 +24,17 @@ class AnalyzerUMAP2(AnalyzerUMAP):
 
 
     def calculate(self, embeddings:np.ndarray[float], labels:np.ndarray[str])->Tuple[np.ndarray[float],np.ndarray[str]]:
-        """Calculate UMAP embeddings from the concatenation of given embeddings, grouping by the cell line and condition.
-        Then save in the self.features attribute
+        """Calculate UMAP embeddings for multiplexed embeddings from the given embeddings and store the results in the `self.features` attribute. 
+         This method takes in embeddings and their associated labels, and computes multiplexed embeddings by grouping the data based on shared phenotypes.
 
         Args:
-            embeddings (np.ndarray[float]): The embeddings
-            labels (np.ndarray[str]): The corresponding labels of the embeddings
-        """   
+            embeddings (np.ndarray[float]): The input embeddings with shape (n_samples, n_features).
+            labels (np.ndarray[str]): The labels associated with each embedding.
+        Returns:
+            Tuple[np.ndarray[float], np.ndarray[str]]: 
+                - The UMAP embeddings after dimensionality reduction with shape (n_mutliplexed_samples, n_components).
+                - The corresponding phenotypes labels preserving the association with the UMAP embeddings.
+        """
         
         logging.info(f"[AnalyzerUMAP2.calculate] Embeddings shape: {embeddings.shape}, Labels shape: {labels.shape}")
         df = self.__format_embeddings_to_df(embeddings, labels)
@@ -114,11 +118,7 @@ class AnalyzerUMAP2(AnalyzerUMAP):
         
         all_multiplexed_embeddings  = np.vstack(result_df[self.__COLUMN_EMBEDDINGS].to_numpy())
         all_labels                  = np.concatenate(result_df[self.__COLUMN_PHENOTYPE].to_numpy())\
-                                                                                        .reshape(-1,1)\
-                                                                                        .astype(object)
-
-        # all_labels                  = np.concatenate(result_df[self.__COLUMN_PHENOTYPE].to_numpy())\
-        #                                                                         .astype(object)
+                                                                                .astype(object)
         
         return all_multiplexed_embeddings, all_labels
     

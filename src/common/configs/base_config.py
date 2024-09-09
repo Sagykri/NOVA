@@ -34,7 +34,7 @@ class BaseConfig():
         assert self.RAW_FOLDER_ROOT != self.PROCESSED_FOLDER_ROOT, f"RAW_FOLDER_ROOT == PROCESSED_FOLDER_ROOT, {self.RAW_FOLDER_ROOT}"
                 
         # Output
-        self.OUTPUTS_FOLDER = os.path.join(self.HOME_FOLDER, "outputs")
+        self.__OUTPUTS_FOLDER = os.path.join(self.HOME_FOLDER, "outputs")
         self.CONFIGS_USED_FOLDER = os.path.join(self.OUTPUTS_FOLDER, "configs_used", __now.strftime("%d%m%y_%H%M%S_%f"))
         
         
@@ -74,6 +74,18 @@ class BaseConfig():
         self.UMAP_MAPPINGS_ALS['SNCA'] = self.UMAP_MAPPINGS_ALS['SNCA_Untreated']
         self.UMAP_MAPPINGS_ALS['TDP43'] = self.UMAP_MAPPINGS_ALS['TDP43_Untreated']
 
+        self.UMAP_MAPPINGS_CONDITION_AND_ALS = {
+            'WT_Untreated': {self.UMAP_MAPPINGS_ALIAS_KEY: 'Wild-Type', self.UMAP_MAPPINGS_COLOR_KEY: '#37AFD7'},
+            'WT_stress': {self.UMAP_MAPPINGS_ALIAS_KEY: 'Wild-Type + Stress', self.UMAP_MAPPINGS_COLOR_KEY: '#F7810F'},
+            'FUSHeterozygous_Untreated': {self.UMAP_MAPPINGS_ALIAS_KEY: 'FUS Heterozygous', self.UMAP_MAPPINGS_COLOR_KEY: '#AB7A5B'},
+            'FUSHomozygous_Untreated': {self.UMAP_MAPPINGS_ALIAS_KEY: 'FUS Homozygous', self.UMAP_MAPPINGS_COLOR_KEY: '#78491C'},
+            'FUSRevertant_Untreated': {self.UMAP_MAPPINGS_ALIAS_KEY: 'FUS Revertant', self.UMAP_MAPPINGS_COLOR_KEY: '#C8C512'},
+            'OPTN_Untreated': {self.UMAP_MAPPINGS_ALIAS_KEY: 'OPTN', self.UMAP_MAPPINGS_COLOR_KEY: '#FF98BB'},
+            'TBK1_Untreated': {self.UMAP_MAPPINGS_ALIAS_KEY: 'TBK1', self.UMAP_MAPPINGS_COLOR_KEY: '#319278'},
+            'SCNA_Untreated': {self.UMAP_MAPPINGS_ALIAS_KEY: 'SCNA', self.UMAP_MAPPINGS_COLOR_KEY: 'black'},
+            'SNCA_Untreated': {self.UMAP_MAPPINGS_ALIAS_KEY: 'SNCA', self.UMAP_MAPPINGS_COLOR_KEY: 'black'},
+            'TDP43_Untreated': {self.UMAP_MAPPINGS_ALIAS_KEY: 'TDP43', self.UMAP_MAPPINGS_COLOR_KEY: '#A8559E'},
+        }
         
         self.UMAP_MAPPINGS_DOX = {
             'WT_Untreated': {self.UMAP_MAPPINGS_ALIAS_KEY: 'Wild-Type', self.UMAP_MAPPINGS_COLOR_KEY: '#2FA0C1'},
@@ -139,7 +151,21 @@ class BaseConfig():
         self.__SEED = value
         np.random.seed(self.__SEED)
         random.seed(self.__SEED)
-        
+    
+    @property
+    def OUTPUTS_FOLDER(self)->str:
+        """Get the path to the outputs folder
+
+        Returns:
+            str: The path
+        """
+        return self.__OUTPUTS_FOLDER
+    
+    @OUTPUTS_FOLDER.setter
+    def OUTPUTS_FOLDER(self, path:str)->None:
+        self.__OUTPUTS_FOLDER = path
+        self.LOGS_FOLDER = os.path.join(self.__OUTPUTS_FOLDER, 'logs')
+
     @property
     def LOGS_FOLDER(self):
         return self.__LOGS_FOLDER
@@ -153,7 +179,8 @@ class BaseConfig():
         __now = datetime.datetime.now()
         jobid = os.getenv('LSB_JOBID')
         jobname = os.getenv('LSB_JOBNAME')
-        
+        jobname = jobname.replace('/','').replace('.','')
+
         username = 'UnknownUser'
         if jobid:
             # Run the bjobs command to get job details
@@ -167,3 +194,9 @@ class BaseConfig():
         init_logging(log_file_path)
         logging.info(f"[{self.__class__.__name__}] Init (log path: {log_file_path}; JOBID: {jobid} Username: {username}) JOBNAME: {jobname}")
         logging.info(f"[{self.__class__.__name__}] MOMAPS_HOME={self.HOME_FOLDER}, MOMAPS_DATA_HOME={self.HOME_DATA_FOLDER}")
+    
+    def _save_config(self, output_folder_path: str) -> None:
+        """Saves the configuration data to a JSON file."""
+        os.makedirs(output_folder_path, exist_ok=True)
+        with open(os.path.join(output_folder_path, 'config.json'), 'w') as json_file:
+            json.dump(self.__dict__, json_file, indent=4)

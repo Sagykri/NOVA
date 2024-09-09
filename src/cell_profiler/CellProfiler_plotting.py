@@ -187,7 +187,7 @@ def plot_umap0(df, marker,
     #logging.info('%s %s', "\n", df.value_counts(subset=['replicate', 'cell_line', 'marker']))
     
     from src.common.lib.metrics import calc_clustering_validation_metric
-    from src.common.lib.metrics import get_metrics_figure
+    from MOmaps.src.common.lib.plotting import __get_metrics_figure
     from matplotlib.gridspec import GridSpec
     
     if stress:
@@ -213,7 +213,7 @@ def plot_umap0(df, marker,
         sns.scatterplot(data=df_new, x='UMAP1', y='UMAP2', ax = ax,
                              hue='treatment', palette = color_map, s = 30)
         gs_bottom = fig.add_subplot(gs[1])
-        get_metrics_figure(umaps, np.array(true_labels), ax=gs_bottom)
+        __get_metrics_figure(umaps, np.array(true_labels), ax=gs_bottom)
         ax.legend().set_title('')
         ax.set(xticklabels=[])
         ax.set(yticklabels=[])

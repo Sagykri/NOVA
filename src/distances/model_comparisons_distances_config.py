@@ -41,7 +41,7 @@ class Neurons69Full78TestDistanceConfig(DatasetConfig):
         self.ADD_BATCH_TO_LABEL = True
         self.ADD_REP_TO_LABEL = True
         self.BASELINE_CELL_LINE_CONDITION = "WT_Untreated"
-       
+        self.UMAP_MAPPINGS = self.UMAP_MAPPINGS_MARKERS
 class NeuronsTest78TBK1DistanceConfig(DatasetConfig):
     def __init__(self):
         super().__init__()
@@ -157,7 +157,6 @@ class EmbeddingsDay18DistanceConfig(DatasetConfig):
         self.BASELINE_CELL_LINE_CONDITION = "WT_Untreated"
 
         
-
 class NeuronsDistanceB78TestConfig(DatasetConfig):
     def __init__(self):
         super().__init__()
@@ -175,6 +174,7 @@ class NeuronsDistanceB78TestConfig(DatasetConfig):
         self.BASELINE_CELL_LINE_CONDITION = "WT_Untreated"
         self.ADD_BATCH_TO_LABEL = True
         self.ADD_REP_TO_LABEL = True 
+
 class NeuronsDistanceB78FullConfig(DatasetConfig):
     def __init__(self):
         super().__init__()

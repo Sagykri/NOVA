@@ -5,7 +5,6 @@ import uuid
 
 sys.path.insert(1, os.getenv("MOMAPS_HOME"))
 
-
 import importlib
 import json
 import logging
@@ -260,20 +259,13 @@ class LogDF(object):
         
         return self.__path
 
-def handle_log(model_output_folder):
-    # logs
-    jobid = os.getenv('LSB_JOBID')
-    jobname = os.getenv('LSB_JOBNAME')
-    jobname = jobname.replace('/','').replace('.','')
-    username = 'UnknownUser'
-    if jobid:
-        # Run the bjobs command to get job details
-        result = subprocess.run(['bjobs', '-o', 'user', jobid], capture_output=True, text=True, check=True)
-        # Extract the username from the output
-        username = result.stdout.replace('USER', '').strip()
-            
-    __now = datetime.datetime.now()
-    logs_folder = os.path.join(model_output_folder, "logs")
-    os.makedirs(logs_folder, exist_ok=True)
-    log_file_path = os.path.join(logs_folder, __now.strftime("%d%m%y_%H%M%S_%f") + f'_{jobid}_{username}_{jobname}.log')
-    init_logging(log_file_path)
+def save_plot(fig, savepath: str, dpi: int, save_png:bool=True, save_eps:bool=False) -> None:
+    """Saves the plot if a savepath is provided, otherwise shows the plot."""
+    os.makedirs(os.path.dirname(savepath), exist_ok=True)
+    logging.info(f"Saving plot to {savepath}")
+    if save_png:
+        fig.savefig(f"{savepath}.png", dpi=dpi, bbox_inches='tight')
+    elif save_eps:
+        fig.savefig(f"{savepath}.eps", dpi=dpi, format='eps')
+    else:
+        logging.info(f"save_eps and save_png are both False, not saving!")

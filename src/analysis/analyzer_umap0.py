@@ -18,13 +18,18 @@ class AnalyzerUMAP0(AnalyzerUMAP):
 
 
     def calculate(self, embeddings:np.ndarray[float], labels:np.ndarray[str])->Tuple[np.ndarray[float],np.ndarray[str]]:
-        """Calculate UMAP embeddings from given embeddings, separatly for each marker in the given embeddings.
-        Then save all together in the self.features attribute
+        """Calculate UMAP embeddings separately for each marker in the given embeddings 
+            and store the results in the `self.features` attribute. For each unique marker, the function extracts the corresponding embeddings and 
+            labels, computes the UMAP embeddings, and concatenates them into a final result.
 
         Args:
-            embeddings (np.ndarray[float]): The embeddings
-            labels (np.ndarray[str]): The corresponding labels of the embeddings
-        Returns #TODO
+            embeddings (np.ndarray[float]): The input embeddings with shape (n_samples, n_features).
+            labels (np.ndarray[str]): The labels associated with each embedding. These labels are used 
+                to group embeddings by marker.
+        Returns:
+            Tuple[np.ndarray[float], np.ndarray[str]]: 
+                - The UMAP embeddings after dimensionality reduction with shape (n_samples, n_components).
+                - The corresponding labels after concatenation, preserving the association with the UMAP embeddings.
         """
 
         markers = get_unique_parts_from_labels(labels, get_markers_from_labels) 

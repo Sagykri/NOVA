@@ -2,49 +2,45 @@
 import sys
 import os
 
-from src.datasets.label_utils import get_unique_parts_from_labels, get_cell_lines_conditions_from_labels, get_markers_from_labels, get_batches_from_labels
 sys.path.insert(1, os.getenv("MOMAPS_HOME"))
 
 from abc import abstractmethod
 import logging
-import os
 import pandas as pd
 import numpy as np
 from typing import List, Tuple, Iterable, Dict
 import itertools
 
+from src.datasets.label_utils import get_unique_parts_from_labels, get_cell_lines_conditions_from_labels, get_markers_from_labels, get_batches_from_labels
 from src.common.configs.dataset_config import DatasetConfig
 from src.common.configs.trainer_config import TrainerConfig
 from src.analysis.analyzer import Analyzer
 from src.common.lib.utils import get_if_exists
 
 class AnalyzerDistances(Analyzer):
-    """AnalyzerDistances class is used to calculating distances between different condtions based on the full embeddings space of the model.
-    It's three main methods are:
-    1. calculate(): to calculate the wanted distances from the embeddings.
-    2. load(): to load the calculated distances that were previusly saved.
-    3. save(): to save the calculated distances.
+    """
+    AnalyzerDistances is responsible for calculating distance metrics between different conditions
+    based on model embeddings. The distances are computed for each marker and batch, comparing
+    a baseline condition to other conditions.
     """
     def __init__(self, trainer_config: TrainerConfig, data_config: DatasetConfig):
         """Get an instance
 
         Args:
-            trainer_config (TrainerConfig): The trainer config object.
-            data_config (DatasetConfig): The dataset config object. 
+            trainer_config (TrainerConfig): The trainer configuration object.
+            data_config (DatasetConfig): The dataset configuration object. 
         """
         super().__init__(trainer_config, data_config)
 
 
     def calculate(self, embeddings:np.ndarray[float], labels:np.ndarray[str])->pd.DataFrame:
-        """Calculate distance metrics from given embeddings, save in the self.features attribute
-        and return it as well
+        """Calculate distance metrics from given embeddings and labels.
 
         Args:
             embeddings (np.ndarray[float]): The embeddings
             labels (np.ndarray[str]): The corresponding labels of the embeddings
         Returns:
-            pd.DataFrame: DataFrame containing the calculated distances
-            The DataFrame will have the following columns:
+            pd.DataFrame: DataFrame containing calculated distances with columns:
             - 'marker': The marker for which the distance was calculated on.
             - 'batch': The batch for which the distance was calculated on.
             - 'repA': The rep of the condition data
@@ -70,14 +66,16 @@ class AnalyzerDistances(Analyzer):
                 logging.info(f"[AnalyzerDistances.calculate] marker: {marker}")
                 new_scores = self._calculate_metrics_for_batch_and_marker(embeddings, labels, baseline_cell_line_cond,
                                                   conditions, batch, marker)
-                scores = pd.concat([scores,new_scores], ignore_index=True)
+                if new_scores.shape[0]>0:
+                    scores = pd.concat([scores,new_scores], ignore_index=True)
             
 
         self.features = scores
         return scores
     
     def load(self)->None:
-        """load the saved distances into the self.features attribute
+        """
+        Load pre-calculated distances from a file into the self.features attribute.
         """
         output_folder_path = self._get_saving_folder(feature_type='distances')
         logging.info(f"[save scores]: output_folder_path: {output_folder_path}")
@@ -85,8 +83,9 @@ class AnalyzerDistances(Analyzer):
         self.features = pd.read_csv(loadpath)
         return None
 
-    def save(self):
-        """save the calculated distances in path derived from self.output_folder_path
+    def save(self)->None:
+        """"
+        Save the calculated distances to a specified file.
         """
         output_folder_path = self._get_saving_folder(feature_type='distances')
         savepath = os.path.join(output_folder_path, self._get_save_path(output_folder_path))
@@ -96,48 +95,56 @@ class AnalyzerDistances(Analyzer):
 
     @abstractmethod    
     def _compute_score(self, embeddings: np.ndarray[float], labels: np.ndarray[str]) -> Tuple[float,str]:
-        """Abstract method to compute the actual score
+        """
+        Abstract method to compute the score between two sets of embeddings.
 
         Args:
-            embeddings (np.ndarray[float]): embeddings to calculate scores on
-            labels (np.ndarray[str]): labels of the embeddings to calculate scores on; should contain only 2 unique labels
+            embeddings (np.ndarray[float]): The embeddings to compute scores on.
+            labels (np.ndarray[str]): Corresponding labels; should contain only 2 unique labels.
 
         Returns:
-            float: the score 
-            str: the score name
+            float: The calculated score.
+            str: Name of the score metric.
         """
         pass
 
     def _calculate_metrics_for_batch_and_marker(self, embeddings:np.ndarray[float], labels:np.ndarray[str],
                                                 baseline_cell_line_cond:str, conditions:List[str], batch:str,
                                                 marker:str)->pd.DataFrame:
-        """Protected method to calculate the wanted distance metric for a given batch and marker.
+        """
+        Calculate metrics for a given batch and marker.
 
         Args:
-            embeddings (np.ndarray[float]): all embeddings to calculate the distance for
-            labels (np.ndarray[str]): corresponding labels of the embeddings
-            baseline_cell_line_cond (str): the 'cell_line_condition' that will be the baseline of the distances, example: 'WT_Untreated;
-            conditions (List[str]): a list of all the 'cell_line_condition' to compare to baseline, example: ['WT_stress','FUSHomozygous_Untreated']
-            batch (str): batch number to calculate the distance for, example: 'batch6'
+            embeddings (np.ndarray[float]): All embeddings to calculate the distance for.
+            labels (np.ndarray[str]): Corresponding labels for the embeddings.
+            baseline_cell_line_cond (str): The baseline condition to compare against, example: 'WT_Untreated;
+            conditions (List[str]): A list of conditions to compare to the baseline., example: ['WT_stress','FUSHomozygous_Untreated']
+            batch (str): batch identifier to calculate the distance for, example: 'batch6'
             marker (str): marker to calculate the distance for, example: 'G3BP1'
 
         Returns:
-            pd.DataFrame: updated dataframe with the results
+            pd.DataFrame: DataFrame with calculated scores.
         """
         scores = pd.DataFrame()
-
+        # First we want to calculate the baseline distances: the distances between the baseline to itself.
+        # These distances will be compared to the baseline vs condition distances, and they represent the inherent variance in the data (including rep effect).
+        # First step is to generate the artifical splits of the two baseline reps:
         baseline_reps, baseline_indices_dict = self._generate_reps_of_baseline(labels, batch, marker, baseline_cell_line_cond)
         if len(baseline_indices_dict)==0:
             logging.warning(f'No data for {batch},{marker}, {baseline_cell_line_cond}: cannot perform distance calculations!')
-
+            return scores
+        
+        # We want the baseline samples to have an artificial labels, dervied from the splits
         baseline_labels = labels.copy()
         for rep_name in baseline_indices_dict:
             baseline_labels[baseline_indices_dict[rep_name]] = rep_name
+        # Then we can calculate the distances between the splits
         baseline_scores = self._calculate_metric_between_reps(embeddings, baseline_labels, baseline_reps, baseline_indices_dict)
         baseline_scores['condition'] = baseline_cell_line_cond
-        scores = pd.concat([scores, baseline_scores], ignore_index=True)
+        if baseline_scores.shape[0]>0:
+            scores = pd.concat([scores, baseline_scores], ignore_index=True)
 
-        # Then we calculate the difference score between the conditions and the baseline:
+        # Then we calculate the distances between the conditions and the baseline:
         for cond in conditions:
             logging.info(f"cell line: {cond}")
             condition_reps, condition_indices_dict = self._generate_reps_of_condition_vs_baseline(labels, cond, batch, marker, baseline_cell_line_cond)
@@ -145,8 +152,9 @@ class AnalyzerDistances(Analyzer):
                 logging.warning(f'No data for {batch},{marker}, {cond}: cannot perform distance calculations!')
                 continue
             condition_scores = self._calculate_metric_between_reps(embeddings, labels, condition_reps, condition_indices_dict)
-            condition_scores['condition'] = cond
-            scores = pd.concat([scores, condition_scores], ignore_index=True)
+            if condition_scores.shape[0]>0:
+                condition_scores['condition'] = cond
+                scores = pd.concat([scores, condition_scores], ignore_index=True)
             
         scores['marker'] = marker
         scores['batch'] = batch
@@ -154,14 +162,15 @@ class AnalyzerDistances(Analyzer):
         return scores
     
     def _random_split_indices(self, indices:np.ndarray[int])->Tuple[np.ndarray[int],np.ndarray[int]]:
-        """Randomly split indices into two parts.
+        """
+        Randomly split indices into two parts.
 
         Args:
-            indices (np.ndarray[int]): indices to split
+            indices (np.ndarray[int]): Indices to split
 
         Returns:
-            np.ndarray[int]: first random half of indices
-            np.ndarray[int]: second random half of indices
+            Tuple[np.ndarray[int], np.ndarray[int]]: Two random splits of the indices.
+
         """
         np.random.seed(self.data_config.SEED)
         half_size = len(indices) // 2
@@ -171,16 +180,48 @@ class AnalyzerDistances(Analyzer):
         return part1, part2
     
     def _get_conditions_for_distances(self, labels:np.ndarray[str])->np.ndarray[str]:
+        """
+        Get conditions to calculate distances for, excluding the baseline condition.
+
+        Args:
+            labels (np.ndarray[str]): Labels containing the conditions.
+
+        Returns:
+            np.ndarray[str]: Conditions excluding the baseline condition.
+        """
         conditions = get_unique_parts_from_labels(labels, get_cell_lines_conditions_from_labels, self.data_config)
         conditions = np.delete(conditions, np.where(conditions == self.data_config.BASELINE_CELL_LINE_CONDITION)[0]) # Remove the baseline
         return conditions
 
     def _generate_reps_of_baseline(self, labels:np.ndarray[str],
                                    batch:str, marker:str, baseline_cell_line_cond:str)->Tuple[Iterable,Dict]:
+        """
+        Generate random splits for baseline replicates.
+
+        This function identifies the indices for two replicates (`rep1` and `rep2`) of a given marker under the baseline
+        condition, for the specified batch. Each replicate is further randomly split into two parts. The function then
+        returns all possible pairwise combinations between parts of `rep1` and parts of `rep2`.
+
+        Args:
+            labels (np.ndarray[str]): Labels of the samples.
+            batch (str): The batch identifier to filter the samples.
+            marker (str): The marker identifier to filter the samples.
+            baseline_cell_line_cond (str): The baseline condition identifier to filter the samples.
+
+        Returns:
+            Tuple[Iterable, Dict]: 
+                - An iterable of pairwise combinations between `rep1` and `rep2` parts (i.e., `rep1_part1` with `rep2_part1`, `rep1_part1` with `rep2_part2`, etc.).
+                - A dictionary where the keys are `rep1_part1`, `rep1_part2`, `rep2_part1`, `rep2_part2` and the values 
+                are the corresponding indices in the `labels` array.
+
+        Raises:
+            Warning: If no replicates for the given marker and batch are found, a warning is logged, and the function returns 
+            `None` and an empty dictionary.
+        """
         rep1_indices = np.where(np.char.find(labels.astype(str), f'{marker}_{baseline_cell_line_cond}_{batch}_rep1')>-1)[0]
         rep2_indices = np.where(np.char.find(labels.astype(str), f'{marker}_{baseline_cell_line_cond}_{batch}_rep2')>-1)[0]
 
-        if len(rep1_indices) == 0 and len(rep2_indices) == 0:
+        if len(rep1_indices) == 0 or len(rep2_indices) == 0:
             logging.warn(f"Marker {marker} couldn't be found in batch {batch}. Skipping this marker..")
             return None, {}
 
@@ -197,13 +238,28 @@ class AnalyzerDistances(Analyzer):
     def _generate_reps_of_condition_vs_baseline(self, labels:np.ndarray[str],
                                                 cond:str, batch:str, marker:str, 
                                                 baseline_cell_line_cond:str)->Tuple[Iterable,Dict]:
-        reps = itertools.product(['rep1', 'rep2'], repeat=2)
+        """
+        Generate combinations of replicates for condition vs baseline.
+
+        Args:
+            labels (np.ndarray[str]): Labels of the dataset.
+            cond (str): Condition to compare.
+            batch (str): Batch identifier.
+            marker (str): Marker identifier.
+            baseline_cell_line_cond (str): Baseline condition.
+
+        Returns:
+            Tuple[Iterable, Dict]: 
+                - An iterable of pairwise combinations between baseline rep and condition rep (i.e., `rep1_baseline` with `rep2_condition`, etc.).
+                - A dictionary where the keys are `rep1_cond`, `rep1_baseline`, `rep2_cond`, `rep2_baseline` and the values 
+                    are the corresponding indices in the `labels` array.
+        """
+        reps_combinations = itertools.product(['rep1', 'rep2'], repeat=2)
         indices_dict = {}
-        for repA,repB in reps:
+        reps = []
+        for repA,repB in reps_combinations:
             condition_indices = np.where(np.char.find(labels.astype(str), f'{marker}_{cond}_{batch}_{repA}')>-1)[0]
             baseline_indices = np.where(np.char.find(labels.astype(str), f'{marker}_{baseline_cell_line_cond}_{batch}_{repB}')>-1)[0]
-            indices_dict[f'{repA}_cond'] = condition_indices
-            indices_dict[f'{repB}_baseline'] = baseline_indices
             
             logging.info(f"{marker}_{cond}_{batch}_{repA} size: {len(condition_indices)}")
             logging.info(f"{marker}_{baseline_cell_line_cond}_{batch}_{repB} size: {len(baseline_indices)}")
@@ -214,18 +270,25 @@ class AnalyzerDistances(Analyzer):
             if len(baseline_indices) == 0:
                 logging.info(f"No samples for {marker}_{baseline_cell_line_cond}_{repB}. Skipping...")
                 continue
-        reps = itertools.product(['rep1_cond', 'rep2_cond'], ['rep1_baseline', 'rep2_baseline'])
+            
+            indices_dict[f'{repA}_cond'] = condition_indices
+            indices_dict[f'{repB}_baseline'] = baseline_indices
+            reps.append([f'{repA}_cond',f'{repB}_baseline'])
+
         return reps, indices_dict
     
     def _calculate_metric_between_reps(self, embeddings:np.ndarray[float], labels:np.ndarray[str],
-                                       reps:Iterable, indices_dict:Dict)->Dict:
-        """Protected method to calculate the wanted distance metric between the baseline condition and a given condition
+                                       reps:Iterable, indices_dict:Dict)->pd.DataFrame:
+        """
+        Calculate the metric between replicates.
+
         Args:
-            embeddings (np.ndarray[float]): all embeddings to calculate the distance for
-            labels (np.ndarray[str]): corresponding labels of the embeddings
-            #TODO add reps and indices_dict
+            embeddings (np.ndarray[float]): All embeddings to calculate the distance for.
+            labels (np.ndarray[str]): Corresponding labels for the embeddings.
+            reps (Iterable): Replicates to compare.
+            indices_dict (Dict[str, np.ndarray[int]]): Indices for the replicates.
         Returns:
-            Dict: Dictionary containing the score for each pair of reps
+            pd.DataFrame: DataFrame with calculated scores.
         """
         scores = pd.DataFrame()
         for repA,repB in reps:

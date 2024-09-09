@@ -9,7 +9,8 @@ import logging
 
 # from src.common.lib.models.NOVA_model import NOVAModel
 from src.common.lib.embeddings_utils import generate_embeddings, save_embeddings
-from src.common.lib.utils import load_config_file, handle_log
+from src.common.lib.utils import load_config_file
+from src.common.configs.dataset_config import DatasetConfig
 
 #TODO:remove
 from sandbox.eval_new_arch.dino4cells.archs import vision_transformer as vits
@@ -27,7 +28,7 @@ class DictToObject: #TODO: remove
                 setattr(self, key, value)
 
 def generate_embeddings_with_model(chkp_path:str, config_path_data:str)->None:
-    # model = NOVAModel.load_from_checkpoint(sys.argv[1])
+    # model = NOVAModel.load_from_checkpoint(chkp_path)
     # model_output_folder = model.config_trainer.OUTPUTS_FOLDER
     config = {
         'seed': 1,
@@ -67,9 +68,8 @@ def generate_embeddings_with_model(chkp_path:str, config_path_data:str)->None:
 
     model = utils.load_model_from_checkpoint(chkp_path, model)
     model_output_folder = os.sep.join(chkp_path.split(os.sep)[:-2]) #model.trainer_config.OUTPUTS_FOLDER #TODO!!
-    handle_log(model_output_folder)
 
-    config_data = load_config_file(config_path_data)
+    config_data:DatasetConfig = load_config_file(config_path_data, "data")
 
     embeddings, labels = generate_embeddings(model, config_data)
     save_embeddings(embeddings, labels, config_data, model_output_folder)
