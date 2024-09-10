@@ -1,3 +1,4 @@
+from copy import deepcopy
 import os
 import subprocess
 import sys
@@ -39,6 +40,35 @@ class BaseConfig():
         
         # Logs
         self.__LOGS_FOLDER = os.path.join(self.HOME_FOLDER, 'logs')
+        
+    @staticmethod
+    def create_a_copy(config):
+        """Create a copy of the configuration while activating all the setters functions
+
+        Args:
+            config (Self): The config to copy from
+
+        Returns:
+            Self: A new copy of this configuration
+        """
+        
+        import inspect
+        
+        new_instance = deepcopy(config)
+        
+        # Activate all the setters functions
+        properties = inspect.getmembers(new_instance.__class__, predicate=inspect.isdatadescriptor)
+        for (name, prop) in properties:
+            # Skip the private built-in functions
+            if (name.startswith("__") and name.endswith("__")):
+                continue
+            
+            # Get the value
+            prop_value = getattr(new_instance, name)
+            # Activate the setter function
+            prop.fset(new_instance, prop_value)
+                
+        return new_instance
         
     @property
     def SEED(self)->int:
@@ -135,6 +165,6 @@ class BaseConfig():
         Returns:
             bool: Are they equal?
         """
-        other_dict = other.__dict__ if isinstance(other, type(self)) else other
+        other_dict = other.__dict__ if hasattr(other, '__dict__') else other
         
         return are_dicts_equal_except_keys(self.__dict__, other_dict, ["_BaseConfig__now_str", "CONFIGS_USED_FOLDER"])

@@ -14,6 +14,7 @@ from src.common.lib.models.checkpoint_info import CheckpointInfo
 from src.common.configs.dataset_config import DatasetConfig
 from src.common.configs.model_config import ModelConfig
 from src.common.lib.models import vision_transformer
+from src.common.configs.base_config import BaseConfig
 
 class NOVAModel():
 
@@ -24,41 +25,28 @@ class NOVAModel():
             model_config (ModelConfig): The model configuration
         """
         self.__set_params(model_config)
-        self.model = self.__get_vit()        
-    
-    def __set_params(self, model_config:ModelConfig):
-        """Extracting params from the configuration
+        self.model = self.__get_vit()    
+        
+    @staticmethod
+    def load_from_checkpoint(ckp_path: str):
+        """Get model from checkpoint
 
         Args:
-            model_config (ModelConfig): The configuration
-        """
-        self.model_config = model_config
-        self.vit_version = get_if_exists(self.model_config, 'VIT_VERSION', 'tiny')
-        self.image_size = get_if_exists(self.model_config, 'IMAGE_SIZE', 100)
-        self.patch_size = get_if_exists(self.model_config, 'PATCH_SIZE', 14)
-        self.num_channels = get_if_exists(self.model_config, 'NUM_CHANNELS', 2)
-        self.num_classes = self.model_config.NUM_CLASSES
+            ckp_path (str): path to checkpoint
 
-    def __get_vit(self):
-        vit_version = self.vit_version
+        Returns:
+            model (NOVAModel): The NOVA model
+        """
         
-        if vit_version == 'base':
-            create_vit = vision_transformer.vit_base
-        elif vit_version == 'small':
-            create_vit = vision_transformer.vit_small
-        elif vit_version == 'tiny':
-            create_vit = vision_transformer.vit_tiny
-        else:
-            raise Exception(f"Invalid 'vit_version' detected: {vit_version}. Must be 'base', 'small' or 'tiny'")
+        checkpoint:CheckpointInfo = CheckpointInfo.load_from_checkpoint_filepath(ckp_path)
         
-        vit = create_vit(
-                img_size=[self.image_size],
-                patch_size=self.patch_size,
-                in_chans=self.num_channels,
-                num_classes=self.num_classes
-        )
+        nova_model = NOVAModel(checkpoint.model_config)
+        nova_model.model_config = BaseConfig.create_a_copy(checkpoint.model_config)
+        nova_model.trainer_config = BaseConfig.create_a_copy(checkpoint.trainer_config)
+        nova_model.dataset_config = BaseConfig.create_a_copy(checkpoint.dataset_config)
+        nova_model.model.load_state_dict(checkpoint.model_dict)
         
-        return vit
+        return nova_model    
     
     def generate_embeddings(self, dataset_config: DatasetConfig)->np.ndarray:
         """Generate embeddings for the given data using the model
@@ -133,24 +121,42 @@ class NOVAModel():
                 return False
         
         return True
-    
-    @staticmethod
-    def load_from_checkpoint(ckp_path: str):
-        """Get model from checkpoint
+        
+    def __set_params(self, model_config:ModelConfig):
+        """Extracting params from the configuration
 
         Args:
-            ckp_path (str): path to checkpoint
+            model_config (ModelConfig): The configuration
+        """
+        self.model_config = model_config
+        self.vit_version = get_if_exists(self.model_config, 'VIT_VERSION', 'tiny')
+        self.image_size = get_if_exists(self.model_config, 'IMAGE_SIZE', 100)
+        self.patch_size = get_if_exists(self.model_config, 'PATCH_SIZE', 14)
+        self.num_channels = get_if_exists(self.model_config, 'NUM_CHANNELS', 2)
+        self.num_classes = self.model_config.NUM_CLASSES
+
+    def __get_vit(self)->vision_transformer.VisionTransformer:
+        """Init a vit model
 
         Returns:
-            model (NOVAModel): The NOVA model
+            vision_transformer.VisionTransformer: An initialized vit model
         """
+        vit_version = self.vit_version
         
-        checkpoint:CheckpointInfo = CheckpointInfo.load_from_checkpoint_filepath(ckp_path)
+        if vit_version == 'base':
+            create_vit = vision_transformer.vit_base
+        elif vit_version == 'small':
+            create_vit = vision_transformer.vit_small
+        elif vit_version == 'tiny':
+            create_vit = vision_transformer.vit_tiny
+        else:
+            raise Exception(f"Invalid 'vit_version' detected: {vit_version}. Must be 'base', 'small' or 'tiny'")
         
-        nova_model = NOVAModel(checkpoint.model_config)
-        nova_model.model.load_state_dict(checkpoint.model_dict)
-        nova_model.trainer_config = checkpoint.trainer_config
-        nova_model.dataset_config = checkpoint.dataset_config
+        vit = create_vit(
+                img_size=[self.image_size],
+                patch_size=self.patch_size,
+                in_chans=self.num_channels,
+                num_classes=self.num_classes
+        )
         
-        return nova_model
-        
+        return vit

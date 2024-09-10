@@ -8,37 +8,37 @@ sys.path.insert(1, os.getenv("MOMAPS_HOME"))
 print(f"MOMAPS_HOME: {os.getenv('MOMAPS_HOME')}")
 
 
-from src.datasets.dataset_spd import DatasetSPD
+from src.datasets.dataset_NOVA import DatasetNOVA
 from src.common.configs.dataset_config import DatasetConfig
 from src.common.configs.trainer_config import TrainerConfig
-from src.common.lib.dataset import Dataset    
+from src.common.lib.dataset_base import DatasetBase    
 
-def get_dataloader(dataset:Dataset, batch_size:int, indexes:List[int]=None, num_workers:int=2, shuffle:bool=True, drop_last:bool=True)->DataLoader:
+def get_dataloader(dataset:DatasetBase, batch_size:int, indexes:List[int]=None, num_workers:int=6, shuffle:bool=True, drop_last:bool=True)->DataLoader:
     """Get a dataloader object initialized with the given params
 
     Args:
         dataset (Dataset): The dataset the dataloader would work with
         batch_size (int): Number of samples the dataloader would return each call
         indexes (List[int], optional): Indexes to take a subset from the data. Defaults to None.
-        num_workers (int, optional): Num of workers on the machine to use for the loading of the data. Defaults to 2.
+        num_workers (int, optional): Num of workers on the machine to use for the loading of the data. Defaults to 6.
         shuffle (bool, optional): Should the data be shuffled. Defaults to True.
         drop_last (bool, optional): Should we get the residuals samples that don't fill an entire batch_size. Defaults to True.
 
     Returns:
         DataLoader: The initialized dataloader
     """
-    ds = Dataset.get_subset(dataset, indexes) if indexes is not None else dataset  
+    ds = DatasetBase.get_subset(dataset, indexes) if indexes is not None else dataset  
     
     return DataLoader(ds,
                     num_workers=num_workers,
-                    collate_fn=Dataset.get_collate_fn(shuffle=shuffle),
+                    collate_fn=DatasetBase.get_collate_fn(shuffle=shuffle),
                     batch_size=batch_size,
                     shuffle=shuffle,
                     pin_memory=True,
                     drop_last=drop_last)
     
 def init_dataloaders_with_config(trainer_config:TrainerConfig, dataset_config:DatasetConfig,
-                                 dataset_type:type=DatasetSPD)->Union[DataLoader, Tuple[DataLoader, DataLoader, DataLoader]]:
+                                 dataset_type:type=DatasetNOVA)->Union[DataLoader, Tuple[DataLoader, DataLoader, DataLoader]]:
     """Return dataloaders initialized with the dataset config and trainer config.\n
        If SPLIT_DATA is True, it returns dataloaders for train, val and test,\n
        otherwise a single dataloader for the entire dataset is returned

@@ -218,6 +218,12 @@ def apply_for_all_gpus(func:Callable[[int], Any])->List[Any]:
         l.append(func(i))
     return l
 
+def log_gpus_status():
+    """log the gpus status
+    """
+    res = apply_for_all_gpus(getfreegpumem)
+    logging.info(f"Resources (Free, Used, Total): {res}")
+
 def get_nvidia_smi_output(gpuidx:int)->Dict:
     """Get the nvidia smi output for the given gpu unit
 

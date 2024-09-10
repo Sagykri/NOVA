@@ -51,14 +51,14 @@ class _EarlyStoppingInfo():
         return self.counter <= 0
 
 class TrainerBase():
-    def __init__(self, conf:TrainerConfig, nova_model:NOVAModel):
+    def __init__(self, trainer_config:TrainerConfig, nova_model:NOVAModel):
         """Get an instance
 
         Args:
             conf (TrainerConfig): The trainer configuration
             nova_model (NOVAModel): The NOVA model to train
         """
-        self.__set_params(conf)     
+        self.__set_params(trainer_config)     
         self.nova_model:NOVAModel = nova_model
         
     @abstractmethod
@@ -71,11 +71,13 @@ class TrainerBase():
         pass
     
     @abstractmethod
-    def forward(self, X: torch.Tensor) -> Dict:
+    def forward(self, X: torch.Tensor, y: torch.Tensor=None, paths: np.ndarray[str]=None) -> Dict:
         """Applying the forward pass (running the model on the given data)
 
         Args:
             X (torch.Tensor): The data to feed into the model
+            y (torch.Tensor, optional): The ids for the labels. Defaults to None.
+            paths (np.ndarray[str], optional): The paths to the files. Defaults to None.
 
         Returns:
             Dict: Results that will enter the 'loss' function
@@ -143,6 +145,8 @@ class TrainerBase():
             if any(layer_name in name for layer_name in layers_names):
                 param.requires_grad = False
                 freezed_layers.append(name)
+                
+        assert set(layers_names) == set(freezed_layers), f"Mismatch in layers to freeze: {set(layers_names).difference(set(freezed_layers))}, {set(freezed_layers).difference(set(layers_names))}"
         
         return freezed_layers
         
@@ -218,12 +222,9 @@ class TrainerBase():
         
         # Use the exact same dataset as has been used in the checkpoint
         logging.info("Loading dataset split from checkpoint")
-        self.data_loader_train.dataset.X_paths = checkpoint.trainset_paths
-        self.data_loader_train.dataset.y = checkpoint.trainset_labels
-        self.data_loader_val.dataset.X_paths = checkpoint.valset_paths
-        self.data_loader_val.dataset.y = checkpoint.valset_labels
-        self.data_loader_test.dataset.X_paths = checkpoint.testset_paths
-        self.data_loader_test.dataset.y = checkpoint.testset_labels
+        self.data_loader_train.dataset.set_Xy(checkpoint.trainset_paths, checkpoint.trainset_labels)
+        self.data_loader_val.dataset.set_Xy(checkpoint.valset_paths, checkpoint.valset_labels)
+        self.data_loader_test.dataset.set_Xy(checkpoint.testset_paths, checkpoint.testset_labels)
 
         torch.set_rng_state(checkpoint.rng_state)
         torch.cuda.set_rng_state_all(checkpoint.cuda_rng_state)
@@ -276,7 +277,7 @@ class TrainerBase():
         # Test that we are restarting from the same configurations
         assert self.trainer_config.is_equal(checkpoint.trainer_config), f"Loaded checkpoint ({self.checkpoint_last_path}) doesn't have the same training configuration"
         assert self.nova_model.model_config.is_equal(checkpoint.model_config), f"Loaded checkpoint ({self.checkpoint_last_path}) doesn't have the same model configuration"
-        assert self.data_loader_train.dataset.conf.is_equal(checkpoint.dataset_config), f"Loaded checkpoint ({self.checkpoint_last_path}) doesn't have the same dataset configuration"
+        assert self.data_loader_train.dataset.dataset_config.is_equal(checkpoint.dataset_config), f"Loaded checkpoint ({self.checkpoint_last_path}) doesn't have the same dataset configuration"
         assert self.nova_model.is_equal_architecture(checkpoint.model_dict), f"Loaded checkpoint ({self.checkpoint_last_path}) doesn't have the same model"
 
         # Init trainer from checkpoint
@@ -313,18 +314,18 @@ class TrainerBase():
                                                         optimizer_dict=self.optimizer.state_dict(),
                                                         epoch=epoch,
                                                         trainer_config=self.trainer_config,
-                                                        dataset_config=self.data_loader_train.dataset.conf,
+                                                        dataset_config=self.data_loader_train.dataset.get_configuration(),
                                                         model_config=self.nova_model.model_config,
                                                         scaler_dict=self.scaler.state_dict(),
                                                         avg_val_loss=avg_val_loss,
                                                         best_avg_val_loss=self.best_avg_val_loss,
                                                         early_stopping_counter=self.early_stopping_info.counter,
-                                                        trainset_paths=self.data_loader_train.dataset.X_paths,
-                                                        trainset_labels=self.data_loader_train.dataset.y,
-                                                        valset_paths=self.data_loader_val.dataset.X_paths,
-                                                        valset_labels=self.data_loader_val.dataset.y,
-                                                        testset_paths=self.data_loader_test.dataset.X_paths,
-                                                        testset_labels=self.data_loader_test.dataset.y,
+                                                        trainset_paths=self.data_loader_train.dataset.get_X_paths(),
+                                                        trainset_labels=self.data_loader_train.dataset.get_y(),
+                                                        valset_paths=self.data_loader_val.dataset.get_X_paths(),
+                                                        valset_labels=self.data_loader_val.dataset.get_y(),
+                                                        testset_paths=self.data_loader_test.dataset.get_X_paths(),
+                                                        testset_labels=self.data_loader_test.dataset.get_y(),
                                                         description=self.description)    
             
             self.__handle_checkpoint_saving(is_improved, checkpoint_info)
@@ -413,8 +414,10 @@ class TrainerBase():
             self.__handle_scehdulers(it, current_epoch, data_loader)
 
             with torch.cuda.amp.autocast():
+                X, y, path = res
+                X, y = X.cuda(), y.cuda()
                 # forward pass
-                model_output = self.forward(res)
+                model_output = self.forward(X, y, path)
                 # calc loss value
                 loss = self.loss(**model_output)
             current_loss_value = loss.item()
@@ -498,8 +501,10 @@ class TrainerBase():
             for it, res in enumerate(data_loader):
                 logging.info(f"[{title} epoch={current_epoch}] Batch number: {it}/{len(data_loader)-1}")
                 with torch.cuda.amp.autocast():
+                    X, y, path = res
+                    X, y = X.cuda(), y.cuda()
                     # forward pass
-                    model_output = self.forward(res)
+                    model_output = self.forward(X, y, path)
                     # calc loss value
                     loss = self.loss(**model_output)
                 
@@ -587,6 +592,6 @@ class TrainerBase():
     def __save_model(self):
         """Saves the final model to a file
         """
-        logging.log(f"Saving the final model to {self.final_model_path}")
+        logging.info(f"Saving the final model to {self.final_model_path}")
         torch.save(self.nova_model.model.state_dict(), self.final_model_path)
-        logging.log(f"The final model was saved successfully")
+        logging.info(f"The final model was saved successfully")

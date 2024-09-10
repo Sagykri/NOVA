@@ -27,15 +27,15 @@ class TrainerConfig(BaseConfig):
         self.TRAINER_CLASS_PATH:str = None
         self.DROP_LAST_BATCH:bool = False # Whether to drop the last batch if its partial
         
-        self.DATA_AUGMENTATION_CLASS_PATH:str = os.path.join("src", "common", "lib", "models", "trainers", "utils", "augmentations", "HorizontalVerticalFlipAugmentation")
-                        
+        self.DATA_AUGMENTATION_CLASS_PATH:str = os.path.join("src", "common", "lib", "models", "trainers", "utils", "augmentations", "RotationsAndFlipsAugmentation")
+                           
 class ClassificationTrainerConfig(TrainerConfig):
     """Trainer configuration for the classification model (pretrained model)
     """
     def __init__(self):
         super().__init__()
         
-        self.OUTPUTS_FOLDER:str = "/home/labs/hornsteinlab/sagyk/Collaboration/MOmaps_Sagy/MOmaps/outputs/vit_models_tests/pretrained_model"
+        self.OUTPUTS_FOLDER:str = "/home/labs/hornsteinlab/sagyk/Collaboration/MOmaps_Sagy/MOmaps/outputs/vit_models/pretrained_model"
 
         # Training parameters
         self.LR:float = 0.0008
@@ -44,17 +44,17 @@ class ClassificationTrainerConfig(TrainerConfig):
         self.WARMUP_EPOCHS:int = 5
         self.WEIGHT_DECAY:float = 0.04
         self.WEIGHT_DECAY_END:float = 0.4
-        self.BATCH_SIZE:int = 300
+        self.BATCH_SIZE:int = 350 
         self.DESCRIPTION:str = "Pretrained model trained with CE loss on the Opencell dataset"
         self.TRAINER_CLASS_PATH:str = os.path.join("src", "common", "lib", "models", "trainers", "trainer_classification", "TrainerClassification")
-
+ 
 class ContrastiveTrainerConfig(TrainerConfig):
     """Trainer configuration for the contrastive learning model (finetuned model)
     """
     def __init__(self):
         super().__init__()
-        
-        self.OUTPUTS_FOLDER:str = "/home/labs/hornsteinlab/sagyk/Collaboration/MOmaps_Sagy/MOmaps/outputs/vit_models_tests/finetuned_model"
+       
+        self.OUTPUTS_FOLDER:str = "/home/labs/hornsteinlab/sagyk/Collaboration/MOmaps_Sagy/MOmaps/outputs/vit_models/finetuned_model"
 
         # Training parameters
         self.LR:float = 0.0008
@@ -63,13 +63,15 @@ class ContrastiveTrainerConfig(TrainerConfig):
         self.WARMUP_EPOCHS:int = 5
         self.WEIGHT_DECAY:float = 0.04
         self.WEIGHT_DECAY_END:float = 0.4
-        self.BATCH_SIZE:int = 300
+        self.BATCH_SIZE:int = 750
         self.DESCRIPTION:str = "Finetuned model using contrastive learning on neuronal dataset"
         self.TRAINER_CLASS_PATH:str = os.path.join("src", "common", "lib", "models", "trainers", "trainer_contrastive", "TrainerContrastive")
         self.DROP_LAST_BATCH:bool = True
         self.NEGATIVE_COUNT:int = 5
         
-        self.PRETRAINED_MODEL_PATH:str = os.path.join(os.getenv("MOMAPS_HOME"), "outputs", "vit_models_tests", "pretrained_model", "checkpoints", "checkpoint_best.pth")
+        # Original pretraiend
+        self.PRETRAINED_MODEL_PATH:str = "/home/labs/hornsteinlab/Collaboration/MOmaps_Sagy/MOmaps/outputs/vit_models/original_pretrained_with_new_checkpoint_structure/checkpoint_best.pth"
+
         
         self.LAYERS_TO_FREEZE:List[str] = ['blocks.10.norm1.bias', 'blocks.3.attn.proj.bias', 'cls_token',
                                             'blocks.2.mlp.fc1.bias', 'blocks.3.attn.qkv.bias',
