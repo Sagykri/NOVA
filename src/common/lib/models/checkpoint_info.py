@@ -96,18 +96,7 @@ class CheckpointInfo():
         assert os.path.isfile(checkpoint_path), f"{checkpoint_path} isn't a file"
         
         checkpoint = torch.load(checkpoint_path, map_location='cuda' if torch.cuda.is_available() else "cpu")
-        return CheckpointInfo.load_from_checkpoint_object(checkpoint)
-        
-    @staticmethod
-    def load_from_checkpoint_object(checkpoint):
-        """Get a new CheckpointInfo instance from a checkpoint object loaded via torch.load
-
-        Args:
-            checkpoint (checkpoint): A checkpoint loaded via torch.load
-
-        Returns:
-            CheckpointInfo: An instance of CheckpointInfo
-        """
+    
         new_instance = CheckpointInfo()
         new_instance.__dict__.update(checkpoint)
         

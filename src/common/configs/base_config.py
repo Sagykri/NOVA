@@ -1,11 +1,9 @@
-from copy import deepcopy
 import os
 import subprocess
 import sys
 import datetime
 import logging
 import random
-from typing import Dict, Union
 import numpy as np
 
 
@@ -26,49 +24,13 @@ class BaseConfig():
         self.HOME_DATA_FOLDER = os.environ['MOMAPS_DATA_HOME'] \
                                     if 'MOMAPS_DATA_HOME' in os.environ \
                                     else os.path.join(self.HOME_FOLDER, "input")
-
-        # Data
-        self.RAW_FOLDER_ROOT = os.path.join(self.HOME_DATA_FOLDER, "images", "raw")
-        self.PROCESSED_FOLDER_ROOT = os.path.join(self.HOME_DATA_FOLDER, "images", "processed")
-        
-        # Precaution - raw and processed folders can't be the same one!
-        assert self.RAW_FOLDER_ROOT != self.PROCESSED_FOLDER_ROOT, f"RAW_FOLDER_ROOT == PROCESSED_FOLDER_ROOT, {self.RAW_FOLDER_ROOT}"
-                
+                        
         # Output
         self.__OUTPUTS_FOLDER = os.path.join(self.HOME_FOLDER, "outputs")
         self.CONFIGS_USED_FOLDER = os.path.join(self.__OUTPUTS_FOLDER, "configs_used", self.__now_str)
         
         # Logs
         self.__LOGS_FOLDER = os.path.join(self.HOME_FOLDER, 'logs')
-        
-    @staticmethod
-    def create_a_copy(config):
-        """Create a copy of the configuration while activating all the setters functions
-
-        Args:
-            config (Self): The config to copy from
-
-        Returns:
-            Self: A new copy of this configuration
-        """
-        
-        import inspect
-        
-        new_instance = deepcopy(config)
-        
-        # Activate all the setters functions
-        properties = inspect.getmembers(new_instance.__class__, predicate=inspect.isdatadescriptor)
-        for (name, prop) in properties:
-            # Skip the private built-in functions
-            if (name.startswith("__") and name.endswith("__")):
-                continue
-            
-            # Get the value
-            prop_value = getattr(new_instance, name)
-            # Activate the setter function
-            prop.fset(new_instance, prop_value)
-                
-        return new_instance
         
     @property
     def SEED(self)->int:
@@ -99,7 +61,7 @@ class BaseConfig():
             torch.cuda.manual_seed_all(self.__SEED)
             cudnn.benchmark = False
         except Exception as e:
-            logging.warn(f"Tried to set seed for torch but couldn't find it: {str(e)}.\nIf torch is not in used, please ignore this message.")
+            logging.warning(f"Tried to set seed for torch but couldn't find it: {str(e)}.\nIf torch is not in used, please ignore this message.")
             pass
         
     @property
@@ -155,6 +117,25 @@ class BaseConfig():
     def OUTPUTS_FOLDER(self, path:str)->None:
         self.__OUTPUTS_FOLDER = path
         self.LOGS_FOLDER = os.path.join(self.__OUTPUTS_FOLDER, 'logs')
+        
+    def init(self)->None:
+        """Activate all the setters functions.\n
+        Needed only when configuration was loaded from a file
+        """
+        
+        import inspect
+        
+        # Activate all the setters functions
+        properties = inspect.getmembers(self.__class__, predicate=inspect.isdatadescriptor)
+        for (name, prop) in properties:
+            # Skip the private built-in functions
+            if (name.startswith("__") and name.endswith("__")):
+                continue
+            
+            # Get the value
+            prop_value = getattr(self, name)
+            # Activate the setter function
+            prop.fset(self, prop_value)
         
     def is_equal(self, other)->bool:
         """Check if this config is equal to the given one

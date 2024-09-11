@@ -18,6 +18,9 @@ from src.common.lib.utils import get_class, get_if_exists
 from src.common.lib.models.NOVA_model import NOVAModel
 from src.common.lib.models.checkpoint_info import CheckpointInfo
 from src.common.configs.trainer_config import TrainerConfig
+from src.common.lib.models.trainers.utils.consts import CHECKPOINT_BEST_FILENAME, CHECKPOINT_LAST_FILENAME,\
+                                                        CHECKPOINTS_FOLDERNAME, LOGS_FOLDERNAME,\
+                                                            MODEL_FILENAME, TENSORBOARD_FOLDERNAME
 
 class _EarlyStoppingInfo():
     """Holds information for handeling the early stopping
@@ -39,10 +42,10 @@ class _EarlyStoppingInfo():
         
     def try_decrease(self)->bool:
         self.counter -= 1
-        logging.warn(f"No improvement. Early stopping counter is now {self.counter}")
+        logging.warning(f"No improvement. Early stopping counter is now {self.counter}")
         
         if self.is_empty():
-            logging.warn(f"Stopping due to early stopping")
+            logging.warning(f"Stopping due to early stopping")
             return False
         
         return True
@@ -109,9 +112,6 @@ class TrainerBase():
         
         self.__try_restart_from_last_checkpoint()
         
-        # Save training config into the model
-        self.nova_model.trainer_config = self.trainer_config
-        
         # Run the training loop
         self.__training_loop()
         
@@ -137,7 +137,7 @@ class TrainerBase():
         freezed_layers = []
         
         if len(layers_names) == 0:
-            logging.warn("len(layers_names) == 0 -> No layer got frozen")
+            logging.warning("len(layers_names) == 0 -> No layer got frozen")
             return
         
         # Freeze the specified layers
@@ -160,15 +160,17 @@ class TrainerBase():
         Args:
             trainer_config (TrainingConfig): The training configuration
         """
-        self.__extract_params_from_config(trainer_config)
+        self.trainer_config:TrainerConfig = trainer_config
+        
+        self.description:str = get_if_exists(self.trainer_config, 'DESCRIPTION', str(type(self)))
         
         self.__set_output_dirs()
         
-        self.checkpoint_last_path:str = os.path.join(self.checkpoints_dir, 'checkpoint_last.pth')
-        self.checkpoint_best_path:str = os.path.join(self.checkpoints_dir, 'checkpoint_best.pth')
-        self.final_model_path:str     =  os.path.join(self.outputs_folder, "model.pth")
+        self.checkpoint_last_path:str = os.path.join(self.checkpoints_dir, CHECKPOINT_LAST_FILENAME)
+        self.checkpoint_best_path:str = os.path.join(self.checkpoints_dir, CHECKPOINT_BEST_FILENAME)
+        self.final_model_path:str     =  os.path.join(self.trainer_config.OUTPUTS_FOLDER, MODEL_FILENAME)
         
-        self.early_stopping_info:_EarlyStoppingInfo = _EarlyStoppingInfo(self.early_stopping_patience)
+        self.early_stopping_info:_EarlyStoppingInfo = _EarlyStoppingInfo(self.trainer_config.EARLY_STOPPING_PATIENCE)
         self.starting_epoch:int = 0
         self.optimizer:torch.optim.Optimizer = None
         self.scaler:torch.cuda.amp.GradScaler = torch.cuda.amp.GradScaler()
@@ -176,31 +178,16 @@ class TrainerBase():
         self.wd_schedule:np.ndarray = None
         self.tensorboard_writer:SummaryWriter = SummaryWriter(log_dir=self.tensorboard_dir)
         self.best_avg_val_loss: float = np.inf
-                
-    def __extract_params_from_config(self, trainer_config: TrainerConfig)->None:
-        self.trainer_config:TrainerConfig = trainer_config
-        self.max_epochs:int = self.trainer_config.MAX_EPOCHS 
-        self.lr:float = self.trainer_config.LR
-        self.min_lr:float = self.trainer_config.MIN_LR
-        self.warmup_epochs:int = self.trainer_config.WARMUP_EPOCHS
-        self.weight_decay:float = self.trainer_config.WEIGHT_DECAY
-        self.weight_decay_end:float = self.trainer_config.WEIGHT_DECAY_END
-        self.batch_size:int = self.trainer_config.BATCH_SIZE
-        self.num_workers:int = get_if_exists(self.trainer_config, 'NUM_WORKERS', 6)
-        self.early_stopping_patience:int = get_if_exists(self.trainer_config, 'EARLY_STOPPING_PATIENCE', 10)
-        self.outputs_folder:str = self.trainer_config.OUTPUTS_FOLDER
-        self.description:str = get_if_exists(self.trainer_config, 'DESCRIPTION', str(type(self)))
-        self.data_augmentation_class_path:str = get_if_exists(self.trainer_config, 'DATA_AUGMENTATION_CLASS_PATH', None)
         
     def __set_output_dirs(self)->None:
         """Set the path for the output directories (logs, checkpoints and tensorboard plots)
         """
         
-        assert self.outputs_folder is not None, "outputs folder can't be None"
+        assert self.trainer_config.OUTPUTS_FOLDER is not None, "outputs folder can't be None"
         
-        self.logs_dir = os.path.join(self.outputs_folder, "logs")
-        self.tensorboard_dir = os.path.join(self.outputs_folder, "tensorboard", f"{datetime.datetime.now().strftime('%d%m%y_%H%M%S_%f')}_JID{os.getenv('LSB_JOBID')}")
-        self.checkpoints_dir = os.path.join(self.outputs_folder, "checkpoints")
+        self.logs_dir = os.path.join(self.trainer_config.OUTPUTS_FOLDER, LOGS_FOLDERNAME)
+        self.tensorboard_dir = os.path.join(self.trainer_config.OUTPUTS_FOLDER, TENSORBOARD_FOLDERNAME, f"{datetime.datetime.now().strftime('%d%m%y_%H%M%S_%f')}_JID{os.getenv('LSB_JOBID')}")
+        self.checkpoints_dir = os.path.join(self.trainer_config.OUTPUTS_FOLDER, CHECKPOINTS_FOLDERNAME)
         
         os.makedirs(self.logs_dir, exist_ok=True)
         os.makedirs(self.tensorboard_dir, exist_ok=True)
@@ -242,23 +229,23 @@ class TrainerBase():
 
         # learning rate schedule
         self.lr_schedule = self.__get_cosine_scheduler(
-            self.lr * (self.batch_size) / 256.0,  # linear scaling rule
-            self.min_lr,
-            self.max_epochs,
+            self.trainer_config.LR * (self.trainer_config.BATCH_SIZE) / 256.0,  # linear scaling rule
+            self.trainer_config.MIN_LR,
+            self.trainer_config.MAX_EPOCHS,
             len(data_loader),
-            warmup_epochs=self.warmup_epochs,
+            warmup_epochs=self.trainer_config.WARMUP_EPOCHS,
         )
         
         # weight decay
         self.wd_schedule = self.__get_cosine_scheduler(
-            self.weight_decay,
-            self.weight_decay_end,
-            self.max_epochs,
+            self.trainer_config.WEIGHT_DECAY,
+            self.trainer_config.WEIGHT_DECAY_END,
+            self.trainer_config.MAX_EPOCHS,
             len(data_loader),
         )       
         
-        logging.info(f"Creating data augmentation object (from class {self.data_augmentation_class_path})")
-        data_augmentation_class:Callable = get_class(self.data_augmentation_class_path)
+        logging.info(f"Creating data augmentation object (from class {self.trainer_config.DATA_AUGMENTATION_CLASS_PATH})")
+        data_augmentation_class:Callable = get_class(self.trainer_config.DATA_AUGMENTATION_CLASS_PATH)
         
         logging.info(f"Instantiate data augmentation object from class {data_augmentation_class.__name__}")
         self.data_augmentation = data_augmentation_class()
@@ -287,14 +274,14 @@ class TrainerBase():
         """Run the training loop over across all epochs, while handling checkpoint saving and early stopping
         """
         
-        for epoch in tqdm(range(0, self.max_epochs)):
+        for epoch in tqdm(range(0, self.trainer_config.MAX_EPOCHS)):
             # If restarted from a checkpoint
             if epoch < self.starting_epoch:
                 continue
             
             if self.early_stopping_info.is_empty():
                 # Activate early stopping
-                logging.warn(f"Stopping due to early stopping")
+                logging.warning(f"Stopping due to early stopping")
                 break
             
             self.optimizer.zero_grad()
@@ -378,7 +365,7 @@ class TrainerBase():
         Returns:
             float: The average loss on the validation set
         """
-        logging.info(f"Epoch: [{current_epoch}/{self.max_epochs}]")
+        logging.info(f"Epoch: [{current_epoch}/{self.trainer_config.MAX_EPOCHS}]")
         
         
         logging.info(f"--------------------------------------- TRAINING (epoch={current_epoch}) ---------------------------------------")

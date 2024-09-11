@@ -44,6 +44,7 @@ def __train(model_config_path:str, trainer_config_path:str, dataset_config_path:
     logging.info(f"Is GPU available: {torch.cuda.is_available()}; Num GPUs Available: {torch.cuda.device_count()}")
     
     logging.info("Initializing the dataloaders")
+    assert dataset_config.SPLIT_DATA, "SPLIT_DATA must be set to true"
     dataloader_train, dataloader_val, data_loader_test = init_dataloaders_with_config(trainer_config, dataset_config)
     
     logging.info("Creating the NOVA model")

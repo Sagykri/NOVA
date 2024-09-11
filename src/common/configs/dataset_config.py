@@ -9,6 +9,8 @@ class DatasetConfig(BaseConfig):
         
         super().__init__()
         
+        self.PROCESSED_FOLDER_ROOT = os.path.join(self.HOME_DATA_FOLDER, "images", "processed")
+        
         # The path to the data folders
         self.INPUT_FOLDERS = None
         # Which markers to include

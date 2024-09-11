@@ -6,14 +6,14 @@ import json
 import logging
 import string
 
-def get_if_exists(container:object, param_name: string, default_value:Any=None)->Any:
+def get_if_exists(container:object, param_name: string, default_value:Any=None, verbose:bool=False)->Any:
     """Get value of param in container if it exists, otherwise return default value
 
     Args:
         container (object): The object containing the parameter
         param_name (string): The name of the param to retrieve
         default_value (Any, optional): Default value to retrieve if the param doesn't exists in container. Defaults to None.
-
+        verbose (bool, optional): Notify on function status if set to true. Default to False.
     Returns:
         Any: Param value (or default value if it doesn't exist)
     """
@@ -24,6 +24,9 @@ def get_if_exists(container:object, param_name: string, default_value:Any=None)-
     elif hasattr(container, param_name):
         return getattr(container, param_name)
     
+    if verbose:
+        logging.warning(f"{param_name} wasn't found in {type(container)}. Using default value: {default_value}")
+        
     return default_value
 
 def xy_to_tuple(xy_arr:Iterable[Any])->Iterable[Tuple[Any,Any]]:

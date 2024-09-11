@@ -13,11 +13,17 @@ class ModelConfig(BaseConfig):
         super().__init__()
         
         # Architecture parameters
-        self.VIT_VERSION = 'tiny'
-        self.IMAGE_SIZE = 100
-        self.PATCH_SIZE = 14
-        self.NUM_CHANNELS = 2
-        self.NUM_CLASSES = None
+        
+        # The version of the vit (tiny|small|base)
+        self.VIT_VERSION:str = 'tiny'
+        # The image size (weight==height) the model would expect
+        self.IMAGE_SIZE:int = 100
+        # The patch size for the model
+        self.PATCH_SIZE:int = 14
+        # Num of channels the model would expect in the input sampels
+        self.NUM_CHANNELS:int = 2
+        # The size of the model's output 
+        self.OUTPUT_DIM:int = None
         
 class ClassificationModelConfig(ModelConfig):
     """Configuration for the classification model
@@ -25,7 +31,7 @@ class ClassificationModelConfig(ModelConfig):
     def __init__(self):
         super().__init__()
         
-        self.NUM_CLASSES = 1311
+        self.OUTPUT_DIM = 1311
         
 class ContrastivenModelConfig(ModelConfig):
     """Configuration for the contrastive learning model
@@ -33,4 +39,4 @@ class ContrastivenModelConfig(ModelConfig):
     def __init__(self):
         super().__init__()
         
-        self.NUM_CLASSES = 128
+        self.OUTPUT_DIM = 128

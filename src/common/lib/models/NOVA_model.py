@@ -24,7 +24,7 @@ class NOVAModel():
         Args:
             model_config (ModelConfig): The model configuration
         """
-        self.__set_params(model_config)
+        self.model_config = model_config
         self.model = self.__get_vit()    
         
     @staticmethod
@@ -41,9 +41,8 @@ class NOVAModel():
         checkpoint:CheckpointInfo = CheckpointInfo.load_from_checkpoint_filepath(ckp_path)
         
         nova_model = NOVAModel(checkpoint.model_config)
-        nova_model.model_config = BaseConfig.create_a_copy(checkpoint.model_config)
-        nova_model.trainer_config = BaseConfig.create_a_copy(checkpoint.trainer_config)
-        nova_model.dataset_config = BaseConfig.create_a_copy(checkpoint.dataset_config)
+        # Run all configuration object's setter functions since the config was loaded and not instantiated 
+        nova_model.model_config.init()
         nova_model.model.load_state_dict(checkpoint.model_dict)
         
         return nova_model    
@@ -68,9 +67,9 @@ class NOVAModel():
             data_loader (DataLoader): The dataloader to run inference on
 
         Returns:
-            Tuple[np.ndarray[torch.Tensor], np.ndarray[str]]: (all the embeddings, all the labels)
+            Tuple[np.ndarray[torch.Tensor], np.ndarray[str]]: (all the outputs, all the labels)
         """
-        all_embeddings:List[torch.Tensor] = []
+        all_outputs:List[torch.Tensor] = []
         all_labels:np.ndarray[str] = np.array([])
         
         # Move model to cuda
@@ -82,22 +81,20 @@ class NOVAModel():
         with torch.no_grad():
             for it, res in enumerate(data_loader):
                 logging.info(f"[Inference] Batch number: {it}/{len(data_loader)}")
-                
-                # extract the X and y from the batch
-                images = res['image'].to(torch.float).cuda()
-                labels_ind = res['label'].numpy()
+                X, y, path = res
+                X = X.cuda()
                 
                 # convert from indexes to the labels
-                labels = data_loader.dataset.id2label(labels_ind)
+                labels = data_loader.dataset.id2label(y)
                 # run the model to get the embeddings
-                embeddings = self.model(images).cpu()
+                outputs = self.model(X).cpu()
                 
-                all_embeddings.append(embeddings)
+                all_outputs.append(outputs)
                 all_labels = np.append(all_labels, labels)
         
-        all_embeddings:np.ndarray[torch.Tensor] = np.vstack(all_embeddings)
+        all_outputs:np.ndarray[torch.Tensor] = np.vstack(all_outputs)
         
-        return all_embeddings, all_labels
+        return all_outputs, all_labels
     
     def is_equal_architecture(self, other_state_dict: Dict)->bool:
         """Check if the given state_dict is equal to self state_dict
@@ -121,19 +118,6 @@ class NOVAModel():
                 return False
         
         return True
-        
-    def __set_params(self, model_config:ModelConfig):
-        """Extracting params from the configuration
-
-        Args:
-            model_config (ModelConfig): The configuration
-        """
-        self.model_config = model_config
-        self.vit_version = get_if_exists(self.model_config, 'VIT_VERSION', 'tiny')
-        self.image_size = get_if_exists(self.model_config, 'IMAGE_SIZE', 100)
-        self.patch_size = get_if_exists(self.model_config, 'PATCH_SIZE', 14)
-        self.num_channels = get_if_exists(self.model_config, 'NUM_CHANNELS', 2)
-        self.num_classes = self.model_config.NUM_CLASSES
 
     def __get_vit(self)->vision_transformer.VisionTransformer:
         """Init a vit model
@@ -141,7 +125,7 @@ class NOVAModel():
         Returns:
             vision_transformer.VisionTransformer: An initialized vit model
         """
-        vit_version = self.vit_version
+        vit_version = self.model_config.VIT_VERSION
         
         if vit_version == 'base':
             create_vit = vision_transformer.vit_base
@@ -153,10 +137,10 @@ class NOVAModel():
             raise Exception(f"Invalid 'vit_version' detected: {vit_version}. Must be 'base', 'small' or 'tiny'")
         
         vit = create_vit(
-                img_size=[self.image_size],
-                patch_size=self.patch_size,
-                in_chans=self.num_channels,
-                num_classes=self.num_classes
+                img_size=[self.model_config.IMAGE_SIZE],
+                patch_size=self.model_config.PATCH_SIZE,
+                in_chans=self.model_config.NUM_CHANNELS,
+                num_classes=self.model_config.OUTPUT_DIM
         )
         
         return vit

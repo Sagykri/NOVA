@@ -25,7 +25,6 @@ class DatasetBase(torch.utils.data.Dataset):
         """
         self.dataset_config:DatasetConfig = dataset_config
         X_paths, y = self._load_data_paths()
-        # X_paths, y, _ = self._load_data_paths()
         self.set_Xy(X_paths, y)
         self.set_transform(None)
         

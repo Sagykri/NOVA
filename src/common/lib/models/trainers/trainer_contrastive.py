@@ -37,8 +37,8 @@ class TrainerContrastive(TrainerBase):
         """
         super().__init__(trainer_config, nova_model)
         
-        self.negative_count:int = get_if_exists(self.trainer_config, 'NEGATIVE_COUNT', 5)
-        self.pretrained_model_path:str = get_if_exists(self.trainer_config, 'PRETRAINED_MODEL_PATH', None)
+        self.negative_count:int = get_if_exists(self.trainer_config, 'NEGATIVE_COUNT', 5, verbose=True)
+        self.pretrained_model_path:str = get_if_exists(self.trainer_config, 'PRETRAINED_MODEL_PATH', None, verbose=True)
         
         self.loss_infoNCE:InfoNCE = InfoNCE(negative_mode = 'paired')
         
@@ -226,18 +226,18 @@ class TrainerContrastive(TrainerBase):
         logging.info(f"Layers freezed successfully : {_freezed_layers}")
             
     def __load_weights_from_pretrained_model(self):
-        """Loads the weights from a given pretrained model path, while chaning the output dimension of the head to the new num_classes
+        """Loads the weights from a given pretrained model path, while changing the output dimension of the head to the new output_dim
         """
         if self.pretrained_model_path is None:
-            logging.warn("'pretrained_model_path' was set to None. Can't load pretrained model.")
+            logging.warning("'pretrained_model_path' was set to None. Can't load pretrained model.")
             return
         
         logging.info(f"Loading pretrained model ({self.pretrained_model_path})")
         pretrained_model = NOVAModel.load_from_checkpoint(self.pretrained_model_path).model
         
         # Modifying the head's output dim 
-        logging.info(f"Changing the head output dim from {pretrained_model.head.out_features} to {self.nova_model.num_classes}")
-        pretrained_model.head = torch.nn.Linear(pretrained_model.head.in_features, self.nova_model.num_classes)
+        logging.info(f"Changing the head output dim from {pretrained_model.head.out_features} to {self.nova_model.model_config.OUTPUT_DIM}")
+        pretrained_model.head = torch.nn.Linear(pretrained_model.head.in_features, self.nova_model.model_config.OUTPUT_DIM)
         
         # Set the modified pretrained model to be the starting point for our model
         self.nova_model.model = pretrained_model
