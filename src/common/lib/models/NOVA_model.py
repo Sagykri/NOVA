@@ -9,12 +9,10 @@ from collections import OrderedDict
 
 sys.path.insert(1, os.getenv("MOMAPS_HOME"))
 
-from src.common.lib.utils import get_if_exists
 from src.common.lib.models.checkpoint_info import CheckpointInfo
 from src.common.configs.dataset_config import DatasetConfig
 from src.common.configs.model_config import ModelConfig
 from src.common.lib.models import vision_transformer
-from src.common.configs.base_config import BaseConfig
 
 class NOVAModel():
 
@@ -44,6 +42,12 @@ class NOVAModel():
         # Run all configuration object's setter functions since the config was loaded and not instantiated 
         nova_model.model_config.init()
         nova_model.model.load_state_dict(checkpoint.model_dict)
+        nova_model.trainset_paths   = checkpoint.trainset_paths
+        nova_model.trainset_labels  = checkpoint.trainset_labels
+        nova_model.valset_paths     = checkpoint.valset_paths
+        nova_model.valset_labels    = checkpoint.valset_labels
+        nova_model.testset_paths    = checkpoint.testset_paths
+        nova_model.testset_labels   = checkpoint.testset_labels
         
         return nova_model    
     
