@@ -194,9 +194,3 @@ class BaseConfig():
         init_logging(log_file_path)
         logging.info(f"[{self.__class__.__name__}] Init (log path: {log_file_path}; JOBID: {jobid} Username: {username}) JOBNAME: {jobname}")
         logging.info(f"[{self.__class__.__name__}] MOMAPS_HOME={self.HOME_FOLDER}, MOMAPS_DATA_HOME={self.HOME_DATA_FOLDER}")
-    
-    def _save_config(self, output_folder_path: str) -> None:
-        """Saves the configuration data to a JSON file."""
-        os.makedirs(output_folder_path, exist_ok=True)
-        with open(os.path.join(output_folder_path, 'config.json'), 'w') as json_file:
-            json.dump(self.__dict__, json_file, indent=4)

@@ -5,7 +5,6 @@ from typing import Dict, Tuple
 sys.path.insert(1, os.getenv("MOMAPS_HOME"))
 from src.datasets.label_utils import split_markers_from_labels
 from src.common.configs.dataset_config import DatasetConfig
-from src.common.configs.trainer_config import TrainerConfig
 
 from src.analysis.analyzer_umap import AnalyzerUMAP
 import logging
@@ -13,17 +12,17 @@ import numpy as np
 import pandas as pd
 from tqdm import tqdm
 
-class AnalyzerUMAP2(AnalyzerUMAP):
+class AnalyzerUMAPMultiplexMarkers(AnalyzerUMAP):
 
     __COLUMN_MARKER = 'Marker' # Of type string
     __COLUMN_PHENOTYPE = 'Phenotype' # Of type string
     __COLUMN_EMBEDDINGS = 'Embeddings' # Of type np.ndarray[float]
 
-    def __init__(self, trainer_config: TrainerConfig, data_config: DatasetConfig):
-        super().__init__(trainer_config, data_config)
+    def __init__(self, data_config: DatasetConfig, output_folder_path:str):
+        super().__init__(data_config, output_folder_path)
 
 
-    def calculate(self, embeddings:np.ndarray[float], labels:np.ndarray[str])->Tuple[np.ndarray[float],np.ndarray[str]]:
+    def calculate(self, embeddings:np.ndarray[float], labels:np.ndarray[str])->Tuple[np.ndarray[float],np.ndarray[str], Dict[str,float]]:
         """Calculate UMAP embeddings for multiplexed embeddings from the given embeddings and store the results in the `self.features` attribute. 
          This method takes in embeddings and their associated labels, and computes multiplexed embeddings by grouping the data based on shared phenotypes.
 
@@ -34,20 +33,29 @@ class AnalyzerUMAP2(AnalyzerUMAP):
             Tuple[np.ndarray[float], np.ndarray[str]]: 
                 - The UMAP embeddings after dimensionality reduction with shape (n_mutliplexed_samples, n_components).
                 - The corresponding phenotypes labels preserving the association with the UMAP embeddings.
+                - A dictionary with 'ari' as key and the ari score as value
         """
         
-        logging.info(f"[AnalyzerUMAP2.calculate] Embeddings shape: {embeddings.shape}, Labels shape: {labels.shape}")
+        logging.info(f"[AnalyzerUMAPMultiplexMarkers.calculate] Embeddings shape: {embeddings.shape}, Labels shape: {labels.shape}")
         df = self.__format_embeddings_to_df(embeddings, labels)
         multiplexed_embeddings, multiplexed_labels = self.__get_multiplexed_embeddings(df)
-        logging.info(f"[AnalyzerUMAP2.calculate] Multiplexed embeddings shape: {multiplexed_embeddings.shape}, Labels shape: {multiplexed_labels.shape}")
+        logging.info(f"[AnalyzerUMAPMultiplexMarkers.calculate] Multiplexed embeddings shape: {multiplexed_embeddings.shape}, Labels shape: {multiplexed_labels.shape}")
 
-        logging.info(f"[AnalyzerUMAP2.calculate] Calculating UMAP of multiplex embeddings")
+        logging.info(f"[AnalyzerUMAPMultiplexMarkers.calculate] Calculating UMAP of multiplex embeddings")
         umap_embeddings = self._compute_umap_embeddings(multiplexed_embeddings)     
         
+        if self.data_config.SHOW_ARI:
+            ari = self._compute_ari(umap_embeddings, multiplexed_labels)
+            ari_score = {'ari':ari}
+
+        else:
+            ari_score = {}
+
         self.features = umap_embeddings
         self.labels = multiplexed_labels
+        self.ari_scores = ari_score
 
-        return umap_embeddings, multiplexed_labels
+        return umap_embeddings, multiplexed_labels, ari_score
     
 
     def __format_embeddings_to_df(self, embeddings:np.ndarray[float], labels: np.ndarray[str])->pd.DataFrame:
@@ -106,7 +114,7 @@ class AnalyzerUMAP2(AnalyzerUMAP):
         
         # Get common markers between all groups (since we want to use only them)
         common_markers = self.__get_common_markers_between_groups(embeddings_df)
-        logging.info(f"[AnalyzerUMAP2.calculate] Common markers: {common_markers}")
+        logging.info(f"[AnalyzerUMAPMultiplexMarkers.calculate] Common markers: {common_markers}")
         
         # calculate the multiplexed embeddings:
         # Take only common markers, group by phenotype and concatenate the embeddings within groups
@@ -155,11 +163,11 @@ class AnalyzerUMAP2(AnalyzerUMAP):
         # Get the phenotype (since all are the same, take the first one)
         phenotype = phenotypes.iloc[0]
         
-        logging.info(f"[AnalyzerUMAP2.calculate] Phenotype: {phenotype}")
+        logging.info(f"[AnalyzerUMAPMultiplexMarkers.calculate] Phenotype: {phenotype}")
         
         # Determine the number of subgroups to be created (based on the smallest marker group)
         n_subgroups = phenotype_group[self.__COLUMN_MARKER].value_counts().min()
-        logging.info(f"[AnalyzerUMAP2.calculate] Detected {n_subgroups} subgroups")
+        logging.info(f"[AnalyzerUMAPMultiplexMarkers.calculate] Detected {n_subgroups} subgroups")
         
         # List of multiplexed embeddings per subgroups within the given phenotype group 
         multiplexed_embeddings = np.asarray([
@@ -172,7 +180,7 @@ class AnalyzerUMAP2(AnalyzerUMAP):
         
         assert len(multiplexed_embeddings) == len(phenotype_repeated), f"Multiplexed embeddings and phentoypes numbers must match, but len(multiplexed_embeddings)={len(multiplexed_embeddings)}, len(phenotype_repeated)={len(phenotype_repeated)}"
         
-        logging.info(f"[AnalyzerUMAP2.calculate] [{phenotype}] multiplexed embeddings shape: {multiplexed_embeddings.shape} phenotype_repeated shape: {phenotype_repeated.shape}")
+        logging.info(f"[AnalyzerUMAPMultiplexMarkers.calculate] [{phenotype}] multiplexed embeddings shape: {multiplexed_embeddings.shape} phenotype_repeated shape: {phenotype_repeated.shape}")
         
         return pd.Series({
             self.__COLUMN_PHENOTYPE: phenotype_repeated, 

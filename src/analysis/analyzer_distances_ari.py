@@ -7,8 +7,7 @@ from typing import Tuple
 
 from src.analysis.analyzer_distances import AnalyzerDistances
 from src.common.configs.dataset_config import DatasetConfig
-from src.common.configs.trainer_config import TrainerConfig
-from src.common.lib.metrics import calc_clustering_validation_metric
+from src.common.lib.metrics import calc_ari_with_kmeans
 from src.common.lib.utils import get_if_exists
 
 class AnalyzerDistancesARI(AnalyzerDistances):
@@ -30,12 +29,8 @@ class AnalyzerDistancesARI(AnalyzerDistances):
         except AssertionError as e:
             raise ValueError(f"Label validation failed: {e}, np.unique(labels):{np.unique(labels)}")
     
-        # n_clusters = 2
-        # kmeans_constrained_labels = cluster_without_outliers(embeddings, n_clusters=n_clusters, outliers_fraction=0.1, n_init=10, random_state=1)
-
-        # score = adjusted_rand_score(labels, kmeans_constrained_labels)
-        score_dict = calc_clustering_validation_metric(embeddings, labels)
-        return score_dict['ARI'], 'ARI_KMeansConstrained'
+        score = calc_ari_with_kmeans(embeddings, labels)
+        return score, 'ARI_KMeansConstrained'
     
     def _get_save_path(self, output_folder_path:str)->str:
         

@@ -6,7 +6,6 @@ import os
 sys.path.insert(1, os.getenv("MOMAPS_HOME"))
 
 from src.common.configs.dataset_config import DatasetConfig
-from src.common.configs.trainer_config import TrainerConfig
 from src.datasets.label_utils import get_batches_from_input_folders
 import numpy as np
 import pandas as pd
@@ -63,14 +62,13 @@ class Analyzer():
         """
         pass
 
-    def _get_saving_folder(self, feature_type:str, umap_type:Optional[str]='')->str:
+    def get_saving_folder(self, feature_type:str)->str:
         """Get the path to the folder where the features and figures can be saved
         Args:
             feature_type (str): string indicating the feature type ('distances','UMAP')
-            umap_type (str): string indicating the umap type ('umap0','umap1','umap2'), optional (default is None)
         """
         model_output_folder = self.output_folder_path
-        feature_folder_path = os.path.join(model_output_folder, 'figures', self.data_config.EXPERIMENT_TYPE, feature_type, umap_type)
+        feature_folder_path = os.path.join(model_output_folder, 'figures', self.data_config.EXPERIMENT_TYPE, feature_type)
         os.makedirs(feature_folder_path, exist_ok=True)
         
         input_folders = get_batches_from_input_folders(self.data_config.INPUT_FOLDERS)
@@ -79,7 +77,6 @@ class Analyzer():
         conditions = self.data_config.CONDITIONS if self.data_config.CONDITIONS else ["all_conditions"]
         title = f"{'_'.join(input_folders)}_{'_'.join(reps)}_{'_'.join(cell_lines)}_{'_'.join(conditions)}"
         saveroot = os.path.join(feature_folder_path,f'{title}')
-        # saveroot = feature_folder_path
         os.makedirs(saveroot, exist_ok=True)
 
         return saveroot

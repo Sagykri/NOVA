@@ -2,23 +2,24 @@ import os
 import sys
 sys.path.insert(1, os.getenv("MOMAPS_HOME"))
 
+from src.common.lib.plotting_utils import save_plot
 from src.common.configs.dataset_config import DatasetConfig
-from src.datasets.label_utils import get_markers_from_labels, get_unique_parts_from_labels
-from src.common.lib.metrics import calc_clustering_validation_metric
-from src.common.lib.utils import get_if_exists, save_plot
+from src.datasets.label_utils import get_markers_from_labels, get_unique_parts_from_labels, get_conditions_from_labels, get_cell_lines_from_labels, get_cell_lines_conditions_from_labels, get_reps_from_labels, get_conditions_from_multiplex_labels, get_cell_lines_from_multiplex_labels, get_cell_lines_conditions_from_multiplex_labels
+from src.common.lib.utils import get_if_exists, save_config
 
 import importlib
-import inspect
 import logging
 import numpy as np
 from typing import Dict, Tuple
+from enum import Enum
 
 import matplotlib.pyplot as plt
 from matplotlib.axes import Axes
 from matplotlib.gridspec import GridSpec
 
+
 def plot_umap(umap_embeddings: np.ndarray[float], labels: np.ndarray[str], config_data: DatasetConfig,
-              saveroot: str, umap_idx: int) -> None:
+              saveroot: str, umap_idx: int, ari_scores:Dict[str,float]) -> None:
     """Unified function to plot 2D UMAP embeddings with different modes.
 
     Args:
@@ -27,6 +28,7 @@ def plot_umap(umap_embeddings: np.ndarray[float], labels: np.ndarray[str], confi
         config_data (DatasetConfig): Configuration data containing visualization settings.
         saveroot (str): Root path to save the plot and configuration.
         umap_idx (int): UMAP type index to distinguish between modes (0: individual markers, 1: all markers, 2: concatenated embeddings).
+        ari_scores (Dict): A dictionary with ari values
 
     Raises:
         ValueError: If an invalid `umap_idx` is provided.
@@ -34,7 +36,7 @@ def plot_umap(umap_embeddings: np.ndarray[float], labels: np.ndarray[str], confi
 
     if saveroot:
         os.makedirs(saveroot, exist_ok=True)
-        config_data._save_config(saveroot)
+        save_config(config_data, saveroot)
 
     if umap_idx == 0:
         # Mode: Individual markers
@@ -55,29 +57,34 @@ def plot_umap(umap_embeddings: np.ndarray[float], labels: np.ndarray[str], confi
             savepath = os.path.join(saveroot, f'{marker}') if saveroot else None
             label_data = __map_labels(marker_labels, config_data)
 
-            __plot_umap_embeddings(marker_umap_embeddings, label_data, config_data, savepath=savepath, title=marker)
+            if config_data.SHOW_ARI:
+                ari_score = ari_scores[marker]
+            else:
+                ari_score = None
+            __plot_umap_embeddings(marker_umap_embeddings, label_data, config_data, savepath=savepath, title=marker,
+                                   ari_score=ari_score)
+        return
 
     elif umap_idx == 1:
         # Mode: All markers together
         savepath = os.path.join(saveroot, 'umap1') if saveroot else None
-        label_data = __map_labels(labels, config_data)
-        __plot_umap_embeddings(umap_embeddings, label_data, config_data, savepath)
-
     elif umap_idx == 2:
         # Mode: Concatenated embeddings
         savepath = os.path.join(saveroot, 'umap2') if saveroot else None
-        label_data = __map_labels(labels, config_data)
-        __plot_umap_embeddings(umap_embeddings, label_data, config_data, savepath)
-
-    else:
-        raise ValueError(f"Invalid UMAP index: {umap_idx}. Must be one of [0, 1, 2].")
     
-def __get_metrics_figure(score:Dict[str,float], savepath:str=None, ax:Axes=None)->Axes:
+    label_data = __map_labels(labels, config_data)
+    if config_data.SHOW_ARI:
+            ari_score = ari_scores['ari']
+    else:
+        ari_score = None
+    __plot_umap_embeddings(umap_embeddings, label_data, config_data, savepath, ari_score=ari_score)
+
+    
+def __get_metrics_figure(score:float, ax:Axes=None)->Axes:
     """Generate a plot displaying the metrics
 
     Args:
-        score (Dict[str,float]): The calculated score to be plotted
-        savepath (string, optional): Where to save the plot. Defaults to None.
+        score (float): The calculated score to be plotted
         ax (Axes, optional): The Axes object to add the metric to. Defaults to None.
 
     Returns:
@@ -98,13 +105,10 @@ def __get_metrics_figure(score:Dict[str,float], savepath:str=None, ax:Axes=None)
     sm = plt.cm.ScalarMappable(cmap=cmap)
     sm.set_clim(vmin=vmin, vmax=vmax)
     cb = plt.colorbar(sm, cax=ax, orientation='horizontal', pad=0.25)
-    cb.set_ticks([score['ARI']])
+    cb.set_ticks([score])
     cb.ax.tick_params(labelsize=12)
     cb.ax.set_title(title, fontsize=16) # Nancy for figure 2A - remove "ARI" text from scale bar
-    cb.ax.plot([score['ARI']]*2, [vmin,vmax], linecolor, linewidth=linewidth)
-
-    if savepath is not None:
-        plt.savefig(os.path.join(savepath,'ari.png'), dpi=300, facecolor="white",bbox_inches='tight')
+    cb.ax.plot([score]*2, [vmin,vmax], linecolor, linewidth=linewidth)
 
     return ax
 
@@ -116,7 +120,8 @@ def __plot_umap_embeddings(umap_embeddings: np.ndarray[float],
                          dpi: int = 300, 
                          figsize: Tuple[int,int] = (6,5),
                          cmap:str = 'tab20',
-                         **kwargs) -> None:
+                         ari_score:float = None,
+                         ) -> None:
     """Plots UMAP embeddings with given labels and configurations.
 
     Args:
@@ -128,8 +133,7 @@ def __plot_umap_embeddings(umap_embeddings: np.ndarray[float],
         dpi (int, optional): Dots per inch for the saved plot. Defaults to 300.
         figsize (Tuple[int, int], optional): Size of the figure. Defaults to (6, 5).
         cmap (str, optional): Colormap to be used. Defaults to 'tab20'.
-        **kwargs: Additional keyword arguments passed to the clustering metric function 
-            `calc_clustering_validation_metric`.
+        ari_score (float, optional): ari score to show on the umap. Defaults to None.
 
     Raises:
         ValueError: If the size of `umap_embeddings` and `label_data` are incompatible.
@@ -180,14 +184,12 @@ def __plot_umap_embeddings(umap_embeddings: np.ndarray[float],
         )
         logging.info(f'[_plot_umap_embeddings]: adding label {label}')
         
-    __format_umap_axes(ax, title)
+    __format_UMAP_axes(ax, title)
     __format_UMAP_legend(ax, marker_size)
         
     if show_metric:
         gs_bottom = fig.add_subplot(gs[1])
-        clustering_kwargs = {a: kwargs[a] for a in inspect.signature(calc_clustering_validation_metric).parameters if a in kwargs}
-        score = calc_clustering_validation_metric(umap_embeddings, label_data, **clustering_kwargs)
-        ax = __get_metrics_figure(score, ax=gs_bottom)
+        ax = __get_metrics_figure(ari_score, ax=gs_bottom)
     
     fig.tight_layout()
     
@@ -198,7 +200,7 @@ def __plot_umap_embeddings(umap_embeddings: np.ndarray[float],
         
     return
 
-def __format_umap_axes(ax:Axes, title:str)->None:
+def __format_UMAP_axes(ax:Axes, title:str)->None:
     ax.spines['top'].set_visible(False)
     ax.spines['right'].set_visible(False)
     ax.set_xlabel('UMAP1')

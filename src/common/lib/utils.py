@@ -259,13 +259,8 @@ class LogDF(object):
         
         return self.__path
 
-def save_plot(fig, savepath: str, dpi: int, save_png:bool=True, save_eps:bool=False) -> None:
-    """Saves the plot if a savepath is provided, otherwise shows the plot."""
-    os.makedirs(os.path.dirname(savepath), exist_ok=True)
-    logging.info(f"Saving plot to {savepath}")
-    if save_png:
-        fig.savefig(f"{savepath}.png", dpi=dpi, bbox_inches='tight')
-    elif save_eps:
-        fig.savefig(f"{savepath}.eps", dpi=dpi, format='eps')
-    else:
-        logging.info(f"save_eps and save_png are both False, not saving!")
+def save_config(config, output_folder_path: str) -> None:
+    """Saves the configuration data to a JSON file."""
+    os.makedirs(output_folder_path, exist_ok=True)
+    with open(os.path.join(output_folder_path, 'config.json'), 'w') as json_file:
+        json.dump(config.__dict__, json_file, indent=4)

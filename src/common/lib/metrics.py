@@ -39,32 +39,23 @@ def cluster_without_outliers(X, n_clusters, outliers_fraction=0.1, n_init=10, ra
   predicted_labels = clf.fit_predict(X)
   return predicted_labels
 
-def calc_clustering_validation_metric(X, true_labels, metrics=['ARI'], outliers_fraction=0.1):
-        """
-        Give data and true labels to calculate a dictionary with clustering metrics
+def calc_ari_with_kmeans(X, true_labels, outliers_fraction=0.1)->float:
+  """
+  Calculate ARI score on data using kmeans as predicted labels
+  Args:
+      X (n_samples, n_features): The data
+      true_labels (array): list of strings 
 
-        Args:
-            X (N,-1): The data
-            true_labels (array): list of strings 
-            metrics (list, optional): clustering metrics to calculate; defaults to ['ARI'].
+  Returns:
+      float: the ari score
+  """       
+  # K-means for standard (centroid-based) clustering
+  k = np.unique(true_labels).shape[0]
+  kmeans_labels = cluster_without_outliers(X, n_clusters=k, outliers_fraction=outliers_fraction, n_init=10, random_state=42)
+  ari = adjusted_rand_score(true_labels, kmeans_labels)
+  ari = round(ari, 3)
 
-        Returns:
-            scores (dictionary): dictionary where the key is the name of the metric 
-                                 and the value is the clustering score
-        """
-        scores = {}
-        if 'ARI' in metrics:
-            ###########################
-            ### For ARI calculation ###
-            ###########################
-            
-            # K-means for standard (centroid-based) clustering
-            k = np.unique(true_labels).shape[0]
-            kmeans_labels = cluster_without_outliers(X, n_clusters=k, outliers_fraction=outliers_fraction, n_init=10, random_state=42)
-            ari = adjusted_rand_score(true_labels, kmeans_labels)
-            scores['ARI'] = round(ari, 3)
-            
-            logging.info(f"[calc_clustering_validation_metric] ARI: {ari}")
-            
-        return scores
+  logging.info(f"[calc_clustering_validation_metric] ARI: {ari}")
+
+  return ari
 
