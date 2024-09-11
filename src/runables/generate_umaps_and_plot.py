@@ -24,13 +24,10 @@ analyzer_mapping = {
     2: (AnalyzerUMAP2, f"[Generate {AnalyzerUMAP.UMAP_type(2).name} UMAP]")
 }
 
-def generate_umaps(config_path_trainer:str, config_path_data:str, umap_idx:int)->None:
-    config_trainer:TrainerConfig = load_config_file(config_path_trainer, 'train')
-    model_output_folder = config_trainer.OUTPUTS_FOLDER
-
+def generate_umaps(output_folder_path:str, config_path_data:str, umap_idx:int)->None:
     config_data:DatasetConfig = load_config_file(config_path_data, 'data')
-
-    embeddings, labels = load_embeddings(model_output_folder, config_data)
+    config_data.OUTPUTS_FOLDER = output_folder_path
+    embeddings, labels = load_embeddings(output_folder_path, config_data)
 
     if umap_idx not in analyzer_mapping:
         raise ValueError(f"Invalid UMAP index: {umap_idx}. Must be one of {list(analyzer_mapping.keys())}.")
@@ -51,12 +48,12 @@ if __name__ == "__main__":
     print("Starting generating umaps...")
     try:
         if len(sys.argv) < 4:
-            raise ValueError("Invalid arguments. Must supply trainer config and data config and UMAP idx! (0,1,2).")
-        config_path_trainer = sys.argv[1]
+            raise ValueError("Invalid arguments. Must supply output folder path and data config and UMAP idx! (0,1,2).")
+        output_folder_path = sys.argv[1]
         config_path_data = sys.argv[2]
         umap_idx = int(sys.argv[3])
 
-        generate_umaps(config_path_trainer, config_path_data, umap_idx)
+        generate_umaps(output_folder_path, config_path_data, umap_idx)
 
     except Exception as e:
         logging.exception(str(e))

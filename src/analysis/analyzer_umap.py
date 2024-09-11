@@ -19,14 +19,15 @@ class AnalyzerUMAP(Analyzer):
         MULTIPLE_MARKERS = 1
         MULTIPLEX_MARKERS = 2
 
-    def __init__(self, trainer_config: TrainerConfig, data_config: DatasetConfig):
+    def __init__(self, data_config: DatasetConfig, output_folder_path:str):
         """Get an instance
 
         Args:
-            trainer_config (TrainerConfig): The trainer configuration
             data_config (DatasetConfig): the dataset configuration
+            output_folder_path (str): path to output folder
+
         """
-        super().__init__(trainer_config, data_config)
+        super().__init__(data_config, output_folder_path)
         self.labels = None
 
 

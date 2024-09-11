@@ -12,8 +12,8 @@ from src.common.lib.metrics import calc_clustering_validation_metric
 from src.common.lib.utils import get_if_exists
 
 class AnalyzerDistancesARI(AnalyzerDistances):
-    def __init__(self, trainer_config: TrainerConfig, data_config: DatasetConfig):
-        super().__init__(trainer_config, data_config)  
+    def __init__(self, data_config: DatasetConfig, output_folder_path:str):
+        super().__init__(data_config, output_folder_path)  
 
     def _compute_score(self, embeddings: np.ndarray[float], labels: np.ndarray[float]) -> Tuple[float,str]:
         """Compute ARI scores

@@ -19,25 +19,25 @@ class Analyzer():
     2. load(): to load the calculated features that were previusly saved.
     3. save(): to save the calculated features.
     """
-    def __init__(self, trainer_config: TrainerConfig, data_config: DatasetConfig):
+    def __init__(self, data_config: DatasetConfig, output_folder_path:str):
         """Get an instance
 
         Args:
-            trainer_config (TrainerConfig): The trainer config object.
             data_config (DatasetConfig): The dataset config object. 
+            output_folder_path (str): path to output folder
         """
-        self.__set_params(trainer_config, data_config)
+        self.__set_params(data_config, output_folder_path)
         self.features:np.ndarray = None
 
-    def __set_params(self, trainer_config: TrainerConfig, data_config: DatasetConfig)->None:
+    def __set_params(self, data_config: DatasetConfig, output_folder_path:str)->None:
         """Extracting params from the configuration
 
         Args:
-            trainer_config (TrainerConfig): trainer configuration
             data_config (DatasetConfig): data configuration
+            output_folder_path (str): path to output folder
         """       
         self.data_config = data_config
-        self.output_folder_path = trainer_config.OUTPUTS_FOLDER
+        self.output_folder_path = output_folder_path
 
     @abstractmethod
     def calculate(self, embeddings:np.ndarray[float], labels:np.ndarray[str])->Union[pd.DataFrame,Tuple[np.ndarray[float],np.ndarray[str]]]:
