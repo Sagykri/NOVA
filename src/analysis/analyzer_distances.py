@@ -13,7 +13,6 @@ import itertools
 
 from src.datasets.label_utils import get_unique_parts_from_labels, get_cell_lines_conditions_from_labels, get_markers_from_labels, get_batches_from_labels
 from src.common.configs.dataset_config import DatasetConfig
-from src.common.configs.trainer_config import TrainerConfig
 from src.analysis.analyzer import Analyzer
 from src.common.lib.utils import get_if_exists
 
@@ -59,25 +58,31 @@ class AnalyzerDistances(Analyzer):
         logging.info(f"[AnalyzerDistances.calculate] Conditions: {conditions}, markers: {markers}, batches: {batches}, baseline_cell_line_cond: {baseline_cell_line_cond}")
 
         # Finally we can calculate the distances, separatly for each batch and marker
-        scores = pd.DataFrame()
+        scores = []
         for batch in batches:
             logging.info(f"[AnalyzerDistances.calculate] batch: {batch}")
             for marker in markers:   
                 logging.info(f"[AnalyzerDistances.calculate] marker: {marker}")
-                new_scores = self._calculate_metrics_for_batch_and_marker(embeddings, labels, baseline_cell_line_cond,
-                                                  conditions, batch, marker)
-                if new_scores.shape[0]>0:
-                    scores = pd.concat([scores,new_scores], ignore_index=True)
-            
+                new_scores = self._calculate_metrics_for_baseline(embeddings, labels, baseline_cell_line_cond,
+                                                                  conditions, batch, marker)
+                scores.append(new_scores)
+                for cond in conditions:
+                    new_scores = self._calculate_metrics_for_condition_vs_baseline(embeddings, labels, 
+                                                                                   baseline_cell_line_cond,
+                                                                                   cond, batch, marker)
+                    scores.append(new_scores)
+
+        scores = pd.concat(scores, ignore_index=True)
 
         self.features = scores
+
         return scores
     
     def load(self)->None:
         """
         Load pre-calculated distances from a file into the self.features attribute.
         """
-        output_folder_path = self._get_saving_folder(feature_type='distances')
+        output_folder_path = self.get_saving_folder(feature_type='distances')
         logging.info(f"[save scores]: output_folder_path: {output_folder_path}")
         loadpath = self._get_save_path(output_folder_path)
         self.features = pd.read_csv(loadpath)
@@ -87,8 +92,8 @@ class AnalyzerDistances(Analyzer):
         """"
         Save the calculated distances to a specified file.
         """
-        output_folder_path = self._get_saving_folder(feature_type='distances')
-        savepath = os.path.join(output_folder_path, self._get_save_path(output_folder_path))
+        output_folder_path = self.get_saving_folder(feature_type='distances')
+        savepath = self._get_save_path(output_folder_path)
         logging.info(f"Saving scores to {savepath}")
         self.features.to_csv(savepath, index=False)
         return None
@@ -108,31 +113,29 @@ class AnalyzerDistances(Analyzer):
         """
         pass
 
-    def _calculate_metrics_for_batch_and_marker(self, embeddings:np.ndarray[float], labels:np.ndarray[str],
-                                                baseline_cell_line_cond:str, conditions:List[str], batch:str,
+    def _calculate_metrics_for_baseline(self, embeddings:np.ndarray[float], labels:np.ndarray[str],
+                                                baseline_cell_line_cond:str, batch:str,
                                                 marker:str)->pd.DataFrame:
         """
-        Calculate metrics for a given batch and marker.
+        Calculate metrics for the baseline samples.
 
         Args:
             embeddings (np.ndarray[float]): All embeddings to calculate the distance for.
             labels (np.ndarray[str]): Corresponding labels for the embeddings.
             baseline_cell_line_cond (str): The baseline condition to compare against, example: 'WT_Untreated;
-            conditions (List[str]): A list of conditions to compare to the baseline., example: ['WT_stress','FUSHomozygous_Untreated']
             batch (str): batch identifier to calculate the distance for, example: 'batch6'
             marker (str): marker to calculate the distance for, example: 'G3BP1'
 
         Returns:
             pd.DataFrame: DataFrame with calculated scores.
         """
-        scores = pd.DataFrame()
-        # First we want to calculate the baseline distances: the distances between the baseline to itself.
+        # We want to calculate the baseline distances: the distances between the baseline to itself.
         # These distances will be compared to the baseline vs condition distances, and they represent the inherent variance in the data (including rep effect).
         # First step is to generate the artifical splits of the two baseline reps:
         baseline_reps, baseline_indices_dict = self._generate_reps_of_baseline(labels, batch, marker, baseline_cell_line_cond)
         if len(baseline_indices_dict)==0:
             logging.warning(f'No data for {batch},{marker}, {baseline_cell_line_cond}: cannot perform distance calculations!')
-            return scores
+            return None
         
         # We want the baseline samples to have an artificial labels, dervied from the splits
         baseline_labels = labels.copy()
@@ -141,25 +144,40 @@ class AnalyzerDistances(Analyzer):
         # Then we can calculate the distances between the splits
         baseline_scores = self._calculate_metric_between_reps(embeddings, baseline_labels, baseline_reps, baseline_indices_dict)
         baseline_scores['condition'] = baseline_cell_line_cond
-        if baseline_scores.shape[0]>0:
-            scores = pd.concat([scores, baseline_scores], ignore_index=True)
+        baseline_scores['marker'] = marker
+        baseline_scores['batch'] = batch
+        
+        return baseline_scores
+    
 
-        # Then we calculate the distances between the conditions and the baseline:
-        for cond in conditions:
-            logging.info(f"cell line: {cond}")
-            condition_reps, condition_indices_dict = self._generate_reps_of_condition_vs_baseline(labels, cond, batch, marker, baseline_cell_line_cond)
-            if len(condition_indices_dict)==0:
-                logging.warning(f'No data for {batch},{marker}, {cond}: cannot perform distance calculations!')
-                continue
-            condition_scores = self._calculate_metric_between_reps(embeddings, labels, condition_reps, condition_indices_dict)
-            if condition_scores.shape[0]>0:
-                condition_scores['condition'] = cond
-                scores = pd.concat([scores, condition_scores], ignore_index=True)
-            
-        scores['marker'] = marker
-        scores['batch'] = batch
+    def _calculate_metrics_for_condition_vs_baseline(self, embeddings:np.ndarray[float], labels:np.ndarray[str],
+                                                baseline_cell_line_cond:str, cond:str, batch:str,
+                                                marker:str)->pd.DataFrame:
+        """
+        Calculate metrics between baseline samples and the condition samples.
 
-        return scores
+        Args:
+            embeddings (np.ndarray[float]): All embeddings to calculate the distance for.
+            labels (np.ndarray[str]): Corresponding labels for the embeddings.
+            baseline_cell_line_cond (str): The baseline condition to compare against, example: 'WT_Untreated;
+            cond (str): The condition to compate against the baseline., example: 'WT_stress'
+            batch (str): batch identifier to calculate the distance for, example: 'batch6'
+            marker (str): marker to calculate the distance for, example: 'G3BP1'
+
+        Returns:
+            pd.DataFrame: DataFrame with calculated scores.
+        """
+        logging.info(f"cell line: {cond}")
+        condition_reps, condition_indices_dict = self._generate_reps_of_condition_vs_baseline(labels, cond, batch, marker, baseline_cell_line_cond)
+        if len(condition_indices_dict)==0:
+            logging.warning(f'No data for {batch},{marker}, {cond}: cannot perform distance calculations!')
+            return None
+        condition_scores = self._calculate_metric_between_reps(embeddings, labels, condition_reps, condition_indices_dict)
+        condition_scores['condition'] = cond
+        condition_scores['marker'] = marker
+        condition_scores['batch'] = batch
+        
+        return condition_scores
     
     def _random_split_indices(self, indices:np.ndarray[int])->Tuple[np.ndarray[int],np.ndarray[int]]:
         """
@@ -298,7 +316,7 @@ class AnalyzerDistances(Analyzer):
             cur_embeddings = np.concatenate([embeddings[repA_indices],embeddings[repB_indices]])
             
             score, score_name = self._compute_score(cur_embeddings, cur_labels)
-            score_df = pd.DataFrame(data={'repA':[repA.replace('_cond','')],'repB':[repB.replace('_baseline','')], score_name:score})
+            score_df = pd.DataFrame(data={'repA':[repA],'repB':[repB], score_name:score})
             scores = pd.concat([scores, score_df], ignore_index=True)
 
         return scores

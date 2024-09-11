@@ -2,15 +2,16 @@ import os
 import sys
 sys.path.insert(1, os.getenv("MOMAPS_HOME"))
 
+from src.common.lib.plotting_utils import save_plot
 from src.common.configs.dataset_config import DatasetConfig
-from src.common.lib.utils import save_plot
+from src.common.lib.utils import save_config
 
 import numpy as np
 import pandas as pd
 import logging
 import math
 
-from typing import List
+from typing import List, Tuple
 import seaborn as sns
 import matplotlib.colors as mcolors
 import matplotlib.pyplot as plt
@@ -32,10 +33,11 @@ def plot_distances_plots(distances:pd.DataFrame, config_data:DatasetConfig, save
     """
     if saveroot:
         os.makedirs(saveroot, exist_ok=True)
-        config_data._save_config(saveroot)
+        save_config(config_data, saveroot)
+
     else:
         saveroot = None
-
+    
     plot_marker_ranking(distances, saveroot, config_data, metric=metric, show_effect_size=True)
     plot_clustermap(distances, saveroot, config_data, metric=metric)
     plot_bubble_plot(distances, saveroot, config_data, metric=metric)
@@ -60,8 +62,8 @@ def plot_marker_ranking(distances:pd.DataFrame, saveroot:str, config_data:Datase
     logging.info(f"[plot_marker_ranking]")
     baseline:str = config_data.BASELINE_CELL_LINE_CONDITION
 
-    conditions = distances.condition.drop_duplicates().to_list()
-    conditions.remove(baseline)
+    conditions = get_conditions(distances, baseline)
+
     pvalues_df = __calculate_marker_pvalue_per_condition(distances, baseline, metric)
     for cond in conditions:
         savepath = None
@@ -70,8 +72,8 @@ def plot_marker_ranking(distances:pd.DataFrame, saveroot:str, config_data:Datase
         __plot_boxplot(distances, baseline, cond, metric, 
                      pvalues_df, config_data, show_effect_size=show_effect_size, savepath = savepath)
         
-
-def plot_clustermap(distances:pd.DataFrame, saveroot:str, config_data:DatasetConfig, metric:str)->None:
+def plot_clustermap(distances:pd.DataFrame, saveroot:str, config_data:DatasetConfig, metric:str,
+                    cmap:str='Blues_r', figsize:Tuple[int,int]=(10, 10))->None:
     """Generate and save a clustermap of marker p-values per condition.
 
     Args:
@@ -85,6 +87,8 @@ def plot_clustermap(distances:pd.DataFrame, saveroot:str, config_data:DatasetCon
         saveroot (str): Path to the folder where the plot should be saved
         config_data (DatasetConfig): dataset config
         metric (str): The metric used to evaluate the distances, e.g., 'ARI_KMeansConstrained', 'dist', etc.
+        cmap (str): name of colormap for the heatmap
+        figsize (Tuple[int,int]): figure size
     """
     logging.info(f"[_plot_clustermap]")
     baseline:str = config_data.BASELINE_CELL_LINE_CONDITION
@@ -98,15 +102,15 @@ def plot_clustermap(distances:pd.DataFrame, saveroot:str, config_data:DatasetCon
     condition_linkage = __calculate_hierarchical_clustering(marker_pvalue_per_condition.T)
     
     # Determine clustering parameters
-    row_cluster=marker_pvalue_per_condition.shape[0]>1
-    col_cluster=marker_pvalue_per_condition.shape[1]>1
+    to_cluster_markers = True if marker_linkage is not None else False
+    to_cluster_conditions = True if condition_linkage is not None else False
     na_mask = marker_pvalue_per_condition.isnull()
     
     # Generate the clustermap
-    clustermap = sns.clustermap(marker_pvalue_per_condition,mask=na_mask, cmap='Blues_r', figsize=(10, 10), row_cluster=row_cluster,
-                       col_cluster=col_cluster,
-                       row_linkage=marker_linkage, col_linkage=condition_linkage,
-                   yticklabels=True, xticklabels=True, annot=True, vmax=0.05)
+    clustermap = sns.clustermap(marker_pvalue_per_condition,mask=na_mask, cmap=cmap, figsize=figsize,
+                                row_cluster=to_cluster_markers, col_cluster=to_cluster_conditions, row_linkage=marker_linkage, 
+                                col_linkage=condition_linkage, yticklabels=True, xticklabels=True, 
+                                annot=True, vmax=0.05)
 
     ## Optional: Highlight significant values
     # for i in range(clustered_df.shape[0]):
@@ -189,6 +193,102 @@ def plot_bubble_plot(distances:pd.DataFrame, saveroot:str, config_data:DatasetCo
         plt.show()
     return 
 
+def __calculate_marker_pvalue_per_condition(distances:pd.DataFrame, baseline:str, metric:str)->pd.DataFrame:
+    """
+    Calculate the statistical significance and effect size for the difference in distances 
+    between a baseline condition and all other conditions, across all markers.
+
+    Args:
+        distances (pd.DataFrame): A DataFrame containing distance measurements for various markers across conditions.
+        The DataFrame will have the following columns:
+            - 'marker': The marker for which the distance was calculated on.
+            - 'batch': The batch for which the distance was calculated on.
+            - 'repA': The rep of the condition data
+            - 'repB': The rep of the baseline data
+            - 'distance_metric': The calculated distance metric (eg 'ARI_KMeansConstrained').
+        baseline (str): The name of the baseline condition against which comparisons are made.
+        metric (str): The metric used to evaluate the distances, e.g., 'ARI_KMeansConstrained', 'dist', etc.
+
+    Returns:
+        pd.DataFrame: A DataFrame with calculated p-values and effect sizes as columns,
+                      indicating the significance of differences between the baseline and each condition.
+    """
+    conditions = get_conditions(distances, baseline)
+
+    marker_pvalue_per_condition = None
+    for cond in conditions:
+        marker_pval = __calc_pvalue_and_effect(distances, baseline=baseline, condition=cond, metric=metric)        
+        cur_df = pd.DataFrame(marker_pval).T.reset_index(names='marker')
+        cur_df['condition'] = cond
+        if marker_pvalue_per_condition is None:
+            marker_pvalue_per_condition = cur_df
+        else:
+            marker_pvalue_per_condition = pd.concat([marker_pvalue_per_condition, cur_df], ignore_index=True)
+    return marker_pvalue_per_condition
+
+def __plot_boxplot(distances:pd.DataFrame, baseline:str, condition:str, 
+                  metric:str, pvalues_df:pd.DataFrame, config_data:DatasetConfig, show_effect_size:bool=False,
+                  savepath:str=None)->None:
+    """
+    Plot a boxplot to visualize the distribution and significance of distances for a given condition compared to a baseline.
+    The markers are displayed in descending order of their distance from baseline. Optionally, effect sizes can be shown.
+
+    Args:
+        distances (pd.DataFrame): DataFrame containing the distance metrics
+        The DataFrame will have the following columns:
+            - 'marker': The marker for which the distance was calculated on.
+            - 'batch': The batch for which the distance was calculated on.
+            - 'repA': The rep of the condition data
+            - 'repB': The rep of the baseline data
+            - 'distance_metric': The calculated distance metric (eg 'ARI_KMeansConstrained').
+        baseline (str): Name of the baseline condition for comparison.
+        condition (str): Name of the condition to compare against the baseline.
+        metric (str): The metric used to evaluate the distances, e.g., 'ARI_KMeansConstrained', 'dist', etc.
+        marker_pval (Dict): Nested dictionary where keys are marker names. Each marker is a dictionary, 
+                            with keys for p-values and effect size indicating the statistical significance 
+                            of the difference between the condition and baseline.
+        show_effect_size (bool, optional): If True, effect sizes are displayed on the plot. Defaults to False.
+        savepath (str, optional): File path to save the plot. If None, the plot is shown but not saved. Defaults to None.
+    """
+    # Filter and sort the data
+    cur_distances=distances[distances.condition==condition] # for sorting we want only the condition distances
+    median_variance = cur_distances.groupby("marker")[metric].agg(['median', 'var']) # ordering by median, then variance.
+    dists_order = median_variance.sort_values(by=['median', 'var'], ascending=[False, False]).index # do the ordering
+    cur_distances=distances[distances.condition.isin([baseline,condition])] # after sorting, we can include also the baseline distances
+
+    # Plotting
+    name_color_dict = config_data.UMAP_MAPPINGS_MARKERS
+    name_key = config_data.UMAP_MAPPINGS_ALIAS_KEY
+    color_key = config_data.UMAP_MAPPINGS_COLOR_KEY
+    name_color_dict_for_condition = config_data.UMAP_MAPPINGS_CELL_LINE_CONDITION
+    condition_to_color = {key: value[color_key] for key, value in name_color_dict_for_condition.items()}
+    fig = plt.figure(figsize=(10,4))
+    boxplot=sns.boxplot(data=cur_distances, order=dists_order, hue='condition',
+                x='marker', y=metric, fliersize=0, palette=condition_to_color)
+    
+    patches = boxplot.patches[:-2]
+    labels = []
+    # Add pavlues and effect size
+    for i, marker in enumerate(dists_order):
+        cur_marker = pvalues_df[(pvalues_df.condition==condition)&(pvalues_df.marker==marker)]
+        marker_pvalue = cur_marker.pvalue.values[0]
+        __add_pvalue(marker, i, dists_order, patches,marker_pvalue)
+        effect_size_formatted = round(cur_marker.d.values[0],2)
+        label = name_color_dict[marker][name_key] if name_color_dict else marker
+        if show_effect_size:
+            label = f'{label} (d={effect_size_formatted})'
+        labels.append(label)
+
+    boxplot.set_xticklabels(labels)
+    
+    plt.xticks(rotation=90)
+    plt.title(f'{condition} vs {baseline}')
+    if savepath:
+        save_plot(fig, savepath, dpi=100)
+    else:
+        plt.show()
+    return
+
 def __sort_markers_and_conditions_by_linkage(pvalues_df:pd.DataFrame)->None:
     # we want our data organzied as marker in the rows and condition in the columns (values are the pvalues)
     marker_pvalue_per_condition = pvalues_df.pivot(index='marker', columns='condition', values='pvalue')
@@ -213,7 +313,7 @@ def __convert_labels(plot, config_data:DatasetConfig)->str:
     Returns:
         str: The edited baseline string.
     """
-    name_color_dict = config_data.UMAP_MAPPINGS
+    name_color_dict = config_data.UMAP_MAPPINGS_MARKERS
     baseline = config_data.BASELINE_CELL_LINE_CONDITION
     if not name_color_dict:
         return baseline
@@ -229,12 +329,12 @@ def __convert_labels(plot, config_data:DatasetConfig)->str:
     plot.set_yticklabels(marker_labels)
     
     condition_labels = plot.get_xticklabels()
-    condition_labels = [config_data.UMAP_MAPPINGS_CONDITION_AND_ALS[label.get_text()][name_key] for label in condition_labels]
+    condition_labels = [config_data.UMAP_MAPPINGS_CELL_LINE_CONDITION[label.get_text()][name_key] for label in condition_labels]
     xtick_positions = plot.get_xticks()
     plot.set_xticks(xtick_positions)
     plot.set_xticklabels(condition_labels)
     
-    baseline = config_data.UMAP_MAPPINGS_CONDITION_AND_ALS[baseline][name_key]
+    baseline = config_data.UMAP_MAPPINGS_CELL_LINE_CONDITION[baseline][name_key]
     return baseline
 
 def __calc_pvalue_and_effect(distances:pd.DataFrame, baseline:str, condition:str, metric:str)->dict:
@@ -300,65 +400,6 @@ def __calc_cohens_d(x, y)->float:
 
     return d
 
-def __plot_boxplot(distances:pd.DataFrame, baseline:str, condition:str, 
-                  metric:str, pvalues_df:pd.DataFrame, config_data:DatasetConfig, show_effect_size:bool=False,
-                  savepath:str=None)->None:
-    """
-    Plot a boxplot to visualize the distribution and significance of distances for a given condition compared to a baseline.
-    The markers are displayed in descending order of their distance from baseline. Optionally, effect sizes can be shown.
-
-    Args:
-        distances (pd.DataFrame): DataFrame containing the distance metrics
-        The DataFrame will have the following columns:
-            - 'marker': The marker for which the distance was calculated on.
-            - 'batch': The batch for which the distance was calculated on.
-            - 'repA': The rep of the condition data
-            - 'repB': The rep of the baseline data
-            - 'distance_metric': The calculated distance metric (eg 'ARI_KMeansConstrained').
-        baseline (str): Name of the baseline condition for comparison.
-        condition (str): Name of the condition to compare against the baseline.
-        metric (str): The metric used to evaluate the distances, e.g., 'ARI_KMeansConstrained', 'dist', etc.
-        marker_pval (Dict): Nested dictionary where keys are marker names. Each marker is a dictionary, 
-                            with keys for p-values and effect size indicating the statistical significance 
-                            of the difference between the condition and baseline.
-        show_effect_size (bool, optional): If True, effect sizes are displayed on the plot. Defaults to False.
-        savepath (str, optional): File path to save the plot. If None, the plot is shown but not saved. Defaults to None.
-    """
-    # Filter and sort the data
-    cur_distances=distances[distances.condition==condition] # for sorting we want only the condition distances
-    median_variance = cur_distances.groupby("marker")[metric].agg(['median', 'var']) # ordering by median, then variance.
-    dists_order = median_variance.sort_values(by=['median', 'var'], ascending=[False, False]).index # do the ordering
-    cur_distances=distances[distances.condition.isin([baseline,condition])] # after sorting, we can include also the baseline distances
-
-    # Plotting
-    name_color_dict = config_data.UMAP_MAPPINGS
-    name_key = config_data.UMAP_MAPPINGS_ALIAS_KEY
-    fig = plt.figure(figsize=(10,4))
-    boxplot=sns.boxplot(data=cur_distances, order=dists_order, hue='condition',
-                x='marker', y=metric, fliersize=0)
-    
-    patches = boxplot.patches[:-2]
-    labels = []
-    # Add pavlues and effect size
-    for i, marker in enumerate(dists_order):
-        marker_pvalue = pvalues_df[(pvalues_df.condition==condition)&(pvalues_df.marker==marker)].pvalue.values[0]
-        __add_pvalue(marker, i, dists_order, patches,marker_pvalue)
-        effect_size_formatted = round(pvalues_df[(pvalues_df.condition==condition)&(pvalues_df.marker==marker)].d.values[0],2)
-        label = name_color_dict[marker][name_key] if name_color_dict else marker
-        if show_effect_size:
-            label = f'{label} (d={effect_size_formatted})'
-        labels.append(label)
-
-    boxplot.set_xticklabels(labels)
-    
-    plt.xticks(rotation=90)
-    plt.title(f'{condition} vs {baseline}')
-    if savepath:
-        save_plot(fig, savepath, dpi=100)
-    else:
-        plt.show()
-    return
-
 def __add_pvalue(marker:str, marker_index:int, dists_order:List[str], patches, pvalue:float)->None:
     # find the highest bar between the baseline and condition for the given marker
     height_1 = max(patches[marker_index].get_path().vertices[:, 1])
@@ -385,39 +426,6 @@ def __convert_pvalue_to_asterisks(pval:float)->str:
         asterisks = '*'
     
     return asterisks
-
-def __calculate_marker_pvalue_per_condition(distances:pd.DataFrame, baseline:str, metric:str)->pd.DataFrame:
-    """
-    Calculate the statistical significance and effect size for the difference in distances 
-    between a baseline condition and all other conditions, across all markers.
-
-    Args:
-        distances (pd.DataFrame): A DataFrame containing distance measurements for various markers across conditions.
-        The DataFrame will have the following columns:
-            - 'marker': The marker for which the distance was calculated on.
-            - 'batch': The batch for which the distance was calculated on.
-            - 'repA': The rep of the condition data
-            - 'repB': The rep of the baseline data
-            - 'distance_metric': The calculated distance metric (eg 'ARI_KMeansConstrained').
-        baseline (str): The name of the baseline condition against which comparisons are made.
-        metric (str): The metric used to evaluate the distances, e.g., 'ARI_KMeansConstrained', 'dist', etc.
-
-    Returns:
-        pd.DataFrame: A DataFrame with calculated p-values and effect sizes as columns,
-                      indicating the significance of differences between the baseline and each condition.
-    """
-    conditions = distances.condition.drop_duplicates().to_list()
-    conditions.remove(baseline)
-    marker_pvalue_per_condition = None
-    for cond in conditions:
-        marker_pval = __calc_pvalue_and_effect(distances, baseline=baseline, condition=cond, metric=metric)        
-        cur_df = pd.DataFrame(marker_pval).T.reset_index(names='marker')
-        cur_df['condition'] = cond
-        if marker_pvalue_per_condition is None:
-            marker_pvalue_per_condition = cur_df
-        else:
-            marker_pvalue_per_condition = pd.concat([marker_pvalue_per_condition, cur_df], ignore_index=True)
-    return marker_pvalue_per_condition
 
 def __bin_pvalues(pvalues):
     """Adjust p-values and bin them for better visualization."""
@@ -482,7 +490,7 @@ def __calculate_hierarchical_clustering(data)->np.ndarray[float]:
         nd.array: The hierarchical clustering encoded as a linkage matrix of shape (n_samples-1, 4). See scipy.cluster.hierarchy.linkage() for detailed explanations.
     """
     if data.shape[0]==1: # cannoy perform hierarchical clustering if only one sample is in data
-        linkage_matrix = None
+        return None
     else:
         # Compute pairwise distances ignoring NaNs between samples, result is of shape (n_samples, n_samples)
         pairwise_dists:np.ndarray = nan_euclidean_distances(data)
@@ -490,4 +498,10 @@ def __calculate_hierarchical_clustering(data)->np.ndarray[float]:
         condensed_dists:np.ndarray = squareform(pairwise_dists, checks=False)
         # Compute hierarchical clustering of samples
         linkage_matrix:np.ndarray = linkage(condensed_dists, method='average', optimal_ordering=True)
-    return linkage_matrix
+        return linkage_matrix
+    
+def get_conditions(distances:pd.DataFrame, baseline:str):
+    
+    conditions = distances.condition.drop_duplicates().to_list()
+    conditions.remove(baseline)
+    return conditions
