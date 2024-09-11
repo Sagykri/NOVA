@@ -44,7 +44,9 @@ class TrainerClassification(TrainerBase):
         """
         
         logging.info(f"X shape: {X.shape}, y shape: {y.shape}")
-        outputs = self.nova_model.model(X)          
+        outputs = self.nova_model.model(X)      
+        # CrossEntropy loss must get type long for labels
+        y = y.long()    
             
         return {'outputs': outputs, 'targets': y}
     

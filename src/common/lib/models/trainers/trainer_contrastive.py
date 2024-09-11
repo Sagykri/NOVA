@@ -23,7 +23,7 @@ class _LabelInfo:
         __labels_np = np.asarray([label])
         self.batch:str = label_utils.get_batches_from_labels(__labels_np, dataset_config)[0]
         self.cell_line_cond:str = label_utils.get_cell_lines_conditions_from_labels(__labels_np, dataset_config)[0]
-        self.marker:str = label_utils.get_markers_from_labels(__labels_np)[0]
+        self.marker:str = label_utils.get_markers_from_labels(__labels_np, dataset_config)[0]
         self.rep:str = label_utils.get_reps_from_labels(__labels_np, dataset_config)[0]
         self.index:int = index
 
