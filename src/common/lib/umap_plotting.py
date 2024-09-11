@@ -223,12 +223,23 @@ def __format_UMAP_legend(ax:Axes, marker_size: int) -> None:
         handle.set_alpha(1)
         handle.set_sizes([max(6, marker_size)])
 
+
 def __map_labels(labels: np.ndarray[str], config_data: DatasetConfig) -> np.ndarray[str]:
     """Maps labels based on the provided function in the configuration."""
-    LABEL_UTILS_MODULE = "src.datasets.label_utils"
-    map_function_name:str = get_if_exists(config_data, 'MAP_LABELS_FUNCTION', None)
-    if map_function_name:
-        module = importlib.import_module(LABEL_UTILS_MODULE)
-        map_function= getattr(module, map_function_name)
+    map_function_alias:str = get_if_exists(config_data, 'MAP_LABELS_FUNCTION', None)
+    
+    label_mapping_functions = {
+            'markers': get_markers_from_labels,
+            'conditions' : get_conditions_from_labels,
+            'cell_lines' : get_cell_lines_from_labels,
+            'cell_lines_conditions' : get_cell_lines_conditions_from_labels,
+            'reps' : get_reps_from_labels,
+            'multiplex_conditions' : get_conditions_from_multiplex_labels,
+            'multiplex_cell_lines' : get_cell_lines_from_multiplex_labels,
+            'multiplex_cell_lines_conditions' : get_cell_lines_conditions_from_multiplex_labels,
+    }
+    
+    if map_function_alias:
+        map_function = label_mapping_functions[map_function_alias]
         return map_function(labels, config_data)
     return labels

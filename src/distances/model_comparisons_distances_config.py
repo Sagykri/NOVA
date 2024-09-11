@@ -41,7 +41,8 @@ class Neurons69Full78TestDistanceConfig(DatasetConfig):
         self.ADD_BATCH_TO_LABEL = True
         self.ADD_REP_TO_LABEL = True
         self.BASELINE_CELL_LINE_CONDITION = "WT_Untreated"
-        self.UMAP_MAPPINGS = self.UMAP_MAPPINGS_MARKERS
+        self.UMAP_MAPPINGS_CELL_LINE_CONDITION = self.UMAP_MAPPINGS_CONDITION_AND_ALS
+
 class NeuronsTest78TBK1DistanceConfig(DatasetConfig):
     def __init__(self):
         super().__init__()
@@ -62,6 +63,7 @@ class NeuronsTest78TBK1DistanceConfig(DatasetConfig):
         self.ADD_BATCH_TO_LABEL = True
         self.ADD_REP_TO_LABEL = True   
         self.BASELINE_CELL_LINE_CONDITION = "TBK1_Untreated"
+        self.UMAP_MAPPINGS_CELL_LINE_CONDITION = self.UMAP_MAPPINGS_CONDITION_AND_ALS
         
 class NeuronsTest78FUSRevertantDistanceConfig(DatasetConfig):
     def __init__(self):
@@ -83,6 +85,7 @@ class NeuronsTest78FUSRevertantDistanceConfig(DatasetConfig):
         self.ADD_BATCH_TO_LABEL = True
         self.ADD_REP_TO_LABEL = True          
         self.BASELINE_CELL_LINE_CONDITION = "FUSRevertant_Untreated"
+        self.UMAP_MAPPINGS_CELL_LINE_CONDITION = self.UMAP_MAPPINGS_CONDITION_AND_ALS
 
 class dNLSDistanceConfig(DatasetConfig):
     def __init__(self):
@@ -97,6 +100,7 @@ class dNLSDistanceConfig(DatasetConfig):
         
         self.ADD_BATCH_TO_LABEL = True
         self.ADD_REP_TO_LABEL = True 
+        self.UMAP_MAPPINGS_CELL_LINE_CONDITION = self.UMAP_MAPPINGS_DOX
 
 class dNLSTest25DistanceConfig(DatasetConfig):
     def __init__(self):
@@ -112,6 +116,7 @@ class dNLSTest25DistanceConfig(DatasetConfig):
         self.ADD_BATCH_TO_LABEL = True
         self.ADD_REP_TO_LABEL = True 
         self.TRAIN_BATCHES = ['batch2','batch5']
+        self.UMAP_MAPPINGS_CELL_LINE_CONDITION = self.UMAP_MAPPINGS_DOX
 
 class dNLS345DistanceConfig(DatasetConfig):
     def __init__(self):
@@ -123,9 +128,10 @@ class dNLS345DistanceConfig(DatasetConfig):
         self.EXPERIMENT_TYPE = 'deltaNLS'
         self.MARKERS_TO_EXCLUDE = ['FMRP','TIA1']
         self.BASELINE_CELL_LINE_CONDITION = "TDP43_Untreated"
-        
+        self.MARKERS = list(self.UMAP_MAPPINGS_MARKERS.keys())
         self.ADD_BATCH_TO_LABEL = True
-        self.ADD_REP_TO_LABEL = True 
+        self.ADD_REP_TO_LABEL = True
+        self.UMAP_MAPPINGS_CELL_LINE_CONDITION = self.UMAP_MAPPINGS_DOX
         
 class dNLS34DistanceConfig(DatasetConfig): # used for the model trained on dNLS
     def __init__(self):
@@ -140,6 +146,7 @@ class dNLS34DistanceConfig(DatasetConfig): # used for the model trained on dNLS
         self.MARKERS = list(self.UMAP_MAPPINGS_MARKERS.keys())
         self.ADD_BATCH_TO_LABEL = True
         self.ADD_REP_TO_LABEL = True 
+        self.UMAP_MAPPINGS_CELL_LINE_CONDITION = self.UMAP_MAPPINGS_DOX
 
 class EmbeddingsDay18DistanceConfig(DatasetConfig):
     def __init__(self):
@@ -155,6 +162,7 @@ class EmbeddingsDay18DistanceConfig(DatasetConfig):
         self.ADD_BATCH_TO_LABEL = True
         self.ADD_REP_TO_LABEL = True         
         self.BASELINE_CELL_LINE_CONDITION = "WT_Untreated"
+        self.UMAP_MAPPINGS_CELL_LINE_CONDITION = self.UMAP_MAPPINGS_CONDITION_AND_ALS
 
         
 class NeuronsDistanceB78TestConfig(DatasetConfig):
@@ -174,6 +182,7 @@ class NeuronsDistanceB78TestConfig(DatasetConfig):
         self.BASELINE_CELL_LINE_CONDITION = "WT_Untreated"
         self.ADD_BATCH_TO_LABEL = True
         self.ADD_REP_TO_LABEL = True 
+        self.UMAP_MAPPINGS_CELL_LINE_CONDITION = self.UMAP_MAPPINGS_CONDITION_AND_ALS
 
 class NeuronsDistanceB78FullConfig(DatasetConfig):
     def __init__(self):
@@ -190,3 +199,4 @@ class NeuronsDistanceB78FullConfig(DatasetConfig):
         self.MARKERS_TO_EXCLUDE = ['FMRP', 'TIA1']
         self.ADD_BATCH_TO_LABEL = True
         self.ADD_REP_TO_LABEL = True 
+        self.UMAP_MAPPINGS_CELL_LINE_CONDITION = self.UMAP_MAPPINGS_CONDITION_AND_ALS

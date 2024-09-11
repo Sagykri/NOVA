@@ -18,14 +18,14 @@ class NeuronsUMAP1B78FigureConfig(DatasetConfig):
         self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "spd2", "SpinningDisk", f) for f in 
                         ["batch7", "batch8"]]
         
-        # Take only test set of B7+8
-        self.SPLIT_DATA = True 
+        # Take only test set of B7+8  
+        #TODO: delete all split_data from these confs, they won't matter.. must define sets!
         self.EXPERIMENT_TYPE = 'neurons'    
         self.CELL_LINES = ['WT']
         self.CONDITIONS = ['Untreated']
-        
+        self.SETS = ['testset']
         # How labels are shown in legend
-        self.MAP_LABELS_FUNCTION = "get_markers_from_labels"
+        self.MAP_LABELS_FUNCTION = "markers"
 
         # Colors 
         self.UMAP_MAPPINGS = self.UMAP_MAPPINGS_MARKERS
@@ -52,12 +52,13 @@ class NeuronsUMAP1B78OpencellFigureConfig(DatasetConfig):
         self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "spd2", "SpinningDisk", f) for f in 
                         ["batch7", "batch8"]]
         
-        self.SPLIT_DATA = False 
+        self.SETS = ['trainset','valset','testset']
         self.EXPERIMENT_TYPE = 'neurons'    
-        self.CELL_LINES_CONDS = ['WT_Untreated']
+        self.CELL_LINES = ['WT']
+        self.CONDITIONS = ['Untreated']
         
         # How labels are shown in legend
-        self.MAP_LABELS_FUNCTION = "get_markers_from_labels"
+        self.MAP_LABELS_FUNCTION = "markers"
         
         # Colors 
         self.UMAP_MAPPINGS = self.UMAP_MAPPINGS_MARKERS
@@ -84,12 +85,13 @@ class NeuronsUMAP1B12Opera18daysREIMAGEDFigureConfig(DatasetConfig):
         self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "Opera18DaysReimaged", f) for f in 
                         ["batch1", "batch2"]]
         
-        self.SPLIT_DATA = False 
+        self.SETS = ['testset']
         self.EXPERIMENT_TYPE = 'neurons_d18'    
-        self.CELL_LINES_CONDS = ['WT_Untreated']
+        self.CELL_LINES = ['WT']
+        self.CONDITIONS = ['Untreated']
         
         # How labels are shown in legend
-        self.MAP_LABELS_FUNCTION = "get_markers_from_labels"
+        self.MAP_LABELS_FUNCTION = "markers"
         
         # self.ORDERED_MARKER_NAMES = ["DAPI", 'TDP43', 'PEX14', 'NONO', 'ANXA11', 'FUS', 'Phalloidin', 
         #     'PURA', 'mitotracker', 'TOMM20', 'NCL', 'Calreticulin', 'CLTC', 'KIF5A', 'SCNA', 'SQSTM1', 'PML',
@@ -126,11 +128,11 @@ class NeuronsUMAP0B6Rep1StressFigureConfig(DatasetConfig):
         
         self.EXPERIMENT_TYPE = 'neurons'
         
-        self.SPLIT_DATA = False
+        self.SETS = ['all']
         self.ADD_REP_TO_LABEL = True
         self.ADD_BATCH_TO_LABEL = False
         
-        self.MAP_LABELS_FUNCTION = "get_conditions_from_labels"
+        self.MAP_LABELS_FUNCTION = "conditions"
         self.UMAP_MAPPINGS = self.UMAP_MAPPINGS_CONDITION
 
         # Set the size of the dots
@@ -158,7 +160,7 @@ class NeuronsUMAP0B6Rep2StressFigureConfig(DatasetConfig):
         self.ADD_REP_TO_LABEL = True
         self.ADD_BATCH_TO_LABEL = False
 
-        self.MAP_LABELS_FUNCTION = "get_conditions_from_labels"
+        self.MAP_LABELS_FUNCTION = "conditions"
 
         self.UMAP_MAPPINGS = self.UMAP_MAPPINGS_CONDITION
 
@@ -213,7 +215,7 @@ class NeuronsUMAP0B9Rep1StressFigureConfig(DatasetConfig):
         self.ADD_BATCH_TO_LABEL = False        
 
         
-        self.MAP_LABELS_FUNCTION = "get_conditions_from_labels"
+        self.MAP_LABELS_FUNCTION = "conditions"
         self.UMAP_MAPPINGS = self.UMAP_MAPPINGS_CONDITION
 
         # Set the size of the dots
@@ -240,7 +242,7 @@ class NeuronsUMAP0B9Rep2StressFigureConfig(DatasetConfig):
         self.ADD_REP_TO_LABEL = True
         self.ADD_BATCH_TO_LABEL = False
 
-        self.MAP_LABELS_FUNCTION =  "get_conditions_from_labels"
+        self.MAP_LABELS_FUNCTION = "conditions"
         self.UMAP_MAPPINGS = self.UMAP_MAPPINGS_CONDITION
 
         # Set the size of the dots
@@ -322,7 +324,7 @@ class NeuronsUMAP0B6BothRepsOnlyWTUntreatedFigureConfig(DatasetConfig):
         self.ADD_REP_TO_LABEL = True
         self.ADD_BATCH_TO_LABEL = False
         
-        self.MAP_LABELS_FUNCTION = "get_conditions_from_labels"
+        self.MAP_LABELS_FUNCTION = "conditions"
         self.UMAP_MAPPINGS = None
 
         # Set the size of the dots
@@ -349,7 +351,7 @@ class NeuronsUMAP0B9BothRepsOnlyWTUntreatedFigureConfig(DatasetConfig):
         self.ADD_REP_TO_LABEL = True
         self.ADD_BATCH_TO_LABEL = False
         
-        self.MAP_LABELS_FUNCTION = "get_conditions_from_labels"
+        self.MAP_LABELS_FUNCTION = "conditions"
         self.UMAP_MAPPINGS = None
 
         # Set the size of the dots
@@ -379,7 +381,7 @@ class NeuronsUMAP0Opera18daysREIMAGEDStressFigureConfig(DatasetConfig):
         self.ADD_REP_TO_LABEL = False
         self.ADD_BATCH_TO_LABEL = False
         
-        self.MAP_LABELS_FUNCTION =  "get_conditions_from_labels"
+        self.MAP_LABELS_FUNCTION = "conditions"
         self.UMAP_MAPPINGS = self.UMAP_MAPPINGS_CONDITION
 
         # Set the size of the dots
@@ -476,7 +478,7 @@ class NeuronsUMAP0B6Rep1ALSFigureConfig(DatasetConfig):
         self.ADD_REP_TO_LABEL = True
         self.ADD_BATCH_TO_LABEL = False
         
-        self.MAP_LABELS_FUNCTION =  "get_cell_lines_from_labels"
+        self.MAP_LABELS_FUNCTION =  "cell_lines"
         self.UMAP_MAPPINGS = self.UMAP_MAPPINGS_ALS
 
         # Set the size of the dots
@@ -504,7 +506,7 @@ class NeuronsUMAP0B6Rep2ALSFigureConfig(DatasetConfig):
         self.ADD_REP_TO_LABEL = True
         self.ADD_BATCH_TO_LABEL = False
 
-        self.MAP_LABELS_FUNCTION = "get_cell_lines_from_labels"
+        self.MAP_LABELS_FUNCTION =  "cell_lines"
         self.UMAP_MAPPINGS = self.UMAP_MAPPINGS_ALS
 
         # Set the size of the dots
@@ -556,7 +558,7 @@ class NeuronsUMAP0B6BothRepsOnlyFUSLinesOnlyFUSMarkerFigureConfig(DatasetConfig)
         self.SPLIT_DATA = False
         self.ADD_REP_TO_LABEL = False
         self.ADD_BATCH_TO_LABEL = False
-        self.MAP_LABELS_FUNCTION = "get_cell_lines_from_labels"
+        self.MAP_LABELS_FUNCTION =  "cell_lines"
         self.UMAP_MAPPINGS = self.UMAP_MAPPINGS_ALS
 
         # Set the size of the dots
@@ -584,7 +586,7 @@ class NeuronsUMAP0B9Rep1ALSFigureConfig(DatasetConfig):
         self.ADD_REP_TO_LABEL = True
         self.ADD_BATCH_TO_LABEL = False
         
-        self.MAP_LABELS_FUNCTION = "get_cell_lines_from_labels"
+        self.MAP_LABELS_FUNCTION =  "cell_lines"
         self.UMAP_MAPPINGS = self.UMAP_MAPPINGS_ALS
 
         # Set the size of the dots
@@ -612,7 +614,7 @@ class NeuronsUMAP0B9Rep2ALSFigureConfig(DatasetConfig):
         self.ADD_REP_TO_LABEL = True
         self.ADD_BATCH_TO_LABEL = False
         
-        self.MAP_LABELS_FUNCTION = "get_cell_lines_from_labels"
+        self.MAP_LABELS_FUNCTION =  "cell_lines"
         self.UMAP_MAPPINGS = self.UMAP_MAPPINGS_ALS
 
         # Set the size of the dots
@@ -843,7 +845,7 @@ class NeuronsUMAP0B7Rep1ALSFigureConfig(DatasetConfig):
         self.ADD_REP_TO_LABEL = True
         self.ADD_BATCH_TO_LABEL = False
         
-        self.MAP_LABELS_FUNCTION = "get_cell_lines_from_labels"
+        self.MAP_LABELS_FUNCTION =  "cell_lines"
         self.UMAP_MAPPINGS = self.UMAP_MAPPINGS_ALS
 
         # Set the size of the dots
@@ -871,7 +873,7 @@ class NeuronsUMAP0B7Rep2ALSFigureConfig(DatasetConfig):
         self.ADD_REP_TO_LABEL = True
         self.ADD_BATCH_TO_LABEL = False
 
-        self.MAP_LABELS_FUNCTION = "get_cell_lines_from_labels"
+        self.MAP_LABELS_FUNCTION =  "cell_lines"
         self.UMAP_MAPPINGS = self.UMAP_MAPPINGS_ALS
 
         # Set the size of the dots
@@ -973,7 +975,7 @@ class NeuronsUMAP0B8Rep2ALSFigureConfig(DatasetConfig):
         self.ADD_REP_TO_LABEL = True
         self.ADD_BATCH_TO_LABEL = False
 
-        self.MAP_LABELS_FUNCTION = "get_cell_lines_from_labels"
+        self.MAP_LABELS_FUNCTION =  "cell_lines"
         self.UMAP_MAPPINGS = self.UMAP_MAPPINGS_ALS
 
         # Set the size of the dots
@@ -1001,7 +1003,7 @@ class NeuronsUMAP0B8Rep1ALSFigureConfig(DatasetConfig):
         self.ADD_REP_TO_LABEL = True
         self.ADD_BATCH_TO_LABEL = False
         
-        self.MAP_LABELS_FUNCTION = "get_cell_lines_from_labels"
+        self.MAP_LABELS_FUNCTION =  "cell_lines"
         self.UMAP_MAPPINGS = self.UMAP_MAPPINGS_ALS
 
         # Set the size of the dots
@@ -1435,7 +1437,7 @@ class NeuronsUMAP0Bpera18daysREIMAGEDALSFigureConfig(DatasetConfig):
         self.ADD_REP_TO_LABEL = False
         self.ADD_BATCH_TO_LABEL = True
         
-        # self.MAP_LABELS_FUNCTION = "get_cell_lines_from_labels"
+        # self.MAP_LABELS_FUNCTION =  "cell_lines"
         self.UMAP_MAPPINGS = None #self.UMAP_MAPPINGS_ALS
 
         # Set the size of the dots
@@ -1524,7 +1526,7 @@ class NeuronsUMAP0Bpera18daysREIMAGEDALSWithSNCAFigureConfig(DatasetConfig):
         self.ADD_REP_TO_LABEL = False
         self.ADD_BATCH_TO_LABEL = True
         
-        # self.MAP_LABELS_FUNCTION = "get_cell_lines_from_labels"
+        # self.MAP_LABELS_FUNCTION =  "cell_lines"
         self.UMAP_MAPPINGS = None #self.UMAP_MAPPINGS_ALS
 
         # Set the size of the dots
@@ -1560,7 +1562,7 @@ class NeuronsUMAP0Bpera18daysREIMAGEDB2BothRepsJoinedALSWithSNCAFigureConfig(Neu
         self.ADD_REP_TO_LABEL = False
         self.ADD_BATCH_TO_LABEL = False
         
-        self.MAP_LABELS_FUNCTION = "get_cell_lines_from_labels"
+        self.MAP_LABELS_FUNCTION =  "cell_lines"
         self.UMAP_MAPPINGS = self.UMAP_MAPPINGS_ALS
         # Decide if to show ARI metric on the UMAP
         self.SHOW_ARI = True
@@ -1575,7 +1577,7 @@ class NeuronsUMAP0Bpera18daysREIMAGEDB1BothRepsJoinedALSWithSNCAFigureConfig(Neu
         # Decide if to show ARI metric on the UMAP
         self.SHOW_ARI = True
 
-        self.MAP_LABELS_FUNCTION = "get_cell_lines_from_labels"
+        self.MAP_LABELS_FUNCTION =  "cell_lines"
         self.UMAP_MAPPINGS = self.UMAP_MAPPINGS_ALS
         
 class NeuronsUMAP0Bpera18daysREIMAGEDB1Rep1ALSWithSNCAFigureConfig(NeuronsUMAP0Bpera18daysREIMAGEDALSWithSNCAFigureConfig):
@@ -1636,7 +1638,7 @@ class EmbeddingsdNLSB2Rep1DatasetConfig(DatasetConfig):
         self.ADD_REP_TO_LABEL = True
         self.ADD_BATCH_TO_LABEL = False
         
-        self.MAP_LABELS_FUNCTION = "get_cell_lines_conditions_from_labels"
+        self.MAP_LABELS_FUNCTION =  "cell_lines_conditions"
         self.UMAP_MAPPINGS = self.UMAP_MAPPINGS_DOX
 
         # Set the size of the dots
@@ -1662,7 +1664,7 @@ class EmbeddingsdNLSB2Rep2DatasetConfig(DatasetConfig):
         self.ADD_REP_TO_LABEL = True
         self.ADD_BATCH_TO_LABEL = False
         
-        self.MAP_LABELS_FUNCTION = "get_cell_lines_conditions_from_labels"
+        self.MAP_LABELS_FUNCTION =  "cell_lines_conditions"
         self.UMAP_MAPPINGS = self.UMAP_MAPPINGS_DOX
 
         # Set the size of the dots
@@ -1688,7 +1690,7 @@ class EmbeddingsdNLSB3Rep1DatasetConfig(DatasetConfig):
         self.ADD_REP_TO_LABEL = True
         self.ADD_BATCH_TO_LABEL = False
         
-        self.MAP_LABELS_FUNCTION = "get_cell_lines_conditions_from_labels"
+        self.MAP_LABELS_FUNCTION =  "cell_lines_conditions"
         self.UMAP_MAPPINGS = self.UMAP_MAPPINGS_DOX
 
         # Set the size of the dots
@@ -1714,7 +1716,7 @@ class EmbeddingsdNLSB3Rep2DatasetConfig(DatasetConfig):
         self.ADD_REP_TO_LABEL = True
         self.ADD_BATCH_TO_LABEL = False
         
-        self.MAP_LABELS_FUNCTION = "get_cell_lines_conditions_from_labels"
+        self.MAP_LABELS_FUNCTION =  "cell_lines_conditions"
         self.UMAP_MAPPINGS = self.UMAP_MAPPINGS_DOX
 
         # Set the size of the dots
@@ -1741,7 +1743,7 @@ class EmbeddingsdNLSB3Rep1OnlyTDP43LineOnlyDCP1ADatasetConfig(DatasetConfig):
         self.ADD_REP_TO_LABEL = True
         self.ADD_BATCH_TO_LABEL = False
         
-        self.MAP_LABELS_FUNCTION = "get_cell_lines_conditions_from_labels"
+        self.MAP_LABELS_FUNCTION =  "cell_lines_conditions"
         self.UMAP_MAPPINGS = self.UMAP_MAPPINGS_DOX
 
         # Set the size of the dots
@@ -1768,7 +1770,7 @@ class EmbeddingsdNLSB3Rep2OnlyTDP43LineOnlyDCP1ADatasetConfig(DatasetConfig):
         self.ADD_REP_TO_LABEL = True
         self.ADD_BATCH_TO_LABEL = False
         
-        self.MAP_LABELS_FUNCTION = "get_cell_lines_conditions_from_labels"
+        self.MAP_LABELS_FUNCTION =  "cell_lines_conditions"
         self.UMAP_MAPPINGS = self.UMAP_MAPPINGS_DOX
 
         # Set the size of the dots
@@ -1868,7 +1870,7 @@ class EmbeddingsdNLSB3BothRepsJoinedDatasetConfig(DatasetConfig):
         self.ADD_REP_TO_LABEL = False
         self.ADD_BATCH_TO_LABEL = False
         
-        self.MAP_LABELS_FUNCTION = "get_cell_lines_conditions_from_labels"
+        self.MAP_LABELS_FUNCTION =  "cell_lines_conditions"
         self.UMAP_MAPPINGS = self.UMAP_MAPPINGS_DOX
 
         # Set the size of the dots
@@ -1895,7 +1897,7 @@ class EmbeddingsdNLSB4Rep1OnlyTDP43LineOnlyDCP1ADatasetConfig(DatasetConfig):
         self.ADD_REP_TO_LABEL = True
         self.ADD_BATCH_TO_LABEL = False
         
-        self.MAP_LABELS_FUNCTION = "get_cell_lines_conditions_from_labels"
+        self.MAP_LABELS_FUNCTION =  "cell_lines_conditions"
         self.UMAP_MAPPINGS = self.UMAP_MAPPINGS_DOX
 
         # Set the size of the dots
@@ -1922,7 +1924,7 @@ class EmbeddingsdNLSB4Rep2OnlyTDP43LineOnlyDCP1ADatasetConfig(DatasetConfig):
         self.ADD_REP_TO_LABEL = True
         self.ADD_BATCH_TO_LABEL = False
         
-        self.MAP_LABELS_FUNCTION = "get_cell_lines_conditions_from_labels"
+        self.MAP_LABELS_FUNCTION =  "cell_lines_conditions"
         self.UMAP_MAPPINGS = self.UMAP_MAPPINGS_DOX
 
         # Set the size of the dots
@@ -1999,7 +2001,7 @@ class EmbeddingsdNLSB4BothRepsOnlyTDP43DoxDatasetConfig(DatasetConfig):
         self.SPLIT_DATA = False
         self.ADD_REP_TO_LABEL = True
         self.ADD_BATCH_TO_LABEL = False
-        self.MAP_LABELS_FUNCTION = "get_reps_from_labels"
+        self.MAP_LABELS_FUNCTION =  "reps"
         self.UMAP_MAPPINGS = None
 
         # Set the size of the dots
@@ -2025,7 +2027,7 @@ class EmbeddingsdNLSB4Rep1DatasetConfig(DatasetConfig):
         self.ADD_REP_TO_LABEL = True
         self.ADD_BATCH_TO_LABEL = False
         
-        self.MAP_LABELS_FUNCTION = "get_cell_lines_conditions_from_labels"
+        self.MAP_LABELS_FUNCTION =  "cell_lines_conditions"
         self.UMAP_MAPPINGS = self.UMAP_MAPPINGS_DOX
 
         # Set the size of the dots
@@ -2051,7 +2053,7 @@ class EmbeddingsdNLSB4Rep2DatasetConfig(DatasetConfig):
         self.ADD_REP_TO_LABEL = True
         self.ADD_BATCH_TO_LABEL = False
         
-        self.MAP_LABELS_FUNCTION = "get_cell_lines_conditions_from_labels"
+        self.MAP_LABELS_FUNCTION =  "cell_lines_conditions"
         self.UMAP_MAPPINGS = self.UMAP_MAPPINGS_DOX
 
         # Set the size of the dots
@@ -2077,7 +2079,7 @@ class EmbeddingsdNLSB5Rep1DatasetConfig(DatasetConfig):
         self.ADD_REP_TO_LABEL = True
         self.ADD_BATCH_TO_LABEL = False
         
-        self.MAP_LABELS_FUNCTION = "get_cell_lines_conditions_from_labels"
+        self.MAP_LABELS_FUNCTION =  "cell_lines_conditions"
         self.UMAP_MAPPINGS = self.UMAP_MAPPINGS_DOX
 
         # Set the size of the dots
@@ -2103,7 +2105,7 @@ class EmbeddingsdNLSB5Rep2DatasetConfig(DatasetConfig):
         self.ADD_REP_TO_LABEL = True
         self.ADD_BATCH_TO_LABEL = False
         
-        self.MAP_LABELS_FUNCTION = "get_cell_lines_conditions_from_labels"
+        self.MAP_LABELS_FUNCTION =  "cell_lines_conditions"
         self.UMAP_MAPPINGS = self.UMAP_MAPPINGS_DOX
 
         # Set the size of the dots
@@ -2130,7 +2132,7 @@ class EmbeddingsdNLSB5BothRepsOnlyTDP43UntreatedDatasetConfig(DatasetConfig):
         self.ADD_REP_TO_LABEL = True
         self.ADD_BATCH_TO_LABEL = False
         
-        self.MAP_LABELS_FUNCTION = "get_reps_from_labels"
+        self.MAP_LABELS_FUNCTION =  "reps"
         self.UMAP_MAPPINGS = None
 
         # Set the size of the dots
@@ -2156,7 +2158,7 @@ class EmbeddingsdNLSB2BothRepsOnlyTDP43UntreatedDatasetConfig(DatasetConfig):
         self.ADD_REP_TO_LABEL = True
         self.ADD_BATCH_TO_LABEL = False
         
-        self.MAP_LABELS_FUNCTION = "get_reps_from_labels"
+        self.MAP_LABELS_FUNCTION =  "reps"
         self.UMAP_MAPPINGS = None
 
         # Set the size of the dots
@@ -2184,7 +2186,7 @@ class EmbeddingsU2OSRep1FigureConfig(DatasetConfig):
         self.REPS = ['rep1']
         self.ADD_REP_TO_LABEL = True
 
-        self.MAP_LABELS_FUNCTION = "get_conditions_from_labels"
+        self.MAP_LABELS_FUNCTION = "conditions"
         self.UMAP_MAPPINGS = self.UMAP_MAPPINGS_CONDITION
         
         # Set the size of the dots
@@ -2212,7 +2214,7 @@ class NeuronsUMAP2B6Rep2StressFigureConfig(DatasetConfig):
         self.ADD_REP_TO_LABEL = True
         self.ADD_BATCH_TO_LABEL = False
         
-        self.MAP_LABELS_FUNCTION = "get_conditions_from_multiplex_labels"
+        self.MAP_LABELS_FUNCTION =  "multiplex_conditions"
 
         self.UMAP_MAPPINGS = self.UMAP_MAPPINGS_CONDITION
 
@@ -2241,7 +2243,7 @@ class NeuronsUMAP2B6Rep2FUSFigureConfig(DatasetConfig):
         self.ADD_REP_TO_LABEL = True
         self.ADD_BATCH_TO_LABEL = False
         
-        self.MAP_LABELS_FUNCTION = "get_cell_lines_from_multiplex_labels"
+        self.MAP_LABELS_FUNCTION =  "multiplex_cell_lines"
         self.UMAP_MAPPINGS = self.UMAP_MAPPINGS_ALS
 
         # Set the size of the dots
@@ -2269,7 +2271,7 @@ class NeuronsUMAP2B6Rep2FigureConfig(DatasetConfig):
         self.ADD_REP_TO_LABEL = True
         self.ADD_BATCH_TO_LABEL = False
         
-        self.MAP_LABELS_FUNCTION = "get_cell_lines_from_multiplex_labels"
+        self.MAP_LABELS_FUNCTION =  "multiplex_cell_lines"
         self.UMAP_MAPPINGS = self.UMAP_MAPPINGS_ALS
 
         # Set the size of the dots
@@ -2297,7 +2299,7 @@ class NeuronsUMAP2B6Rep2FUSLinesNOFUSFigureConfig(DatasetConfig):
         self.ADD_REP_TO_LABEL = True
         self.ADD_BATCH_TO_LABEL = False
         
-        self.MAP_LABELS_FUNCTION = "get_cell_lines_from_multiplex_labels"
+        self.MAP_LABELS_FUNCTION =  "multiplex_cell_lines"
         self.UMAP_MAPPINGS = self.UMAP_MAPPINGS_ALS
 
         # Set the size of the dots
@@ -2324,7 +2326,7 @@ class NeuronsUMAP2B6Rep2NOFUSFigureConfig(DatasetConfig):
         self.ADD_REP_TO_LABEL = False
         self.ADD_BATCH_TO_LABEL = False
         
-        self.MAP_LABELS_FUNCTION = "get_cell_lines_from_multiplex_labels"
+        self.MAP_LABELS_FUNCTION =  "multiplex_cell_lines"
         self.UMAP_MAPPINGS = self.UMAP_MAPPINGS_ALS
 
         # Set the size of the dots
@@ -2352,7 +2354,7 @@ class NeuronsUMAP2B6Rep2NOFUSLinesFigureConfig(DatasetConfig):
         self.ADD_REP_TO_LABEL = False
         self.ADD_BATCH_TO_LABEL = False
         
-        self.MAP_LABELS_FUNCTION = "get_cell_lines_from_multiplex_labels"
+        self.MAP_LABELS_FUNCTION =  "multiplex_cell_lines"
         self.UMAP_MAPPINGS = self.UMAP_MAPPINGS_ALS
 
         # Set the size of the dots
@@ -2377,7 +2379,7 @@ class dNLSUMAP2B3BothRepsFigureConfig(DatasetConfig):
         self.ADD_REP_TO_LABEL = False
         self.ADD_BATCH_TO_LABEL = False
         
-        self.MAP_LABELS_FUNCTION = "get_cell_lines_conditions_from_multiplex_labels"
+        self.MAP_LABELS_FUNCTION = "multiplex_cell_lines_conditions"
         self.UMAP_MAPPINGS = self.UMAP_MAPPINGS_DOX
 
         # Set the size of the dots
@@ -2403,7 +2405,7 @@ class dNLSUMAP2B3BothRepsWithoutWTFigureConfig(DatasetConfig):
         self.ADD_REP_TO_LABEL = False
         self.ADD_BATCH_TO_LABEL = False
         
-        self.MAP_LABELS_FUNCTION = "get_cell_lines_conditions_from_multiplex_labels"
+        self.MAP_LABELS_FUNCTION = "multiplex_cell_lines_conditions"
         self.UMAP_MAPPINGS = self.UMAP_MAPPINGS_DOX
 
         # Set the size of the dots
@@ -2432,7 +2434,7 @@ class NeuronsUMAP2Bpera18daysREIMAGEDALSFigureConfig(DatasetConfig):
         self.ADD_REP_TO_LABEL = False
         self.ADD_BATCH_TO_LABEL = False
         
-        self.MAP_LABELS_FUNCTION = "get_cell_lines_from_multiplex_labels"
+        self.MAP_LABELS_FUNCTION =  "multiplex_cell_lines"
         self.UMAP_MAPPINGS = self.UMAP_MAPPINGS_ALS
 
         # Set the size of the dots
@@ -2506,7 +2508,7 @@ class NeuronsUMAP2Bpera18daysREIMAGEDALSWithSNCAFigureConfig(DatasetConfig):
         self.ADD_REP_TO_LABEL = False
         self.ADD_BATCH_TO_LABEL = False
         
-        self.MAP_LABELS_FUNCTION = "get_cell_lines_from_multiplex_labels"
+        self.MAP_LABELS_FUNCTION =  "multiplex_cell_lines"
         self.UMAP_MAPPINGS = self.UMAP_MAPPINGS_ALS
 
         # Set the size of the dots
@@ -2579,7 +2581,7 @@ class NeuronsUMAP0B1Opera18daysREIMAGEDALSFigureConfig(DatasetConfig):
         self.ADD_REP_TO_LABEL = False
         self.ADD_BATCH_TO_LABEL = False
         
-        self.MAP_LABELS_FUNCTION = "get_cell_lines_from_labels"
+        self.MAP_LABELS_FUNCTION =  "cell_lines"
         self.UMAP_MAPPINGS = self.UMAP_MAPPINGS_ALS
 
         # Set the size of the dots
@@ -2606,7 +2608,7 @@ class NeuronsUMAP0B2Opera18daysREIMAGEDALSFigureConfig(DatasetConfig):
         self.ADD_REP_TO_LABEL = False
         self.ADD_BATCH_TO_LABEL = False
         
-        self.MAP_LABELS_FUNCTION = "get_cell_lines_from_labels"
+        self.MAP_LABELS_FUNCTION =  "cell_lines"
         self.UMAP_MAPPINGS = self.UMAP_MAPPINGS_ALS
 
         # Set the size of the dots
@@ -2812,7 +2814,7 @@ class NeuronsUMAP2B6BothRepsFigureConfig(DatasetConfig):
         self.ADD_REP_TO_LABEL = False
         self.ADD_BATCH_TO_LABEL = False
         
-        self.MAP_LABELS_FUNCTION = "get_cell_lines_from_multiplex_labels"
+        self.MAP_LABELS_FUNCTION =  "multiplex_cell_lines"
         self.UMAP_MAPPINGS = self.UMAP_MAPPINGS_ALS
 
         # Set the size of the dots
@@ -2839,7 +2841,7 @@ class NeuronsUMAP2B6BothRepsNOFUSFigureConfig(DatasetConfig):
         self.ADD_REP_TO_LABEL = False
         self.ADD_BATCH_TO_LABEL = False
         
-        self.MAP_LABELS_FUNCTION = "get_cell_lines_from_multiplex_labels"
+        self.MAP_LABELS_FUNCTION =  "multiplex_cell_lines"
         self.UMAP_MAPPINGS = self.UMAP_MAPPINGS_ALS
 
         # Set the size of the dots
@@ -2866,7 +2868,7 @@ class NeuronsUMAP2B6BothRepsNOFUSNOSCNAFigureConfig(DatasetConfig):
         self.ADD_REP_TO_LABEL = False
         self.ADD_BATCH_TO_LABEL = False
         
-        self.MAP_LABELS_FUNCTION = "get_cell_lines_from_multiplex_labels"
+        self.MAP_LABELS_FUNCTION =  "multiplex_cell_lines"
         self.UMAP_MAPPINGS = self.UMAP_MAPPINGS_ALS
 
         # Set the size of the dots
@@ -2893,7 +2895,7 @@ class NeuronsUMAP2B6BothRepsNOSCNAFigureConfig(DatasetConfig):
         self.ADD_REP_TO_LABEL = False
         self.ADD_BATCH_TO_LABEL = False
         
-        self.MAP_LABELS_FUNCTION = "get_cell_lines_from_multiplex_labels"
+        self.MAP_LABELS_FUNCTION =  "multiplex_cell_lines"
         self.UMAP_MAPPINGS = self.UMAP_MAPPINGS_ALS
 
         # Set the size of the dots
@@ -2920,7 +2922,7 @@ class NeuronsUMAP2B9BothRepsFigureConfig(DatasetConfig):
         self.ADD_REP_TO_LABEL = False
         self.ADD_BATCH_TO_LABEL = False
         
-        self.MAP_LABELS_FUNCTION = "get_cell_lines_from_multiplex_labels"
+        self.MAP_LABELS_FUNCTION =  "multiplex_cell_lines"
         self.UMAP_MAPPINGS = self.UMAP_MAPPINGS_ALS
 
         # Set the size of the dots
@@ -2947,7 +2949,7 @@ class NeuronsUMAP2B9BothRepsNOFUSFigureConfig(DatasetConfig):
         self.ADD_REP_TO_LABEL = False
         self.ADD_BATCH_TO_LABEL = False
         
-        self.MAP_LABELS_FUNCTION = "get_cell_lines_from_multiplex_labels"
+        self.MAP_LABELS_FUNCTION =  "multiplex_cell_lines"
         self.UMAP_MAPPINGS = self.UMAP_MAPPINGS_ALS
 
         # Set the size of the dots
@@ -2974,7 +2976,7 @@ class NeuronsUMAP2B9BothRepsNOFUSNOSCNAFigureConfig(DatasetConfig):
         self.ADD_REP_TO_LABEL = False
         self.ADD_BATCH_TO_LABEL = False
         
-        self.MAP_LABELS_FUNCTION = "get_cell_lines_from_multiplex_labels"
+        self.MAP_LABELS_FUNCTION =  "multiplex_cell_lines"
         self.UMAP_MAPPINGS = self.UMAP_MAPPINGS_ALS
 
         # Set the size of the dots
@@ -3001,7 +3003,7 @@ class NeuronsUMAP2B9BothRepsNOSCNAFigureConfig(DatasetConfig):
         self.ADD_REP_TO_LABEL = False
         self.ADD_BATCH_TO_LABEL = False
         
-        self.MAP_LABELS_FUNCTION = "get_cell_lines_from_multiplex_labels"
+        self.MAP_LABELS_FUNCTION =  "multiplex_cell_lines"
         self.UMAP_MAPPINGS = self.UMAP_MAPPINGS_ALS
 
         # Set the size of the dots
