@@ -11,6 +11,7 @@ import logging
 from src.common.lib.embeddings_utils import generate_embeddings, save_embeddings
 from src.common.lib.utils import load_config_file
 from src.common.configs.dataset_config import DatasetConfig
+from src.common.lib.models.trainers.utils.consts import CHECKPOINT_BEST_FILENAME, CHECKPOINTS_FOLDERNAME
 
 #TODO:remove
 from sandbox.eval_new_arch.dino4cells.archs import vision_transformer as vits
@@ -27,7 +28,8 @@ class DictToObject: #TODO: remove
             else:
                 setattr(self, key, value)
 
-def generate_embeddings_with_model(chkp_path:str, config_path_data:str)->None:
+def generate_embeddings_with_model(outputs_folder_path:str, config_path_data:str)->None:
+    chkp_path = os.path.join(outputs_folder_path, CHECKPOINTS_FOLDERNAME, CHECKPOINT_BEST_FILENAME)
     # model = NOVAModel.load_from_checkpoint(chkp_path)
     # model_output_folder = model.config_trainer.OUTPUTS_FOLDER
     config = {
@@ -67,21 +69,25 @@ def generate_embeddings_with_model(chkp_path:str, config_path_data:str)->None:
     ).cuda()
 
     model = utils.load_model_from_checkpoint(chkp_path, model)
-    model_output_folder = os.sep.join(chkp_path.split(os.sep)[:-2]) #model.trainer_config.OUTPUTS_FOLDER #TODO!!
-
     config_data:DatasetConfig = load_config_file(config_path_data, "data")
 
     embeddings, labels = generate_embeddings(model, config_data)
-    save_embeddings(embeddings, labels, config_data, model_output_folder)
+    save_embeddings(embeddings, labels, config_data, outputs_folder_path)
 
 if __name__ == "__main__":
     print("Starting generate embeddings...")
     try:
         if len(sys.argv) < 3:
-            raise ValueError("Invalid arguments. Must supply trained model path (.pth) and data config.")
-        chkp_path = sys.argv[1]
+            raise ValueError("Invalid arguments. Must supply outputs folder path and data config.")
+        outputs_folder_path = sys.argv[1]
+        if not os.path.exists(os.path.join(outputs_folder_path,'checkpoints')):
+            raise ValueError("Invalid outputs folder. Must contain a 'checkpoints' folder.")
+        if not os.path.exists(os.path.join(outputs_folder_path,'checkpoints', 'checkpoint_best.pth')):
+            raise ValueError("Invalid outputs folder. Must contain a 'checkpoints' folder, and inside a 'checkpoint_best.pth' file.")
+        
         config_path_data = sys.argv[2]
-        generate_embeddings_with_model(chkp_path, config_path_data)
+        generate_embeddings_with_model(outputs_folder_path, config_path_data)
+        
     except Exception as e:
         logging.exception(str(e))
         raise e
