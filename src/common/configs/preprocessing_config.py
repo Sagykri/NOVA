@@ -11,6 +11,13 @@ class PreprocessingConfig(BaseConfig):
     def __init__(self):
         super().__init__()
         
+        self.RAW_FOLDER_ROOT = os.path.join(self.HOME_DATA_FOLDER, "images", "raw")
+        self.PROCESSED_FOLDER_ROOT = os.path.join(self.HOME_DATA_FOLDER, "images", "processed")
+
+        # Precaution - raw and processed folders can't be the same one!
+        assert self.RAW_FOLDER_ROOT != self.PROCESSED_FOLDER_ROOT, f"RAW_FOLDER_ROOT == PROCESSED_FOLDER_ROOT, {self.RAW_FOLDER_ROOT}"
+
+        
         self.INPUT_FOLDERS = None
         self.OUTPUT_FOLDERS = None
         

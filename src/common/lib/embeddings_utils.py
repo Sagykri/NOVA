@@ -13,7 +13,7 @@ from torchvision.transforms.functional import resize
 
 from src.common.lib.image_sampling_utils import find_marker_folders
 from src.common.lib.utils import flat_list_of_lists, get_if_exists, load_config_file, init_logging
-from src.common.lib.model import Model
+from common.lib.models.NOVA_model import NOVAModel
 from src.common.lib.data_loader import get_dataloader
 from src.datasets.dataset_spd import DatasetSPD
 import re
@@ -35,7 +35,7 @@ def init_model_for_embeddings(config_path_model):
 
     # Get configs of model (trained model) 
     config_model = load_config_file(config_path_model, 'model')
-    model = Model(config_model)
+    model = NOVAModel(config_model)
     logging.info(f"Init model {config_model}")
     return model, config_model
 

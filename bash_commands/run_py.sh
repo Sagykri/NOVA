@@ -82,9 +82,9 @@ done
   
 if [ -z "$queue" ]; then  
   if [ "$use_gpu" = false ]; then
-    queue="new-long"
+    queue="long"
   else
-    queue="gpu-long"
+    queue="long-gpu"
   fi
 fi
 
