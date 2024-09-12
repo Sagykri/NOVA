@@ -4,6 +4,7 @@ models_folder=/home/labs/hornsteinlab/Collaboration/MOmaps/outputs/vit_models/
 # models="batch78_infoNCE transfer_b78_freeze_all_but_attn transfer_b78_freeze_least_changed transfer_b78_freeze_mostly_changed transfer_b78_no_freeze opencell_new"
 models="opencell_new" #"batch78_infoNCE_FMRP"
 figures_configs=./src/figures/model_comparisons_figures_config
+plot_configs=./src/figures/model_comparisons_figures_plot_config
 #parameters order:
 # model_folder config_data umap_type
 
@@ -15,7 +16,7 @@ do
 #     ###
 
 #     $MOMAPS_HOME/bash_commands/run_py.sh $MOMAPS_HOME/src/runables/generate_umaps_vit -m 5000 \
-#     -a $model_folder $figures_configs/NeuronsUMAP1B78FigureConfig umap1 -q short -j umap1
+#     -a $model_folder $figures_configs/NeuronsUMAP1B78FigureConfig $plot_configs/UMAP1Config umap1 -q short -j umap1
 
 #     ####
 #     # UMAP0 - stress
@@ -174,7 +175,7 @@ model_folder=$models_folder/transfer_b78_freeze_least_changed
 ###
 
 # $MOMAPS_HOME/bash_commands/run_py.sh $MOMAPS_HOME/src/runables/generate_umaps_vit -m 5000 \
-# -a $model_folder $figures_configs/NeuronsUMAP1B78OpencellFigureConfig umap1 -q short -j umap1
+# -a $model_folder $figures_configs/NeuronsUMAP1B78OpencellFigureConfig $plot_configs/UMAP1Config umap1 -q short -j umap1
 
 # ####
 # # UMAP0 - stress
@@ -650,7 +651,7 @@ $MOMAPS_HOME/bash_commands/run_py.sh $MOMAPS_HOME/src/runables/generate_umaps_vi
 ###
 
 # $MOMAPS_HOME/bash_commands/run_py.sh $MOMAPS_HOME/src/runables/generate_umaps_vit -m 5000 \
-# -a $model_folder $figures_configs/NeuronsUMAP1B12Opera18daysREIMAGEDFigureConfig umap1 -q short -j umap1
+# -a $model_folder $figures_configs/NeuronsUMAP1B12Opera18daysREIMAGEDFigureConfig $plot_configs/UMAP1Config umap1 -q short -j umap1
 
 # ####
 # # UMAP0 - stress
