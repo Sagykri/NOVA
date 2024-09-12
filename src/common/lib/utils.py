@@ -1,6 +1,10 @@
 import os
+import sys
 from typing import Any, Callable, Dict, Iterable, List, Tuple, Union
 import uuid
+
+sys.path.insert(1, os.getenv("MOMAPS_HOME"))
+
 import importlib
 import json
 import logging
@@ -73,8 +77,7 @@ def load_config_file(path:string, custom_filename:string=None, savefolder:string
         custom_filename = f"{uuid.uuid4().hex}"
         
     savepath = os.path.join(savefolder, f"{custom_filename}.json")
-    if not os.path.exists(savefolder):
-        os.makedirs(savefolder, exist_ok=True)
+    os.makedirs(savefolder, exist_ok=True)
         
     with open(savepath, 'w') as f:
         f.write(json.dumps(config.__dict__))
@@ -254,3 +257,9 @@ def get_nvidia_smi_output(gpuidx:int)->Dict:
                     out_dict[fragments[0].strip()] = fragments[1].strip()
 
     return out_dict
+
+def save_config(config, output_folder_path: str) -> None:
+    """Saves the configuration data to a JSON file."""
+    os.makedirs(output_folder_path, exist_ok=True)
+    with open(os.path.join(output_folder_path, 'config.json'), 'w') as json_file:
+        json.dump(config.__dict__, json_file, indent=4)

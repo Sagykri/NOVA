@@ -3,6 +3,7 @@
 .vscode/
 .ipynb_checkpoints/
 *.csv
+*.npy
 !/src/preprocessing/*.csv
 anaconda3/
 logs/

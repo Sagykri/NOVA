@@ -17,6 +17,11 @@ class PlotConfig(BaseConfig):
     """
     def __init__(self):
         
+        # Set the size of the dots
+        self.SIZE = 30
+        # Set the alpha of the dots (0=max opacity, 1=no opacity)
+        self.ALPHA = 0.7
+
         self.COLOR_MAPPINGS_CONDITION: Dict[str, ColormapWithAlias] = {
             'Untreated': ColormapWithAlias(alias='- Stress', color='#52C5D5'),
             'stress': ColormapWithAlias(alias='+ Stress', color='#F7810F'),
@@ -79,3 +84,18 @@ class PlotConfig(BaseConfig):
             'TDP43B': ColormapWithAlias(alias='TDP43 granules 1', color='#06A0E9'),
             'TDP43N': ColormapWithAlias(alias='TDP43 granules 2', color='#06A0E9')
         }
+
+        self.LABEL_MAPPINGS_CONDITION_AND_ALS = {
+            'WT_stress': ColormapWithAlias(alias= 'Wild-Type + Stress',color= '#F7810F'),
+            'WT_Untreated': ColormapWithAlias(alias='Wild-Type', color='#37AFD7'),
+            'FUSHeterozygous_Untreated': ColormapWithAlias(alias='FUS Heterozygous', color='#AB7A5B'),
+            'FUSHomozygous_Untreated': ColormapWithAlias(alias='FUS Homozygous', color='#78491C'),
+            'FUSRevertant_Untreated': ColormapWithAlias(alias='FUS Revertant', color='#C8C512'),
+            'OPTN_Untreated': ColormapWithAlias(alias='OPTN', color='#FF98BB'),
+            'TBK1_Untreated': ColormapWithAlias(alias='TBK1', color='#319278'),
+            'SCNA_Untreated': ColormapWithAlias(alias='SCNA', color='black'),
+            'SNCA_Untreated': ColormapWithAlias(alias='SNCA', color='black'),
+            'TDP43_Untreated': ColormapWithAlias(alias='TDP43', color='#A8559E'),
+        }
+
+        self.LABEL_MAPPINGS = self.LABEL_MAPPINGS_ALS

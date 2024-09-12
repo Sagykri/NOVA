@@ -2,77 +2,93 @@ import os
 import sys
 
 sys.path.insert(1, os.getenv("MOMAPS_HOME"))
+print(f"MOMAPS_HOME: {os.getenv('MOMAPS_HOME')}")
 
-from src.common.lib.utils import get_if_exists, load_config_file
+import numpy as np
 import logging
-import  torch
 
-from src.common.lib.embeddings_utils import init_model_for_embeddings, load_dataset_for_embeddings, load_model_with_dataloader, calc_embeddings
+# from src.common.lib.models.NOVA_model import NOVAModel
+from src.common.lib.embeddings_utils import generate_embeddings, save_embeddings
+from src.common.lib.utils import load_config_file
+from src.common.configs.dataset_config import DatasetConfig
+from src.common.lib.models.trainers.utils.consts import CHECKPOINT_BEST_FILENAME, CHECKPOINTS_FOLDERNAME
 
+#TODO:remove
+from sandbox.eval_new_arch.dino4cells.archs import vision_transformer as vits
+import torch
+import random
+import torch.backends.cudnn as cudnn
+from sandbox.eval_new_arch.dino4cells.utils import utils
+class DictToObject: #TODO: remove
+    def __init__(self, dict_obj):
+        for key, value in dict_obj.items():
+            if isinstance(value, dict):
+                # Recursively convert dictionaries to objects
+                setattr(self, key, DictToObject(value))
+            else:
+                setattr(self, key, value)
 
-def generate_embeddings():
-    """This function expect to get 2 sys arguments
-    1. Path to the config file of a src.common.lib.model.Model object (e.g., ./src/models/neuroself/configs/model_config/NeuroselfB78)
-    2. Path to the config file of src.datasets.dataset_spd.DatasetSPD (./src/datasets/configs/train_config/TrainB78DatasetConfig)
-    The output (embeddings) are generate under the model path, in a dedicated folder called "embeddings"
+def generate_embeddings_with_model(outputs_folder_path:str, config_path_data:str)->None:
+    chkp_path = os.path.join(outputs_folder_path, CHECKPOINTS_FOLDERNAME, CHECKPOINT_BEST_FILENAME)
+    # model = NOVAModel.load_from_checkpoint(chkp_path)
+    # model_output_folder = model.config_trainer.OUTPUTS_FOLDER
+    config = {
+        'seed': 1,
+        'embedding': {
+            'image_size': 100
+        },
+        'patch_size': 14,
+        'num_channels': 2,
+        'num_classes': 128, #int(sys.argv[3]),
+        
+        'batch_size_per_gpu': 700,#300,#3,#65,
+        'num_workers': 6,  
 
-    Returns:
-        None
-    """
-    
-    config_path_model=sys.argv[1]
+        'vit_version':'tiny'      
+    }
+    config = DictToObject(config)
+    torch.manual_seed(config.seed)
+    torch.cuda.manual_seed_all(config.seed)
+    np.random.seed(config.seed)
+    cudnn.benchmark = False
+    random.seed(config.seed)
 
-    # Get dataset configs (as used in trainig the model)
-    config_path_data = sys.argv[2]
-    
-    # Init model and model configuration 
-    # Note: This line must be called before loading the data config file, otherwise no logs will be written to the model folder
-    model, config_model =  init_model_for_embeddings(config_path_model=config_path_model)
-    
-    config_data = load_config_file(config_path_data, 'data') 
-    embeddings_layer = get_if_exists(config_data, 'EMBEDDINGS_LAYER', 'vqvec2')
+    create_vit = vits.vit_base
+    if config.vit_version == 'base':
+        create_vit = vits.vit_base
+    elif config.vit_version == 'small':
+        create_vit = vits.vit_small
+    elif config.vit_version == 'tiny':
+        create_vit = vits.vit_tiny
 
-    logging.info("---------------Start---------------")
-    logging.info("[Generate embeddings]")
-    logging.info(f"Starting to generate {embeddings_layer} embeddings...")
-    logging.info(f"Is GPU available: {torch.cuda.is_available()}")
-    logging.info(f"Num GPUs Available: {torch.cuda.device_count()}")
+    model = create_vit(
+        img_size=[config.embedding.image_size],
+        patch_size=config.patch_size,
+        in_chans=config.num_channels,
+        num_classes=config.num_classes
+    ).cuda()
 
-    logging.info(f"Init datasets {config_data} from {config_path_data}")
-    experiment_type = get_if_exists(config_data, 'EXPERIMENT_TYPE', None)
-    assert experiment_type is not None, "EXPERIMENT_TYPE can't be None"
+    model = utils.load_model_from_checkpoint(chkp_path, model)
+    config_data:DatasetConfig = load_config_file(config_path_data, "data")
 
-    logging.info(f"experiment_type = {experiment_type}")
-    logging.info(f"embeddings_layer = {embeddings_layer}")
-    
-    # Get dataset 
-    # Note: batch_size is set to 1 to make sure each embeddings npy file is corresponding to a single site npy file
-    datasets_list = load_dataset_for_embeddings(config_data=config_data, batch_size=1, config_model=config_model)
-    # Set the output folder (where to save the embeddings)
-    embeddings_folder = os.path.join(config_model.MODEL_OUTPUT_FOLDER, 'embeddings', experiment_type)
-    # Get trained model    
-    trained_model = load_model_with_dataloader(model, datasets_list)
-    
-    calc_embeddings(trained_model, datasets_list, embeddings_folder, save=True, embeddings_layer=embeddings_layer)
-    
-    return None
-    
+    embeddings, labels = generate_embeddings(model, config_data)
+    save_embeddings(embeddings, labels, config_data, outputs_folder_path)
 
 if __name__ == "__main__":
-    
-    if len(sys.argv) != 3:
-        raise ValueError("Invalid config path. Must supply model config and data config.")
+    print("Starting generate embeddings...")
     try:
-        generate_embeddings()
+        if len(sys.argv) < 3:
+            raise ValueError("Invalid arguments. Must supply outputs folder path and data config.")
+        outputs_folder_path = sys.argv[1]
+        if not os.path.exists(os.path.join(outputs_folder_path,'checkpoints')):
+            raise ValueError("Invalid outputs folder. Must contain a 'checkpoints' folder.")
+        if not os.path.exists(os.path.join(outputs_folder_path,'checkpoints', 'checkpoint_best.pth')):
+            raise ValueError("Invalid outputs folder. Must contain a 'checkpoints' folder, and inside a 'checkpoint_best.pth' file.")
+        
+        config_path_data = sys.argv[2]
+        generate_embeddings_with_model(outputs_folder_path, config_path_data)
+        
     except Exception as e:
         logging.exception(str(e))
         raise e
-    logging.info("Done!")
-
-# Example how to run:    
-# ./bash_commands/run_py.sh ./src/runables/generate_embeddings -g -m 40000 -b 40 -a ./src/models/neuroself/configs/model_config/NeuroselfB78BIT16ShuffleTLTrainingConfig ./src/datasets/configs/train_config/TrainB78BIT16DatasetConfig 
-
-# ./bash_commands/run_py.sh ./src/runables/generate_embeddings -g -m 40000 -b 40 -a ./src/models/neuroself/configs/model_config/NeuroselfB78BIT16ShuffleTrainingConfig ./src/datasets/configs/train_config/TrainB78BIT16DatasetConfig 
-
-
-    
+    logging.info("Done")
