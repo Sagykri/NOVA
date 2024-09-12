@@ -1,26 +1,26 @@
 import os
 import sys
+sys.path.insert(1, os.getenv("MOMAPS_HOME")) 
 
-from src.datasets.label_utils import edit_labels_by_config, get_batches_from_labels, get_cell_lines_from_labels, get_conditions_from_labels, get_markers_from_labels, get_reps_from_labels, get_unique_parts_from_labels, get_batches_from_input_folders
-sys.path.insert(1, os.getenv("MOMAPS_HOME"))
-
+from typing import List, Optional, Tuple, Callable
+from copy import deepcopy
 import numpy as np
 import logging
 import torch
 
-from typing import List, Optional, Tuple, Callable
-from copy import deepcopy
-
 from src.common.lib.utils import get_if_exists
 from src.common.lib.data_loader import get_dataloader
 from src.datasets.dataset_NOVA import DatasetNOVA
-from src.common.lib.dataset_base import DatasetBase
 from src.common.configs.dataset_config import DatasetConfig
-# from src.common.lib.models.NOVA_model import NOVAModel
-from sandbox.eval_new_arch.dino4cells.main_vit_fine_tuning import infer_pass #TODO: remove
+from src.common.lib.models.NOVA_model import NOVAModel
+from src.datasets.label_utils import get_batches_from_labels, get_unique_parts_from_labels, get_markers_from_labels,\
+    edit_labels_by_config, get_batches_from_input_folders, get_reps_from_labels, get_conditions_from_labels, get_cell_lines_from_labels
 
+###############################################################
+# Utils for Generate Embeddings (run from MOmaps/src/runables/generate_embeddings.py)
+###############################################################
 
-def generate_embeddings(model, config_data:DatasetConfig)->Tuple[List[np.ndarray[torch.Tensor]],List[np.ndarray[str]]]:#TODO:add NOVAMODEL to the model type    
+def generate_embeddings(model, config_data:DatasetConfig, batch_size:int=700, num_workers:int=6)->Tuple[List[np.ndarray[torch.Tensor]],List[np.ndarray[str]]]:#TODO:add NOVAMODEL to the model type    
     logging.info(f"[generate_embeddings] Is GPU available: {torch.cuda.is_available()}")
     logging.info(f"[generate_embeddings] Num GPUs Available: {torch.cuda.device_count()}")
 
@@ -55,7 +55,7 @@ def generate_embeddings(model, config_data:DatasetConfig)->Tuple[List[np.ndarray
             new_set_labels = all_labels[indices_to_keep]
 
         new_set_dataset = deepcopy(full_dataset).setXy(new_set_paths, new_set_labels)
-        embeddings, labels = __generate_embeddings_with_dataloader(new_set_dataset, model)
+        embeddings, labels = __generate_embeddings_with_dataloader(new_set_dataset, model, batch_size, num_workers)
         
         all_embeddings.append(embeddings)
         all_labels.append(labels)
@@ -123,13 +123,12 @@ def load_embeddings(model_output_folder:str, config_data:DatasetConfig)-> Tuple[
     logging.info(f'[load_embeddings] example label: {filtered_labels[0]}')
     return filtered_embeddings, filtered_labels
 
-def __generate_embeddings_with_dataloader(dataset:DatasetNOVA, model)->Tuple[np.ndarray[torch.Tensor], np.ndarray[str]]: #TODO:add NOVAMODEL to the model type
-    # data_loader = get_dataloader(dataset, model.trainer_config.BATCH_SIZE, num_workers=model.trainer_config.NUM_WORKERS, drop_last=False)
-    data_loader = get_dataloader(dataset, 700, num_workers=6, drop_last=True) #TODO: remove
+def __generate_embeddings_with_dataloader(dataset:DatasetNOVA, model:NOVAModel, batch_size:int=700, 
+                                          num_workers:int=6)->Tuple[np.ndarray[torch.Tensor], np.ndarray[str]]:
+    data_loader = get_dataloader(dataset, batch_size, num_workers, drop_last=False)
     logging.info(f"[generate_embeddings_with_dataloader] Data loaded: there are {len(dataset)} images.")
 
-    # embeddings, labels = model.infer(data_loader)
-    embeddings, labels, _ , _ = infer_pass(model, data_loader) #TODO:remove
+    embeddings, labels = model.infer(data_loader)
     logging.info(f'[generate_embeddings_with_dataloader] total embeddings: {embeddings.shape}')
     
     return embeddings, labels

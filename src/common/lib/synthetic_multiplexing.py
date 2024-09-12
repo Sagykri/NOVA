@@ -11,11 +11,11 @@ import pandas as pd
 from umap import UMAP
 import re
 import matplotlib.pyplot as plt
-from src.common.lib.model import Model
+from common.lib.models.NOVA_model import NOVAModel
 from src.common.lib.utils import flat_list_of_lists, get_if_exists
 
 
-def multiplex(model: Model, embeddings_type='testset',
+def multiplex(model: NOVAModel, embeddings_type='testset',
                     title=None,
                     colormap='Set1',
                     alpha=0.8,
@@ -52,7 +52,7 @@ def multiplex(model: Model, embeddings_type='testset',
                         s=s,
                         label_data=label_data,
                         id2label=None,
-                        title=title if title is not None else __generate_plot_title(model.conf, dataset_conf),
+                        title=title if title is not None else __generate_plot_title(model.model_config, dataset_conf),
                         unique_groups=unique_groups,
                         embedding_data=embeddings,
                         output_layer=output_layer,
