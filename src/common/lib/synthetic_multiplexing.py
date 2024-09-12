@@ -11,11 +11,11 @@ import pandas as pd
 from umap import UMAP
 import re
 import matplotlib.pyplot as plt
-from src.common.lib.model import Model
+from common.lib.models.NOVA_model import NOVAModel
 from src.common.lib.utils import flat_list_of_lists, get_if_exists
 
 
-def multiplex(model: Model, embeddings_type='testset',
+def multiplex(model: NOVAModel, embeddings_type='testset',
                     title=None,
                     colormap='Set1',
                     alpha=0.8,
@@ -52,7 +52,7 @@ def multiplex(model: Model, embeddings_type='testset',
                         s=s,
                         label_data=label_data,
                         id2label=None,
-                        title=title if title is not None else __generate_plot_title(model.conf, dataset_conf),
+                        title=title if title is not None else __generate_plot_title(model.model_config, dataset_conf),
                         unique_groups=unique_groups,
                         embedding_data=embeddings,
                         output_layer=output_layer,
@@ -89,23 +89,17 @@ def __get_multiplexed_embeddings(embeddings_df, random_state=None):
     
     return embeddings, label_data, unique_groups
 
-def __format_labels_to_marker_and_pheno(label, config_data, vq_type):        
+def __format_labels_to_marker_and_pheno(label, config_data):        
     label_split = label.split('_')
     
-    if vq_type in ['vqindhist1', 'vqindhist2']:
-        pheno = label_split[-4 :-2 + int(config_data.ADD_BATCH_TO_LABEL)]
-        if config_data.ADD_REP_TO_LABEL:
-            pheno += [label_split[-1]]
-        return (label_split[0], '_'.join(pheno))
-    
-    if vq_type in ['vqvec1', 'vqvec2']:
-        return (label_split[-1], '_'.join(label_split[-4 + int(not config_data.ADD_REP_TO_LABEL):-1]))
-    
-    raise f"Invalid vq type {vq_type} [The options are: 'vqvec1', 'vqvec2', 'vqindhist1', 'vqindhist2']"
+    pheno = label_split[-4 :-2 + int(config_data.ADD_BATCH_TO_LABEL)]
+    if config_data.ADD_REP_TO_LABEL:
+        pheno += [label_split[-1]]
+    return (label_split[0], '_'.join(pheno))
 
 
-def __embeddings_to_df(embeddings, labels, dataset_conf, vq_type='vqvec2'):
-    labels_df = pd.DataFrame([__format_labels_to_marker_and_pheno(s, dataset_conf, vq_type) for s in labels], columns=['Marker', 'Pheno'])
+def __embeddings_to_df(embeddings, labels, dataset_conf):
+    labels_df = pd.DataFrame([__format_labels_to_marker_and_pheno(s, dataset_conf) for s in labels], columns=['Marker', 'Pheno'])
     embeddings_series = pd.DataFrame({"Embeddings": [*embeddings]})
     df = pd.merge(labels_df, embeddings_series, left_index=True, right_index=True)
     return df

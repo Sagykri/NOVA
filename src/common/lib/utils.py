@@ -1,28 +1,25 @@
-import datetime
 import os
 import sys
+from typing import Any, Callable, Dict, Iterable, List, Tuple, Union
 import uuid
-sys.path.insert(1, os.getenv("MOMAPS_HOME"))
 
+sys.path.insert(1, os.getenv("MOMAPS_HOME"))
 
 import importlib
 import json
 import logging
 import string
-import numpy as np
-import pandas as pd
-import datetime
 
-def get_if_exists(container:object, param_name: string, default_value=None):
+def get_if_exists(container:object, param_name: string, default_value:Any=None, verbose:bool=False)->Any:
     """Get value of param in container if it exists, otherwise return default value
 
     Args:
         container (object): The object containing the parameter
         param_name (string): The name of the param to retrieve
-        default_value (_type_, optional): Default value to retrieve if the param doesn't exists in container. Defaults to None.
-
+        default_value (Any, optional): Default value to retrieve if the param doesn't exists in container. Defaults to None.
+        verbose (bool, optional): Notify on function status if set to true. Default to False.
     Returns:
-        value: Param value (or default value if it doesn't exist)
+        Any: Param value (or default value if it doesn't exist)
     """
     
     if isinstance(container, dict):
@@ -31,45 +28,34 @@ def get_if_exists(container:object, param_name: string, default_value=None):
     elif hasattr(container, param_name):
         return getattr(container, param_name)
     
+    if verbose:
+        logging.warning(f"{param_name} wasn't found in {type(container)}. Using default value: {default_value}")
+        
     return default_value
 
-def xy_to_tuple(xy_arr):
+def xy_to_tuple(xy_arr:Iterable[Any])->Iterable[Tuple[Any,Any]]:
     """Transform an array paired variable to a tuple
     i.e from [x0,y0,x1,y1,...] to [(x0,y0), (x1,y1),...]
 
     Args:
-        xy_arr (iterable): [x0,y0,x1,y1,...]
+        xy_arr (Iterable[Any]): [x0,y0,x1,y1,...]
 
     Returns:
-        iterable: [(x0,y0), (x1,y1),...]
+        Iterable[Tuple[Any,Any]]: [(x0,y0), (x1,y1),...]
     """
     
     return [(arr[0],arr[1]) for arr in xy_arr]
 
-def flat_list_of_lists(l):
-    return [item for sublist in l for item in sublist]
-    pass
-
-def get_colors_dict(labels, colors_dict):
-    """Get mapping between the given colors and labels
+def flat_list_of_lists(l:List[List[Any]])->List[Any]:
+    """Float a list of lists into a list
 
     Args:
-        labels ([string]): The labels
-        colors_dict ({term:color}, optional): A dictionary of terms and colors. (ex. {'_unstressed': 'red', '_stressed': 'blue'}). Defaults to COLORS_MAPPING.
+        l (List[List[Any]]): The nested list
 
     Returns:
-        _type_: _description_
+        List[Any]: The flatted list
     """
-    colors = {}
-    
-    labels_unique = np.unique(labels)
-    
-    for term, color in colors_dict.items():
-        term_indexes = np.where(np.char.find(labels_unique, term)>-1)[0]
-        for i in term_indexes:
-            label = labels_unique[i]
-            colors[label] = color
-    return colors
+    return [item for sublist in l for item in sublist]
   
 def load_config_file(path:string, custom_filename:string=None, savefolder:string=None):
     """Load config file (and save it to file for documentation)
@@ -79,7 +65,7 @@ def load_config_file(path:string, custom_filename:string=None, savefolder:string
         filename (string, Optional): the file name of the file (config that was used) to save. Default to GUID
         savefolder (string, Optional): Path to save the config to. Default to config.CONFIGS_USED_FOLDER
     Returns:
-        _type_: Instance of the loaded config class
+        BaseConfig: Instance of the loaded config class
     """
     config_class = get_class(path)
     config = config_class()
@@ -91,22 +77,21 @@ def load_config_file(path:string, custom_filename:string=None, savefolder:string
         custom_filename = f"{uuid.uuid4().hex}"
         
     savepath = os.path.join(savefolder, f"{custom_filename}.json")
-    if not os.path.exists(savefolder):
-        os.makedirs(savefolder, exist_ok=True)
+    os.makedirs(savefolder, exist_ok=True)
         
     with open(savepath, 'w') as f:
         f.write(json.dumps(config.__dict__))
     
     return config
 
-def get_class(path:string):
+def get_class(path:string)->Any:
     """Get the class of a given python file and class
 
     Args:
         path (string): Path to module file (the last argument will be the class to load from the file)
 
     Returns:
-        _type_: The class
+        Any: The class
     """
     if path.startswith("."):
         path = path[1:]
@@ -141,8 +126,34 @@ def init_logging(path:string):
                             logging.StreamHandler()
                         ])
     
+def are_dicts_equal_except_keys(dict1:Dict, dict2:Dict, keys_to_ignore:Union[str, List[str]])->bool:
+    """Check whether two dictionaries are equal except for some keys
 
-def gpuinfo(gpuidx):
+    Args:
+        dict1 (Dict): The first dictionary
+        dict2 (Dict): The second dictionary
+        keys_to_ignore (Union[str, List[str]]): Name or list of names of the keys to ignore
+
+    Returns:
+        bool: Are they equal?
+    """
+    # Ensure keys_to_ignore is a list, even if a single string is provided
+    if isinstance(keys_to_ignore, str):
+        keys_to_ignore = [keys_to_ignore]
+            
+    # Create shallow copies of the dictionaries to avoid modifying the originals
+    dict1_copy = dict1.copy()
+    dict2_copy = dict2.copy()
+
+    # Remove each key in keys_to_ignore from both dictionaries
+    for key in keys_to_ignore:
+        dict1_copy.pop(key, None)
+        dict2_copy.pop(key, None)
+
+    # Compare the modified dictionaries
+    return dict1_copy == dict2_copy
+
+def gpuinfo(gpuidx:int)->Dict:
     """
     Get GPU information
 
@@ -176,7 +187,7 @@ def gpuinfo(gpuidx):
         print(e)
     return out_dict
 
-def getfreegpumem(gpuidx):
+def getfreegpumem(gpuidx:int)->int:
     """
     Get free GPU memory
 
@@ -196,7 +207,15 @@ def getfreegpumem(gpuidx):
     else:
         return -1
     
-def apply_for_all_gpus(func):
+def apply_for_all_gpus(func:Callable[[int], Any])->List[Any]:
+    """Apply func to all gpus
+
+    Args:
+        func (Callable[[int], Any]): The function to apply
+
+    Returns:
+        List[Any]: List of the return values of the function from all gpus
+    """
     import torch
     
     n_devices = torch.cuda.device_count()
@@ -205,7 +224,21 @@ def apply_for_all_gpus(func):
         l.append(func(i))
     return l
 
-def get_nvidia_smi_output(gpuidx):
+def log_gpus_status():
+    """log the gpus status
+    """
+    res = apply_for_all_gpus(getfreegpumem)
+    logging.info(f"Resources (Free, Used, Total): {res}")
+
+def get_nvidia_smi_output(gpuidx:int)->Dict:
+    """Get the nvidia smi output for the given gpu unit
+
+    Args:
+        gpuidx (int): The gpu index
+
+    Returns:
+        Dict: The output
+    """
     import subprocess
 
     sp = subprocess.Popen(
@@ -225,36 +258,8 @@ def get_nvidia_smi_output(gpuidx):
 
     return out_dict
 
-class LogDF(object):
-    def __init__(self, folder_path: string, filename_prefix='', index=None,
-                 columns=None, should_write_index=False):
-        self.__path = os.path.join(folder_path, filename_prefix + datetime.datetime.now().strftime("%d%m%y_%H%M%S_%f") + '.csv')
-        self.__df = pd.DataFrame(index=index, columns=columns)
-        self.__should_write_index = should_write_index
-        
-        # Create the file
-        self.__save(self.__should_write_index, mode='w')
-    
-    @property
-    def df(self):
-        return self.__df
-    
-    @property
-    def path(self):
-        return self.__path
-    
-    def write(self, data):
-        if type(data) is not pd.DataFrame:
-            data = [data]
-        
-        try:
-            self.__df = pd.DataFrame(data, columns=self.__df.columns)
-        except Exception as ex:
-            raise f"Can't convert 'data' to pd.DataFrame ({ex})"
-            
-        return self.__save(self.__should_write_index)
-        
-    def __save(self, index:bool=False, mode='a'):
-        self.__df.to_csv(self.__path, index=index, mode=mode, header=mode=='w')
-        
-        return self.__path
+def save_config(config, output_folder_path: str) -> None:
+    """Saves the configuration data to a JSON file."""
+    os.makedirs(output_folder_path, exist_ok=True)
+    with open(os.path.join(output_folder_path, 'config.json'), 'w') as json_file:
+        json.dump(config.__dict__, json_file, indent=4)
