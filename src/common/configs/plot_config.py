@@ -27,7 +27,7 @@ class PlotConfig(BaseConfig):
             'stress': ColormapWithAlias(alias='+ Stress', color='#F7810F'),
         }
         
-        self.COLOR_MAPPINGS_ALS = {
+        self.COLOR_MAPPINGS_ALS:Dict[str, ColormapWithAlias] = {
             'WT_Untreated': ColormapWithAlias(alias='Wild-Type', color='#37AFD7'),
             'FUSHeterozygous_Untreated': ColormapWithAlias(alias='FUS Heterozygous', color='#AB7A5B'),
             'FUSHomozygous_Untreated': ColormapWithAlias(alias='FUS Homozygous', color='#78491C'),
@@ -48,13 +48,13 @@ class PlotConfig(BaseConfig):
         self.COLOR_MAPPINGS_ALS['SNCA'] = self.COLOR_MAPPINGS_ALS['SNCA_Untreated']
         self.COLOR_MAPPINGS_ALS['TDP43'] = self.COLOR_MAPPINGS_ALS['TDP43_Untreated']
         
-        self.COLOR_MAPPINGS_DOX = {
+        self.COLOR_MAPPINGS_DOX: Dict[str, ColormapWithAlias] = {
             'WT_Untreated': ColormapWithAlias(alias='Wild-Type', color='#2FA0C1'),
             'TDP43_Untreated': ColormapWithAlias(alias='TDP43dNLS, -Dox', color='#6BAD31'),
             'TDP43_dox': ColormapWithAlias(alias='TDP43dNLS, +Dox', color='#90278E')
         }
 
-        self.COLOR_MAPPINGS_MARKERS = {
+        self.COLOR_MAPPINGS_MARKERS: Dict[str, ColormapWithAlias] = {
             'NCL': ColormapWithAlias(alias='Nucleolus', color='#18E4CF'),
             'FUS': ColormapWithAlias(alias='hnRNP complex', color='#9968CB'),
             'DAPI': ColormapWithAlias(alias='Nucleus', color='#AFBDFF'),
@@ -85,7 +85,7 @@ class PlotConfig(BaseConfig):
             'TDP43N': ColormapWithAlias(alias='TDP43 granules 2', color='#06A0E9')
         }
 
-        self.LABEL_MAPPINGS_CONDITION_AND_ALS = {
+        self.COLOR_MAPPINGS_CONDITION_AND_ALS: Dict[str, ColormapWithAlias] = {
             'WT_stress': ColormapWithAlias(alias= 'Wild-Type + Stress',color= '#F7810F'),
             'WT_Untreated': ColormapWithAlias(alias='Wild-Type', color='#37AFD7'),
             'FUSHeterozygous_Untreated': ColormapWithAlias(alias='FUS Heterozygous', color='#AB7A5B'),
@@ -98,4 +98,4 @@ class PlotConfig(BaseConfig):
             'TDP43_Untreated': ColormapWithAlias(alias='TDP43', color='#A8559E'),
         }
 
-        self.LABEL_MAPPINGS = self.LABEL_MAPPINGS_ALS
+        self.COLOR_MAPPINGS = self.COLOR_MAPPINGS_ALS

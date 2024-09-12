@@ -1,6 +1,7 @@
 import os
 import sys
 
+
 sys.path.insert(1, os.getenv("MOMAPS_HOME"))
 print(f"MOMAPS_HOME: {os.getenv('MOMAPS_HOME')}")
 
@@ -10,6 +11,7 @@ from src.common.lib.utils import load_config_file
 from src.common.lib.embeddings_utils import load_embeddings
 from src.common.lib.umap_plotting import plot_umap
 from src.common.configs.dataset_config import DatasetConfig
+from src.common.configs.plot_config import PlotConfig
 from src.analysis.analyzer_umap_single_markers import AnalyzerUMAPSingleMarkers
 from src.analysis.analyzer_umap_multiple_markers import AnalyzerUMAPMultipleMarkers
 from src.analysis.analyzer_umap_multiplex_markers import AnalyzerUMAPMultiplexMarkers
@@ -22,9 +24,10 @@ analyzer_mapping = {
     2: (AnalyzerUMAPMultiplexMarkers, AnalyzerUMAP.UMAPType(2).name)
 }
 
-def generate_umaps(output_folder_path:str, config_path_data:str, umap_idx:int)->None:
+def generate_umaps(output_folder_path:str, config_path_data:str, config_path_plot:str, umap_idx:int)->None:
     config_data:DatasetConfig = load_config_file(config_path_data, 'data')
     config_data.OUTPUTS_FOLDER = output_folder_path
+    config_plot:PlotConfig = load_config_file(config_path_plot, 'plot')
     embeddings, labels = load_embeddings(output_folder_path, config_data)
 
     if umap_idx not in analyzer_mapping:
@@ -39,19 +42,20 @@ def generate_umaps(output_folder_path:str, config_path_data:str, umap_idx:int)->
 
     # Define the output folder path and plot the UMAP
     saveroot = analyzer_UMAP.get_saving_folder(feature_type = os.path.join('UMAPs', analyzer_UMAP.UMAPType(umap_idx).name))  
-    plot_umap(umap_embeddings, labels, config_data, saveroot, umap_idx, ari_scores)
+    plot_umap(umap_embeddings, labels, config_data, config_plot, saveroot, umap_idx, ari_scores)
         
 
 if __name__ == "__main__":
     print("Starting generating umaps...")
     try:
-        if len(sys.argv) < 4:
-            raise ValueError("Invalid arguments. Must supply output folder path and data config and UMAP idx! (0,1,2).")
+        if len(sys.argv) < 5:
+            raise ValueError("Invalid arguments. Must supply output folder path, data config, plot config and UMAP idx! (0,1,2).")
         output_folder_path = sys.argv[1]
         config_path_data = sys.argv[2]
-        umap_idx = int(sys.argv[3])
+        config_path_plot = sys.argv[3]
+        umap_idx = int(sys.argv[4])
 
-        generate_umaps(output_folder_path, config_path_data, umap_idx)
+        generate_umaps(output_folder_path, config_path_data, config_path_plot, umap_idx)
 
     except Exception as e:
         logging.exception(str(e))

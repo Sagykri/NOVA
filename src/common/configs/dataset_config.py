@@ -36,9 +36,9 @@ class DatasetConfig(BaseConfig):
         # Should add condition to the label?
         self.ADD_CONDITION_TO_LABEL = True 
         # Should add the batch to the label?
-        self.ADD_BATCH_TO_LABEL = False
+        self.ADD_BATCH_TO_LABEL = True
         # Should add the rep to the label?
-        self.ADD_REP_TO_LABEL = False
+        self.ADD_REP_TO_LABEL = True
 
         # Number of channels per image
         self.NUM_CHANNELS = 2

@@ -19,59 +19,59 @@ class UMAP1Config(DatasetConfig):
         # How labels are shown in legend
         self.MAP_LABELS_FUNCTION = MapLabelsFunction.MARKERS
         # Colors 
-        self.LABEL_MAPPINGS = self.LABEL_MAPPINGS_MARKERS
+        self.COLOR_MAPPINGS = self.COLOR_MAPPINGS_MARKERS
 
 class UMAP0Stress(DatasetConfig):
     def __init__(self):
         super().__init__()
                
         self.MAP_LABELS_FUNCTION = "conditions"
-        self.LABEL_MAPPINGS = self.LABEL_MAPPINGS_CONDITION
+        self.COLOR_MAPPINGS = self.COLOR_MAPPINGS_CONDITION
 
 class UMAP0ALS(DatasetConfig):
     def __init__(self):
         super().__init__()
                
         self.MAP_LABELS_FUNCTION =  "cell_lines"
-        self.LABEL_MAPPINGS = self.LABEL_MAPPINGS_ALS
+        self.COLOR_MAPPINGS = self.COLOR_MAPPINGS_ALS
 
 class UMAP0dNLS(DatasetConfig):
     def __init__(self):
         super().__init__()
 
         self.MAP_LABELS_FUNCTION =  "cell_lines_conditions"
-        self.LABEL_MAPPINGS = self.LABEL_MAPPINGS_DOX
+        self.COLOR_MAPPINGS = self.COLOR_MAPPINGS_DOX
 
 class UMAP2Stress(DatasetConfig):
     def __init__(self):
         super().__init__()
 
         self.MAP_LABELS_FUNCTION =  "multiplex_conditions"
-        self.LABEL_MAPPINGS = self.LABEL_MAPPINGS_CONDITION
+        self.COLOR_MAPPINGS = self.COLOR_MAPPINGS_CONDITION
 
 class UMAP2ALS(DatasetConfig):
     def __init__(self):
         super().__init__()
 
         self.MAP_LABELS_FUNCTION =  "multiplex_cell_lines"
-        self.LABEL_MAPPINGS = self.LABEL_MAPPINGS_ALS
+        self.COLOR_MAPPINGS = self.COLOR_MAPPINGS_ALS
 
 class UMAP2dNLS(DatasetConfig):
     def __init__(self):
         super().__init__()
 
         self.MAP_LABELS_FUNCTION = "multiplex_cell_lines_conditions"
-        self.LABEL_MAPPINGS = self.LABEL_MAPPINGS_DOX
+        self.COLOR_MAPPINGS = self.COLOR_MAPPINGS_DOX
 
 class UMAP0NoMapping(DatasetConfig):
     def __init__(self):
         super().__init__()
 
-        self.LABEL_MAPPINGS = None
+        self.COLOR_MAPPINGS = None
 
 class UMAP0RepsAsLabels(DatasetConfig):
     def __init__(self):
         super().__init__()
 
         self.MAP_LABELS_FUNCTION =  "reps"
-        self.LABEL_MAPPINGS = None
+        self.COLOR_MAPPINGS = None

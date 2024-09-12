@@ -7,71 +7,21 @@ print(f"MOMAPS_HOME: {os.getenv('MOMAPS_HOME')}")
 import numpy as np
 import logging
 
-# from src.common.lib.models.NOVA_model import NOVAModel
+from src.common.lib.models.NOVA_model import NOVAModel
 from src.common.lib.embeddings_utils import generate_embeddings, save_embeddings
 from src.common.lib.utils import load_config_file
 from src.common.configs.dataset_config import DatasetConfig
 from src.common.lib.models.trainers.utils.consts import CHECKPOINT_BEST_FILENAME, CHECKPOINTS_FOLDERNAME
 
-#TODO:remove
-from sandbox.eval_new_arch.dino4cells.archs import vision_transformer as vits
-import torch
-import random
-import torch.backends.cudnn as cudnn
-from sandbox.eval_new_arch.dino4cells.utils import utils
-class DictToObject: #TODO: remove
-    def __init__(self, dict_obj):
-        for key, value in dict_obj.items():
-            if isinstance(value, dict):
-                # Recursively convert dictionaries to objects
-                setattr(self, key, DictToObject(value))
-            else:
-                setattr(self, key, value)
 
-def generate_embeddings_with_model(outputs_folder_path:str, config_path_data:str)->None:
-    chkp_path = os.path.join(outputs_folder_path, CHECKPOINTS_FOLDERNAME, CHECKPOINT_BEST_FILENAME)
-    # model = NOVAModel.load_from_checkpoint(chkp_path)
-    # model_output_folder = model.config_trainer.OUTPUTS_FOLDER
-    config = {
-        'seed': 1,
-        'embedding': {
-            'image_size': 100
-        },
-        'patch_size': 14,
-        'num_channels': 2,
-        'num_classes': 128, #int(sys.argv[3]),
-        
-        'batch_size_per_gpu': 700,#300,#3,#65,
-        'num_workers': 6,  
-
-        'vit_version':'tiny'      
-    }
-    config = DictToObject(config)
-    torch.manual_seed(config.seed)
-    torch.cuda.manual_seed_all(config.seed)
-    np.random.seed(config.seed)
-    cudnn.benchmark = False
-    random.seed(config.seed)
-
-    create_vit = vits.vit_base
-    if config.vit_version == 'base':
-        create_vit = vits.vit_base
-    elif config.vit_version == 'small':
-        create_vit = vits.vit_small
-    elif config.vit_version == 'tiny':
-        create_vit = vits.vit_tiny
-
-    model = create_vit(
-        img_size=[config.embedding.image_size],
-        patch_size=config.patch_size,
-        in_chans=config.num_channels,
-        num_classes=config.num_classes
-    ).cuda()
-
-    model = utils.load_model_from_checkpoint(chkp_path, model)
+def generate_embeddings_with_model(outputs_folder_path:str, config_path_data:str,batch_size:int=700)->None:
     config_data:DatasetConfig = load_config_file(config_path_data, "data")
+    config_data.OUTPUTS_FOLDER = outputs_folder_path
+    
+    chkp_path = os.path.join(outputs_folder_path, CHECKPOINTS_FOLDERNAME, CHECKPOINT_BEST_FILENAME)
+    model = NOVAModel.load_from_checkpoint(chkp_path)
 
-    embeddings, labels = generate_embeddings(model, config_data)
+    embeddings, labels = generate_embeddings(model, config_data, batch_size=batch_size)
     save_embeddings(embeddings, labels, config_data, outputs_folder_path)
 
 if __name__ == "__main__":
@@ -86,7 +36,15 @@ if __name__ == "__main__":
             raise ValueError("Invalid outputs folder. Must contain a 'checkpoints' folder, and inside a 'checkpoint_best.pth' file.")
         
         config_path_data = sys.argv[2]
-        generate_embeddings_with_model(outputs_folder_path, config_path_data)
+
+        if len(sys.argv)==4:
+            try:
+                batch_size = int(sys.argv[3])
+            except ValueError:
+                raise ValueError("Invalid batch size, must be integer")
+        else:
+            batch_size = 700
+        generate_embeddings_with_model(outputs_folder_path, config_path_data, batch_size)
         
     except Exception as e:
         logging.exception(str(e))

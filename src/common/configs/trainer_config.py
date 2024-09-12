@@ -50,7 +50,7 @@ class ClassificationTrainerConfig(TrainerConfig):
     def __init__(self):
         super().__init__()
         
-        self.OUTPUTS_FOLDER:str = "/home/labs/hornsteinlab/sagyk/Collaboration/MOmaps_Sagy/MOmaps/outputs/vit_models/pretrained_model"
+        self.OUTPUTS_FOLDER:str = "/home/labs/hornsteinlab/Collaboration/MOmaps/outputs/vit_models/pretrained_model"
 
         # Training parameters
         self.LR:float = 0.0008
@@ -69,7 +69,7 @@ class ContrastiveTrainerConfig(TrainerConfig):
     def __init__(self):
         super().__init__()
        
-        self.OUTPUTS_FOLDER:str = "/home/labs/hornsteinlab/sagyk/Collaboration/MOmaps_Sagy/MOmaps/outputs/vit_models/finetuned_model"
+        self.OUTPUTS_FOLDER:str = "/home/labs/hornsteinlab/Collaboration/MOmaps/outputs/vit_models/finetuned_model"
 
         # Training parameters
         self.LR:float = 0.0008
@@ -85,7 +85,7 @@ class ContrastiveTrainerConfig(TrainerConfig):
         self.NEGATIVE_COUNT:int = 5
         
         # Original pretraiend
-        self.PRETRAINED_MODEL_PATH:str = "/home/labs/hornsteinlab/Collaboration/MOmaps_Sagy/MOmaps/outputs/vit_models/original_pretrained_with_new_checkpoint_structure/checkpoint_best.pth"
+        self.PRETRAINED_MODEL_PATH:str = "/home/labs/hornsteinlab/Collaboration/MOmaps/outputs/vit_models/pretrained_model/checkpoints/checkpoint_best.pth"
 
         
         self.LAYERS_TO_FREEZE:List[str] = ['blocks.10.norm1.bias', 'blocks.3.attn.proj.bias', 'cls_token',

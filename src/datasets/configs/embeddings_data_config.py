@@ -130,7 +130,7 @@ class EmbeddingsB9DatasetConfig(DatasetConfig):
 
         # Set the colormap, for example: {"Untreated": "#52C5D5", 'stress': "#F7810F"} 
         # self.COLORMAP = {"Untreated": "#52C5D5", 'stress': "#F7810F"}
-        self.UMAP_MAPPINGS = self.UMAP_MAPPINGS_CONDITION
+        self.COLOR_MAPPINGS = self.COLOR_MAPPINGS_CONDITION
         # Set the size of the dots
         self.SIZE = 30
         # Set the alpha of the dots (0=max opacity, 1=no opacity)
@@ -304,7 +304,7 @@ class EmbeddingsALLSMDatasetConfig(DatasetConfig):
                                  'OPTN_Untreated']
         # self.MARKERS = ['TOMM20','mitotracker','GM130'] #['FUS']
         self.REPS = ['rep2','rep1'] # Can be : ['rep1', 'rep2'] or ['rep1'] or ['rep2']
-        self.UMAP_MAPPINGS = self.UMAP_MAPPINGS_ALS
+        self.COLOR_MAPPINGS = self.COLOR_MAPPINGS_ALS
         # Set the size of the dots
         self.SIZE = 0.3
         # Set the alpha of the dots (0=max opacity, 1=no opacity)
@@ -532,7 +532,7 @@ class EmbeddingsdNLSB2DatasetConfig(DatasetConfig):
         self.MARKERS = ['DCP1A']
         self.REPS = ['rep2']
         self.MAP_LABELS_FUNCTION = "lambda self: lambda labels: __import__('numpy').asarray(['_'.join(l.split('_')[-3:-1]) for l in labels])"
-        self.UMAP_MAPPINGS = self.UMAP_MAPPINGS_DOX
+        self.COLOR_MAPPINGS = self.COLOR_MAPPINGS_DOX
         self.SIZE=30
         self.ALPHA=0.7
 
@@ -557,7 +557,7 @@ class EmbeddingsdNLSB3DatasetConfig(DatasetConfig):
 
         self.REPS = ['rep1']
         self.MAP_LABELS_FUNCTION = "lambda self: lambda labels: __import__('numpy').asarray(['_'.join(l.split('_')[-3:-1]) for l in labels])"
-        self.UMAP_MAPPINGS = self.UMAP_MAPPINGS_DOX
+        self.COLOR_MAPPINGS = self.COLOR_MAPPINGS_DOX
         self.SIZE=30
         self.ALPHA=0.7
 
@@ -581,7 +581,7 @@ class EmbeddingsdNLSB4DatasetConfig(DatasetConfig):
         self.CELL_LINES = ['TDP43']
         self.REPS = ['rep2']
         self.MAP_LABELS_FUNCTION = "lambda self: lambda labels: __import__('numpy').asarray(['_'.join(l.split('_')[-3:-1]) for l in labels])"
-        self.UMAP_MAPPINGS = self.UMAP_MAPPINGS_DOX
+        self.COLOR_MAPPINGS = self.COLOR_MAPPINGS_DOX
         self.SIZE=30
         self.ALPHA=0.7
 
@@ -606,7 +606,7 @@ class EmbeddingsdNLSB5DatasetConfig(DatasetConfig):
 
         self.REPS = ['rep1']
         self.MAP_LABELS_FUNCTION = "lambda self: lambda labels: __import__('numpy').asarray(['_'.join(l.split('_')[-3:-1]) for l in labels])"
-        self.UMAP_MAPPINGS = self.UMAP_MAPPINGS_DOX
+        self.COLOR_MAPPINGS = self.COLOR_MAPPINGS_DOX
         self.SIZE=30
         self.ALPHA=0.7 
 
