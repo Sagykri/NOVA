@@ -87,7 +87,10 @@ class BaseConfig():
         self.__LOGS_FOLDER = path
         jobid = os.getenv('LSB_JOBID')
         jobname = os.getenv('LSB_JOBNAME')
-        
+        # if jobname is not specified, the jobname will include the path of the script that was run.
+        # In this case we'll have some '/' and '.' in the jobname that should be removed.
+        jobname = jobname.replace('/','').replace('.','') 
+
         username = 'UnknownUser'
         if jobid:
             # Run the bjobs command to get job details

@@ -58,7 +58,7 @@ from src.datasets.dataset_spd import DatasetSPD
 
 from sandbox.eval_new_arch.dino4cells.utils import utils
 from sandbox.eval_new_arch.dino4cells.archs import vision_transformer as vits
-from sandbox.eval_new_arch.dino4cells.archs.vision_transformer import DINOHead
+# from sandbox.eval_new_arch.dino4cells.archs.vision_transformer import DINOHead
 
 import sandbox.eval_new_arch.dino4cells.utils.fine_tuning_utils as fine_tuning_utils
 
@@ -372,9 +372,12 @@ def infer_pass(model, data_loader, return_cls_token=False):
         label = '_'.join(split[-5:-2]+[split[-1].split('_')[0]]+[split[-2]])
         return label
 
-    all_predictions = []
-    all_labels = []
+    # all_embeddings = []
+    # all_labels = []
     all_full_labels = []
+
+    all_embeddings:np.ndarray[torch.Tensor] =  np.empty((0, 128)) #np.array([]) #TODO: remove
+    all_labels:np.ndarray[str] = np.array([])
 
     if return_cls_token:
         all_outputs = []
@@ -384,21 +387,26 @@ def infer_pass(model, data_loader, return_cls_token=False):
         for it, res in enumerate(data_loader):
             logging.info(f"batch number: {it}/{len(data_loader)}")
             # with torch.cuda.amp.autocast():
-            images, targets, paths = res['image'].to(torch.float).cuda(), res['label'].cuda(), res['image_path']
+            # images = res['image'].to(torch.float).cuda()
+            # labels_ind = res['label'].numpy()
+            images, targets, paths = res['image'].to(torch.float).cuda(), res['label'].numpy(), res['image_path']
+            labels = data_loader.dataset.id2label(targets)
             preds, outputs = model(images, return_hidden=True)
-            all_predictions.extend(preds.cpu())
-            all_labels.extend(targets.cpu())
-            
+            # all_embeddings.extend(preds.cpu())
+            # all_labels.extend(labels)
+            all_embeddings = np.append(all_embeddings, preds.cpu(), axis=0)
+            all_labels = np.append(all_labels, labels)
             if return_cls_token:
                 all_outputs.append(outputs.cpu())
 
-            labels = [path_to_labels(path) for path in paths]
-            all_full_labels.extend(labels)
-
+            # labels = [path_to_labels(path) for path in paths]
+            all_full_labels.extend(paths)
+                     
+            
     if return_cls_token:
-        return np.asarray(all_predictions), np.asarray(all_labels), np.vstack(all_outputs), np.asarray(all_full_labels)
+        return np.asarray(all_embeddings), np.asarray(all_labels), np.vstack(all_outputs), np.asarray(all_full_labels)
 
-    return np.asarray(all_predictions), np.asarray(all_labels), None, np.asarray(all_full_labels)
+    return np.asarray(all_embeddings), np.asarray(all_labels), None, np.asarray(all_full_labels)
 
                 
 def train_one_epoch(

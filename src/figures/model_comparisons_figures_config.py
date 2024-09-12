@@ -2,7 +2,6 @@ import os
 import sys
 sys.path.insert(1, os.getenv("MOMAPS_HOME"))
 
-
 from src.common.configs.dataset_config import DatasetConfig
 
 ############################################################
@@ -12,61 +11,44 @@ class NeuronsUMAP1B78FigureConfig(DatasetConfig):
     def __init__(self):
         super().__init__()
         
-        """UMAP1 of WT untreated - testset of B7-8
+        """UMAP1 of WT untreated
         """
 
         # Batches used for model development
         self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "spd2", "SpinningDisk", f) for f in 
                         ["batch7", "batch8"]]
         
-        # Take only test set of B7+8
-        self.SPLIT_DATA = True 
+        # Take only test set of B7+8  
+        #TODO: delete all split_data from these confs, they won't matter.. must define sets!
         self.EXPERIMENT_TYPE = 'neurons'    
-        self.REPS = ['rep2','rep1']
-        self.CELL_LINES_CONDS = ['WT_Untreated']
-        
-        # How labels are shown in legend
-        self.MAP_LABELS_FUNCTION = "lambda self: lambda labels: __import__('numpy').asarray([l.split('_')[0] for l in labels])"
-        
-        # Colors 
-        self.UMAP_MAPPINGS = self.UMAP_MAPPINGS_MARKERS
-        
+        self.CELL_LINES = ['WT']
+        self.CONDITIONS = ['Untreated']
+        self.SETS = ['testset']
         self.MARKERS_TO_EXCLUDE = ['FMRP', 'TIA1']
-
-        # Set the size of the dots
-        self.SIZE = 0.3
-        # Set the alpha of the dots (0=max opacity, 1=no opacity)
-        self.ALPHA = 0.7
+        
+        # Decide if to show ARI metric on the UMAP
+        self.SHOW_ARI = False
 
 class NeuronsUMAP1B78OpencellFigureConfig(DatasetConfig):
     def __init__(self):
         super().__init__()
         
-        """UMAP1 of WT untreated - testset of B7-8
+        """UMAP1 of WT untreated
         """
 
         # Batches used for model development
         self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "spd2", "SpinningDisk", f) for f in 
                         ["batch7", "batch8"]]
         
-        self.SPLIT_DATA = False 
+        self.SETS = ['trainset','valset','testset']
         self.EXPERIMENT_TYPE = 'neurons'    
-        self.REPS = ['rep2','rep1']
-        self.CELL_LINES_CONDS = ['WT_Untreated']
-        self.TRAIN_BATCHES = []
-        # How labels are shown in legend
-        self.MAP_LABELS_FUNCTION = "lambda self: lambda labels: __import__('numpy').asarray([l.split('_')[0] for l in labels])"
-        
-        # Colors 
-        self.UMAP_MAPPINGS = self.UMAP_MAPPINGS_MARKERS
+        self.CELL_LINES = ['WT']
+        self.CONDITIONS = ['Untreated']
         
         self.MARKERS_TO_EXCLUDE = ['FMRP', 'TIA1']
+        # Decide if to show ARI metric on the UMAP
+        self.SHOW_ARI = False
 
-        # Set the size of the dots
-        self.SIZE = 0.3
-        # Set the alpha of the dots (0=max opacity, 1=no opacity)
-        self.ALPHA = 0.7
-        
 # opera 18 days (REIMAGED)
 class NeuronsUMAP1B12Opera18daysREIMAGEDFigureConfig(DatasetConfig):
     def __init__(self):
@@ -79,30 +61,19 @@ class NeuronsUMAP1B12Opera18daysREIMAGEDFigureConfig(DatasetConfig):
         self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "Opera18DaysReimaged", f) for f in 
                         ["batch1", "batch2"]]
         
-        self.SPLIT_DATA = False 
+        self.SETS = ['testset']
         self.EXPERIMENT_TYPE = 'neurons_d18'    
-        self.REPS = ['rep2','rep1']
-        self.CELL_LINES_CONDS = ['WT_Untreated']
-        self.TRAIN_BATCHES = []
-        # How labels are shown in legend
-        self.MAP_LABELS_FUNCTION = "lambda self: lambda labels: __import__('numpy').asarray([l.split('_')[0] for l in labels])"
+        self.CELL_LINES = ['WT']
+        self.CONDITIONS = ['Untreated']
         
-        # self.ORDERED_MARKER_NAMES = ["DAPI", 'TDP43', 'PEX14', 'NONO', 'ANXA11', 'FUS', 'Phalloidin', 
-        #     'PURA', 'mitotracker', 'TOMM20', 'NCL', 'Calreticulin', 'CLTC', 'KIF5A', 'SCNA', 'SQSTM1', 'PML',
-        #     'DCP1A', 'PSD95', 'LAMP1', 'GM130', 'NEMO', 'CD41', 'G3BP1'] #+ ['AGO2', 'HNRNPA1', 'PSPC1', 'Tubulin', 'VDAC1']
         self.MARKERS = ["DAPI", 'TDP43', 'PEX14', 'NONO', 'ANXA11', 'FUS', 'Phalloidin', 
             'PURA', 'mitotracker', 'TOMM20', 'NCL', 'Calreticulin', 'CLTC', 'KIF5A', 'SCNA', 'SQSTM1', 'PML',
             'DCP1A', 'PSD95', 'LAMP1', 'GM130', 'NEMO', 'CD41', 'G3BP1']
         
-        # Colors 
-        self.UMAP_MAPPINGS = self.UMAP_MAPPINGS_MARKERS
-        
         self.MARKERS_TO_EXCLUDE = ['FMRP', 'TIA1']
 
-        # Set the size of the dots
-        self.SIZE = 0.3
-        # Set the alpha of the dots (0=max opacity, 1=no opacity)
-        self.ALPHA = 0.7
+        # Decide if to show ARI metric on the UMAP
+        self.SHOW_ARI = False
 
 ############################################################
 # UMAP0 - stress
@@ -119,24 +90,13 @@ class NeuronsUMAP0B6Rep1StressFigureConfig(DatasetConfig):
         self.MARKERS_TO_EXCLUDE = ['FMRP','TIA1']
         
         self.EXPERIMENT_TYPE = 'neurons'
-        self.TRAIN_BATCHES = []
-        self.SPLIT_DATA = False
-        self.ADD_REP_TO_LABEL = False
+        
+        self.SETS = ['all']
+        self.ADD_REP_TO_LABEL = True
         self.ADD_BATCH_TO_LABEL = False
         
-        self.MAP_LABELS_FUNCTION = (
-            "lambda self: lambda labels: "
-            "__import__('numpy').asarray([' '.join("
-            "l.split('_')[-3:-2+self.ADD_BATCH_TO_LABEL] + "
-            "([l.split('_')[-1]] if self.ADD_REP_TO_LABEL else [])"
-            ") for l in labels])"
-        )
-        self.UMAP_MAPPINGS = self.UMAP_MAPPINGS_CONDITION
-
-        # Set the size of the dots
-        self.SIZE = 30
-        # Set the alpha of the dots (0=max opacity, 1=no opacity)
-        self.ALPHA = 0.7
+        # Decide if to show ARI metric on the UMAP
+        self.SHOW_ARI = True
         #######################################     
 
 class NeuronsUMAP0B6Rep2StressFigureConfig(DatasetConfig):
@@ -149,26 +109,15 @@ class NeuronsUMAP0B6Rep2StressFigureConfig(DatasetConfig):
         self.REPS = ['rep2'] 
         self.CONDITIONS = ['Untreated', 'stress']
         self.MARKERS_TO_EXCLUDE = ['FMRP','TIA1']
-        self.TRAIN_BATCHES = []
+        
         self.EXPERIMENT_TYPE = 'neurons'
         
         self.SPLIT_DATA = False
-        self.ADD_REP_TO_LABEL = False
+        self.ADD_REP_TO_LABEL = True
         self.ADD_BATCH_TO_LABEL = False
 
-        self.MAP_LABELS_FUNCTION = (
-            "lambda self: lambda labels: "
-            "__import__('numpy').asarray([' '.join("
-            "l.split('_')[-3:-2+self.ADD_BATCH_TO_LABEL] + "
-            "([l.split('_')[-1]] if self.ADD_REP_TO_LABEL else [])"
-            ") for l in labels])"
-        )      
-        self.UMAP_MAPPINGS = self.UMAP_MAPPINGS_CONDITION
-
-        # Set the size of the dots
-        self.SIZE = 30
-        # Set the alpha of the dots (0=max opacity, 1=no opacity)
-        self.ALPHA = 0.7
+        # Decide if to show ARI metric on the UMAP
+        self.SHOW_ARI = True
         ####################################### 
 
 class NeuronsUMAP0B6BothRepsStressFigureConfig(DatasetConfig):
@@ -178,29 +127,17 @@ class NeuronsUMAP0B6BothRepsStressFigureConfig(DatasetConfig):
                         ["batch6"]]
         
         self.CELL_LINES = ['WT']
-        self.REPS = ['rep1','rep2'] 
         self.CONDITIONS = ['Untreated', 'stress']
         self.MARKERS_TO_EXCLUDE = ['FMRP','TIA1']
-        self.TRAIN_BATCHES = []
+        
         self.EXPERIMENT_TYPE = 'neurons'
         
         self.SPLIT_DATA = False
         self.ADD_REP_TO_LABEL = True
         self.ADD_BATCH_TO_LABEL = False
         
-        self.MAP_LABELS_FUNCTION = (
-            "lambda self: lambda labels: "
-            "__import__('numpy').asarray([' '.join("
-            "l.split('_')[-3:-2+self.ADD_BATCH_TO_LABEL] + "
-            "([l.split('_')[-1]] if self.ADD_REP_TO_LABEL else [])"
-            ") for l in labels])"
-        )
-        self.UMAP_MAPPINGS = None #self.UMAP_MAPPINGS_CONDITION
-
-        # Set the size of the dots
-        self.SIZE = 30
-        # Set the alpha of the dots (0=max opacity, 1=no opacity)
-        self.ALPHA = 0.7
+        # Decide if to show ARI metric on the UMAP
+        self.SHOW_ARI = True
         ####################################### 
 
 class NeuronsUMAP0B9Rep1StressFigureConfig(DatasetConfig):
@@ -210,30 +147,17 @@ class NeuronsUMAP0B9Rep1StressFigureConfig(DatasetConfig):
                         ["batch9"]]
         
         self.CELL_LINES = ['WT']
-        self.REPS = ['rep1'] 
         self.CONDITIONS = ['Untreated', 'stress']
         self.MARKERS_TO_EXCLUDE = ['FMRP','TIA1']
-        self.TRAIN_BATCHES = []
+        
         self.EXPERIMENT_TYPE = 'neurons'
         
         self.SPLIT_DATA = False
-        self.ADD_REP_TO_LABEL = False
+        self.ADD_REP_TO_LABEL = True
         self.ADD_BATCH_TO_LABEL = False        
 
-        
-        self.MAP_LABELS_FUNCTION = (
-            "lambda self: lambda labels: "
-            "__import__('numpy').asarray([' '.join("
-            "l.split('_')[-3:-2+self.ADD_BATCH_TO_LABEL] + "
-            "([l.split('_')[-1]] if self.ADD_REP_TO_LABEL else [])"
-            ") for l in labels])"
-        )
-        self.UMAP_MAPPINGS = self.UMAP_MAPPINGS_CONDITION
-
-        # Set the size of the dots
-        self.SIZE = 30
-        # Set the alpha of the dots (0=max opacity, 1=no opacity)
-        self.ALPHA = 0.7
+        # Decide if to show ARI metric on the UMAP
+        self.SHOW_ARI = True
         #######################################     
 
 class NeuronsUMAP0B9Rep2StressFigureConfig(DatasetConfig):
@@ -243,29 +167,17 @@ class NeuronsUMAP0B9Rep2StressFigureConfig(DatasetConfig):
                         ["batch9"]]
         
         self.CELL_LINES = ['WT']
-        self.REPS = ['rep2'] 
         self.CONDITIONS = ['Untreated', 'stress']
         self.MARKERS_TO_EXCLUDE = ['FMRP','TIA1']
         
         self.EXPERIMENT_TYPE = 'neurons'
-        self.TRAIN_BATCHES = []
+        
         self.SPLIT_DATA = False
-        self.ADD_REP_TO_LABEL = False
+        self.ADD_REP_TO_LABEL = True
         self.ADD_BATCH_TO_LABEL = False
 
-        self.MAP_LABELS_FUNCTION = (
-            "lambda self: lambda labels: "
-            "__import__('numpy').asarray([' '.join("
-            "l.split('_')[-3:-2+self.ADD_BATCH_TO_LABEL] + "
-            "([l.split('_')[-1]] if self.ADD_REP_TO_LABEL else [])"
-            ") for l in labels])"
-        )      
-        self.UMAP_MAPPINGS = self.UMAP_MAPPINGS_CONDITION
-
-        # Set the size of the dots
-        self.SIZE = 30
-        # Set the alpha of the dots (0=max opacity, 1=no opacity)
-        self.ALPHA = 0.7
+        # Decide if to show ARI metric on the UMAP
+        self.SHOW_ARI = True
         ####################################### 
 
 class NeuronsUMAP0B9BothRepsStressFigureConfig(DatasetConfig):
@@ -275,29 +187,17 @@ class NeuronsUMAP0B9BothRepsStressFigureConfig(DatasetConfig):
                         ["batch9"]]
         
         self.CELL_LINES = ['WT']
-        self.REPS = ['rep1','rep2'] 
         self.CONDITIONS = ['Untreated', 'stress']
         self.MARKERS_TO_EXCLUDE = ['FMRP','TIA1']
         
         self.EXPERIMENT_TYPE = 'neurons'
-        self.TRAIN_BATCHES = []
+        
         self.SPLIT_DATA = False
         self.ADD_REP_TO_LABEL = True
         self.ADD_BATCH_TO_LABEL = False
-        
-        self.MAP_LABELS_FUNCTION = (
-            "lambda self: lambda labels: "
-            "__import__('numpy').asarray([' '.join("
-            "l.split('_')[-3:-2+self.ADD_BATCH_TO_LABEL] + "
-            "([l.split('_')[-1]] if self.ADD_REP_TO_LABEL else [])"
-            ") for l in labels])"
-        )
-        self.UMAP_MAPPINGS = None #self.UMAP_MAPPINGS_CONDITION
 
-        # Set the size of the dots
-        self.SIZE = 30
-        # Set the alpha of the dots (0=max opacity, 1=no opacity)
-        self.ALPHA = 0.7
+        # Decide if to show ARI metric on the UMAP
+        self.SHOW_ARI = True
         ####################################### 
 
 class NeuronsUMAP0B69BothRepsStressFigureConfig(DatasetConfig):
@@ -307,29 +207,17 @@ class NeuronsUMAP0B69BothRepsStressFigureConfig(DatasetConfig):
                         ["batch6","batch9"]]
         
         self.CELL_LINES = ['WT']
-        self.REPS = ['rep1','rep2'] 
         self.CONDITIONS = ['Untreated', 'stress']
         self.MARKERS_TO_EXCLUDE = ['FMRP','TIA1']
-        self.TRAIN_BATCHES = []
+        
         self.EXPERIMENT_TYPE = 'neurons'
         
         self.SPLIT_DATA = False
         self.ADD_REP_TO_LABEL = False
         self.ADD_BATCH_TO_LABEL = True
         
-        self.MAP_LABELS_FUNCTION = (
-            "lambda self: lambda labels: "
-            "__import__('numpy').asarray([' '.join("
-            "l.split('_')[-3:-2+self.ADD_BATCH_TO_LABEL] + "
-            "([l.split('_')[-1]] if self.ADD_REP_TO_LABEL else [])"
-            ") for l in labels])"
-        )
-        self.UMAP_MAPPINGS = None #self.UMAP_MAPPINGS_CONDITION
-
-        # Set the size of the dots
-        self.SIZE = 30
-        # Set the alpha of the dots (0=max opacity, 1=no opacity)
-        self.ALPHA = 0.7
+        # Decide if to show ARI metric on the UMAP
+        self.SHOW_ARI = True
         ####################################### 
         
 
@@ -342,29 +230,17 @@ class NeuronsUMAP0B6BothRepsOnlyWTUntreatedFigureConfig(DatasetConfig):
                         ["batch6"]]
         
         self.CELL_LINES = ['WT']
-        self.REPS = ['rep1', 'rep2'] 
         self.CONDITIONS = ['Untreated']
         self.MARKERS_TO_EXCLUDE = ['FMRP','TIA1']
         
         self.EXPERIMENT_TYPE = 'neurons'
-        self.TRAIN_BATCHES = []
+        
         self.SPLIT_DATA = False
         self.ADD_REP_TO_LABEL = True
         self.ADD_BATCH_TO_LABEL = False
-        
-        self.MAP_LABELS_FUNCTION = (
-            "lambda self: lambda labels: "
-            "__import__('numpy').asarray([' '.join("
-            "l.split('_')[-3:-2+self.ADD_BATCH_TO_LABEL] + "
-            "([l.split('_')[-1]] if self.ADD_REP_TO_LABEL else [])"
-            ") for l in labels])"
-        )
-        self.UMAP_MAPPINGS = None
 
-        # Set the size of the dots
-        self.SIZE = 30
-        # Set the alpha of the dots (0=max opacity, 1=no opacity)
-        self.ALPHA = 0.7
+        # Decide if to show ARI metric on the UMAP
+        self.SHOW_ARI = True
         #######################################  
         
 class NeuronsUMAP0B9BothRepsOnlyWTUntreatedFigureConfig(DatasetConfig):
@@ -374,29 +250,17 @@ class NeuronsUMAP0B9BothRepsOnlyWTUntreatedFigureConfig(DatasetConfig):
                         ["batch9"]]
         
         self.CELL_LINES = ['WT']
-        self.REPS = ['rep1', 'rep2'] 
         self.CONDITIONS = ['Untreated']
         self.MARKERS_TO_EXCLUDE = ['FMRP','TIA1']
         
         self.EXPERIMENT_TYPE = 'neurons'
-        self.TRAIN_BATCHES = []
+        
         self.SPLIT_DATA = False
         self.ADD_REP_TO_LABEL = True
         self.ADD_BATCH_TO_LABEL = False
-        
-        self.MAP_LABELS_FUNCTION = (
-            "lambda self: lambda labels: "
-            "__import__('numpy').asarray([' '.join("
-            "l.split('_')[-3:-2+self.ADD_BATCH_TO_LABEL] + "
-            "([l.split('_')[-1]] if self.ADD_REP_TO_LABEL else [])"
-            ") for l in labels])"
-        )
-        self.UMAP_MAPPINGS = None
 
-        # Set the size of the dots
-        self.SIZE = 30
-        # Set the alpha of the dots (0=max opacity, 1=no opacity)
-        self.ALPHA = 0.7
+        # Decide if to show ARI metric on the UMAP
+        self.SHOW_ARI = True
         #######################################  
         
 
@@ -409,29 +273,17 @@ class NeuronsUMAP0Opera18daysREIMAGEDStressFigureConfig(DatasetConfig):
                         ["batch1", "batch2"]]
         
         self.CELL_LINES = ['WT']
-        self.REPS = ['rep1','rep2'] 
         self.CONDITIONS = ['Untreated', 'stress']
         self.MARKERS_TO_EXCLUDE = ['FMRP','TIA1']
-        self.TRAIN_BATCHES = []
+        
         self.EXPERIMENT_TYPE = 'neurons_d18'
         
         self.SPLIT_DATA = False
         self.ADD_REP_TO_LABEL = False
-        self.ADD_BATCH_TO_LABEL = True
+        self.ADD_BATCH_TO_LABEL = False
         
-        self.MAP_LABELS_FUNCTION = (
-            "lambda self: lambda labels: "
-            "__import__('numpy').asarray([' '.join("
-            "l.split('_')[-3:-2+self.ADD_BATCH_TO_LABEL] + "
-            "([l.split('_')[-1]] if self.ADD_REP_TO_LABEL else [])"
-            ") for l in labels])"
-        )
-        self.UMAP_MAPPINGS = self.UMAP_MAPPINGS_CONDITION
-
-        # Set the size of the dots
-        self.SIZE = 30
-        # Set the alpha of the dots (0=max opacity, 1=no opacity)
-        self.ALPHA = 0.7
+        # Decide if to show ARI metric on the UMAP
+        self.SHOW_ARI = True
         ####################################### 
 
 class NeuronsUMAP0Opera18daysREIMAGEDB1BothRepsStressFigureConfig(NeuronsUMAP0Opera18daysREIMAGEDStressFigureConfig):
@@ -439,7 +291,6 @@ class NeuronsUMAP0Opera18daysREIMAGEDB1BothRepsStressFigureConfig(NeuronsUMAP0Op
         super().__init__()
         self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "Opera18DaysReimaged", f) for f in 
                         ["batch1"]]
-        self.UMAP_MAPPINGS = None
         self.ADD_REP_TO_LABEL = True
 
         
@@ -448,7 +299,6 @@ class NeuronsUMAP0Opera18daysREIMAGEDB2BothRepsStressFigureConfig(NeuronsUMAP0Op
         super().__init__()
         self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "Opera18DaysReimaged", f) for f in 
                         ["batch2"]]
-        self.UMAP_MAPPINGS = None
         self.ADD_REP_TO_LABEL = True
 
         
@@ -495,7 +345,6 @@ class NeuronsUMAP0Opera18daysREIMAGEDB2Rep2StressFigureConfig(NeuronsUMAP0Opera1
 class NeuronsUMAP0Opera18daysREIMAGEDBothBatchesBothRepsStressFigureConfig(NeuronsUMAP0Opera18daysREIMAGEDStressFigureConfig):
     def __init__(self):
         super().__init__()
-        self.UMAP_MAPPINGS = None
         self.ADD_REP_TO_LABEL = True
 
 
@@ -513,26 +362,15 @@ class NeuronsUMAP0B6Rep1ALSFigureConfig(DatasetConfig):
         self.REPS = ['rep1'] 
         self.CONDITIONS = ['Untreated']
         self.MARKERS_TO_EXCLUDE = ['FMRP','TIA1']
-        self.TRAIN_BATCHES = []
+        
         self.EXPERIMENT_TYPE = 'neurons'
         
         self.SPLIT_DATA = False
-        self.ADD_REP_TO_LABEL = False
+        self.ADD_REP_TO_LABEL = True
         self.ADD_BATCH_TO_LABEL = False
-        
-        self.MAP_LABELS_FUNCTION = (
-            "lambda self: lambda labels: "
-            "__import__('numpy').asarray(['_'.join("
-            "l.split('_')[-4:-2+self.ADD_BATCH_TO_LABEL] + "
-            "([l.split('_')[-1]] if self.ADD_REP_TO_LABEL else [])"
-            ") for l in labels])"
-        )
-        self.UMAP_MAPPINGS = self.UMAP_MAPPINGS_ALS
 
-        # Set the size of the dots
-        self.SIZE = 30
-        # Set the alpha of the dots (0=max opacity, 1=no opacity)
-        self.ALPHA = 0.7
+        # Decide if to show ARI metric on the UMAP
+        self.SHOW_ARI = True
         #######################################     
 
 class NeuronsUMAP0B6Rep2ALSFigureConfig(DatasetConfig):
@@ -545,26 +383,15 @@ class NeuronsUMAP0B6Rep2ALSFigureConfig(DatasetConfig):
         self.REPS = ['rep2'] 
         self.CONDITIONS = ['Untreated']
         self.MARKERS_TO_EXCLUDE = ['FMRP','TIA1']
-        self.TRAIN_BATCHES = []
+        
         self.EXPERIMENT_TYPE = 'neurons'
         
         self.SPLIT_DATA = False
-        self.ADD_REP_TO_LABEL = False
+        self.ADD_REP_TO_LABEL = True
         self.ADD_BATCH_TO_LABEL = False
 
-        self.MAP_LABELS_FUNCTION = (
-            "lambda self: lambda labels: "
-            "__import__('numpy').asarray(['_'.join("
-            "l.split('_')[-4:-2+self.ADD_BATCH_TO_LABEL] + "
-            "([l.split('_')[-1]] if self.ADD_REP_TO_LABEL else [])"
-            ") for l in labels])"
-        )
-        self.UMAP_MAPPINGS = self.UMAP_MAPPINGS_ALS
-
-        # Set the size of the dots
-        self.SIZE = 30
-        # Set the alpha of the dots (0=max opacity, 1=no opacity)
-        self.ALPHA = 0.7
+        # Decide if to show ARI metric on the UMAP
+        self.SHOW_ARI = True
         ####################################### 
 
 class NeuronsUMAP0B6BothRepsALSFigureConfig(DatasetConfig):
@@ -574,29 +401,17 @@ class NeuronsUMAP0B6BothRepsALSFigureConfig(DatasetConfig):
                         ["batch6"]]
         
         # self.CELL_LINES = ['WT']
-        self.REPS = ['rep1','rep2'] 
         self.CONDITIONS = ['Untreated']
         self.MARKERS_TO_EXCLUDE = ['FMRP','TIA1']
-        self.TRAIN_BATCHES = None
+        
         self.EXPERIMENT_TYPE = 'neurons'
         
         self.SPLIT_DATA = False
         self.ADD_REP_TO_LABEL = True
         self.ADD_BATCH_TO_LABEL = False
         
-        self.MAP_LABELS_FUNCTION = (
-            "lambda self: lambda labels: "
-            "__import__('numpy').asarray(['_'.join("
-            "l.split('_')[-4:-2+self.ADD_BATCH_TO_LABEL] + "
-            "([l.split('_')[-1]] if self.ADD_REP_TO_LABEL else [])"
-            ") for l in labels])"
-        )
-        self.UMAP_MAPPINGS = None #self.UMAP_MAPPINGS_ALS
-
-        # Set the size of the dots
-        self.SIZE = 30
-        # Set the alpha of the dots (0=max opacity, 1=no opacity)
-        self.ALPHA = 0.7
+        # Decide if to show ARI metric on the UMAP
+        self.SHOW_ARI = False
         ####################################### 
         
 class NeuronsUMAP0B6BothRepsOnlyFUSLinesOnlyFUSMarkerFigureConfig(DatasetConfig):
@@ -606,29 +421,17 @@ class NeuronsUMAP0B6BothRepsOnlyFUSLinesOnlyFUSMarkerFigureConfig(DatasetConfig)
                         ["batch6"]]
         
         self.CELL_LINES = ['WT', 'FUSHomozygous', 'FUSHeterozygous', 'FUSRevertant']
-        self.REPS = ['rep1','rep2'] 
         self.CONDITIONS = ['Untreated']
         self.MARKERS = ['FUS']
-        self.TRAIN_BATCHES = []
+        
         self.EXPERIMENT_TYPE = 'neurons'
         
         self.SPLIT_DATA = False
         self.ADD_REP_TO_LABEL = False
         self.ADD_BATCH_TO_LABEL = False
-        
-        self.MAP_LABELS_FUNCTION = (
-            "lambda self: lambda labels: "
-            "__import__('numpy').asarray(['_'.join("
-            "l.split('_')[-4:-2+self.ADD_BATCH_TO_LABEL] + "
-            "([l.split('_')[-1]] if self.ADD_REP_TO_LABEL else [])"
-            ") for l in labels])"
-        )
-        self.UMAP_MAPPINGS = self.UMAP_MAPPINGS_ALS
 
-        # Set the size of the dots
-        self.SIZE = 30
-        # Set the alpha of the dots (0=max opacity, 1=no opacity)
-        self.ALPHA = 0.7
+        # Decide if to show ARI metric on the UMAP
+        self.SHOW_ARI = True
         ####################################### 
 
 class NeuronsUMAP0B9Rep1ALSFigureConfig(DatasetConfig):
@@ -643,24 +446,13 @@ class NeuronsUMAP0B9Rep1ALSFigureConfig(DatasetConfig):
         self.MARKERS_TO_EXCLUDE = ['FMRP','TIA1']
         
         self.EXPERIMENT_TYPE = 'neurons'
-        self.TRAIN_BATCHES = []
+        
         self.SPLIT_DATA = False
-        self.ADD_REP_TO_LABEL = False
+        self.ADD_REP_TO_LABEL = True
         self.ADD_BATCH_TO_LABEL = False
         
-        self.MAP_LABELS_FUNCTION = (
-            "lambda self: lambda labels: "
-            "__import__('numpy').asarray(['_'.join("
-            "l.split('_')[-4:-2+self.ADD_BATCH_TO_LABEL] + "
-            "([l.split('_')[-1]] if self.ADD_REP_TO_LABEL else [])"
-            ") for l in labels])"
-        )
-        self.UMAP_MAPPINGS = self.UMAP_MAPPINGS_ALS
-
-        # Set the size of the dots
-        self.SIZE = 30
-        # Set the alpha of the dots (0=max opacity, 1=no opacity)
-        self.ALPHA = 0.7
+        # Decide if to show ARI metric on the UMAP
+        self.SHOW_ARI = True
         #######################################     
 
 class NeuronsUMAP0B9Rep2ALSFigureConfig(DatasetConfig):
@@ -675,24 +467,13 @@ class NeuronsUMAP0B9Rep2ALSFigureConfig(DatasetConfig):
         self.MARKERS_TO_EXCLUDE = ['FMRP','TIA1']
         
         self.EXPERIMENT_TYPE = 'neurons'
-        self.TRAIN_BATCHES = []
-        self.SPLIT_DATA = False
-        self.ADD_REP_TO_LABEL = False
-        self.ADD_BATCH_TO_LABEL = False
         
-        self.MAP_LABELS_FUNCTION = (
-            "lambda self: lambda labels: "
-            "__import__('numpy').asarray(['_'.join("
-            "l.split('_')[-4:-2+self.ADD_BATCH_TO_LABEL] + "
-            "([l.split('_')[-1]] if self.ADD_REP_TO_LABEL else [])"
-            ") for l in labels])"
-        )
-        self.UMAP_MAPPINGS = self.UMAP_MAPPINGS_ALS
+        self.SPLIT_DATA = False
+        self.ADD_REP_TO_LABEL = True
+        self.ADD_BATCH_TO_LABEL = False
 
-        # Set the size of the dots
-        self.SIZE = 30
-        # Set the alpha of the dots (0=max opacity, 1=no opacity)
-        self.ALPHA = 0.7
+        # Decide if to show ARI metric on the UMAP
+        self.SHOW_ARI = True
         ####################################### 
 
 class NeuronsUMAP0B9BothRepsALSFigureConfig(DatasetConfig):
@@ -702,29 +483,17 @@ class NeuronsUMAP0B9BothRepsALSFigureConfig(DatasetConfig):
                         ["batch9"]]
         
         # self.CELL_LINES = ['WT']
-        self.REPS = ['rep1','rep2'] 
         self.CONDITIONS = ['Untreated']
         self.MARKERS_TO_EXCLUDE = ['FMRP','TIA1']
         
         self.EXPERIMENT_TYPE = 'neurons'
-        self.TRAIN_BATCHES = None
+        
         self.SPLIT_DATA = False
         self.ADD_REP_TO_LABEL = True
         self.ADD_BATCH_TO_LABEL = False
         
-        self.MAP_LABELS_FUNCTION = (
-            "lambda self: lambda labels: "
-            "__import__('numpy').asarray(['_'.join("
-            "l.split('_')[-4:-2+self.ADD_BATCH_TO_LABEL] + "
-            "([l.split('_')[-1]] if self.ADD_REP_TO_LABEL else [])"
-            ") for l in labels])"
-        )
-        self.UMAP_MAPPINGS = None #self.UMAP_MAPPINGS_ALS
-
-        # Set the size of the dots
-        self.SIZE = 30
-        # Set the alpha of the dots (0=max opacity, 1=no opacity)
-        self.ALPHA = 0.7
+        # Decide if to show ARI metric on the UMAP
+        self.SHOW_ARI = False
         ####################################### 
 
 class NeuronsUMAP0B69BothRepsALSFigureConfig(DatasetConfig):
@@ -734,29 +503,17 @@ class NeuronsUMAP0B69BothRepsALSFigureConfig(DatasetConfig):
                         ["batch6","batch9"]]
         
         # self.CELL_LINES = ['WT']
-        self.REPS = ['rep1','rep2'] 
         self.CONDITIONS = ['Untreated']
         self.MARKERS_TO_EXCLUDE = ['FMRP','TIA1']
         
         self.EXPERIMENT_TYPE = 'neurons'
-        self.TRAIN_BATCHES = None
+        
         self.SPLIT_DATA = False
         self.ADD_REP_TO_LABEL = False
         self.ADD_BATCH_TO_LABEL = True
-        
-        self.MAP_LABELS_FUNCTION = (
-            "lambda self: lambda labels: "
-            "__import__('numpy').asarray(['_'.join("
-            "l.split('_')[-4:-2+self.ADD_BATCH_TO_LABEL] + "
-            "([l.split('_')[-1]] if self.ADD_REP_TO_LABEL else [])"
-            ") for l in labels])"
-        )
-        self.UMAP_MAPPINGS = None #self.UMAP_MAPPINGS_ALS
-
-        # Set the size of the dots
-        self.SIZE = 30
-        # Set the alpha of the dots (0=max opacity, 1=no opacity)
-        self.ALPHA = 0.7
+    
+        # Decide if to show ARI metric on the UMAP
+        self.SHOW_ARI = False
         ####################################### 
         
 # ALS - pairs
@@ -796,8 +553,6 @@ class NeuronsUMAP0B6Rep2ALS_WT_TDP43_FigureConfig(NeuronsUMAP0B6Rep2ALSFigureCon
         super().__init__()
 
         self.CELL_LINES = ['WT', 'TDP43']
-        
-#
         
 class NeuronsUMAP0B6Rep1ALS_WT_FUSHet_FigureConfig(NeuronsUMAP0B6Rep1ALSFigureConfig):
     def __init__(self):
@@ -922,26 +677,15 @@ class NeuronsUMAP0B7Rep1ALSFigureConfig(DatasetConfig):
         self.REPS = ['rep1'] 
         self.CONDITIONS = ['Untreated']
         self.MARKERS_TO_EXCLUDE = ['FMRP','TIA1']
-        self.TRAIN_BATCHES = []
+        
         self.EXPERIMENT_TYPE = 'neurons'
         
         self.SPLIT_DATA = False
-        self.ADD_REP_TO_LABEL = False
+        self.ADD_REP_TO_LABEL = True
         self.ADD_BATCH_TO_LABEL = False
         
-        self.MAP_LABELS_FUNCTION = (
-            "lambda self: lambda labels: "
-            "__import__('numpy').asarray(['_'.join("
-            "l.split('_')[-4:-2+self.ADD_BATCH_TO_LABEL] + "
-            "([l.split('_')[-1]] if self.ADD_REP_TO_LABEL else [])"
-            ") for l in labels])"
-        )
-        self.UMAP_MAPPINGS = self.UMAP_MAPPINGS_ALS
-
-        # Set the size of the dots
-        self.SIZE = 30
-        # Set the alpha of the dots (0=max opacity, 1=no opacity)
-        self.ALPHA = 0.7
+        # Decide if to show ARI metric on the UMAP
+        self.SHOW_ARI = True
         #######################################     
 
 class NeuronsUMAP0B7Rep2ALSFigureConfig(DatasetConfig):
@@ -954,26 +698,15 @@ class NeuronsUMAP0B7Rep2ALSFigureConfig(DatasetConfig):
         self.REPS = ['rep2'] 
         self.CONDITIONS = ['Untreated']
         self.MARKERS_TO_EXCLUDE = ['FMRP','TIA1']
-        self.TRAIN_BATCHES = []
+        
         self.EXPERIMENT_TYPE = 'neurons'
         
         self.SPLIT_DATA = False
-        self.ADD_REP_TO_LABEL = False
+        self.ADD_REP_TO_LABEL = True
         self.ADD_BATCH_TO_LABEL = False
 
-        self.MAP_LABELS_FUNCTION = (
-            "lambda self: lambda labels: "
-            "__import__('numpy').asarray(['_'.join("
-            "l.split('_')[-4:-2+self.ADD_BATCH_TO_LABEL] + "
-            "([l.split('_')[-1]] if self.ADD_REP_TO_LABEL else [])"
-            ") for l in labels])"
-        )
-        self.UMAP_MAPPINGS = self.UMAP_MAPPINGS_ALS
-
-        # Set the size of the dots
-        self.SIZE = 30
-        # Set the alpha of the dots (0=max opacity, 1=no opacity)
-        self.ALPHA = 0.7
+        # Decide if to show ARI metric on the UMAP
+        self.SHOW_ARI = True
         ####################################### 
         
 class NeuronsUMAP0B7Rep2ALS_WT_FUSHet_FigureConfig(NeuronsUMAP0B7Rep2ALSFigureConfig):
@@ -1060,26 +793,15 @@ class NeuronsUMAP0B8Rep2ALSFigureConfig(DatasetConfig):
         self.REPS = ['rep2'] 
         self.CONDITIONS = ['Untreated']
         self.MARKERS_TO_EXCLUDE = ['FMRP','TIA1']
-        self.TRAIN_BATCHES = []
+        
         self.EXPERIMENT_TYPE = 'neurons'
         
         self.SPLIT_DATA = False
-        self.ADD_REP_TO_LABEL = False
+        self.ADD_REP_TO_LABEL = True
         self.ADD_BATCH_TO_LABEL = False
 
-        self.MAP_LABELS_FUNCTION = (
-            "lambda self: lambda labels: "
-            "__import__('numpy').asarray(['_'.join("
-            "l.split('_')[-4:-2+self.ADD_BATCH_TO_LABEL] + "
-            "([l.split('_')[-1]] if self.ADD_REP_TO_LABEL else [])"
-            ") for l in labels])"
-        )
-        self.UMAP_MAPPINGS = self.UMAP_MAPPINGS_ALS
-
-        # Set the size of the dots
-        self.SIZE = 30
-        # Set the alpha of the dots (0=max opacity, 1=no opacity)
-        self.ALPHA = 0.7
+        # Decide if to show ARI metric on the UMAP
+        self.SHOW_ARI = True
         ####################################### 
         
 class NeuronsUMAP0B8Rep1ALSFigureConfig(DatasetConfig):
@@ -1092,26 +814,15 @@ class NeuronsUMAP0B8Rep1ALSFigureConfig(DatasetConfig):
         self.REPS = ['rep1'] 
         self.CONDITIONS = ['Untreated']
         self.MARKERS_TO_EXCLUDE = ['FMRP','TIA1']
-        self.TRAIN_BATCHES = []
+        
         self.EXPERIMENT_TYPE = 'neurons'
         
         self.SPLIT_DATA = False
-        self.ADD_REP_TO_LABEL = False
+        self.ADD_REP_TO_LABEL = True
         self.ADD_BATCH_TO_LABEL = False
         
-        self.MAP_LABELS_FUNCTION = (
-            "lambda self: lambda labels: "
-            "__import__('numpy').asarray(['_'.join("
-            "l.split('_')[-4:-2+self.ADD_BATCH_TO_LABEL] + "
-            "([l.split('_')[-1]] if self.ADD_REP_TO_LABEL else [])"
-            ") for l in labels])"
-        )
-        self.UMAP_MAPPINGS = self.UMAP_MAPPINGS_ALS
-
-        # Set the size of the dots
-        self.SIZE = 30
-        # Set the alpha of the dots (0=max opacity, 1=no opacity)
-        self.ALPHA = 0.7
+        # Decide if to show ARI metric on the UMAP
+        self.SHOW_ARI = True
         #######################################     
 #
         
@@ -1528,29 +1239,17 @@ class NeuronsUMAP0Bpera18daysREIMAGEDALSFigureConfig(DatasetConfig):
                         ["batch1", "batch2"]]
         
         self.CELL_LINES = ['WT', "FUSRevertant", "FUSHomozygous", "FUSHeterozygous", "TBK1", "OPTN","TDP43"]
-        self.REPS = ['rep1','rep2'] 
         self.CONDITIONS = ['Untreated']
         self.MARKERS_TO_EXCLUDE = ['FMRP','TIA1']
         
         self.EXPERIMENT_TYPE = 'neurons_d18'
-        self.TRAIN_BATCHES = []
+        
         self.SPLIT_DATA = False
         self.ADD_REP_TO_LABEL = False
         self.ADD_BATCH_TO_LABEL = True
         
-        self.MAP_LABELS_FUNCTION = (
-            "lambda self: lambda labels: "
-            "__import__('numpy').asarray(['_'.join("
-            "l.split('_')[-4:-2+self.ADD_BATCH_TO_LABEL] + "
-            "([l.split('_')[-1]] if self.ADD_REP_TO_LABEL else [])"
-            ") for l in labels])"
-        )
-        self.UMAP_MAPPINGS = self.UMAP_MAPPINGS_ALS
-
-        # Set the size of the dots
-        self.SIZE = 30
-        # Set the alpha of the dots (0=max opacity, 1=no opacity)
-        self.ALPHA = 0.7
+        # Decide if to show ARI metric on the UMAP
+        self.SHOW_ARI = False
         ####################################### 
 
 class NeuronsUMAP0Bpera18daysREIMAGEDB1BothRepsALSFigureConfig(NeuronsUMAP0Bpera18daysREIMAGEDALSFigureConfig):
@@ -1558,7 +1257,6 @@ class NeuronsUMAP0Bpera18daysREIMAGEDB1BothRepsALSFigureConfig(NeuronsUMAP0Bpera
         super().__init__()
         self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "Opera18DaysReimaged", f) for f in 
                         ["batch1"]]
-        self.UMAP_MAPPINGS = None
         self.ADD_REP_TO_LABEL = True
         
 class NeuronsUMAP0Bpera18daysREIMAGEDB2BothRepsALSFigureConfig(NeuronsUMAP0Bpera18daysREIMAGEDALSFigureConfig):
@@ -1566,7 +1264,6 @@ class NeuronsUMAP0Bpera18daysREIMAGEDB2BothRepsALSFigureConfig(NeuronsUMAP0Bpera
         super().__init__()
         self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "Opera18DaysReimaged", f) for f in 
                         ["batch2"]]
-        self.UMAP_MAPPINGS = None
         self.ADD_REP_TO_LABEL = True
         
 class NeuronsUMAP0Bpera18daysREIMAGEDB1Rep1ALSFigureConfig(NeuronsUMAP0Bpera18daysREIMAGEDALSFigureConfig):
@@ -1576,6 +1273,8 @@ class NeuronsUMAP0Bpera18daysREIMAGEDB1Rep1ALSFigureConfig(NeuronsUMAP0Bpera18da
                         ["batch1"]]
         self.REPS = ['rep1'] 
         self.ADD_BATCH_TO_LABEL = False
+        # Decide if to show ARI metric on the UMAP
+        self.SHOW_ARI = True
 
         
 class NeuronsUMAP0Bpera18daysREIMAGEDB1Rep2ALSFigureConfig(NeuronsUMAP0Bpera18daysREIMAGEDALSFigureConfig):
@@ -1585,7 +1284,8 @@ class NeuronsUMAP0Bpera18daysREIMAGEDB1Rep2ALSFigureConfig(NeuronsUMAP0Bpera18da
                         ["batch1"]]
         self.REPS = ['rep2'] 
         self.ADD_BATCH_TO_LABEL = False
-
+        # Decide if to show ARI metric on the UMAP
+        self.SHOW_ARI = True
         
 class NeuronsUMAP0Bpera18daysREIMAGEDB2Rep1ALSFigureConfig(NeuronsUMAP0Bpera18daysREIMAGEDALSFigureConfig):
     def __init__(self):
@@ -1594,7 +1294,8 @@ class NeuronsUMAP0Bpera18daysREIMAGEDB2Rep1ALSFigureConfig(NeuronsUMAP0Bpera18da
                         ["batch2"]]
         self.REPS = ['rep1'] 
         self.ADD_BATCH_TO_LABEL = False
-        
+        # Decide if to show ARI metric on the UMAP
+        self.SHOW_ARI = True
 class NeuronsUMAP0Bpera18daysREIMAGEDB2Rep2ALSFigureConfig(NeuronsUMAP0Bpera18daysREIMAGEDALSFigureConfig):
     def __init__(self):
         super().__init__()
@@ -1602,11 +1303,11 @@ class NeuronsUMAP0Bpera18daysREIMAGEDB2Rep2ALSFigureConfig(NeuronsUMAP0Bpera18da
                         ["batch2"]]
         self.REPS = ['rep2'] 
         self.ADD_BATCH_TO_LABEL = False
-        
+        # Decide if to show ARI metric on the UMAP
+        self.SHOW_ARI = True        
 class NeuronsUMAP0Bpera18daysREIMAGEDBothBatchesBothRepsALSFigureConfig(NeuronsUMAP0Bpera18daysREIMAGEDALSFigureConfig):
     def __init__(self):
         super().__init__()
-        self.UMAP_MAPPINGS = None
         self.ADD_REP_TO_LABEL = True
 
 # with SNCA
@@ -1617,29 +1318,17 @@ class NeuronsUMAP0Bpera18daysREIMAGEDALSWithSNCAFigureConfig(DatasetConfig):
                         ["batch1", "batch2"]]
         
         self.CELL_LINES = ['WT', "FUSRevertant", "FUSHomozygous", "FUSHeterozygous", "TBK1", "OPTN","TDP43", "SNCA"]
-        self.REPS = ['rep1','rep2'] 
         self.CONDITIONS = ['Untreated']
         self.MARKERS_TO_EXCLUDE = ['FMRP','TIA1']
         
         self.EXPERIMENT_TYPE = 'neurons_d18'
-        self.TRAIN_BATCHES = []
+        
         self.SPLIT_DATA = False
         self.ADD_REP_TO_LABEL = False
         self.ADD_BATCH_TO_LABEL = True
         
-        self.MAP_LABELS_FUNCTION = (
-            "lambda self: lambda labels: "
-            "__import__('numpy').asarray(['_'.join("
-            "l.split('_')[-4:-2+self.ADD_BATCH_TO_LABEL] + "
-            "([l.split('_')[-1]] if self.ADD_REP_TO_LABEL else [])"
-            ") for l in labels])"
-        )
-        self.UMAP_MAPPINGS = self.UMAP_MAPPINGS_ALS
-
-        # Set the size of the dots
-        self.SIZE = 30
-        # Set the alpha of the dots (0=max opacity, 1=no opacity)
-        self.ALPHA = 0.7
+        # Decide if to show ARI metric on the UMAP
+        self.SHOW_ARI = False
         ####################################### 
 
 class NeuronsUMAP0Bpera18daysREIMAGEDB1BothRepsALSWithSNCAFigureConfig(NeuronsUMAP0Bpera18daysREIMAGEDALSWithSNCAFigureConfig):
@@ -1647,7 +1336,6 @@ class NeuronsUMAP0Bpera18daysREIMAGEDB1BothRepsALSWithSNCAFigureConfig(NeuronsUM
         super().__init__()
         self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "Opera18DaysReimaged", f) for f in 
                         ["batch1"]]
-        self.UMAP_MAPPINGS = None
         self.ADD_REP_TO_LABEL = True
         
 class NeuronsUMAP0Bpera18daysREIMAGEDB2BothRepsALSWithSNCAFigureConfig(NeuronsUMAP0Bpera18daysREIMAGEDALSWithSNCAFigureConfig):
@@ -1655,7 +1343,6 @@ class NeuronsUMAP0Bpera18daysREIMAGEDB2BothRepsALSWithSNCAFigureConfig(NeuronsUM
         super().__init__()
         self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "Opera18DaysReimaged", f) for f in 
                         ["batch2"]]
-        self.UMAP_MAPPINGS = None
         self.ADD_REP_TO_LABEL = True
         
                 
@@ -1664,37 +1351,22 @@ class NeuronsUMAP0Bpera18daysREIMAGEDB2BothRepsJoinedALSWithSNCAFigureConfig(Neu
         super().__init__()
         self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "Opera18DaysReimaged", f) for f in 
                         ["batch2"]]
-        self.UMAP_MAPPINGS = None
         self.ADD_REP_TO_LABEL = False
         self.ADD_BATCH_TO_LABEL = False
         
-        self.MAP_LABELS_FUNCTION = (
-            "lambda self: lambda labels: "
-            "__import__('numpy').asarray(['_'.join("
-            "l.split('_')[-4:-2+self.ADD_BATCH_TO_LABEL] + "
-            "([l.split('_')[-1]] if self.ADD_REP_TO_LABEL else [])"
-            ") for l in labels])"
-        )
-        self.UMAP_MAPPINGS = self.UMAP_MAPPINGS_ALS
-        
+        # Decide if to show ARI metric on the UMAP
+        self.SHOW_ARI = True
         
 class NeuronsUMAP0Bpera18daysREIMAGEDB1BothRepsJoinedALSWithSNCAFigureConfig(NeuronsUMAP0Bpera18daysREIMAGEDALSWithSNCAFigureConfig):
     def __init__(self):
         super().__init__()
         self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "Opera18DaysReimaged", f) for f in 
                         ["batch1"]]
-        self.UMAP_MAPPINGS = None
         self.ADD_REP_TO_LABEL = False
         self.ADD_BATCH_TO_LABEL = False
-        
-        self.MAP_LABELS_FUNCTION = (
-            "lambda self: lambda labels: "
-            "__import__('numpy').asarray(['_'.join("
-            "l.split('_')[-4:-2+self.ADD_BATCH_TO_LABEL] + "
-            "([l.split('_')[-1]] if self.ADD_REP_TO_LABEL else [])"
-            ") for l in labels])"
-        )
-        self.UMAP_MAPPINGS = self.UMAP_MAPPINGS_ALS
+        # Decide if to show ARI metric on the UMAP
+        self.SHOW_ARI = True
+
         
 class NeuronsUMAP0Bpera18daysREIMAGEDB1Rep1ALSWithSNCAFigureConfig(NeuronsUMAP0Bpera18daysREIMAGEDALSWithSNCAFigureConfig):
     def __init__(self):
@@ -1703,7 +1375,8 @@ class NeuronsUMAP0Bpera18daysREIMAGEDB1Rep1ALSWithSNCAFigureConfig(NeuronsUMAP0B
                         ["batch1"]]
         self.REPS = ['rep1'] 
         self.ADD_BATCH_TO_LABEL = False
-
+        # Decide if to show ARI metric on the UMAP
+        self.SHOW_ARI = True
         
 class NeuronsUMAP0Bpera18daysREIMAGEDB1Rep2ALSWithSNCAFigureConfig(NeuronsUMAP0Bpera18daysREIMAGEDALSWithSNCAFigureConfig):
     def __init__(self):
@@ -1712,7 +1385,8 @@ class NeuronsUMAP0Bpera18daysREIMAGEDB1Rep2ALSWithSNCAFigureConfig(NeuronsUMAP0B
                         ["batch1"]]
         self.REPS = ['rep2'] 
         self.ADD_BATCH_TO_LABEL = False
-
+        # Decide if to show ARI metric on the UMAP
+        self.SHOW_ARI = True
         
 class NeuronsUMAP0Bpera18daysREIMAGEDB2Rep1ALSWithSNCAFigureConfig(NeuronsUMAP0Bpera18daysREIMAGEDALSWithSNCAFigureConfig):
     def __init__(self):
@@ -1721,7 +1395,9 @@ class NeuronsUMAP0Bpera18daysREIMAGEDB2Rep1ALSWithSNCAFigureConfig(NeuronsUMAP0B
                         ["batch2"]]
         self.REPS = ['rep1'] 
         self.ADD_BATCH_TO_LABEL = False
-        
+        # Decide if to show ARI metric on the UMAP
+        self.SHOW_ARI = True 
+
 class NeuronsUMAP0Bpera18daysREIMAGEDB2Rep2ALSWithSNCAFigureConfig(NeuronsUMAP0Bpera18daysREIMAGEDALSWithSNCAFigureConfig):
     def __init__(self):
         super().__init__()
@@ -1729,7 +1405,9 @@ class NeuronsUMAP0Bpera18daysREIMAGEDB2Rep2ALSWithSNCAFigureConfig(NeuronsUMAP0B
                         ["batch2"]]
         self.REPS = ['rep2'] 
         self.ADD_BATCH_TO_LABEL = False
-        
+        # Decide if to show ARI metric on the UMAP
+        self.SHOW_ARI = True
+
 ############################################################
 # UMAP0 - dNLS
 ############################################################ 
@@ -1743,24 +1421,13 @@ class EmbeddingsdNLSB2Rep1DatasetConfig(DatasetConfig):
         self.MARKERS_TO_EXCLUDE = ['FMRP','TIA1']
         
         self.EXPERIMENT_TYPE = 'deltaNLS'
-        self.TRAIN_BATCHES = None
+        
         self.SPLIT_DATA = False
-        self.ADD_REP_TO_LABEL = False
+        self.ADD_REP_TO_LABEL = True
         self.ADD_BATCH_TO_LABEL = False
         
-        self.MAP_LABELS_FUNCTION = (
-            "lambda self: lambda labels: "
-            "__import__('numpy').asarray(['_'.join("
-            "l.split('_')[-4:-2+self.ADD_BATCH_TO_LABEL] + "
-            "([l.split('_')[-1]] if self.ADD_REP_TO_LABEL else [])"
-            ") for l in labels])"
-        )
-        self.UMAP_MAPPINGS = self.UMAP_MAPPINGS_DOX
-
-        # Set the size of the dots
-        self.SIZE = 30
-        # Set the alpha of the dots (0=max opacity, 1=no opacity)
-        self.ALPHA = 0.7
+        # Decide if to show ARI metric on the UMAP
+        self.SHOW_ARI = True
         #######################################     
 
 class EmbeddingsdNLSB2Rep2DatasetConfig(DatasetConfig):
@@ -1773,24 +1440,13 @@ class EmbeddingsdNLSB2Rep2DatasetConfig(DatasetConfig):
         self.MARKERS_TO_EXCLUDE = ['FMRP','TIA1']
         
         self.EXPERIMENT_TYPE = 'deltaNLS'
-        self.TRAIN_BATCHES = None
+        
         self.SPLIT_DATA = False
-        self.ADD_REP_TO_LABEL = False
+        self.ADD_REP_TO_LABEL = True
         self.ADD_BATCH_TO_LABEL = False
         
-        self.MAP_LABELS_FUNCTION = (
-            "lambda self: lambda labels: "
-            "__import__('numpy').asarray(['_'.join("
-            "l.split('_')[-4:-2+self.ADD_BATCH_TO_LABEL] + "
-            "([l.split('_')[-1]] if self.ADD_REP_TO_LABEL else [])"
-            ") for l in labels])"
-        )
-        self.UMAP_MAPPINGS = self.UMAP_MAPPINGS_DOX
-
-        # Set the size of the dots
-        self.SIZE = 30
-        # Set the alpha of the dots (0=max opacity, 1=no opacity)
-        self.ALPHA = 0.7
+        # Decide if to show ARI metric on the UMAP
+        self.SHOW_ARI = True
         #######################################     
 
 class EmbeddingsdNLSB3Rep1DatasetConfig(DatasetConfig):
@@ -1803,24 +1459,13 @@ class EmbeddingsdNLSB3Rep1DatasetConfig(DatasetConfig):
         self.MARKERS_TO_EXCLUDE = ['FMRP','TIA1']
         
         self.EXPERIMENT_TYPE = 'deltaNLS'
-        self.TRAIN_BATCHES = None
+        
         self.SPLIT_DATA = False
-        self.ADD_REP_TO_LABEL = False
+        self.ADD_REP_TO_LABEL = True
         self.ADD_BATCH_TO_LABEL = False
         
-        self.MAP_LABELS_FUNCTION = (
-            "lambda self: lambda labels: "
-            "__import__('numpy').asarray(['_'.join("
-            "l.split('_')[-4:-2+self.ADD_BATCH_TO_LABEL] + "
-            "([l.split('_')[-1]] if self.ADD_REP_TO_LABEL else [])"
-            ") for l in labels])"
-        )
-        self.UMAP_MAPPINGS = self.UMAP_MAPPINGS_DOX
-
-        # Set the size of the dots
-        self.SIZE = 30
-        # Set the alpha of the dots (0=max opacity, 1=no opacity)
-        self.ALPHA = 0.7
+        # Decide if to show ARI metric on the UMAP
+        self.SHOW_ARI = True
         #######################################     
 
 class EmbeddingsdNLSB3Rep2DatasetConfig(DatasetConfig):
@@ -1835,22 +1480,11 @@ class EmbeddingsdNLSB3Rep2DatasetConfig(DatasetConfig):
         self.EXPERIMENT_TYPE = 'deltaNLS'
         
         self.SPLIT_DATA = False
-        self.ADD_REP_TO_LABEL = False
+        self.ADD_REP_TO_LABEL = True
         self.ADD_BATCH_TO_LABEL = False
-        self.TRAIN_BATCHES = None
-        self.MAP_LABELS_FUNCTION = (
-            "lambda self: lambda labels: "
-            "__import__('numpy').asarray(['_'.join("
-            "l.split('_')[-4:-2+self.ADD_BATCH_TO_LABEL] + "
-            "([l.split('_')[-1]] if self.ADD_REP_TO_LABEL else [])"
-            ") for l in labels])"
-        )
-        self.UMAP_MAPPINGS = self.UMAP_MAPPINGS_DOX
-
-        # Set the size of the dots
-        self.SIZE = 30
-        # Set the alpha of the dots (0=max opacity, 1=no opacity)
-        self.ALPHA = 0.7
+        
+        # Decide if to show ARI metric on the UMAP
+        self.SHOW_ARI = True
         #######################################    
         
 class EmbeddingsdNLSB3Rep1OnlyTDP43LineOnlyDCP1ADatasetConfig(DatasetConfig):
@@ -1864,24 +1498,13 @@ class EmbeddingsdNLSB3Rep1OnlyTDP43LineOnlyDCP1ADatasetConfig(DatasetConfig):
         self.CELL_LINES = ['TDP43']
         
         self.EXPERIMENT_TYPE = 'deltaNLS'
-        self.TRAIN_BATCHES = []
+        
         self.SPLIT_DATA = False
-        self.ADD_REP_TO_LABEL = False
+        self.ADD_REP_TO_LABEL = True
         self.ADD_BATCH_TO_LABEL = False
         
-        self.MAP_LABELS_FUNCTION = (
-            "lambda self: lambda labels: "
-            "__import__('numpy').asarray(['_'.join("
-            "l.split('_')[-4:-2+self.ADD_BATCH_TO_LABEL] + "
-            "([l.split('_')[-1]] if self.ADD_REP_TO_LABEL else [])"
-            ") for l in labels])"
-        )
-        self.UMAP_MAPPINGS = self.UMAP_MAPPINGS_DOX
-
-        # Set the size of the dots
-        self.SIZE = 30
-        # Set the alpha of the dots (0=max opacity, 1=no opacity)
-        self.ALPHA = 0.7
+        # Decide if to show ARI metric on the UMAP
+        self.SHOW_ARI = True
         #######################################     
 
 class EmbeddingsdNLSB3Rep2OnlyTDP43LineOnlyDCP1ADatasetConfig(DatasetConfig):
@@ -1897,22 +1520,11 @@ class EmbeddingsdNLSB3Rep2OnlyTDP43LineOnlyDCP1ADatasetConfig(DatasetConfig):
         self.EXPERIMENT_TYPE = 'deltaNLS'
         
         self.SPLIT_DATA = False
-        self.ADD_REP_TO_LABEL = False
+        self.ADD_REP_TO_LABEL = True
         self.ADD_BATCH_TO_LABEL = False
-        self.TRAIN_BATCHES = []
-        self.MAP_LABELS_FUNCTION = (
-            "lambda self: lambda labels: "
-            "__import__('numpy').asarray(['_'.join("
-            "l.split('_')[-4:-2+self.ADD_BATCH_TO_LABEL] + "
-            "([l.split('_')[-1]] if self.ADD_REP_TO_LABEL else [])"
-            ") for l in labels])"
-        )
-        self.UMAP_MAPPINGS = self.UMAP_MAPPINGS_DOX
-
-        # Set the size of the dots
-        self.SIZE = 30
-        # Set the alpha of the dots (0=max opacity, 1=no opacity)
-        self.ALPHA = 0.7
+        
+        # Decide if to show ARI metric on the UMAP
+        self.SHOW_ARI = True
         #######################################    
         
 class EmbeddingsdNLSB3BothRepsOnlyWTOnlyDCP1ADatasetConfig(DatasetConfig):
@@ -1931,20 +1543,9 @@ class EmbeddingsdNLSB3BothRepsOnlyWTOnlyDCP1ADatasetConfig(DatasetConfig):
         self.SPLIT_DATA = False
         self.ADD_REP_TO_LABEL = True
         self.ADD_BATCH_TO_LABEL = False
-        self.TRAIN_BATCHES = []
-        self.MAP_LABELS_FUNCTION = (
-            "lambda self: lambda labels: "
-            "__import__('numpy').asarray(['_'.join("
-            "l.split('_')[-4:-2+self.ADD_BATCH_TO_LABEL] + "
-            "([l.split('_')[-1]] if self.ADD_REP_TO_LABEL else [])"
-            ") for l in labels])"
-        )
-        self.UMAP_MAPPINGS = None
-
-        # Set the size of the dots
-        self.SIZE = 30
-        # Set the alpha of the dots (0=max opacity, 1=no opacity)
-        self.ALPHA = 0.7
+    
+        # Decide if to show ARI metric on the UMAP
+        self.SHOW_ARI = True
         #######################################  
        
 class EmbeddingsdNLSB3BothRepsOnlyTDP43UntreatedDatasetConfig(DatasetConfig):
@@ -1954,7 +1555,6 @@ class EmbeddingsdNLSB3BothRepsOnlyTDP43UntreatedDatasetConfig(DatasetConfig):
                         ["batch3"]]
         
         self.CELL_LINES = ['TDP43']
-        self.REPS = ['rep1', 'rep2'] 
         self.CONDITIONS = ['Untreated']
         
         self.EXPERIMENT_TYPE = 'deltaNLS'
@@ -1962,20 +1562,9 @@ class EmbeddingsdNLSB3BothRepsOnlyTDP43UntreatedDatasetConfig(DatasetConfig):
         self.SPLIT_DATA = False
         self.ADD_REP_TO_LABEL = True
         self.ADD_BATCH_TO_LABEL = False
-        self.TRAIN_BATCHES = []
-        self.MAP_LABELS_FUNCTION = (
-            "lambda self: lambda labels: "
-            "__import__('numpy').asarray(['_'.join("
-            "l.split('_')[-4:-2+self.ADD_BATCH_TO_LABEL] + "
-            "([l.split('_')[-1]] if self.ADD_REP_TO_LABEL else [])"
-            ") for l in labels])"
-        )
-        self.UMAP_MAPPINGS = None
 
-        # Set the size of the dots
-        self.SIZE = 30
-        # Set the alpha of the dots (0=max opacity, 1=no opacity)
-        self.ALPHA = 0.7
+        # Decide if to show ARI metric on the UMAP
+        self.SHOW_ARI = True
         #######################################  
         
 class EmbeddingsdNLSB3BothRepsOnlyTDP43DoxDatasetConfig(DatasetConfig):
@@ -1985,29 +1574,15 @@ class EmbeddingsdNLSB3BothRepsOnlyTDP43DoxDatasetConfig(DatasetConfig):
                         ["batch3"]]
         
         self.CELL_LINES = ['TDP43']
-        self.REPS = ['rep1', 'rep2'] 
         self.CONDITIONS = ['dox']
         
-        
         self.EXPERIMENT_TYPE = 'deltaNLS'
-        
         self.SPLIT_DATA = False
         self.ADD_REP_TO_LABEL = True
         self.ADD_BATCH_TO_LABEL = False
-        self.TRAIN_BATCHES = []
-        self.MAP_LABELS_FUNCTION = (
-            "lambda self: lambda labels: "
-            "__import__('numpy').asarray(['_'.join("
-            "l.split('_')[-4:-2+self.ADD_BATCH_TO_LABEL] + "
-            "([l.split('_')[-1]] if self.ADD_REP_TO_LABEL else [])"
-            ") for l in labels])"
-        )
-        self.UMAP_MAPPINGS = None
 
-        # Set the size of the dots
-        self.SIZE = 30
-        # Set the alpha of the dots (0=max opacity, 1=no opacity)
-        self.ALPHA = 0.7
+        # Decide if to show ARI metric on the UMAP
+        self.SHOW_ARI = True
         #######################################  
         
 class EmbeddingsdNLSB3BothRepsJoinedDatasetConfig(DatasetConfig):
@@ -2016,7 +1591,6 @@ class EmbeddingsdNLSB3BothRepsJoinedDatasetConfig(DatasetConfig):
         self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "spd2", "SpinningDisk","deltaNLS", f) for f in 
                         ["batch3"]]
         
-        self.REPS = ['rep1', 'rep2'] 
         self.MARKERS_TO_EXCLUDE = ['FMRP','TIA1']
         
         self.EXPERIMENT_TYPE = 'deltaNLS'
@@ -2024,20 +1598,9 @@ class EmbeddingsdNLSB3BothRepsJoinedDatasetConfig(DatasetConfig):
         self.SPLIT_DATA = False
         self.ADD_REP_TO_LABEL = False
         self.ADD_BATCH_TO_LABEL = False
-        self.TRAIN_BATCHES = []
-        self.MAP_LABELS_FUNCTION = (
-            "lambda self: lambda labels: "
-            "__import__('numpy').asarray(['_'.join("
-            "l.split('_')[-4:-2+self.ADD_BATCH_TO_LABEL] + "
-            "([l.split('_')[-1]] if self.ADD_REP_TO_LABEL else [])"
-            ") for l in labels])"
-        )
-        self.UMAP_MAPPINGS = self.UMAP_MAPPINGS_DOX
 
-        # Set the size of the dots
-        self.SIZE = 30
-        # Set the alpha of the dots (0=max opacity, 1=no opacity)
-        self.ALPHA = 0.7
+        # Decide if to show ARI metric on the UMAP
+        self.SHOW_ARI = True
         #######################################   
         
 class EmbeddingsdNLSB4Rep1OnlyTDP43LineOnlyDCP1ADatasetConfig(DatasetConfig):
@@ -2051,24 +1614,13 @@ class EmbeddingsdNLSB4Rep1OnlyTDP43LineOnlyDCP1ADatasetConfig(DatasetConfig):
         self.CELL_LINES = ['TDP43']
         
         self.EXPERIMENT_TYPE = 'deltaNLS'
-        self.TRAIN_BATCHES = []
+        
         self.SPLIT_DATA = False
-        self.ADD_REP_TO_LABEL = False
+        self.ADD_REP_TO_LABEL = True
         self.ADD_BATCH_TO_LABEL = False
         
-        self.MAP_LABELS_FUNCTION = (
-            "lambda self: lambda labels: "
-            "__import__('numpy').asarray(['_'.join("
-            "l.split('_')[-4:-2+self.ADD_BATCH_TO_LABEL] + "
-            "([l.split('_')[-1]] if self.ADD_REP_TO_LABEL else [])"
-            ") for l in labels])"
-        )
-        self.UMAP_MAPPINGS = self.UMAP_MAPPINGS_DOX
-
-        # Set the size of the dots
-        self.SIZE = 30
-        # Set the alpha of the dots (0=max opacity, 1=no opacity)
-        self.ALPHA = 0.7
+        # Decide if to show ARI metric on the UMAP
+        self.SHOW_ARI = True
         #######################################     
 
 class EmbeddingsdNLSB4Rep2OnlyTDP43LineOnlyDCP1ADatasetConfig(DatasetConfig):
@@ -2084,22 +1636,11 @@ class EmbeddingsdNLSB4Rep2OnlyTDP43LineOnlyDCP1ADatasetConfig(DatasetConfig):
         self.EXPERIMENT_TYPE = 'deltaNLS'
         
         self.SPLIT_DATA = False
-        self.ADD_REP_TO_LABEL = False
+        self.ADD_REP_TO_LABEL = True
         self.ADD_BATCH_TO_LABEL = False
-        self.TRAIN_BATCHES = []
-        self.MAP_LABELS_FUNCTION = (
-            "lambda self: lambda labels: "
-            "__import__('numpy').asarray(['_'.join("
-            "l.split('_')[-4:-2+self.ADD_BATCH_TO_LABEL] + "
-            "([l.split('_')[-1]] if self.ADD_REP_TO_LABEL else [])"
-            ") for l in labels])"
-        )
-        self.UMAP_MAPPINGS = self.UMAP_MAPPINGS_DOX
 
-        # Set the size of the dots
-        self.SIZE = 30
-        # Set the alpha of the dots (0=max opacity, 1=no opacity)
-        self.ALPHA = 0.7
+        # Decide if to show ARI metric on the UMAP
+        self.SHOW_ARI = True
         #######################################    
         
 class EmbeddingsdNLSB4BothRepsOnlyWTOnlyDCP1ADatasetConfig(DatasetConfig):
@@ -2109,7 +1650,6 @@ class EmbeddingsdNLSB4BothRepsOnlyWTOnlyDCP1ADatasetConfig(DatasetConfig):
                         ["batch4"]]
         
         self.CELL_LINES = ['WT']
-        self.REPS = ['rep1', 'rep2'] 
         self.CONDITIONS = ['Untreated']
         self.MARKERS = ['DCP1A']
         
@@ -2118,20 +1658,9 @@ class EmbeddingsdNLSB4BothRepsOnlyWTOnlyDCP1ADatasetConfig(DatasetConfig):
         self.SPLIT_DATA = False
         self.ADD_REP_TO_LABEL = True
         self.ADD_BATCH_TO_LABEL = False
-        self.TRAIN_BATCHES = []
-        self.MAP_LABELS_FUNCTION = (
-            "lambda self: lambda labels: "
-            "__import__('numpy').asarray(['_'.join("
-            "l.split('_')[-4:-2+self.ADD_BATCH_TO_LABEL] + "
-            "([l.split('_')[-1]] if self.ADD_REP_TO_LABEL else [])"
-            ") for l in labels])"
-        )
-        self.UMAP_MAPPINGS = None
 
-        # Set the size of the dots
-        self.SIZE = 30
-        # Set the alpha of the dots (0=max opacity, 1=no opacity)
-        self.ALPHA = 0.7
+        # Decide if to show ARI metric on the UMAP
+        self.SHOW_ARI = True
         #######################################  
 
 class EmbeddingsdNLSB4BothRepsOnlyTDP43UntreatedDatasetConfig(DatasetConfig):
@@ -2141,7 +1670,6 @@ class EmbeddingsdNLSB4BothRepsOnlyTDP43UntreatedDatasetConfig(DatasetConfig):
                         ["batch4"]]
         
         self.CELL_LINES = ['TDP43']
-        self.REPS = ['rep1', 'rep2'] 
         self.CONDITIONS = ['Untreated']
         
         
@@ -2150,20 +1678,9 @@ class EmbeddingsdNLSB4BothRepsOnlyTDP43UntreatedDatasetConfig(DatasetConfig):
         self.SPLIT_DATA = False
         self.ADD_REP_TO_LABEL = True
         self.ADD_BATCH_TO_LABEL = False
-        self.TRAIN_BATCHES = []
-        self.MAP_LABELS_FUNCTION = (
-            "lambda self: lambda labels: "
-            "__import__('numpy').asarray(['_'.join("
-            "l.split('_')[-4:-2+self.ADD_BATCH_TO_LABEL] + "
-            "([l.split('_')[-1]] if self.ADD_REP_TO_LABEL else [])"
-            ") for l in labels])"
-        )
-        self.UMAP_MAPPINGS = None
 
-        # Set the size of the dots
-        self.SIZE = 30
-        # Set the alpha of the dots (0=max opacity, 1=no opacity)
-        self.ALPHA = 0.7
+        # Decide if to show ARI metric on the UMAP
+        self.SHOW_ARI = True
         #######################################  
         
 class EmbeddingsdNLSB4BothRepsOnlyTDP43DoxDatasetConfig(DatasetConfig):
@@ -2173,29 +1690,16 @@ class EmbeddingsdNLSB4BothRepsOnlyTDP43DoxDatasetConfig(DatasetConfig):
                         ["batch4"]]
         
         self.CELL_LINES = ['TDP43']
-        self.REPS = ['rep1', 'rep2'] 
         self.CONDITIONS = ['dox']
-        
         
         self.EXPERIMENT_TYPE = 'deltaNLS'
         
         self.SPLIT_DATA = False
         self.ADD_REP_TO_LABEL = True
         self.ADD_BATCH_TO_LABEL = False
-        self.TRAIN_BATCHES = []
-        self.MAP_LABELS_FUNCTION = (
-            "lambda self: lambda labels: "
-            "__import__('numpy').asarray(['_'.join("
-            "l.split('_')[-4:-2+self.ADD_BATCH_TO_LABEL] + "
-            "([l.split('_')[-1]] if self.ADD_REP_TO_LABEL else [])"
-            ") for l in labels])"
-        )
-        self.UMAP_MAPPINGS = None
 
-        # Set the size of the dots
-        self.SIZE = 30
-        # Set the alpha of the dots (0=max opacity, 1=no opacity)
-        self.ALPHA = 0.7
+        # Decide if to show ARI metric on the UMAP
+        self.SHOW_ARI = True
         #######################################  
 
 class EmbeddingsdNLSB4Rep1DatasetConfig(DatasetConfig):
@@ -2208,24 +1712,13 @@ class EmbeddingsdNLSB4Rep1DatasetConfig(DatasetConfig):
         self.MARKERS_TO_EXCLUDE = ['FMRP','TIA1']
         
         self.EXPERIMENT_TYPE = 'deltaNLS'
-        self.TRAIN_BATCHES = None
+        
         self.SPLIT_DATA = False
-        self.ADD_REP_TO_LABEL = False
+        self.ADD_REP_TO_LABEL = True
         self.ADD_BATCH_TO_LABEL = False
         
-        self.MAP_LABELS_FUNCTION = (
-            "lambda self: lambda labels: "
-            "__import__('numpy').asarray(['_'.join("
-            "l.split('_')[-4:-2+self.ADD_BATCH_TO_LABEL] + "
-            "([l.split('_')[-1]] if self.ADD_REP_TO_LABEL else [])"
-            ") for l in labels])"
-        )
-        self.UMAP_MAPPINGS = self.UMAP_MAPPINGS_DOX
-
-        # Set the size of the dots
-        self.SIZE = 30
-        # Set the alpha of the dots (0=max opacity, 1=no opacity)
-        self.ALPHA = 0.7
+        # Decide if to show ARI metric on the UMAP
+        self.SHOW_ARI = True
         #######################################     
 
 class EmbeddingsdNLSB4Rep2DatasetConfig(DatasetConfig):
@@ -2238,24 +1731,13 @@ class EmbeddingsdNLSB4Rep2DatasetConfig(DatasetConfig):
         self.MARKERS_TO_EXCLUDE = ['FMRP','TIA1']
         
         self.EXPERIMENT_TYPE = 'deltaNLS'
-        self.TRAIN_BATCHES = None
+        
         self.SPLIT_DATA = False
-        self.ADD_REP_TO_LABEL = False
+        self.ADD_REP_TO_LABEL = True
         self.ADD_BATCH_TO_LABEL = False
         
-        self.MAP_LABELS_FUNCTION = (
-            "lambda self: lambda labels: "
-            "__import__('numpy').asarray(['_'.join("
-            "l.split('_')[-4:-2+self.ADD_BATCH_TO_LABEL] + "
-            "([l.split('_')[-1]] if self.ADD_REP_TO_LABEL else [])"
-            ") for l in labels])"
-        )
-        self.UMAP_MAPPINGS = self.UMAP_MAPPINGS_DOX
-
-        # Set the size of the dots
-        self.SIZE = 30
-        # Set the alpha of the dots (0=max opacity, 1=no opacity)
-        self.ALPHA = 0.7
+        # Decide if to show ARI metric on the UMAP
+        self.SHOW_ARI = True
         #######################################     
 
 class EmbeddingsdNLSB5Rep1DatasetConfig(DatasetConfig):
@@ -2268,24 +1750,13 @@ class EmbeddingsdNLSB5Rep1DatasetConfig(DatasetConfig):
         self.MARKERS_TO_EXCLUDE = ['FMRP','TIA1']
         
         self.EXPERIMENT_TYPE = 'deltaNLS'
-        self.TRAIN_BATCHES = None
+        
         self.SPLIT_DATA = False
-        self.ADD_REP_TO_LABEL = False
+        self.ADD_REP_TO_LABEL = True
         self.ADD_BATCH_TO_LABEL = False
         
-        self.MAP_LABELS_FUNCTION = (
-            "lambda self: lambda labels: "
-            "__import__('numpy').asarray(['_'.join("
-            "l.split('_')[-4:-2+self.ADD_BATCH_TO_LABEL] + "
-            "([l.split('_')[-1]] if self.ADD_REP_TO_LABEL else [])"
-            ") for l in labels])"
-        )
-        self.UMAP_MAPPINGS = self.UMAP_MAPPINGS_DOX
-
-        # Set the size of the dots
-        self.SIZE = 30
-        # Set the alpha of the dots (0=max opacity, 1=no opacity)
-        self.ALPHA = 0.7
+        # Decide if to show ARI metric on the UMAP
+        self.SHOW_ARI = True
         #######################################     
 
 class EmbeddingsdNLSB5Rep2DatasetConfig(DatasetConfig):
@@ -2296,26 +1767,15 @@ class EmbeddingsdNLSB5Rep2DatasetConfig(DatasetConfig):
         
         self.REPS = ['rep2'] 
         self.MARKERS_TO_EXCLUDE = ['FMRP','TIA1']
-        self.TRAIN_BATCHES = None
+        
         self.EXPERIMENT_TYPE = 'deltaNLS'
         
         self.SPLIT_DATA = False
-        self.ADD_REP_TO_LABEL = False
+        self.ADD_REP_TO_LABEL = True
         self.ADD_BATCH_TO_LABEL = False
         
-        self.MAP_LABELS_FUNCTION = (
-            "lambda self: lambda labels: "
-            "__import__('numpy').asarray(['_'.join("
-            "l.split('_')[-4:-2+self.ADD_BATCH_TO_LABEL] + "
-            "([l.split('_')[-1]] if self.ADD_REP_TO_LABEL else [])"
-            ") for l in labels])"
-        )
-        self.UMAP_MAPPINGS = self.UMAP_MAPPINGS_DOX
-
-        # Set the size of the dots
-        self.SIZE = 30
-        # Set the alpha of the dots (0=max opacity, 1=no opacity)
-        self.ALPHA = 0.7
+        # Decide if to show ARI metric on the UMAP
+        self.SHOW_ARI = True
         #######################################     
         
 class EmbeddingsdNLSB5BothRepsOnlyTDP43UntreatedDatasetConfig(DatasetConfig):
@@ -2325,7 +1785,6 @@ class EmbeddingsdNLSB5BothRepsOnlyTDP43UntreatedDatasetConfig(DatasetConfig):
                         ["batch5"]]
         
         self.CELL_LINES = ['TDP43']
-        self.REPS = ['rep1', 'rep2'] 
         self.CONDITIONS = ['Untreated']
         
         
@@ -2334,20 +1793,9 @@ class EmbeddingsdNLSB5BothRepsOnlyTDP43UntreatedDatasetConfig(DatasetConfig):
         self.SPLIT_DATA = False
         self.ADD_REP_TO_LABEL = True
         self.ADD_BATCH_TO_LABEL = False
-        self.TRAIN_BATCHES = []
-        self.MAP_LABELS_FUNCTION = (
-            "lambda self: lambda labels: "
-            "__import__('numpy').asarray(['_'.join("
-            "l.split('_')[-4:-2+self.ADD_BATCH_TO_LABEL] + "
-            "([l.split('_')[-1]] if self.ADD_REP_TO_LABEL else [])"
-            ") for l in labels])"
-        )
-        self.UMAP_MAPPINGS = None
-
-        # Set the size of the dots
-        self.SIZE = 30
-        # Set the alpha of the dots (0=max opacity, 1=no opacity)
-        self.ALPHA = 0.7
+        
+        # Decide if to show ARI metric on the UMAP
+        self.SHOW_ARI = True
         #######################################  
         
 class EmbeddingsdNLSB2BothRepsOnlyTDP43UntreatedDatasetConfig(DatasetConfig):
@@ -2357,29 +1805,16 @@ class EmbeddingsdNLSB2BothRepsOnlyTDP43UntreatedDatasetConfig(DatasetConfig):
                         ["batch2"]]
         
         self.CELL_LINES = ['TDP43']
-        self.REPS = ['rep1', 'rep2'] 
         self.CONDITIONS = ['Untreated']
-        
         
         self.EXPERIMENT_TYPE = 'deltaNLS'
         
         self.SPLIT_DATA = False
         self.ADD_REP_TO_LABEL = True
         self.ADD_BATCH_TO_LABEL = False
-        self.TRAIN_BATCHES = []
-        self.MAP_LABELS_FUNCTION = (
-            "lambda self: lambda labels: "
-            "__import__('numpy').asarray(['_'.join("
-            "l.split('_')[-4:-2+self.ADD_BATCH_TO_LABEL] + "
-            "([l.split('_')[-1]] if self.ADD_REP_TO_LABEL else [])"
-            ") for l in labels])"
-        )
-        self.UMAP_MAPPINGS = None
 
-        # Set the size of the dots
-        self.SIZE = 30
-        # Set the alpha of the dots (0=max opacity, 1=no opacity)
-        self.ALPHA = 0.7
+        # Decide if to show ARI metric on the UMAP
+        self.SHOW_ARI = True
         #######################################  
 
 ############################################################
@@ -2397,24 +1832,33 @@ class EmbeddingsU2OSRep1FigureConfig(DatasetConfig):
         self.EXPERIMENT_TYPE = 'U2OS'
         self.MARKERS = ['G3BP1', 'DCP1A', 'Phalloidin', 'DAPI']
         self.REPS = ['rep1']
-        
-        self.MAP_LABELS_FUNCTION = (
-            "lambda self: lambda labels: "
-            "__import__('numpy').asarray([' '.join("
-            "l.split('_')[-3:-2+self.ADD_BATCH_TO_LABEL] + "
-            "([l.split('_')[-1]] if self.ADD_REP_TO_LABEL else [])"
-            ") for l in labels])"
-        )      
-        self.UMAP_MAPPINGS = self.UMAP_MAPPINGS_CONDITION
-        self.TRAIN_BATCHES = None
-        # Set the size of the dots
-        self.SIZE = 30
-        # Set the alpha of the dots (0=max opacity, 1=no opacity)
-        self.ALPHA = 0.7
+        self.ADD_REP_TO_LABEL = True
 
+        # Decide if to show ARI metric on the UMAP
+        self.SHOW_ARI = True
 ############################################################
 # UMAP2
 ############################################################ 
+class NeuronsUMAP2B6Rep2StressFigureConfig(DatasetConfig):
+    def __init__(self):
+        super().__init__()
+        self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "spd2", "SpinningDisk", f) for f in 
+                        ["batch6"]]
+        
+        self.CELL_LINES = ['WT']
+        self.REPS = ['rep2']
+        self.MARKERS_TO_EXCLUDE = ['FMRP','TIA1']
+        
+        self.EXPERIMENT_TYPE = 'neurons'
+        
+        self.SPLIT_DATA = False
+        self.ADD_REP_TO_LABEL = True
+        self.ADD_BATCH_TO_LABEL = False
+
+        # Decide if to show ARI metric on the UMAP
+        self.SHOW_ARI = True
+        #######################################
+
 class NeuronsUMAP2B6Rep2FUSFigureConfig(DatasetConfig):
     def __init__(self):
         super().__init__()
@@ -2427,18 +1871,13 @@ class NeuronsUMAP2B6Rep2FUSFigureConfig(DatasetConfig):
         self.MARKERS_TO_EXCLUDE = ['FMRP','TIA1']
         
         self.EXPERIMENT_TYPE = 'neurons'
-        self.TRAIN_BATCHES = None
+        
         self.SPLIT_DATA = False
-        self.ADD_REP_TO_LABEL = False
+        self.ADD_REP_TO_LABEL = True
         self.ADD_BATCH_TO_LABEL = False
         
-        self.MAP_LABELS_FUNCTION = None
-        self.UMAP_MAPPINGS = self.UMAP_MAPPINGS_ALS
-
-        # Set the size of the dots
-        self.SIZE = 30
-        # Set the alpha of the dots (0=max opacity, 1=no opacity)
-        self.ALPHA = 0.7
+        # Decide if to show ARI metric on the UMAP
+        self.SHOW_ARI = True
         #######################################
 
 class NeuronsUMAP2B6Rep2FigureConfig(DatasetConfig):
@@ -2453,18 +1892,13 @@ class NeuronsUMAP2B6Rep2FigureConfig(DatasetConfig):
         self.MARKERS_TO_EXCLUDE = ['FMRP','TIA1']
         
         self.EXPERIMENT_TYPE = 'neurons'
-        self.TRAIN_BATCHES = None
-        self.SPLIT_DATA = False
-        self.ADD_REP_TO_LABEL = False
-        self.ADD_BATCH_TO_LABEL = False
         
-        self.MAP_LABELS_FUNCTION = None
-        self.UMAP_MAPPINGS = self.UMAP_MAPPINGS_ALS
+        self.SPLIT_DATA = False
+        self.ADD_REP_TO_LABEL = True
+        self.ADD_BATCH_TO_LABEL = False
 
-        # Set the size of the dots
-        self.SIZE = 30
-        # Set the alpha of the dots (0=max opacity, 1=no opacity)
-        self.ALPHA = 0.7
+        # Decide if to show ARI metric on the UMAP
+        self.SHOW_ARI = False
         #######################################
 
 class NeuronsUMAP2B6Rep2FUSLinesNOFUSFigureConfig(DatasetConfig):
@@ -2479,18 +1913,13 @@ class NeuronsUMAP2B6Rep2FUSLinesNOFUSFigureConfig(DatasetConfig):
         self.MARKERS_TO_EXCLUDE = ['FMRP','TIA1',"FUS"]
         
         self.EXPERIMENT_TYPE = 'neurons'
-        self.TRAIN_BATCHES = None
-        self.SPLIT_DATA = False
-        self.ADD_REP_TO_LABEL = False
-        self.ADD_BATCH_TO_LABEL = False
         
-        self.MAP_LABELS_FUNCTION = None
-        self.UMAP_MAPPINGS = self.UMAP_MAPPINGS_ALS
+        self.SPLIT_DATA = False
+        self.ADD_REP_TO_LABEL = True
+        self.ADD_BATCH_TO_LABEL = False
 
-        # Set the size of the dots
-        self.SIZE = 30
-        # Set the alpha of the dots (0=max opacity, 1=no opacity)
-        self.ALPHA = 0.7
+        # Decide if to show ARI metric on the UMAP
+        self.SHOW_ARI = True
         #######################################
 
 class NeuronsUMAP2B6Rep2NOFUSFigureConfig(DatasetConfig):
@@ -2504,18 +1933,13 @@ class NeuronsUMAP2B6Rep2NOFUSFigureConfig(DatasetConfig):
         self.MARKERS_TO_EXCLUDE = ['FMRP','TIA1',"FUS"]
         
         self.EXPERIMENT_TYPE = 'neurons'
-        self.TRAIN_BATCHES = None
+        
         self.SPLIT_DATA = False
         self.ADD_REP_TO_LABEL = False
         self.ADD_BATCH_TO_LABEL = False
-        
-        self.MAP_LABELS_FUNCTION = None
-        self.UMAP_MAPPINGS = self.UMAP_MAPPINGS_ALS
 
-        # Set the size of the dots
-        self.SIZE = 30
-        # Set the alpha of the dots (0=max opacity, 1=no opacity)
-        self.ALPHA = 0.7
+        # Decide if to show ARI metric on the UMAP
+        self.SHOW_ARI = False
         #######################################
 
 class NeuronsUMAP2B6Rep2NOFUSLinesFigureConfig(DatasetConfig):
@@ -2530,18 +1954,13 @@ class NeuronsUMAP2B6Rep2NOFUSLinesFigureConfig(DatasetConfig):
         self.MARKERS_TO_EXCLUDE = ['FMRP','TIA1']
         
         self.EXPERIMENT_TYPE = 'neurons'
-        self.TRAIN_BATCHES = None
+        
         self.SPLIT_DATA = False
         self.ADD_REP_TO_LABEL = False
         self.ADD_BATCH_TO_LABEL = False
-        
-        self.MAP_LABELS_FUNCTION = None
-        self.UMAP_MAPPINGS = self.UMAP_MAPPINGS_ALS
 
-        # Set the size of the dots
-        self.SIZE = 30
-        # Set the alpha of the dots (0=max opacity, 1=no opacity)
-        self.ALPHA = 0.7
+        # Decide if to show ARI metric on the UMAP
+        self.SHOW_ARI = True
         #######################################
 
 class dNLSUMAP2B3BothRepsFigureConfig(DatasetConfig):
@@ -2550,22 +1969,16 @@ class dNLSUMAP2B3BothRepsFigureConfig(DatasetConfig):
         self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "spd2", "SpinningDisk","deltaNLS", f) for f in 
                         ["batch3"]]
         
-        self.REPS = ['rep2','rep1'] 
         self.MARKERS_TO_EXCLUDE = ['FMRP','TIA1']
         
         self.EXPERIMENT_TYPE = 'deltaNLS'
-        self.TRAIN_BATCHES = None
+        
         self.SPLIT_DATA = False
         self.ADD_REP_TO_LABEL = False
         self.ADD_BATCH_TO_LABEL = False
         
-        self.MAP_LABELS_FUNCTION = None
-        self.UMAP_MAPPINGS = self.UMAP_MAPPINGS_DOX
-
-        # Set the size of the dots
-        self.SIZE = 30
-        # Set the alpha of the dots (0=max opacity, 1=no opacity)
-        self.ALPHA = 0.7
+        # Decide if to show ARI metric on the UMAP
+        self.SHOW_ARI = True
         #######################################
         
 class dNLSUMAP2B3BothRepsWithoutWTFigureConfig(DatasetConfig):
@@ -2575,22 +1988,16 @@ class dNLSUMAP2B3BothRepsWithoutWTFigureConfig(DatasetConfig):
                         ["batch3"]]
         
         self.CELL_LINES = ["TDP43"]
-        self.REPS = ['rep2','rep1'] 
         self.MARKERS_TO_EXCLUDE = ['FMRP','TIA1']
         
         self.EXPERIMENT_TYPE = 'deltaNLS'
-        self.TRAIN_BATCHES = []
+        
         self.SPLIT_DATA = False
         self.ADD_REP_TO_LABEL = False
         self.ADD_BATCH_TO_LABEL = False
         
-        self.MAP_LABELS_FUNCTION = None
-        self.UMAP_MAPPINGS = self.UMAP_MAPPINGS_DOX
-
-        # Set the size of the dots
-        self.SIZE = 30
-        # Set the alpha of the dots (0=max opacity, 1=no opacity)
-        self.ALPHA = 0.7
+        # Decide if to show ARI metric on the UMAP
+        self.SHOW_ARI = True
         #######################################
         
 ## Opera 18 days (REIMAGED)
@@ -2602,23 +2009,17 @@ class NeuronsUMAP2Bpera18daysREIMAGEDALSFigureConfig(DatasetConfig):
                         ["batch1", "batch2"]]
         
         self.CELL_LINES = ['WT', "FUSRevertant", "FUSHomozygous", "FUSHeterozygous", "TBK1", "OPTN","TDP43"]
-        self.REPS = ['rep1','rep2'] 
         self.CONDITIONS = ['Untreated']
         self.MARKERS_TO_EXCLUDE = ['FMRP','TIA1']
         
         self.EXPERIMENT_TYPE = 'neurons_d18'
-        self.TRAIN_BATCHES = []
+        
         self.SPLIT_DATA = False
         self.ADD_REP_TO_LABEL = False
         self.ADD_BATCH_TO_LABEL = False
-        
-        self.MAP_LABELS_FUNCTION = None
-        self.UMAP_MAPPINGS = self.UMAP_MAPPINGS_ALS
 
-        # Set the size of the dots
-        self.SIZE = 30
-        # Set the alpha of the dots (0=max opacity, 1=no opacity)
-        self.ALPHA = 0.7
+        # Decide if to show ARI metric on the UMAP
+        self.SHOW_ARI = False
         ####################################### 
 
 class NeuronsUMAP2Bpera18daysREIMAGEDB1BothRepsALSFigureConfig(NeuronsUMAP2Bpera18daysREIMAGEDALSFigureConfig):
@@ -2626,7 +2027,6 @@ class NeuronsUMAP2Bpera18daysREIMAGEDB1BothRepsALSFigureConfig(NeuronsUMAP2Bpera
         super().__init__()
         self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "Opera18DaysReimaged", f) for f in 
                         ["batch1"]]
-        self.UMAP_MAPPINGS = None
         self.ADD_REP_TO_LABEL = True
         
 class NeuronsUMAP2Bpera18daysREIMAGEDB2BothRepsALSFigureConfig(NeuronsUMAP2Bpera18daysREIMAGEDALSFigureConfig):
@@ -2634,7 +2034,6 @@ class NeuronsUMAP2Bpera18daysREIMAGEDB2BothRepsALSFigureConfig(NeuronsUMAP2Bpera
         super().__init__()
         self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "Opera18DaysReimaged", f) for f in 
                         ["batch2"]]
-        self.UMAP_MAPPINGS = None
         self.ADD_REP_TO_LABEL = True
         
 class NeuronsUMAP2Bpera18daysREIMAGEDB1Rep1ALSFigureConfig(NeuronsUMAP2Bpera18daysREIMAGEDALSFigureConfig):
@@ -2679,18 +2078,13 @@ class NeuronsUMAP2Bpera18daysREIMAGEDALSWithSNCAFigureConfig(DatasetConfig):
         self.MARKERS_TO_EXCLUDE = ['FMRP','TIA1']
         
         self.EXPERIMENT_TYPE = 'neurons_d18'
-        self.TRAIN_BATCHES = []
+        
         self.SPLIT_DATA = False
         self.ADD_REP_TO_LABEL = False
         self.ADD_BATCH_TO_LABEL = False
-        
-        self.MAP_LABELS_FUNCTION = None
-        self.UMAP_MAPPINGS = self.UMAP_MAPPINGS_ALS
 
-        # Set the size of the dots
-        self.SIZE = 30
-        # Set the alpha of the dots (0=max opacity, 1=no opacity)
-        self.ALPHA = 0.7
+        # Decide if to show ARI metric on the UMAP
+        self.SHOW_ARI = False
         ####################################### 
 
 class NeuronsUMAP2Bpera18daysREIMAGEDB1BothRepsALSWithSNCAFigureConfig(NeuronsUMAP2Bpera18daysREIMAGEDALSWithSNCAFigureConfig):
@@ -2698,7 +2092,6 @@ class NeuronsUMAP2Bpera18daysREIMAGEDB1BothRepsALSWithSNCAFigureConfig(NeuronsUM
         super().__init__()
         self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "Opera18DaysReimaged", f) for f in 
                         ["batch1"]]
-        self.UMAP_MAPPINGS = None
         self.ADD_REP_TO_LABEL = True
         
 class NeuronsUMAP2Bpera18daysREIMAGEDB2BothRepsALSWithSNCAFigureConfig(NeuronsUMAP2Bpera18daysREIMAGEDALSWithSNCAFigureConfig):
@@ -2706,7 +2099,6 @@ class NeuronsUMAP2Bpera18daysREIMAGEDB2BothRepsALSWithSNCAFigureConfig(NeuronsUM
         super().__init__()
         self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "Opera18DaysReimaged", f) for f in 
                         ["batch2"]]
-        self.UMAP_MAPPINGS = None
         self.ADD_REP_TO_LABEL = True
         
 class NeuronsUMAP2Bpera18daysREIMAGEDB1Rep1ALSWithSNCAFigureConfig(NeuronsUMAP2Bpera18daysREIMAGEDALSWithSNCAFigureConfig):
@@ -2746,29 +2138,17 @@ class NeuronsUMAP0B1Opera18daysREIMAGEDALSFigureConfig(DatasetConfig):
                         ["batch1"]]
         
         # self.CELL_LINES = ['WT', "FUSRevertant", "FUSHomozygous", "FUSHeterozygous", "TBK1", "OPTN","TDP43"]
-        self.REPS = ['rep1','rep2'] 
         self.CONDITIONS = ['Untreated']
         self.MARKERS_TO_EXCLUDE = ['FMRP','TIA1']
         
         self.EXPERIMENT_TYPE = 'neurons_d18'
-        self.TRAIN_BATCHES = []
+        
         self.SPLIT_DATA = False
         self.ADD_REP_TO_LABEL = False
         self.ADD_BATCH_TO_LABEL = False
         
-        self.MAP_LABELS_FUNCTION = (
-            "lambda self: lambda labels: "
-            "__import__('numpy').asarray(['_'.join("
-            "l.split('_')[-4:-2+self.ADD_BATCH_TO_LABEL] + "
-            "([l.split('_')[-1]] if self.ADD_REP_TO_LABEL else [])"
-            ") for l in labels])"
-        )
-        self.UMAP_MAPPINGS = self.UMAP_MAPPINGS_ALS
-
-        # Set the size of the dots
-        self.SIZE = 30
-        # Set the alpha of the dots (0=max opacity, 1=no opacity)
-        self.ALPHA = 0.7
+        # Decide if to show ARI metric on the UMAP
+        self.SHOW_ARI = False
         ####################################### 
         
 class NeuronsUMAP0B2Opera18daysREIMAGEDALSFigureConfig(DatasetConfig):
@@ -2778,29 +2158,17 @@ class NeuronsUMAP0B2Opera18daysREIMAGEDALSFigureConfig(DatasetConfig):
                         ["batch2"]]
         
         # self.CELL_LINES = ['WT', "FUSRevertant", "FUSHomozygous", "FUSHeterozygous", "TBK1", "OPTN","TDP43"]
-        self.REPS = ['rep1','rep2'] 
         self.CONDITIONS = ['Untreated']
         self.MARKERS_TO_EXCLUDE = ['FMRP','TIA1']
         
         self.EXPERIMENT_TYPE = 'neurons_d18'
-        self.TRAIN_BATCHES = []
+        
         self.SPLIT_DATA = False
         self.ADD_REP_TO_LABEL = False
         self.ADD_BATCH_TO_LABEL = False
         
-        self.MAP_LABELS_FUNCTION = (
-            "lambda self: lambda labels: "
-            "__import__('numpy').asarray(['_'.join("
-            "l.split('_')[-4:-2+self.ADD_BATCH_TO_LABEL] + "
-            "([l.split('_')[-1]] if self.ADD_REP_TO_LABEL else [])"
-            ") for l in labels])"
-        )
-        self.UMAP_MAPPINGS = self.UMAP_MAPPINGS_ALS
-
-        # Set the size of the dots
-        self.SIZE = 30
-        # Set the alpha of the dots (0=max opacity, 1=no opacity)
-        self.ALPHA = 0.7
+        # Decide if to show ARI metric on the UMAP
+        self.SHOW_ARI = False
         ####################################### 
 
 class NeuronsUMAP0B1Rep2Opera18daysREIMAGEDALS_WT_FUSHet_FigureConfig(NeuronsUMAP0B1Opera18daysREIMAGEDALSFigureConfig):
@@ -2989,7 +2357,6 @@ class NeuronsUMAP2B6BothRepsFigureConfig(DatasetConfig):
                         ["batch6"]]
         
         # self.CELL_LINES = ['WT', "FUSHomozygous", "FUSHeterozygous", "FUSRevertant"]
-        self.REPS = ['rep2','rep1'] 
         self.CONDITIONS = ['Untreated']
         self.MARKERS_TO_EXCLUDE = ['FMRP','TIA1']
         
@@ -2998,14 +2365,9 @@ class NeuronsUMAP2B6BothRepsFigureConfig(DatasetConfig):
         self.SPLIT_DATA = False
         self.ADD_REP_TO_LABEL = False
         self.ADD_BATCH_TO_LABEL = False
-        
-        self.MAP_LABELS_FUNCTION = None
-        self.UMAP_MAPPINGS = self.UMAP_MAPPINGS_ALS
 
-        # Set the size of the dots
-        self.SIZE = 30
-        # Set the alpha of the dots (0=max opacity, 1=no opacity)
-        self.ALPHA = 0.7
+        # Decide if to show ARI metric on the UMAP
+        self.SHOW_ARI = False
         #######################################
 
 class NeuronsUMAP2B6BothRepsNOFUSFigureConfig(DatasetConfig):
@@ -3015,7 +2377,6 @@ class NeuronsUMAP2B6BothRepsNOFUSFigureConfig(DatasetConfig):
                         ["batch6"]]
         
         # self.CELL_LINES = ['WT', "FUSHomozygous", "FUSHeterozygous", "FUSRevertant"]
-        self.REPS = ['rep2','rep1'] 
         self.CONDITIONS = ['Untreated']
         self.MARKERS_TO_EXCLUDE = ['FMRP','TIA1','FUS']
         
@@ -3024,14 +2385,9 @@ class NeuronsUMAP2B6BothRepsNOFUSFigureConfig(DatasetConfig):
         self.SPLIT_DATA = False
         self.ADD_REP_TO_LABEL = False
         self.ADD_BATCH_TO_LABEL = False
-        
-        self.MAP_LABELS_FUNCTION = None
-        self.UMAP_MAPPINGS = self.UMAP_MAPPINGS_ALS
 
-        # Set the size of the dots
-        self.SIZE = 30
-        # Set the alpha of the dots (0=max opacity, 1=no opacity)
-        self.ALPHA = 0.7
+        # Decide if to show ARI metric on the UMAP
+        self.SHOW_ARI = False
         #######################################
 
 class NeuronsUMAP2B6BothRepsNOFUSNOSCNAFigureConfig(DatasetConfig):
@@ -3041,7 +2397,6 @@ class NeuronsUMAP2B6BothRepsNOFUSNOSCNAFigureConfig(DatasetConfig):
                         ["batch6"]]
         
         self.CELL_LINES = ['WT', "FUSHomozygous", "FUSHeterozygous", "FUSRevertant",'OPTN','TBK1','TDP43']
-        self.REPS = ['rep2','rep1'] 
         self.CONDITIONS = ['Untreated']
         self.MARKERS_TO_EXCLUDE = ['FMRP','TIA1','FUS']
         
@@ -3050,14 +2405,9 @@ class NeuronsUMAP2B6BothRepsNOFUSNOSCNAFigureConfig(DatasetConfig):
         self.SPLIT_DATA = False
         self.ADD_REP_TO_LABEL = False
         self.ADD_BATCH_TO_LABEL = False
-        
-        self.MAP_LABELS_FUNCTION = None
-        self.UMAP_MAPPINGS = self.UMAP_MAPPINGS_ALS
 
-        # Set the size of the dots
-        self.SIZE = 30
-        # Set the alpha of the dots (0=max opacity, 1=no opacity)
-        self.ALPHA = 0.7
+        # Decide if to show ARI metric on the UMAP
+        self.SHOW_ARI = False
         #######################################
 
 class NeuronsUMAP2B6BothRepsNOSCNAFigureConfig(DatasetConfig):
@@ -3067,7 +2417,6 @@ class NeuronsUMAP2B6BothRepsNOSCNAFigureConfig(DatasetConfig):
                         ["batch6"]]
         
         self.CELL_LINES = ['WT', "FUSHomozygous", "FUSHeterozygous", "FUSRevertant",'OPTN','TBK1','TDP43']
-        self.REPS = ['rep2','rep1'] 
         self.CONDITIONS = ['Untreated']
         self.MARKERS_TO_EXCLUDE = ['FMRP','TIA1']
         
@@ -3076,14 +2425,9 @@ class NeuronsUMAP2B6BothRepsNOSCNAFigureConfig(DatasetConfig):
         self.SPLIT_DATA = False
         self.ADD_REP_TO_LABEL = False
         self.ADD_BATCH_TO_LABEL = False
-        
-        self.MAP_LABELS_FUNCTION = None
-        self.UMAP_MAPPINGS = self.UMAP_MAPPINGS_ALS
 
-        # Set the size of the dots
-        self.SIZE = 30
-        # Set the alpha of the dots (0=max opacity, 1=no opacity)
-        self.ALPHA = 0.7
+        # Decide if to show ARI metric on the UMAP
+        self.SHOW_ARI = False
         #######################################
 
 class NeuronsUMAP2B9BothRepsFigureConfig(DatasetConfig):
@@ -3093,7 +2437,6 @@ class NeuronsUMAP2B9BothRepsFigureConfig(DatasetConfig):
                         ["batch9"]]
         
         # self.CELL_LINES = ['WT', "FUSHomozygous", "FUSHeterozygous", "FUSRevertant"]
-        self.REPS = ['rep2','rep1'] 
         self.CONDITIONS = ['Untreated']
         self.MARKERS_TO_EXCLUDE = ['FMRP','TIA1']
         
@@ -3102,14 +2445,9 @@ class NeuronsUMAP2B9BothRepsFigureConfig(DatasetConfig):
         self.SPLIT_DATA = False
         self.ADD_REP_TO_LABEL = False
         self.ADD_BATCH_TO_LABEL = False
-        
-        self.MAP_LABELS_FUNCTION = None
-        self.UMAP_MAPPINGS = self.UMAP_MAPPINGS_ALS
 
-        # Set the size of the dots
-        self.SIZE = 30
-        # Set the alpha of the dots (0=max opacity, 1=no opacity)
-        self.ALPHA = 0.7
+        # Decide if to show ARI metric on the UMAP
+        self.SHOW_ARI = False
         #######################################
 
 class NeuronsUMAP2B9BothRepsNOFUSFigureConfig(DatasetConfig):
@@ -3119,7 +2457,6 @@ class NeuronsUMAP2B9BothRepsNOFUSFigureConfig(DatasetConfig):
                         ["batch9"]]
         
         # self.CELL_LINES = ['WT', "FUSHomozygous", "FUSHeterozygous", "FUSRevertant"]
-        self.REPS = ['rep2','rep1'] 
         self.CONDITIONS = ['Untreated']
         self.MARKERS_TO_EXCLUDE = ['FMRP','TIA1','FUS']
         
@@ -3128,14 +2465,9 @@ class NeuronsUMAP2B9BothRepsNOFUSFigureConfig(DatasetConfig):
         self.SPLIT_DATA = False
         self.ADD_REP_TO_LABEL = False
         self.ADD_BATCH_TO_LABEL = False
-        
-        self.MAP_LABELS_FUNCTION = None
-        self.UMAP_MAPPINGS = self.UMAP_MAPPINGS_ALS
 
-        # Set the size of the dots
-        self.SIZE = 30
-        # Set the alpha of the dots (0=max opacity, 1=no opacity)
-        self.ALPHA = 0.7
+        # Decide if to show ARI metric on the UMAP
+        self.SHOW_ARI = False
         #######################################
 
 class NeuronsUMAP2B9BothRepsNOFUSNOSCNAFigureConfig(DatasetConfig):
@@ -3145,7 +2477,6 @@ class NeuronsUMAP2B9BothRepsNOFUSNOSCNAFigureConfig(DatasetConfig):
                         ["batch9"]]
         
         self.CELL_LINES = ['WT', "FUSHomozygous", "FUSHeterozygous", "FUSRevertant",'OPTN','TBK1','TDP43']
-        self.REPS = ['rep2','rep1'] 
         self.CONDITIONS = ['Untreated']
         self.MARKERS_TO_EXCLUDE = ['FMRP','TIA1','FUS']
         
@@ -3154,14 +2485,9 @@ class NeuronsUMAP2B9BothRepsNOFUSNOSCNAFigureConfig(DatasetConfig):
         self.SPLIT_DATA = False
         self.ADD_REP_TO_LABEL = False
         self.ADD_BATCH_TO_LABEL = False
-        
-        self.MAP_LABELS_FUNCTION = None
-        self.UMAP_MAPPINGS = self.UMAP_MAPPINGS_ALS
 
-        # Set the size of the dots
-        self.SIZE = 30
-        # Set the alpha of the dots (0=max opacity, 1=no opacity)
-        self.ALPHA = 0.7
+        # Decide if to show ARI metric on the UMAP
+        self.SHOW_ARI = False
         #######################################
 
 class NeuronsUMAP2B9BothRepsNOSCNAFigureConfig(DatasetConfig):
@@ -3171,7 +2497,6 @@ class NeuronsUMAP2B9BothRepsNOSCNAFigureConfig(DatasetConfig):
                         ["batch9"]]
         
         self.CELL_LINES = ['WT', "FUSHomozygous", "FUSHeterozygous", "FUSRevertant",'OPTN','TBK1','TDP43']
-        self.REPS = ['rep2','rep1'] 
         self.CONDITIONS = ['Untreated']
         self.MARKERS_TO_EXCLUDE = ['FMRP','TIA1']
         
@@ -3180,12 +2505,7 @@ class NeuronsUMAP2B9BothRepsNOSCNAFigureConfig(DatasetConfig):
         self.SPLIT_DATA = False
         self.ADD_REP_TO_LABEL = False
         self.ADD_BATCH_TO_LABEL = False
-        
-        self.MAP_LABELS_FUNCTION = None
-        self.UMAP_MAPPINGS = self.UMAP_MAPPINGS_ALS
 
-        # Set the size of the dots
-        self.SIZE = 30
-        # Set the alpha of the dots (0=max opacity, 1=no opacity)
-        self.ALPHA = 0.7
+        # Decide if to show ARI metric on the UMAP
+        self.SHOW_ARI = False
         #######################################   
