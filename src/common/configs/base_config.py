@@ -28,7 +28,7 @@ class BaseConfig():
         # Output
         self.__OUTPUTS_FOLDER = os.path.join(self.HOME_FOLDER, "outputs")
         self.CONFIGS_USED_FOLDER = os.path.join(self.__OUTPUTS_FOLDER, "configs_used", self.__now_str)
-        
+
         # Logs
         self.__LOGS_FOLDER = os.path.join(self.HOME_FOLDER, 'logs')
         

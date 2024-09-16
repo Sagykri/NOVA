@@ -264,8 +264,10 @@ def __plot_boxplot(distances:pd.DataFrame, baseline:str, condition:str,
 
     # Plotting
     marker_name_color_dict = config_plot.COLOR_MAPPINGS_MARKERS
+    name_key=config_plot.UMAP_MAPPINGS_ALIAS_KEY
+    color_key=config_plot.UMAP_MAPPINGS_COLOR_KEY
     condition_name_color_dict = config_plot.COLOR_MAPPINGS_CELL_LINE_CONDITION
-    condition_to_color = {key: value.color for key, value in condition_name_color_dict.items()}
+    condition_to_color = {key: value[color_key] for key, value in condition_name_color_dict.items()}
     fig = plt.figure(figsize=(10,4))
     boxplot=sns.boxplot(data=cur_distances, order=dists_order, hue='condition',
                 x='marker', y=metric, fliersize=0, palette=condition_to_color)
@@ -278,7 +280,7 @@ def __plot_boxplot(distances:pd.DataFrame, baseline:str, condition:str,
         marker_pvalue = cur_marker.pvalue.values[0]
         __add_pvalue(marker, i, dists_order, patches,marker_pvalue)
         effect_size_formatted = round(cur_marker.d.values[0],2)
-        label = marker_name_color_dict[marker].alias if marker_name_color_dict else marker
+        label = marker_name_color_dict[marker][name_key]if marker_name_color_dict else marker
         if show_effect_size:
             label = f'{label} (d={effect_size_formatted})'
         labels.append(label)
@@ -286,7 +288,15 @@ def __plot_boxplot(distances:pd.DataFrame, baseline:str, condition:str,
     boxplot.set_xticklabels(labels)
     
     plt.xticks(rotation=90)
-    plt.title(f'{condition} vs {baseline}')
+    plt.ylabel('ARI')
+    plt.title(f'{config_plot.COLOR_MAPPINGS_CELL_LINE_CONDITION[condition][name_key]} vs {config_plot.COLOR_MAPPINGS_CELL_LINE_CONDITION[baseline][name_key]}')
+    _, current_labels = boxplot.get_legend_handles_labels()
+    updated_labels = [config_plot.COLOR_MAPPINGS_CELL_LINE_CONDITION[label][name_key] for label in current_labels]
+    legend = boxplot.legend_
+    legend.set_title("Conditions")
+    for text, new_label in zip(legend.get_texts(), updated_labels):
+        text.set_text(new_label)
+
     if savepath:
         save_plot(fig, savepath, dpi=100)
     else:
@@ -319,6 +329,7 @@ def __convert_labels(plot, baseline:str, config_plot:PlotConfig)->str:
     """
     marker_name_color_dict = config_plot.COLOR_MAPPINGS_MARKERS
     condition_name_color_dict = config_plot.COLOR_MAPPINGS_CELL_LINE_CONDITION
+    name_key=config_plot.UMAP_MAPPINGS_ALIAS_KEY
     if not marker_name_color_dict:
         return baseline
 
@@ -326,18 +337,18 @@ def __convert_labels(plot, baseline:str, config_plot:PlotConfig)->str:
         plot = plot.ax_heatmap
 
     marker_labels = plot.get_yticklabels()
-    marker_labels = [marker_name_color_dict[label.get_text()].alias for label in marker_labels]
+    marker_labels = [marker_name_color_dict[label.get_text()][name_key] for label in marker_labels]
     ytick_positions = plot.get_yticks()
     plot.set_yticks(ytick_positions)
     plot.set_yticklabels(marker_labels)
     
     condition_labels = plot.get_xticklabels()
-    condition_labels = [condition_name_color_dict[label.get_text()].alias for label in condition_labels]
+    condition_labels = [condition_name_color_dict[label.get_text()][name_key] for label in condition_labels]
     xtick_positions = plot.get_xticks()
     plot.set_xticks(xtick_positions)
     plot.set_xticklabels(condition_labels)
     
-    baseline = condition_name_color_dict[baseline].alias
+    baseline = condition_name_color_dict[baseline][name_key]
     return baseline
 
 def __calc_pvalue_and_effect(distances:pd.DataFrame, baseline:str, condition:str, metric:str)->dict:
@@ -414,9 +425,9 @@ def __add_pvalue(marker:str, marker_index:int, dists_order:List[str], patches, p
         # Add the asterisks above the box
         plt.text(dists_order.to_list().index(marker), pval_loc, asterisks, 
                     ha='center', va='bottom', fontsize=10)
-    else: # plot the full pvalue
-        plt.text(dists_order.to_list().index(marker), pval_loc + 0.1*pval_loc, round(pvalue,4), 
-                    ha='center', va='bottom', fontsize=7, rotation=90)
+    # else: # plot the full pvalue
+    #     plt.text(dists_order.to_list().index(marker), pval_loc + 0.1*pval_loc, round(pvalue,4), 
+    #                 ha='center', va='bottom', fontsize=7, rotation=90)
             
 def __convert_pvalue_to_asterisks(pval:float)->str:
     if pval <= 0.0001:

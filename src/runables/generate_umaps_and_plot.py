@@ -7,7 +7,7 @@ print(f"MOMAPS_HOME: {os.getenv('MOMAPS_HOME')}")
 
 import logging
 
-from src.common.lib.utils import load_config_file
+from src.common.lib.utils import load_config_file, get_if_exists
 from src.common.lib.embeddings_utils import load_embeddings
 from src.common.lib.umap_plotting import plot_umap
 from src.common.configs.dataset_config import DatasetConfig
@@ -24,14 +24,15 @@ analyzer_mapping = {
     2: (AnalyzerUMAPMultiplexMarkers, AnalyzerUMAP.UMAPType(2).name)
 }
 
-def generate_umaps(output_folder_path:str, config_path_data:str, config_path_plot:str, umap_idx:int)->None:
+def generate_umaps(output_folder_path:str, config_path_data:str, config_path_plot:str)->None:
     config_data:DatasetConfig = load_config_file(config_path_data, 'data')
     config_data.OUTPUTS_FOLDER = output_folder_path
     config_plot:PlotConfig = load_config_file(config_path_plot, 'plot')
     embeddings, labels = load_embeddings(output_folder_path, config_data)
 
+    umap_idx = get_if_exists(config_plot, 'UMAP_TYPE', None)
     if umap_idx not in analyzer_mapping:
-        raise ValueError(f"Invalid UMAP index: {umap_idx}. Must be one of {list(analyzer_mapping.keys())}.")
+        raise ValueError(f"Invalid UMAP index: {umap_idx}. Must be one of {list(analyzer_mapping.keys())}, and defined in plot config.")
     
     AnalyzerUMAPClass, UMAP_name = analyzer_mapping[umap_idx]
     logging.info(f"[Generate {UMAP_name} UMAP]")
@@ -48,14 +49,13 @@ def generate_umaps(output_folder_path:str, config_path_data:str, config_path_plo
 if __name__ == "__main__":
     print("Starting generating umaps...")
     try:
-        if len(sys.argv) < 5:
-            raise ValueError("Invalid arguments. Must supply output folder path, data config, plot config and UMAP idx! (0,1,2).")
+        if len(sys.argv) < 4:
+            raise ValueError("Invalid arguments. Must supply output folder path, data config and plot config.")
         output_folder_path = sys.argv[1]
         config_path_data = sys.argv[2]
         config_path_plot = sys.argv[3]
-        umap_idx = int(sys.argv[4])
 
-        generate_umaps(output_folder_path, config_path_data, config_path_plot, umap_idx)
+        generate_umaps(output_folder_path, config_path_data, config_path_plot)
 
     except Exception as e:
         logging.exception(str(e))
