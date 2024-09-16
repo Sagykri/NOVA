@@ -190,7 +190,7 @@ def __plot_umap_embeddings(umap_embeddings: np.ndarray[float],
             c=color_array,
             marker = 'o',
             label=label,
-
+            linewidths=0,
         )
         logging.info(f'[_plot_umap_embeddings]: adding label {label}')
         
