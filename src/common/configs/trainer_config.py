@@ -63,6 +63,30 @@ class ClassificationTrainerConfig(TrainerConfig):
         self.DESCRIPTION:str = "Pretrained model trained with CE loss on the Opencell dataset"
         self.TRAINER_CLASS_PATH:str = os.path.join("src", "common", "lib", "models", "trainers", "trainer_classification", "TrainerClassification")
  
+class ContrastiveTrainerNoFreezeConfig(TrainerConfig):
+    """Trainer configuration for the contrastive learning model (finetuned model)
+    """
+    def __init__(self):
+        super().__init__()
+       
+        self.OUTPUTS_FOLDER:str = "/home/labs/hornsteinlab/Collaboration/MOmaps/outputs/vit_models/finetuned_model_no_freeze"
+
+        # Training parameters
+        self.LR:float = 0.0008
+        self.MIN_LR:float = 1e-6
+        self.MAX_EPOCHS:int = 300
+        self.WARMUP_EPOCHS:int = 5
+        self.WEIGHT_DECAY:float = 0.04
+        self.WEIGHT_DECAY_END:float = 0.4
+        self.BATCH_SIZE:int = 750
+        self.DESCRIPTION:str = "Finetuned model using contrastive learning on neuronal dataset"
+        self.TRAINER_CLASS_PATH:str = os.path.join("src", "common", "lib", "models", "trainers", "trainer_contrastive", "TrainerContrastive")
+        self.DROP_LAST_BATCH:bool = True
+        self.NEGATIVE_COUNT:int = 5
+        
+        # Original pretraiend
+        self.PRETRAINED_MODEL_PATH:str = "/home/labs/hornsteinlab/Collaboration/MOmaps/outputs/vit_models/pretrained_model/checkpoints/checkpoint_best.pth"
+        
 class ContrastiveTrainerConfig(TrainerConfig):
     """Trainer configuration for the contrastive learning model (finetuned model)
     """
