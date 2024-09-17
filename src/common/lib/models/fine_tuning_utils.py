@@ -19,7 +19,7 @@ def compare_models(pretrained:Module, finetuned:Module, comparison_func: Callabl
     """
     results = {}
     
-    for name_p, param_p in pretrained.named_parameters():
+    for name_p, param_p in pretrained.model.named_parameters():
         if name_p in ['head.bias', 'head.weight'] and skip_head:
             # Skip the head since we replaced it
             continue
@@ -28,7 +28,7 @@ def compare_models(pretrained:Module, finetuned:Module, comparison_func: Callabl
             continue
         
         # I can't get layer by name, therefore this additional for loop (and saving all in big dict is too much space for nothing)
-        for name_f, param_f in finetuned.named_parameters():
+        for name_f, param_f in finetuned.model.named_parameters():
             if name_f == name_p:
                 # We find the corresponding layer in the finetune model
                 
@@ -104,9 +104,9 @@ def get_changed_layers_based_on_cutoff(metric_dict:Dict[str, float], percentile_
     # Find the valid indexes and sort them based on the metric_value in descending order
     layers_names = np.asarray(layers_names)
     if is_below:
-        valid_layers_indexes = np.where(metric_values >= metric_values_cutoff)[0]
-    else:
         valid_layers_indexes = np.where(metric_values <= metric_values_cutoff)[0]
+    else:
+        valid_layers_indexes = np.where(metric_values >= metric_values_cutoff)[0]
     # Retrieve values at these indices
     metric_values = np.asarray(metric_values)
     values = metric_values[valid_layers_indexes]
