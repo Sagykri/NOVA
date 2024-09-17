@@ -24,6 +24,9 @@ $MOMAPS_HOME/bash_commands/run_py.sh $MOMAPS_HOME/src/runables/generate_embeddin
 $MOMAPS_HOME/bash_commands/run_py.sh $MOMAPS_HOME/src/runables/generate_embeddings -g -m 20000 -b 10 \
 -a $pretrained_model $embeddings_configs/EmbeddingsB6DatasetConfig -q short-gpu -j emb_pretrain_b6
 
+$MOMAPS_HOME/bash_commands/run_py.sh $MOMAPS_HOME/src/runables/generate_embeddings -g -m 20000 -b 10 \
+-a $pretrained_model $embeddings_configs/EmbeddingsB9DatasetConfig -q short-gpu -j emb_pretrain_b9
+
 ##################
 # finetuned_model
 ##################

@@ -30,10 +30,10 @@ if __name__ == "__main__":
         if len(sys.argv) < 3:
             raise ValueError("Invalid arguments. Must supply outputs folder path and data config.")
         outputs_folder_path = sys.argv[1]
-        if not os.path.exists(os.path.join(outputs_folder_path,'checkpoints')):
-            raise ValueError("Invalid outputs folder. Must contain a 'checkpoints' folder.")
-        if not os.path.exists(os.path.join(outputs_folder_path,'checkpoints', 'checkpoint_best.pth')):
-            raise ValueError("Invalid outputs folder. Must contain a 'checkpoints' folder, and inside a 'checkpoint_best.pth' file.")
+        if not os.path.exists(os.path.join(outputs_folder_path, CHECKPOINTS_FOLDERNAME)):
+            raise ValueError(f"Invalid outputs folder. Must contain a {CHECKPOINTS_FOLDERNAME} folder.")
+        if not os.path.exists(os.path.join(outputs_folder_path, CHECKPOINTS_FOLDERNAME, CHECKPOINT_BEST_FILENAME)):
+            raise ValueError(f"Invalid outputs folder. Must contain a {CHECKPOINTS_FOLDERNAME} folder, and inside a {CHECKPOINT_BEST_FILENAME} file.")
         
         config_path_data = sys.argv[2]
 

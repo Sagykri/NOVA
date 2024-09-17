@@ -80,7 +80,7 @@ class PlotConfig(BaseConfig):
             'PSD95':{self.UMAP_MAPPINGS_ALIAS_KEY:'Postsynapse', self.UMAP_MAPPINGS_COLOR_KEY:'#F1CBDD'},
             'FMRP':{self.UMAP_MAPPINGS_ALIAS_KEY:'FMRP', self.UMAP_MAPPINGS_COLOR_KEY:'gray'},
             'TDP43B':{self.UMAP_MAPPINGS_ALIAS_KEY:'TDP43 granules 1', self.UMAP_MAPPINGS_COLOR_KEY:'#06A0E9'},
-            'TDP43N':{self.UMAP_MAPPINGS_ALIAS_KEY:'TDP43 granules 2', self.UMAP_MAPPINGS_COLOR_KEY:'#06A0E9'}
+            # 'TDP43N':{self.UMAP_MAPPINGS_ALIAS_KEY:'TDP43 granules 2', self.UMAP_MAPPINGS_COLOR_KEY:'#06A0E9'}
         }
 
         self.COLOR_MAPPINGS_CONDITION_AND_ALS: Dict[str, Dict[str,str]] = {

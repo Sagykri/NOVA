@@ -14,7 +14,7 @@ class UMAP1PlotConfig(PlotConfig):
                     'DCP1A', 'PSD95', 'LAMP1', 'GM130', 'NEMO', 'CD41', 'G3BP1']
     
         # Set the size of the dots
-        self.SIZE = 0.1
+        self.SIZE = 0.2
         self.ALPHA = 1
         # How labels are shown in legend
         self.MAP_LABELS_FUNCTION = MapLabelsFunction.MARKERS.name

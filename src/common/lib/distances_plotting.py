@@ -423,7 +423,7 @@ def __add_pvalue(marker:str, marker_index:int, dists_order:List[str], patches, p
     if pvalue <= 0.05: # plot significant asterix
         asterisks = __convert_pvalue_to_asterisks(pvalue)
         # Add the asterisks above the box
-        plt.text(dists_order.to_list().index(marker), pval_loc, asterisks, 
+        plt.text(list(dists_order).index(marker), pval_loc, asterisks, 
                     ha='center', va='bottom', fontsize=10)
     # else: # plot the full pvalue
     #     plt.text(dists_order.to_list().index(marker), pval_loc + 0.1*pval_loc, round(pvalue,4), 
