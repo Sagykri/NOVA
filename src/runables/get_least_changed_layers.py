@@ -10,7 +10,7 @@ from src.common.lib.models.fine_tuning_utils import angle_metrics, compare_model
 
 
 def __extracting_params_from_sys()->Dict:
-    """Exctract paras from sys
+    """Exctract params from sys
 
     Returns:
         Dict: The extracted values
@@ -21,8 +21,8 @@ def __extracting_params_from_sys()->Dict:
     finetuned_path:str = sys.argv[2]
     
     return {
-        pretrained_path:pretrained_path,
-        finetuned_path:finetuned_path
+        'pretrained_path':pretrained_path,
+        'finetuned_path':finetuned_path
     }
 
 def __get_least_changed_layers(pretrained_path: str, finetuned_path:str)->None:

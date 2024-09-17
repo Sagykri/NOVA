@@ -4,22 +4,24 @@ sys.path.insert(1, os.getenv("MOMAPS_HOME"))
 
 from src.common.lib.plotting_utils import save_plot
 from src.common.configs.dataset_config import DatasetConfig
-from src.datasets.label_utils import get_markers_from_labels, get_unique_parts_from_labels, get_conditions_from_labels, get_cell_lines_from_labels, get_cell_lines_conditions_from_labels, get_reps_from_labels, get_conditions_from_multiplex_labels, get_cell_lines_from_multiplex_labels, get_cell_lines_conditions_from_multiplex_labels
+from src.common.configs.plot_config import PlotConfig
+from src.datasets.label_utils import get_markers_from_labels, get_unique_parts_from_labels, get_conditions_from_labels,\
+    get_cell_lines_from_labels, get_cell_lines_conditions_from_labels, get_reps_from_labels, get_conditions_from_multiplex_labels,\
+        get_cell_lines_from_multiplex_labels, get_cell_lines_conditions_from_multiplex_labels
 from src.common.lib.utils import get_if_exists, save_config
 
-import importlib
 import logging
 import numpy as np
-from typing import Dict, Tuple, Callable
+from typing import Dict, Tuple
 from enum import Enum
 
 import matplotlib.pyplot as plt
 from matplotlib.axes import Axes
 from matplotlib.gridspec import GridSpec
-
+import matplotlib.colors as mcolors
 
 def plot_umap(umap_embeddings: np.ndarray[float], labels: np.ndarray[str], config_data: DatasetConfig,
-              saveroot: str, umap_idx: int, ari_scores:Dict[str,float]) -> None:
+              config_plot: PlotConfig, saveroot: str, umap_idx: int, ari_scores:Dict[str,float]) -> None:
     """Unified function to plot 2D UMAP embeddings with different modes.
 
     Args:
@@ -37,6 +39,7 @@ def plot_umap(umap_embeddings: np.ndarray[float], labels: np.ndarray[str], confi
     if saveroot:
         os.makedirs(saveroot, exist_ok=True)
         save_config(config_data, saveroot)
+        save_config(config_plot, saveroot)
 
     if umap_idx == 0:
         # Mode: Individual markers
@@ -55,13 +58,13 @@ def plot_umap(umap_embeddings: np.ndarray[float], labels: np.ndarray[str], confi
             marker_labels = labels[indices].reshape(-1,)
 
             savepath = os.path.join(saveroot, f'{marker}') if saveroot else None
-            label_data = __map_labels(marker_labels, config_data)
+            label_data = __map_labels(marker_labels, config_plot, config_data)
 
             if config_data.SHOW_ARI:
                 ari_score = ari_scores[marker]
             else:
                 ari_score = None
-            __plot_umap_embeddings(marker_umap_embeddings, label_data, config_data, savepath=savepath, title=marker,
+            __plot_umap_embeddings(marker_umap_embeddings, label_data, config_data, config_plot, savepath=savepath, title=marker,
                                    ari_score=ari_score)
         return
 
@@ -72,12 +75,12 @@ def plot_umap(umap_embeddings: np.ndarray[float], labels: np.ndarray[str], confi
         # Mode: Concatenated embeddings
         savepath = os.path.join(saveroot, 'umap2') if saveroot else None
     
-    label_data = __map_labels(labels, config_data)
+    label_data = __map_labels(labels, config_plot, config_data)
     if config_data.SHOW_ARI:
             ari_score = ari_scores['ari']
     else:
         ari_score = None
-    __plot_umap_embeddings(umap_embeddings, label_data, config_data, savepath, ari_score=ari_score)
+    __plot_umap_embeddings(umap_embeddings, label_data, config_data, config_plot, savepath, ari_score=ari_score)
 
     
 def __get_metrics_figure(score:float, ax:Axes=None)->Axes:
@@ -115,9 +118,10 @@ def __get_metrics_figure(score:float, ax:Axes=None)->Axes:
 def __plot_umap_embeddings(umap_embeddings: np.ndarray[float], 
                          label_data: np.ndarray[str], 
                          config_data: DatasetConfig,
+                         config_plot: PlotConfig,
                          savepath: str = None,
                          title: str = 'UMAP projection of Embeddings', 
-                         dpi: int = 300, 
+                         dpi: int = 500, 
                          figsize: Tuple[int,int] = (6,5),
                          cmap:str = 'tab20',
                          ari_score:float = None,
@@ -127,7 +131,8 @@ def __plot_umap_embeddings(umap_embeddings: np.ndarray[float],
     Args:
         umap_embeddings (np.ndarray[float]): The 2D UMAP embeddings to be plotted.
         label_data (np.ndarray[str]): Array of labels corresponding to the embeddings.
-        config_data (DatasetConfig): Configuration data containing visualization settings.
+        config_data (DatasetConfig): Configuration data containing metric settings.
+        config_plot (PlotConfig): Configuration plot containing visualization settings.
         savepath (str, optional): Path to save the plot. If None, the plot is shown interactively. Defaults to None.
         title (str, optional): Title for the plot. Defaults to 'UMAP projection of Embeddings'.
         dpi (int, optional): Dots per inch for the saved plot. Defaults to 300.
@@ -144,16 +149,17 @@ def __plot_umap_embeddings(umap_embeddings: np.ndarray[float],
     if umap_embeddings.shape[0] != label_data.shape[0]:
         raise ValueError("The number of embeddings and labels must match.")
 
-    name_color_dict =  config_data.UMAP_MAPPINGS
-    name_key=config_data.UMAP_MAPPINGS_ALIAS_KEY
-    color_key=config_data.UMAP_MAPPINGS_COLOR_KEY
-    marker_size = config_data.SIZE
-    alpha = config_data.ALPHA
+    name_color_dict =  config_plot.COLOR_MAPPINGS
+    name_key = config_plot.UMAP_MAPPINGS_ALIAS_KEY
+    color_key = config_plot.UMAP_MAPPINGS_COLOR_KEY
+    marker_size = config_plot.SIZE
+    alpha = config_plot.ALPHA
+
     show_metric = config_data.SHOW_ARI
     
     unique_groups = np.unique(label_data)
 
-    ordered_marker_names = get_if_exists(config_data, 'ORDERED_MARKER_NAMES', None)
+    ordered_marker_names = get_if_exists(config_plot, 'ORDERED_MARKER_NAMES', None)
     if ordered_marker_names:
         # Get the indices of each element in 'unique_groups' according to 'ordered_marker_names'
         indices = [ordered_marker_names.index(item) for item in unique_groups]
@@ -167,8 +173,12 @@ def __plot_umap_embeddings(umap_embeddings: np.ndarray[float],
     for i, group in enumerate(unique_groups):
         logging.info(f'[_plot_umap_embeddings]: adding {group}')
         indices = np.where(label_data==group)[0]
-
-        color_array = np.array([name_color_dict[group][color_key] if name_color_dict else plt.get_cmap(cmap)(i)] * indices.shape[0])
+        # Get hex color and convert to RGBA
+        base_color = name_color_dict[group][color_key] if name_color_dict else plt.get_cmap(cmap)(i)
+        rgba_color = mcolors.to_rgba(base_color, alpha=alpha)  # Convert hex to RGBA and apply alpha
+        
+        # Create a color array for each point
+        color_array = np.array([rgba_color] * indices.shape[0])
 
         label = name_color_dict[group][name_key] if name_color_dict else group
 
@@ -180,7 +190,7 @@ def __plot_umap_embeddings(umap_embeddings: np.ndarray[float],
             c=color_array,
             marker = 'o',
             label=label,
-
+            linewidths=0,
         )
         logging.info(f'[_plot_umap_embeddings]: adding label {label}')
         
@@ -225,20 +235,20 @@ def __format_UMAP_legend(ax:Axes, marker_size: int) -> None:
 
 
 class MapLabelsFunction(Enum):
-            MARKERS = get_markers_from_labels
-            CONDITIONS = get_conditions_from_labels
-            CELL_LINES = get_cell_lines_from_labels
-            CELL_LINES_CONDITIONS = get_cell_lines_conditions_from_labels
-            REPS = get_reps_from_labels
-            MULTIPLEX_CONDITIONS = get_conditions_from_multiplex_labels
-            MULTIPLEX_CELL_LINES = get_cell_lines_from_multiplex_labels
-            MULTIPLEX_CELL_LINES_CONDITIONS = get_cell_lines_conditions_from_multiplex_labels
-        
+    MARKERS = (get_markers_from_labels,)
+    CONDITIONS = (get_conditions_from_labels,)
+    CELL_LINES = (get_cell_lines_from_labels,)
+    CELL_LINES_CONDITIONS = (get_cell_lines_conditions_from_labels,)
+    REPS = (get_reps_from_labels,)
+    MULTIPLEX_CONDITIONS = (get_conditions_from_multiplex_labels,)
+    MULTIPLEX_CELL_LINES = (get_cell_lines_from_multiplex_labels,)
+    MULTIPLEX_CELL_LINES_CONDITIONS = (get_cell_lines_conditions_from_multiplex_labels,)
 
-def __map_labels(labels: np.ndarray[str], config_data: DatasetConfig) -> np.ndarray[str]:
+def __map_labels(labels: np.ndarray[str], config_plot: PlotConfig, config_data: DatasetConfig,) -> np.ndarray[str]:
     """Maps labels based on the provided function in the configuration."""
-    map_function:Callable = get_if_exists(config_data, 'MAP_LABELS_FUNCTION', None)
+    map_function_name:str = get_if_exists(config_plot, 'MAP_LABELS_FUNCTION', None)
     
-    if map_function:
+    if map_function_name:
+        map_function = MapLabelsFunction[map_function_name].value[0]
         return map_function(labels, config_data)
     return labels
