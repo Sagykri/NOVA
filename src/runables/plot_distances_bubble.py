@@ -7,8 +7,8 @@ print(f"MOMAPS_HOME: {os.getenv('MOMAPS_HOME')}")
 
 import logging
 
-from src.common.lib.utils import load_config_file
-from src.common.lib.distances_plotting import plot_distances_plots
+from src.common.lib.utils import load_config_file, save_config
+from src.common.lib.distances_plotting import plot_bubble_plot
 from src.common.configs.dataset_config import DatasetConfig
 from src.common.configs.plot_config import PlotConfig
 
@@ -23,8 +23,13 @@ def plot_distances(output_folder_path:str, config_path_data:str, config_path_plo
     analyzer_distances = AnalyzerDistancesARI(config_data, output_folder_path)
     analyzer_distances.load()
     plot_output_folder_path = analyzer_distances.get_saving_folder(feature_type='distances')
-    plot_distances_plots(distances=analyzer_distances.features, config_data=config_data, config_plot=config_plot,
-                         saveroot=plot_output_folder_path)
+
+    if plot_output_folder_path:
+        os.makedirs(plot_output_folder_path, exist_ok=True)
+        save_config(config_data, plot_output_folder_path)
+        save_config(config_plot, plot_output_folder_path)
+    
+    plot_bubble_plot(analyzer_distances.features, plot_output_folder_path, config_data, config_plot)
 
         
 if __name__ == "__main__":

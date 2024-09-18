@@ -1,5 +1,4 @@
 from sklearn.metrics import adjusted_rand_score
-import torch
 import logging
 import numpy as np
 
@@ -30,6 +29,8 @@ def calc_ari_with_kmeans(X, true_labels, outliers_fraction=0.1)->float:
   """       
   # K-means for standard (centroid-based) clustering
   k = np.unique(true_labels).shape[0]
+  logging.info(f"[calc_clustering_validation_metric] unique_labels count: {k}, {np.unique(true_labels)}")
+
   kmeans_labels = cluster_without_outliers(X, n_clusters=k, outliers_fraction=outliers_fraction, n_init=10, random_state=42)
   ari = adjusted_rand_score(true_labels, kmeans_labels)
   ari = round(ari, 3)

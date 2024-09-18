@@ -20,10 +20,11 @@ from src.datasets.label_utils import get_batches_from_labels, get_unique_parts_f
 # Utils for Generate Embeddings (run from MOmaps/src/runables/generate_embeddings.py)
 ###############################################################
 
-def generate_embeddings(model, config_data:DatasetConfig, batch_size:int=700, num_workers:int=6)->Tuple[List[np.ndarray[torch.Tensor]],List[np.ndarray[str]]]:#TODO:add NOVAMODEL to the model type    
+def generate_embeddings(model:NOVAModel, config_data:DatasetConfig, 
+                        batch_size:int=700, num_workers:int=6)->Tuple[List[np.ndarray[torch.Tensor]],
+                                                                      List[np.ndarray[str]]]:
     logging.info(f"[generate_embeddings] Is GPU available: {torch.cuda.is_available()}")
     logging.info(f"[generate_embeddings] Num GPUs Available: {torch.cuda.device_count()}")
-
 
     all_embeddings, all_labels = [], []
 
@@ -65,8 +66,9 @@ def generate_embeddings(model, config_data:DatasetConfig, batch_size:int=700, nu
 
     return all_embeddings, all_labels
 
-def save_embeddings(embeddings:List[np.ndarray[torch.Tensor]], labels:List[np.ndarray[str]], data_config:DatasetConfig, output_folder_path)->None:#TODO:add NOVAMODEL to the model type
-    os.makedirs(output_folder_path, exist_ok=True)
+def save_embeddings(embeddings:List[np.ndarray[torch.Tensor]], 
+                    labels:List[np.ndarray[str]], data_config:DatasetConfig, output_folder_path)->None:
+
     unique_batches = get_unique_parts_from_labels(labels[0], get_batches_from_labels, data_config)
     logging.info(f'[save_embeddings] unique_batches: {unique_batches}')
     
