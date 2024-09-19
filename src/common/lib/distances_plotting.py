@@ -79,11 +79,13 @@ def plot_marker_ranking(distances:pd.DataFrame, saveroot:str, config_data:Datase
     pvalues_df = __calculate_marker_pvalue_per_condition(distances, baseline, conditions, metric)
     for cond in conditions:
         savepath = None
+        show_baseline = get_if_exists(config_plot, 'SHOW_BASELINE', True)
         if saveroot:
             savepath = os.path.join(saveroot, f'{cond}_vs_{baseline}_boxplot') 
+            if not show_baseline:
+                savepath = f'{savepath}_without_baseline'
         upper_graph_ylim = get_if_exists(config_plot, 'UPPER_GRAPH_YLIM', None)
         lower_graph_ylim = get_if_exists(config_plot, 'LOWER_GRAPH_YLIM', None)
-        show_baseline = get_if_exists(config_plot, 'SHOW_BASELINE', True)
         __plot_boxplot(distances, baseline, cond, metric, 
                      pvalues_df, config_plot, show_effect_size=show_effect_size, savepath = savepath,
                      upper_graph_ylim=upper_graph_ylim, 

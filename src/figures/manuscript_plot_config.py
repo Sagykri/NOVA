@@ -92,9 +92,14 @@ class DistancesNeuronsStressPlotConfig(PlotConfig):
         super().__init__()
 
         self.COLOR_MAPPINGS_CELL_LINE_CONDITION = self.COLOR_MAPPINGS_CONDITION_AND_ALS
-        # self.UPPER_GRAPH_YLIM = (0.38, 0.8)
-        # self.LOWER_GRAPH_YLIM = (-0.01, 0.25)
         self.SHOW_BASELINE = True
+
+class DistancesNeuronsStressNoBaselinePlotConfig(PlotConfig):
+    def __init__(self):
+        super().__init__()
+
+        self.COLOR_MAPPINGS_CELL_LINE_CONDITION = self.COLOR_MAPPINGS_CONDITION_AND_ALS
+        self.SHOW_BASELINE = False
 
 class DistancesNeuronsALSPlotConfig(PlotConfig):
     def __init__(self):
@@ -107,7 +112,7 @@ class DistancesdNLSPlotConfig(PlotConfig):
         super().__init__()
 
         self.COLOR_MAPPINGS_CELL_LINE_CONDITION = self.COLOR_MAPPINGS_DOX
-        self.UPPER_GRAPH_YLIM = (0.38, 0.8)
+        self.UPPER_GRAPH_YLIM = (0.55, 1)
         self.LOWER_GRAPH_YLIM = (-0.01, 0.25)
         self.SHOW_BASELINE = True
 
@@ -116,7 +121,7 @@ class DistancesdNLSNoBaselinePlotConfig(PlotConfig):
         super().__init__()
 
         self.COLOR_MAPPINGS_CELL_LINE_CONDITION = self.COLOR_MAPPINGS_DOX
-        self.UPPER_GRAPH_YLIM = (0.38, 0.8)
+        self.UPPER_GRAPH_YLIM = (0.55, 1)
         self.LOWER_GRAPH_YLIM = (-0.01, 0.25)
         self.SHOW_BASELINE = False
 
