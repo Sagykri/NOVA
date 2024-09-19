@@ -10,7 +10,7 @@ class UMAP1PlotConfig(PlotConfig):
         super().__init__()
 
         self.ORDERED_MARKER_NAMES = ["DAPI", 'TDP43', 'PEX14', 'NONO', 'ANXA11', 'FUS', 'Phalloidin', 
-                    'PURA', 'mitotracker', 'TOMM20', 'NCL', 'Calreticulin', 'CLTC', 'KIF5A', 'SCNA', 'SQSTM1', 'PML',
+                    'PURA', 'mitotracker', 'TOMM20', 'NCL', 'Calreticulin', 'CLTC', 'KIF5A', 'SCNA','SNCA', 'SQSTM1', 'PML',
                     'DCP1A', 'PSD95', 'LAMP1', 'GM130', 'NEMO', 'CD41', 'G3BP1']
     
         # Set the size of the dots
@@ -119,3 +119,21 @@ class DistancesdNLSNoBaselinePlotConfig(PlotConfig):
         self.UPPER_GRAPH_YLIM = (0.38, 0.8)
         self.LOWER_GRAPH_YLIM = (-0.01, 0.25)
         self.SHOW_BASELINE = False
+
+class UMAP1dNLSPlotConfig(PlotConfig):
+    def __init__(self):
+        super().__init__()
+
+        self.ORDERED_MARKER_NAMES = ["DAPI", 'TDP43B', 'PEX14', 'NONO', 'ANXA11', 'FUS', 'Phalloidin', 
+                    'PURA', 'mitotracker', 'TOMM20', 'NCL', 'Calreticulin', 'CLTC', 'KIF5A', 'SCNA', 'SQSTM1', 'PML',
+                    'DCP1A', 'PSD95', 'LAMP1', 'GM130', 'NEMO', 'CD41', 'G3BP1']
+    
+        # Set the size of the dots
+        self.SIZE = 1
+        self.ALPHA = 1
+        # How labels are shown in legend
+        self.MAP_LABELS_FUNCTION = MapLabelsFunction.MARKERS.name
+        # Colors 
+        self.COLOR_MAPPINGS = self.COLOR_MAPPINGS_MARKERS
+        # umap type
+        self.UMAP_TYPE = 1

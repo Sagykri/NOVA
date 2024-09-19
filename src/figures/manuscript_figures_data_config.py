@@ -438,3 +438,57 @@ class NeuronsUMAP2ALSD18B2FigureConfig(DatasetConfig):
         # Decide if to show ARI metric on the UMAP
         self.SHOW_ARI = True
         self.ADD_REP_TO_LABEL=False
+
+
+
+############################################################
+# experimental
+############################################################
+        
+class dNLSUMAP1B3TDP43_UntreatedFigureConfig(DatasetConfig):
+    def __init__(self):
+        super().__init__()
+
+        # Batches used for model development
+        self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "spd2", "SpinningDisk","deltaNLS", f) for f in 
+                        ["batch3"]]
+        
+        self.SETS = ['testset']
+        self.EXPERIMENT_TYPE = 'deltaNLS'    
+        self.CELL_LINES = ['TDP43']
+        self.CONDITIONS = ['Untreated']
+        self.MARKERS = list(PlotConfig().COLOR_MAPPINGS_MARKERS.keys())
+
+        self.MARKERS_TO_EXCLUDE = ['FMRP', 'TIA1']
+        # Decide if to show ARI metric on the UMAP
+        self.SHOW_ARI = False
+
+class dNLSUMAP1B3TDP43_DOXFigureConfig(dNLSUMAP1B3TDP43_UntreatedFigureConfig):
+    def __init__(self):
+        super().__init__()
+        self.CONDITIONS = ['dox']
+
+class dNLSUMAP1B3WTFigureConfig(dNLSUMAP1B3TDP43_UntreatedFigureConfig):
+    def __init__(self):
+        super().__init__()
+        self.CELL_LINES = ['WT']
+
+class NeuronsUMAP1D18B1FigureConfig(DatasetConfig):
+    def __init__(self):
+        super().__init__()
+        
+        """UMAP1 of WT untreated
+        """
+
+        # Batches used for model development
+        self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "spd2", "SpinningDisk","Opera18DaysReimaged", f) for f in 
+                        ["batch1"]]
+        
+        self.SETS = ['testset']
+        self.EXPERIMENT_TYPE = 'neurons_d18'    
+        self.CELL_LINES = ['WT']
+        self.CONDITIONS = ['Untreated']
+        self.MARKERS = list(PlotConfig().COLOR_MAPPINGS_MARKERS.keys())
+        self.MARKERS_TO_EXCLUDE = ['FMRP', 'TIA1']
+        # Decide if to show ARI metric on the UMAP
+        self.SHOW_ARI = False
