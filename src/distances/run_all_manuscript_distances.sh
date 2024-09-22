@@ -15,8 +15,8 @@ $MOMAPS_HOME/bash_commands/run_py.sh $MOMAPS_HOME/src/runables/generate_distance
 $MOMAPS_HOME/bash_commands/run_py.sh $MOMAPS_HOME/src/runables/generate_distances \
 -a $output_folder $distances_configs/NeuronsTBK1DistanceConfig -j dist_neurons_tbk1
 
-# $MOMAPS_HOME/bash_commands/run_py.sh $MOMAPS_HOME/src/runables/generate_distances \
-# -a $output_folder $distances_configs/dNLS345DistanceConfig -j dist_dnls345
+$MOMAPS_HOME/bash_commands/run_py.sh $MOMAPS_HOME/src/runables/generate_distances \
+-a $output_folder $distances_configs/dNLS345DistanceConfig -j dist_dnls345
 
-# $MOMAPS_HOME/bash_commands/run_py.sh $MOMAPS_HOME/src/runables/generate_distances \
-# -a $output_folder $distances_configs/Day18DistanceConfig -j dist_d18
+$MOMAPS_HOME/bash_commands/run_py.sh $MOMAPS_HOME/src/runables/generate_distances \
+-a $output_folder $distances_configs/Day18DistanceConfig -j dist_d18

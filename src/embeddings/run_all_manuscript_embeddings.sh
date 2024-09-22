@@ -5,27 +5,27 @@ finetuned_model=/home/labs/hornsteinlab/Collaboration/MOmaps/outputs/vit_models/
 
 embeddings_configs=./src/embeddings/embeddings_config
 
-##################
-# pretrained_model
-##################
+# ##################
+# # pretrained_model
+# ##################
 
-# ### OpenCell
-$MOMAPS_HOME/bash_commands/run_py.sh $MOMAPS_HOME/src/runables/generate_embeddings -g -m 30000 -b 10 \
--a $pretrained_model $embeddings_configs/EmbeddingsOpenCellDatasetConfig 300 -q short-gpu -j emb_pretrain_opencell
+# # ### OpenCell
+# $MOMAPS_HOME/bash_commands/run_py.sh $MOMAPS_HOME/src/runables/generate_embeddings -g -m 30000 -b 10 \
+# -a $pretrained_model $embeddings_configs/EmbeddingsOpenCellDatasetConfig 300 -q short-gpu -j emb_pretrain_opencell
 
-### U2OS
-$MOMAPS_HOME/bash_commands/run_py.sh $MOMAPS_HOME/src/runables/generate_embeddings -g -m 20000 -b 10 \
--a $pretrained_model $embeddings_configs/EmbeddingsU2OSDatasetConfig -q short-gpu -j emb_pretrain_U2OS
+# ### U2OS
+# $MOMAPS_HOME/bash_commands/run_py.sh $MOMAPS_HOME/src/runables/generate_embeddings -g -m 20000 -b 10 \
+# -a $pretrained_model $embeddings_configs/EmbeddingsU2OSDatasetConfig -q short-gpu -j emb_pretrain_U2OS
 
-### Neurons d8
-$MOMAPS_HOME/bash_commands/run_py.sh $MOMAPS_HOME/src/runables/generate_embeddings -g -m 20000 -b 10 \
--a $pretrained_model $embeddings_configs/EmbeddingsB78PretrainDatasetConfig -q short-gpu -j emb_pretrain_b78
+# ### Neurons d8
+# $MOMAPS_HOME/bash_commands/run_py.sh $MOMAPS_HOME/src/runables/generate_embeddings -g -m 20000 -b 10 \
+# -a $pretrained_model $embeddings_configs/EmbeddingsB78PretrainDatasetConfig -q short-gpu -j emb_pretrain_b78
 
-$MOMAPS_HOME/bash_commands/run_py.sh $MOMAPS_HOME/src/runables/generate_embeddings -g -m 20000 -b 10 \
--a $pretrained_model $embeddings_configs/EmbeddingsB6DatasetConfig -q short-gpu -j emb_pretrain_b6
+# $MOMAPS_HOME/bash_commands/run_py.sh $MOMAPS_HOME/src/runables/generate_embeddings -g -m 20000 -b 10 \
+# -a $pretrained_model $embeddings_configs/EmbeddingsB6DatasetConfig -q short-gpu -j emb_pretrain_b6
 
-$MOMAPS_HOME/bash_commands/run_py.sh $MOMAPS_HOME/src/runables/generate_embeddings -g -m 20000 -b 10 \
--a $pretrained_model $embeddings_configs/EmbeddingsB9DatasetConfig -q short-gpu -j emb_pretrain_b9
+# $MOMAPS_HOME/bash_commands/run_py.sh $MOMAPS_HOME/src/runables/generate_embeddings -g -m 20000 -b 10 \
+# -a $pretrained_model $embeddings_configs/EmbeddingsB9DatasetConfig -q short-gpu -j emb_pretrain_b9
 
 ##################
 # finetuned_model

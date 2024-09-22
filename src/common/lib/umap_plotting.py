@@ -2,7 +2,7 @@ import os
 import sys
 sys.path.insert(1, os.getenv("MOMAPS_HOME"))
 
-from src.common.lib.plotting_utils import save_plot
+from src.common.lib.plotting_utils import save_plot, FONT_PATH
 from src.common.configs.dataset_config import DatasetConfig
 from src.common.configs.plot_config import PlotConfig
 from src.datasets.label_utils import get_markers_from_labels, get_unique_parts_from_labels, get_conditions_from_labels,\
@@ -19,6 +19,18 @@ import matplotlib.pyplot as plt
 from matplotlib.axes import Axes
 from matplotlib.gridspec import GridSpec
 import matplotlib.colors as mcolors
+
+import matplotlib
+from matplotlib import font_manager as fm
+
+fm.fontManager.addfont(FONT_PATH)
+matplotlib.rcParams['font.family'] = 'Arial'
+# matplotlib.rcParams['font.size'] = FONT_SIZE
+# matplotlib.rcParams['axes.titlesize'] = TITLE_SIZE
+# matplotlib.rcParams['axes.labelsize'] = AXES_LABEL_SIZE
+# matplotlib.rcParams['legend.fontsize'] = LEGEND_SIZE
+# matplotlib.rcParams['xtick.labelsize'] = XTICK_LABEL_SIZE
+# matplotlib.rcParams['ytick.labelsize'] = YTICK_LABEL_SIZE
 
 def plot_umap(umap_embeddings: np.ndarray[float], labels: np.ndarray[str], config_data: DatasetConfig,
               config_plot: PlotConfig, saveroot: str, umap_idx: int, ari_scores:Dict[str,float]) -> None:
@@ -109,8 +121,7 @@ def __get_metrics_figure(score:float, ax:Axes=None)->Axes:
     sm.set_clim(vmin=vmin, vmax=vmax)
     cb = plt.colorbar(sm, cax=ax, orientation='horizontal', pad=0.25)
     cb.set_ticks([score])
-    cb.ax.tick_params(labelsize=12)
-    cb.ax.set_title(title, fontsize=16) # Nancy for figure 2A - remove "ARI" text from scale bar
+    cb.ax.set_title(title)
     cb.ax.plot([score]*2, [vmin,vmax], linecolor, linewidth=linewidth)
 
     return ax
@@ -120,7 +131,7 @@ def __plot_umap_embeddings(umap_embeddings: np.ndarray[float],
                          config_data: DatasetConfig,
                          config_plot: PlotConfig,
                          savepath: str = None,
-                         title: str = 'UMAP projection of Embeddings', 
+                         title: str = None, 
                          dpi: int = 500, 
                          figsize: Tuple[int,int] = (6,5),
                          cmap:str = 'tab20',
@@ -173,6 +184,9 @@ def __plot_umap_embeddings(umap_embeddings: np.ndarray[float],
     for i, group in enumerate(unique_groups):
         logging.info(f'[_plot_umap_embeddings]: adding {group}')
         indices = np.where(label_data==group)[0]
+        if group == 'DAPI':
+            np.random.seed(config_plot.SEED)
+            indices = np.random.choice(indices, size=int(len(indices) * 0.1), replace=False)
         # Get hex color and convert to RGBA
         base_color = name_color_dict[group][color_key] if name_color_dict else plt.get_cmap(cmap)(i)
         rgba_color = mcolors.to_rgba(base_color, alpha=alpha)  # Convert hex to RGBA and apply alpha
@@ -204,7 +218,7 @@ def __plot_umap_embeddings(umap_embeddings: np.ndarray[float],
     fig.tight_layout()
     
     if savepath:
-        save_plot(fig, savepath, dpi)
+        save_plot(fig, savepath, dpi, save_eps=True)
     else:
         plt.show()
         

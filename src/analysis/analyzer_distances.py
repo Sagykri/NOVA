@@ -255,7 +255,9 @@ class AnalyzerDistances(Analyzer):
     
     def _generate_reps_of_condition_vs_baseline(self, labels:np.ndarray[str],
                                                 cond:str, batch:str, marker:str, 
-                                                baseline_cell_line_cond:str)->Tuple[Iterable,Dict]:
+                                                baseline_cell_line_cond:str,
+                                                first_rep:str = 'rep1',
+                                                second_rep:str = 'rep2')->Tuple[Iterable,Dict]:
         """
         Generate combinations of replicates for condition vs baseline.
 
@@ -272,7 +274,7 @@ class AnalyzerDistances(Analyzer):
                 - A dictionary where the keys are `rep1_cond`, `rep1_baseline`, `rep2_cond`, `rep2_baseline` and the values 
                     are the corresponding indices in the `labels` array.
         """
-        reps_combinations = itertools.product(['rep1', 'rep2'], repeat=2)
+        reps_combinations = itertools.product([first_rep, second_rep], repeat=2)
         indices_dict = {}
         reps = []
         for repA,repB in reps_combinations:
