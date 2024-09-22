@@ -74,7 +74,7 @@ def test_cellpose(images, images_paths):
         masks, _,_,_ = segment(img=img_for_seg, channels=[0,0],\
                                         model=cp_model, diameter=60,#60,\
                                         cellprob_threshold=0,\
-                                        flow_threshold=0.7, show_plot=True) #channel_axis=-1,
+                                        flow_threshold=0.4, show_plot=True) #channel_axis=-1,
         # flow_threshold - The default is flow_threshold=0.4. Increase this threshold if cellpose is not returning as many ROIs as you’d expect. 
         #                   Similarly, decrease this threshold if cellpose is returning too many ill-shaped ROIs.
         # cellprob_threshold - The default is cellprob_threshold=0.0. Decrease this threshold if cellpose is not returning as many ROIs as you’d expect. 

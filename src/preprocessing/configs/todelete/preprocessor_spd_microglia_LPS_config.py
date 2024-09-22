@@ -4,9 +4,9 @@ sys.path.insert(1, os.getenv("MOMAPS_HOME"))
 
 
 
-from src.preprocessing.configs.preprocessor_spd_config import SPDPreprocessingConfig
+from src.preprocessing.configs.preprocessor_spd_config import SPDPreprocessingBaseConfig
 
-class SPDPreprocessingConfigMicrogliaLPS(SPDPreprocessingConfig):
+class SPDPreprocessingConfigMicrogliaLPS(SPDPreprocessingBaseConfig):
     def __init__(self):
         super().__init__()
         

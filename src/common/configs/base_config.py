@@ -89,7 +89,7 @@ class BaseConfig():
         jobname = os.getenv('LSB_JOBNAME')
         # if jobname is not specified, the jobname will include the path of the script that was run.
         # In this case we'll have some '/' and '.' in the jobname that should be removed.
-        jobname = jobname.replace('/','').replace('.','') 
+        jobname = jobname.replace('/','').replace('.','') if jobname is not None else None
 
         username = 'UnknownUser'
         if jobid:

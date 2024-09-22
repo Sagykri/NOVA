@@ -186,6 +186,7 @@ def sample_raw_images(input_dir_batch, marker, cell_line, condition, sample_size
         for root, dirs, files in os.walk(os.path.join(input_dir_batch, cell_line)):
             if marker in dirs:
                 panel_pattern = r'/panel[A-Z]/'
+                print(root)
                 panel = re.search(panel_pattern, root).group(0).strip('/')
                 return panel
     

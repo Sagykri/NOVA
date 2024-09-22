@@ -3,10 +3,10 @@ import sys
 sys.path.insert(1, os.getenv("MOMAPS_HOME"))
 
 
-from src.preprocessing.configs.preprocessor_spd_config import SPDPreprocessingConfig
+from src.preprocessing.configs.preprocessor_spd_config import SPDPreprocessingBaseConfig
 
 
-class SPD_Batch8(SPDPreprocessingConfig):
+class SPD_Batch8(SPDPreprocessingBaseConfig):
     def __init__(self):
         super().__init__()
         
