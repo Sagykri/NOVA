@@ -109,7 +109,7 @@ def get_nuclei_segmentations(
         show_plot (bool, optional): Whether to display a plot of the segmentation. Defaults to True.
     
     Returns:
-        masks (np.ndarray): The binary mask of segmented nuclei.
+        masks (np.ndarray): The mask of segmented nuclei.
     """
 
     # Sharpen the image for easier segmentation

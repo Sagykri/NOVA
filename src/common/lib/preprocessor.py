@@ -242,9 +242,13 @@ class Preprocessor(ABC):
             show_plot=False
         )
 
+        # TODO: LOG: Save in the log the cell count found by cellpose (len(np.unique(nucleu_mask) - 1))
+
         # Tile the nucleus mask and validate each tile
         nuclei_mask_tiled = crop_image_to_tiles(nuclei_mask, self.preprocessing_config.TILE_INTERMEDIATE_SHAPE)
         valid_tiles_indexes = np.where([self.__is_valid_tile(masked_tile) for masked_tile in nuclei_mask_tiled])[0]
+        
+        # TODO: LOG: Save in the log number of valid tiles (len(valid_tiles_indexes))
         
         return valid_tiles_indexes
 
@@ -276,6 +280,7 @@ class Preprocessor(ABC):
             thresholds = tuple(self.markers_focus_boundries.loc[marker].values)
             if not is_image_focused(image, thresholds): 
                 logging.warning(f"out-of-focus for {marker}: {path}")
+                # TODO: LOG: Save to log with out-of-focus=True column
                 return None
         
         return image
