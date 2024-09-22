@@ -45,7 +45,7 @@ class AnalyzerUMAPMultiplexMarkers(AnalyzerUMAP):
         umap_embeddings = self._compute_umap_embeddings(multiplexed_embeddings)     
         
         if self.data_config.SHOW_ARI:
-            ari = self._compute_ari(umap_embeddings, multiplexed_labels)
+            ari = self._compute_ari(multiplexed_embeddings, multiplexed_labels)
             ari_score = {'ari':ari}
 
         else:
