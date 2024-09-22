@@ -4,6 +4,7 @@ sys.path.insert(1, os.getenv("MOMAPS_HOME"))
 
 from src.common.lib.plotting_utils import save_plot
 from src.common.configs.dataset_config import DatasetConfig
+from src.common.configs.plot_config import PlotConfig
 from src.common.lib.utils import save_config
 
 import numpy as np
@@ -21,29 +22,31 @@ from scipy.stats import ttest_ind
 from scipy.spatial.distance import squareform
 from sklearn.metrics.pairwise import nan_euclidean_distances
 
-def plot_distances_plots(distances:pd.DataFrame, config_data:DatasetConfig, saveroot:str,
+def plot_distances_plots(distances:pd.DataFrame, config_data:DatasetConfig, config_plot:PlotConfig, saveroot:str,
                          metric:str='ARI_KMeansConstrained')->None:
     """Wrapper function to create the folder of distances plots and plot them
 
     Args:
         distances (pd.DataFrame): dataframe with calculated distances per marker
         config_data (DatasetConfig): dataset config
+        config_plot (PlotConfig): plot config
         output_folder_path (str): root path to save the plots and configuration in
         metric (str): The metric used to evaluate the distances, e.g., 'ARI_KMeansConstrained', 'dist', etc.
     """
     if saveroot:
         os.makedirs(saveroot, exist_ok=True)
         save_config(config_data, saveroot)
+        save_config(config_plot, saveroot)
 
     else:
         saveroot = None
     
-    plot_marker_ranking(distances, saveroot, config_data, metric=metric, show_effect_size=True)
-    plot_clustermap(distances, saveroot, config_data, metric=metric)
-    plot_bubble_plot(distances, saveroot, config_data, metric=metric)
+    plot_marker_ranking(distances, saveroot, config_data, config_plot, metric=metric, show_effect_size=True)
+    plot_clustermap(distances, saveroot, config_data, config_plot, metric=metric)
+    plot_bubble_plot(distances, saveroot, config_data, config_plot, metric=metric)
 
 def plot_marker_ranking(distances:pd.DataFrame, saveroot:str, config_data:DatasetConfig,
-                        metric:str, show_effect_size:bool=False)->None:
+                        config_plot:PlotConfig, metric:str, show_effect_size:bool=False)->None:
     """Generate and save a boxplot of marker distances with p-values, separately for each condition.
 
     Args:
@@ -56,6 +59,7 @@ def plot_marker_ranking(distances:pd.DataFrame, saveroot:str, config_data:Datase
             - 'distance_metric': The calculated distance metric (eg 'ARI_KMeansConstrained').
         saveroot (str): Path to the folder where the plot should be saved
         config_data (DatasetConfig): dataset config
+        config_plot (PlotConfig): plot config
         metric (str): The metric used to evaluate the distances, e.g., 'ARI_KMeansConstrained', 'dist', etc.
         show_effect_size (bool, optional): If True, effect sizes are displayed on the plot. Defaults to False.
     """
@@ -70,9 +74,9 @@ def plot_marker_ranking(distances:pd.DataFrame, saveroot:str, config_data:Datase
         if saveroot:
             savepath = os.path.join(saveroot, f'{cond}_vs_{baseline}_boxplot') 
         __plot_boxplot(distances, baseline, cond, metric, 
-                     pvalues_df, config_data, show_effect_size=show_effect_size, savepath = savepath)
+                     pvalues_df, config_plot, show_effect_size=show_effect_size, savepath = savepath)
         
-def plot_clustermap(distances:pd.DataFrame, saveroot:str, config_data:DatasetConfig, metric:str,
+def plot_clustermap(distances:pd.DataFrame, saveroot:str, config_data:DatasetConfig, config_plot:PlotConfig, metric:str,
                     cmap:str='Blues_r', figsize:Tuple[int,int]=(10, 10))->None:
     """Generate and save a clustermap of marker p-values per condition.
 
@@ -86,6 +90,7 @@ def plot_clustermap(distances:pd.DataFrame, saveroot:str, config_data:DatasetCon
             - 'distance_metric': The calculated distance metric (eg 'ARI_KMeansConstrained').
         saveroot (str): Path to the folder where the plot should be saved
         config_data (DatasetConfig): dataset config
+        config_plot (PlotConfig): plot config
         metric (str): The metric used to evaluate the distances, e.g., 'ARI_KMeansConstrained', 'dist', etc.
         cmap (str): name of colormap for the heatmap
         figsize (Tuple[int,int]): figure size
@@ -118,7 +123,7 @@ def plot_clustermap(distances:pd.DataFrame, saveroot:str, config_data:DatasetCon
     #         if clustered_df.iloc[i, j] <= 0.05:
     #             # Add a rectangle around the cell
     #             g.ax_heatmap.add_patch(Rectangle((j, i), 1, 1, fill=False, edgecolor='tomato', lw=2))
-    baseline = __convert_labels(clustermap, config_data)
+    baseline = __convert_labels(clustermap, baseline, config_plot)
 
     plt.title(f'vs {baseline}')
     
@@ -132,7 +137,7 @@ def plot_clustermap(distances:pd.DataFrame, saveroot:str, config_data:DatasetCon
         plt.show()
     return
       
-def plot_bubble_plot(distances:pd.DataFrame, saveroot:str, config_data:DatasetConfig, 
+def plot_bubble_plot(distances:pd.DataFrame, saveroot:str, config_data:DatasetConfig, config_plot:PlotConfig, 
                      metric:str, effect_cmap:str = 'Blues', vmin_d:int =-1, vmax_d:int =10)->None:
     """Generate and save a bubble plot of marker p-values and effect size per condition.
     Args:
@@ -145,6 +150,7 @@ def plot_bubble_plot(distances:pd.DataFrame, saveroot:str, config_data:DatasetCo
             - 'distance_metric': The calculated distance metric (eg 'ARI_KMeansConstrained').
         saveroot (str): Path to the folder where the plot should be saved
         config_data (DatasetConfig): dataset config
+        config_plot (PlotConfig): plot config
         metric (str): The metric used to evaluate the distances, e.g., 'ARI_KMeansConstrained', 'dist', etc.
         effect_cmap (str, optional): Colormap for the bubble_plot. Defaults to 'Blues'.
         vmin_d (int, optional): Minimum value of the effect (for normalization). Defaults to -1.
@@ -178,7 +184,7 @@ def plot_bubble_plot(distances:pd.DataFrame, saveroot:str, config_data:DatasetCo
         linewidth=0.5,
         )
     
-    baseline = __convert_labels(scatter, config_data)
+    baseline = __convert_labels(scatter, baseline, config_plot)
     plt.xticks(rotation=90)
     plt.title(f'vs {baseline}')
 
@@ -227,7 +233,7 @@ def __calculate_marker_pvalue_per_condition(distances:pd.DataFrame, baseline:str
     return marker_pvalue_per_condition
 
 def __plot_boxplot(distances:pd.DataFrame, baseline:str, condition:str, 
-                  metric:str, pvalues_df:pd.DataFrame, config_data:DatasetConfig, show_effect_size:bool=False,
+                  metric:str, pvalues_df:pd.DataFrame, config_plot:PlotConfig, show_effect_size:bool=False,
                   savepath:str=None)->None:
     """
     Plot a boxplot to visualize the distribution and significance of distances for a given condition compared to a baseline.
@@ -244,9 +250,9 @@ def __plot_boxplot(distances:pd.DataFrame, baseline:str, condition:str,
         baseline (str): Name of the baseline condition for comparison.
         condition (str): Name of the condition to compare against the baseline.
         metric (str): The metric used to evaluate the distances, e.g., 'ARI_KMeansConstrained', 'dist', etc.
-        marker_pval (Dict): Nested dictionary where keys are marker names. Each marker is a dictionary, 
-                            with keys for p-values and effect size indicating the statistical significance 
-                            of the difference between the condition and baseline.
+        pvalues_df (pd.DataFrame): A DataFrame with calculated p-values and effect sizes as columns,
+                                    indicating the significance of differences between the baseline and each condition.
+        config_plot (PlotConfig): plot config
         show_effect_size (bool, optional): If True, effect sizes are displayed on the plot. Defaults to False.
         savepath (str, optional): File path to save the plot. If None, the plot is shown but not saved. Defaults to None.
     """
@@ -257,11 +263,11 @@ def __plot_boxplot(distances:pd.DataFrame, baseline:str, condition:str,
     cur_distances=distances[distances.condition.isin([baseline,condition])] # after sorting, we can include also the baseline distances
 
     # Plotting
-    name_color_dict = config_data.UMAP_MAPPINGS_MARKERS
-    name_key = config_data.UMAP_MAPPINGS_ALIAS_KEY
-    color_key = config_data.UMAP_MAPPINGS_COLOR_KEY
-    name_color_dict_for_condition = config_data.UMAP_MAPPINGS_CELL_LINE_CONDITION
-    condition_to_color = {key: value[color_key] for key, value in name_color_dict_for_condition.items()}
+    marker_name_color_dict = config_plot.COLOR_MAPPINGS_MARKERS
+    name_key=config_plot.UMAP_MAPPINGS_ALIAS_KEY
+    color_key=config_plot.UMAP_MAPPINGS_COLOR_KEY
+    condition_name_color_dict = config_plot.COLOR_MAPPINGS_CELL_LINE_CONDITION
+    condition_to_color = {key: value[color_key] for key, value in condition_name_color_dict.items()}
     fig = plt.figure(figsize=(10,4))
     boxplot=sns.boxplot(data=cur_distances, order=dists_order, hue='condition',
                 x='marker', y=metric, fliersize=0, palette=condition_to_color)
@@ -274,7 +280,7 @@ def __plot_boxplot(distances:pd.DataFrame, baseline:str, condition:str,
         marker_pvalue = cur_marker.pvalue.values[0]
         __add_pvalue(marker, i, dists_order, patches,marker_pvalue)
         effect_size_formatted = round(cur_marker.d.values[0],2)
-        label = name_color_dict[marker][name_key] if name_color_dict else marker
+        label = marker_name_color_dict[marker][name_key]if marker_name_color_dict else marker
         if show_effect_size:
             label = f'{label} (d={effect_size_formatted})'
         labels.append(label)
@@ -282,7 +288,15 @@ def __plot_boxplot(distances:pd.DataFrame, baseline:str, condition:str,
     boxplot.set_xticklabels(labels)
     
     plt.xticks(rotation=90)
-    plt.title(f'{condition} vs {baseline}')
+    plt.ylabel('ARI')
+    plt.title(f'{config_plot.COLOR_MAPPINGS_CELL_LINE_CONDITION[condition][name_key]} vs {config_plot.COLOR_MAPPINGS_CELL_LINE_CONDITION[baseline][name_key]}')
+    _, current_labels = boxplot.get_legend_handles_labels()
+    updated_labels = [config_plot.COLOR_MAPPINGS_CELL_LINE_CONDITION[label][name_key] for label in current_labels]
+    legend = boxplot.legend_
+    legend.set_title("Conditions")
+    for text, new_label in zip(legend.get_texts(), updated_labels):
+        text.set_text(new_label)
+
     if savepath:
         save_plot(fig, savepath, dpi=100)
     else:
@@ -306,35 +320,35 @@ def __sort_markers_and_conditions_by_linkage(pvalues_df:pd.DataFrame)->None:
     pvalues_df.sort_values(by=['condition','marker'])
     return None
 
-def __convert_labels(plot, config_data:DatasetConfig)->str:
+def __convert_labels(plot, baseline:str, config_plot:PlotConfig)->str:
     """
-    Given a plot object, edit the marker and condition labels using the config_data.
+    Given a plot object, edit the marker and condition labels using the config_plot.
 
     Returns:
         str: The edited baseline string.
     """
-    name_color_dict = config_data.UMAP_MAPPINGS_MARKERS
-    baseline = config_data.BASELINE_CELL_LINE_CONDITION
-    if not name_color_dict:
+    marker_name_color_dict = config_plot.COLOR_MAPPINGS_MARKERS
+    condition_name_color_dict = config_plot.COLOR_MAPPINGS_CELL_LINE_CONDITION
+    name_key=config_plot.UMAP_MAPPINGS_ALIAS_KEY
+    if not marker_name_color_dict:
         return baseline
-    name_key = config_data.UMAP_MAPPINGS_ALIAS_KEY
 
     if isinstance(plot, sns.matrix.ClusterGrid): # when plot is a clustermap it's a clustergrid so we need to extract the heatmap ax.
         plot = plot.ax_heatmap
 
     marker_labels = plot.get_yticklabels()
-    marker_labels = [name_color_dict[label.get_text()][name_key] for label in marker_labels]
+    marker_labels = [marker_name_color_dict[label.get_text()][name_key] for label in marker_labels]
     ytick_positions = plot.get_yticks()
     plot.set_yticks(ytick_positions)
     plot.set_yticklabels(marker_labels)
     
     condition_labels = plot.get_xticklabels()
-    condition_labels = [config_data.UMAP_MAPPINGS_CELL_LINE_CONDITION[label.get_text()][name_key] for label in condition_labels]
+    condition_labels = [condition_name_color_dict[label.get_text()][name_key] for label in condition_labels]
     xtick_positions = plot.get_xticks()
     plot.set_xticks(xtick_positions)
     plot.set_xticklabels(condition_labels)
     
-    baseline = config_data.UMAP_MAPPINGS_CELL_LINE_CONDITION[baseline][name_key]
+    baseline = condition_name_color_dict[baseline][name_key]
     return baseline
 
 def __calc_pvalue_and_effect(distances:pd.DataFrame, baseline:str, condition:str, metric:str)->dict:
@@ -409,11 +423,11 @@ def __add_pvalue(marker:str, marker_index:int, dists_order:List[str], patches, p
     if pvalue <= 0.05: # plot significant asterix
         asterisks = __convert_pvalue_to_asterisks(pvalue)
         # Add the asterisks above the box
-        plt.text(dists_order.to_list().index(marker), pval_loc, asterisks, 
+        plt.text(list(dists_order).index(marker), pval_loc, asterisks, 
                     ha='center', va='bottom', fontsize=10)
-    else: # plot the full pvalue
-        plt.text(dists_order.to_list().index(marker), pval_loc + 0.1*pval_loc, round(pvalue,4), 
-                    ha='center', va='bottom', fontsize=7, rotation=90)
+    # else: # plot the full pvalue
+    #     plt.text(dists_order.to_list().index(marker), pval_loc + 0.1*pval_loc, round(pvalue,4), 
+    #                 ha='center', va='bottom', fontsize=7, rotation=90)
             
 def __convert_pvalue_to_asterisks(pval:float)->str:
     if pval <= 0.0001:

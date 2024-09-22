@@ -31,30 +31,33 @@ def generate_embeddings(model, config_data:DatasetConfig, batch_size:int=700, nu
     val_paths:np.ndarray[str] = model.valset_paths
     
     full_dataset = DatasetNOVA(config_data)
-    all_paths = full_dataset.get_X_paths()
-    all_labels = full_dataset.get_y()
-
+    full_paths = full_dataset.get_X_paths()
+    full_labels = full_dataset.get_y()
+    logging.info(f'[generate_embbedings]: total files in dataset: {full_paths.shape[0]}')
     for set_paths, set_type in zip([train_paths, val_paths, None],
                                    ['trainset','valset','testset']):
+        
         if set_type=='testset':
             paths_to_remove = np.concatenate([train_paths, val_paths])
             current_paths = full_dataset.get_X_paths()
             current_labels = full_dataset.get_y()
-            indices_to_keep = np.where(~np.isin(current_paths, paths_to_remove))[0]
-            assert indices_to_keep.shape[0] == current_paths.shape[0] - paths_to_remove.shape[0]
-            
+            indices_to_keep = np.where(~np.isin(current_paths, paths_to_remove))[0]      
             new_set_paths = current_paths[indices_to_keep]
             new_set_labels = current_labels[indices_to_keep]
         
         else:
-            indices_to_keep = np.where(np.isin(all_paths, set_paths))[0]
+            indices_to_keep = np.where(np.isin(full_paths, set_paths))[0]
             if indices_to_keep.shape[0]==0:
                 continue
             
-            new_set_paths = all_paths[indices_to_keep]
-            new_set_labels = all_labels[indices_to_keep]
+            new_set_paths = full_paths[indices_to_keep]
+            new_set_labels = full_labels[indices_to_keep]
 
-        new_set_dataset = deepcopy(full_dataset).setXy(new_set_paths, new_set_labels)
+
+        logging.info(f'[generate_embbedings]: for set {set_type}, there are {new_set_paths.shape} paths and {new_set_labels.shape} labels')
+        new_set_dataset = deepcopy(full_dataset)
+        new_set_dataset.set_Xy(new_set_paths, new_set_labels)
+        
         embeddings, labels = __generate_embeddings_with_dataloader(new_set_dataset, model, batch_size, num_workers)
         
         all_embeddings.append(embeddings)
@@ -125,9 +128,9 @@ def load_embeddings(model_output_folder:str, config_data:DatasetConfig)-> Tuple[
 
 def __generate_embeddings_with_dataloader(dataset:DatasetNOVA, model:NOVAModel, batch_size:int=700, 
                                           num_workers:int=6)->Tuple[np.ndarray[torch.Tensor], np.ndarray[str]]:
-    data_loader = get_dataloader(dataset, batch_size, num_workers, drop_last=False)
+    data_loader = get_dataloader(dataset=dataset, batch_size=batch_size, num_workers=num_workers, drop_last=False)
     logging.info(f"[generate_embeddings_with_dataloader] Data loaded: there are {len(dataset)} images.")
-
+    
     embeddings, labels = model.infer(data_loader)
     logging.info(f'[generate_embeddings_with_dataloader] total embeddings: {embeddings.shape}')
     
@@ -144,7 +147,7 @@ def __load_multiple_batches(batches:List[str], embeddings_folder:str, config_dat
         embeddings: List of np.arrays of length (# batches). each np.array is in shape (# tiles, 128)
         labels: List of np.arrays of length (# batches). each np.array is in shape (# tiles) and the stored value is full label
     """
-    sets_to_load = config_data.SETS #TODO: change to default "testset" after  genereating embeddings with new approach
+    sets_to_load = get_if_exists(config_data, 'SETS', ['testset']) 
     embeddings, labels = [] , []
     for batch in batches:
         for set_type in sets_to_load:

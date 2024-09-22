@@ -64,7 +64,7 @@ class AnalyzerDistances(Analyzer):
             for marker in markers:   
                 logging.info(f"[AnalyzerDistances.calculate] marker: {marker}")
                 new_scores = self._calculate_metrics_for_baseline(embeddings, labels, baseline_cell_line_cond,
-                                                                  conditions, batch, marker)
+                                                                  batch, marker)
                 scores.append(new_scores)
                 for cond in conditions:
                     new_scores = self._calculate_metrics_for_condition_vs_baseline(embeddings, labels, 

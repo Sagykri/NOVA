@@ -53,7 +53,7 @@ class AnalyzerUMAPSingleMarkers(AnalyzerUMAP):
 
             if self.data_config.SHOW_ARI:
                 # If we want to change the ari to be calculated on the embeddings themself and not the umap, just send here the embeddings of the marker
-                ari = self._compute_ari(marker_umap_embeddings, marker_labels)
+                ari = self._compute_ari(marker_embeddings, marker_labels)
                 ari_scores[marker] = ari
 
         umap_embeddings = np.concatenate(umap_embeddings)

@@ -39,7 +39,7 @@ class ExampleFigureConfig(DatasetConfig):
         # self.MAP_LABELS_FUNCTION = "lambda self: lambda labels: __import__('numpy').asarray([l.split('_')[0] for l in labels])"
         
         # Colors 
-        self.UMAP_MAPPINGS = self.UMAP_MAPPINGS_ALS
+        self.COLOR_MAPPINGS = self.COLOR_MAPPINGS_ALS
         
         # Output folder:
         self.FIGURE_OUTPUT_FOLDER = os.path.join(self.OUTPUTS_FOLDER, 'figures', 'manuscript', 'fig2', 'panelB')
@@ -82,7 +82,7 @@ class U2OSUMAP0StressFigureConfig(DatasetConfig):
         # Set the colormap, for example: {"Untreated": "#52C5D5", 'stress': "#F7810F"} 
         self.COLORMAP = {"Untreated": "#52C5D5", 'stress': "#F7810F"}
 
-        self.UMAP_MAPPINGS = self.UMAP_MAPPINGS_CONDITION
+        self.COLOR_MAPPINGS = self.COLOR_MAPPINGS_CONDITION
 
 
         # Set the size of the dots
@@ -160,7 +160,7 @@ class NeuronsUMAP0B6StressFigureConfig(DatasetConfig):
         # Set the colormap, for example: {"Untreated": "#52C5D5", 'stress': "#F7810F"} 
         self.COLORMAP = {"Untreated": "#52C5D5", 'stress': "#F7810F"}
         
-        self.UMAP_MAPPINGS = self.UMAP_MAPPINGS_CONDITION
+        self.COLOR_MAPPINGS = self.COLOR_MAPPINGS_CONDITION
 
 
         # Set the size of the dots
@@ -198,7 +198,7 @@ class NeuronsUMAP1B78FigureConfig(DatasetConfig):
         self.MAP_LABELS_FUNCTION = "lambda self: lambda labels: __import__('numpy').asarray([l.split('_')[0] for l in labels])"
         
         # Colors 
-        self.UMAP_MAPPINGS = self.UMAP_MAPPINGS_MARKERS
+        self.COLOR_MAPPINGS = self.COLOR_MAPPINGS_MARKERS
         
         self.MARKERS_TO_EXCLUDE = ['FMRP', 'TIA1']
 
@@ -235,7 +235,7 @@ class NeuronsUMAP2B78FigureConfig(DatasetConfig):
         # self.MAP_LABELS_FUNCTION = "lambda self: lambda labels: __import__('numpy').asarray([l.split('_')[0] for l in labels])"
         
         # Colors 
-        self.UMAP_MAPPINGS = self.UMAP_MAPPINGS_ALS
+        self.COLOR_MAPPINGS = self.COLOR_MAPPINGS_ALS
         
         self.MARKERS_TO_EXCLUDE = ['FMRP', 'TIA1']
 
@@ -272,7 +272,7 @@ class NeuronsUMAP2B9BothRepsB78FigureConfig(DatasetConfig):
         # self.MAP_LABELS_FUNCTION = "lambda self: lambda labels: __import__('numpy').asarray([l.split('_')[0] for l in labels])"
         
         # Colors 
-        self.UMAP_MAPPINGS = self.UMAP_MAPPINGS_ALS
+        self.COLOR_MAPPINGS = self.COLOR_MAPPINGS_ALS
         
         self.MARKERS_TO_EXCLUDE = ['FMRP', 'TIA1']
 
@@ -313,7 +313,7 @@ class Fig3AConfig(DatasetConfig):
         self.MAP_LABELS_FUNCTION = "lambda self: lambda labels: __import__('numpy').asarray([l.split('_')[1] for l in labels])"
         
         # Colors 
-        self.UMAP_MAPPINGS = self.UMAP_MAPPINGS_CONDITION
+        self.COLOR_MAPPINGS = self.COLOR_MAPPINGS_CONDITION
         
         # Set the size of the dots
         self.SIZE = 30
@@ -352,7 +352,7 @@ class Fig4CConfig(DatasetConfig):
         # self.MAP_LABELS_FUNCTION = "lambda self: lambda labels: __import__('numpy').asarray([l.split('_')[0] for l in labels])"
         
         # Colors 
-        self.UMAP_MAPPINGS = self.UMAP_MAPPINGS_DOX
+        self.COLOR_MAPPINGS = self.COLOR_MAPPINGS_DOX
         
         # Set the size of the dots
         self.SIZE = 0.3
@@ -392,7 +392,7 @@ class Fig5CB6Config(DatasetConfig):
         # self.MAP_LABELS_FUNCTION = "lambda self: lambda labels: __import__('numpy').asarray([l.split('_')[0] for l in labels])"
         
         # Colors 
-        self.UMAP_MAPPINGS = self.UMAP_MAPPINGS_ALS
+        self.COLOR_MAPPINGS = self.COLOR_MAPPINGS_ALS
         
         # Set the size of the dots
         self.SIZE = 0.3
@@ -426,7 +426,7 @@ class Fig5DB6Config(DatasetConfig):
         self.MAP_LABELS_FUNCTION = "lambda self: lambda labels: __import__('numpy').asarray([l.split('_')[0] for l in labels])"
         
         # Colors 
-        self.UMAP_MAPPINGS = self.UMAP_MAPPINGS_ALS
+        self.COLOR_MAPPINGS = self.COLOR_MAPPINGS_ALS
         
         # Set the size of the dots
         self.SIZE = 0.3
@@ -459,7 +459,7 @@ class Fig5DB9Config(DatasetConfig):
         self.MAP_LABELS_FUNCTION = "lambda self: lambda labels: __import__('numpy').asarray([l.split('_')[0] for l in labels])"
         
         # Colors 
-        self.UMAP_MAPPINGS = self.UMAP_MAPPINGS_ALS
+        self.COLOR_MAPPINGS = self.COLOR_MAPPINGS_ALS
         
         # Set the size of the dots
         self.SIZE = 0.3
@@ -495,7 +495,7 @@ class Fig5EB6Config(DatasetConfig):
         # self.MAP_LABELS_FUNCTION = "lambda self: lambda labels: __import__('numpy').asarray([l.split('_')[0] for l in labels])"
         
         # Colors 
-        self.UMAP_MAPPINGS = self.UMAP_MAPPINGS_ALS
+        self.COLOR_MAPPINGS = self.COLOR_MAPPINGS_ALS
         
         # Set the size of the dots
         self.SIZE = 0.3
@@ -531,7 +531,7 @@ class Fig5FB6Config(DatasetConfig):
         # self.MAP_LABELS_FUNCTION = "lambda self: lambda labels: __import__('numpy').asarray([l.split('_')[0] for l in labels])"
         
         # Colors 
-        self.UMAP_MAPPINGS = self.UMAP_MAPPINGS_ALS
+        self.COLOR_MAPPINGS = self.COLOR_MAPPINGS_ALS
         
         # Set the size of the dots
         self.SIZE = 0.3
@@ -568,7 +568,7 @@ class Fig5FB6SCNAConfig(DatasetConfig):
         # self.MAP_LABELS_FUNCTION = "lambda self: lambda labels: __import__('numpy').asarray([l.split('_')[0] for l in labels])"
         
         # Colors 
-        self.UMAP_MAPPINGS = self.UMAP_MAPPINGS_ALS
+        self.COLOR_MAPPINGS = self.COLOR_MAPPINGS_ALS
         
         # Set the size of the dots
         self.SIZE = 0.3
@@ -605,7 +605,7 @@ class Fig5FB9SCNAConfig(DatasetConfig):
         # self.MAP_LABELS_FUNCTION = "lambda self: lambda labels: __import__('numpy').asarray([l.split('_')[0] for l in labels])"
         
         # Colors 
-        self.UMAP_MAPPINGS = self.UMAP_MAPPINGS_ALS
+        self.COLOR_MAPPINGS = self.COLOR_MAPPINGS_ALS
         
         # Set the size of the dots
         self.SIZE = 0.3
@@ -643,7 +643,7 @@ class FigSup2AConfig(DatasetConfig):
         # Set the colormap, for example: {"Untreated": "#52C5D5", 'stress': "#F7810F"} 
         self.COLORMAP = {"Untreated": "#52C5D5", 'stress': "#F7810F"}
         
-        self.UMAP_MAPPINGS = self.UMAP_MAPPINGS_CONDITION
+        self.COLOR_MAPPINGS = self.COLOR_MAPPINGS_CONDITION
 
         # Set the size of the dots
         self.SIZE = 30
@@ -683,7 +683,7 @@ class FigSup4AConfig(DatasetConfig):
         self.MAP_LABELS_FUNCTION = "lambda self: lambda labels: __import__('numpy').asarray([l.split('_')[1] for l in labels])"
         
         # Colors 
-        self.UMAP_MAPPINGS = self.UMAP_MAPPINGS_CONDITION
+        self.COLOR_MAPPINGS = self.COLOR_MAPPINGS_CONDITION
         
         # Set the size of the dots
         self.SIZE = 30
@@ -722,7 +722,7 @@ class FigSup4AConfig(DatasetConfig):
 #         self.MAP_LABELS_FUNCTION = "lambda self: lambda labels: __import__('numpy').asarray([l.split('_')[1] for l in labels])"
         
 #         # Colors 
-#         self.UMAP_MAPPINGS = self.UMAP_MAPPINGS_CONDITION
+#         self.COLOR_MAPPINGS = self.COLOR_MAPPINGS_CONDITION
         
 #         # Set the size of the dots
 #         self.SIZE = 30
@@ -761,7 +761,7 @@ class FigSup5AConfig(DatasetConfig):
         # self.MAP_LABELS_FUNCTION = "lambda self: lambda labels: __import__('numpy').asarray([l.split('_')[1] for l in labels])"
         
         # Colors 
-        self.UMAP_MAPPINGS = self.UMAP_MAPPINGS_DOX
+        self.COLOR_MAPPINGS = self.COLOR_MAPPINGS_DOX
         
         # Set the size of the dots
         self.SIZE = 30
@@ -802,7 +802,7 @@ class FigSup5AConfig(DatasetConfig):
 #         # self.MAP_LABELS_FUNCTION = "lambda self: lambda labels: __import__('numpy').asarray([l.split('_')[0] for l in labels])"
         
 #         # Colors 
-#         self.UMAP_MAPPINGS = self.UMAP_MAPPINGS_ALS
+#         self.COLOR_MAPPINGS = self.COLOR_MAPPINGS_ALS
         
 #         # Set the size of the dots
 #         self.SIZE = 0.3
@@ -841,7 +841,7 @@ class FigSup6AConfig(DatasetConfig):
         # self.MAP_LABELS_FUNCTION = "lambda self: lambda labels: __import__('numpy').asarray([l.split('_')[0] for l in labels])"
         
         # Colors 
-        self.UMAP_MAPPINGS = self.UMAP_MAPPINGS_ALS
+        self.COLOR_MAPPINGS = self.COLOR_MAPPINGS_ALS
         
         # Set the size of the dots
         self.SIZE = 0.3
@@ -877,7 +877,7 @@ class FigSup6BB6Config(DatasetConfig):
         # self.MAP_LABELS_FUNCTION = "lambda self: lambda labels: __import__('numpy').asarray([l.split('_')[0] for l in labels])"
         
         # Colors 
-        self.UMAP_MAPPINGS = self.UMAP_MAPPINGS_ALS
+        self.COLOR_MAPPINGS = self.COLOR_MAPPINGS_ALS
         
         # Set the size of the dots
         self.SIZE = 0.3
@@ -912,7 +912,7 @@ class FigSup6BB9Config(DatasetConfig):
         # self.MAP_LABELS_FUNCTION = "lambda self: lambda labels: __import__('numpy').asarray([l.split('_')[0] for l in labels])"
         
         # Colors 
-        self.UMAP_MAPPINGS = self.UMAP_MAPPINGS_ALS
+        self.COLOR_MAPPINGS = self.COLOR_MAPPINGS_ALS
         
         # Set the size of the dots
         self.SIZE = 0.3
@@ -945,7 +945,7 @@ class FigSup6CConfig(DatasetConfig):
         self.MAP_LABELS_FUNCTION = "lambda self: lambda labels: __import__('numpy').asarray([l.split('_')[0] for l in labels])"
         
         # Colors 
-        self.UMAP_MAPPINGS = self.UMAP_MAPPINGS_CONDITION
+        self.COLOR_MAPPINGS = self.COLOR_MAPPINGS_CONDITION
         
         # Set the size of the dots
         self.SIZE = 0.3
@@ -981,7 +981,7 @@ class FigSup6DConfig(DatasetConfig):
         # self.MAP_LABELS_FUNCTION = "lambda self: lambda labels: __import__('numpy').asarray([l.split('_')[0] for l in labels])"
         
         # Colors 
-        self.UMAP_MAPPINGS = self.UMAP_MAPPINGS_DOX
+        self.COLOR_MAPPINGS = self.COLOR_MAPPINGS_DOX
         
         # Set the size of the dots
         self.SIZE = 30
@@ -1022,7 +1022,7 @@ class FigSup6DConfig(DatasetConfig):
 #         # self.MAP_LABELS_FUNCTION = "lambda self: lambda labels: __import__('numpy').asarray([l.split('_')[0] for l in labels])"
         
 #         # Colors 
-#         self.UMAP_MAPPINGS = self.UMAP_MAPPINGS_ALS
+#         self.COLOR_MAPPINGS = self.COLOR_MAPPINGS_ALS
         
 #         # Set the size of the dots
 #         self.SIZE = 0.3
@@ -1058,7 +1058,7 @@ class FigSup6DConfig(DatasetConfig):
 #         # self.MAP_LABELS_FUNCTION = "lambda self: lambda labels: __import__('numpy').asarray([l.split('_')[0] for l in labels])"
         
 #         # Colors 
-#         self.UMAP_MAPPINGS = self.UMAP_MAPPINGS_ALS
+#         self.COLOR_MAPPINGS = self.COLOR_MAPPINGS_ALS
         
 #         # Set the size of the dots
 #         self.SIZE = 0.3
@@ -1093,7 +1093,7 @@ class FUSPertUMAP1B1FigureConfig(DatasetConfig):
         self.MAP_LABELS_FUNCTION = "lambda self: lambda labels: __import__('numpy').asarray([l.split('_')[0] for l in labels])"
         
         # Colors 
-        self.UMAP_MAPPINGS = self.UMAP_MAPPINGS_MARKERS
+        self.COLOR_MAPPINGS = self.COLOR_MAPPINGS_MARKERS
         
         self.MARKERS_TO_EXCLUDE = ['FMRP']
 
@@ -1126,7 +1126,7 @@ class FUSPertUMAP1B1Rep1FigureConfig(DatasetConfig):
         self.MAP_LABELS_FUNCTION = "lambda self: lambda labels: __import__('numpy').asarray([l.split('_')[0] for l in labels])"
         
         # Colors 
-        self.UMAP_MAPPINGS = self.UMAP_MAPPINGS_MARKERS
+        self.COLOR_MAPPINGS = self.COLOR_MAPPINGS_MARKERS
         
         self.MARKERS_TO_EXCLUDE = ['FMRP']
 
@@ -1158,7 +1158,7 @@ class FUSPertUMAP1B1Rep2FigureConfig(DatasetConfig):
         self.MAP_LABELS_FUNCTION = "lambda self: lambda labels: __import__('numpy').asarray([l.split('_')[0] for l in labels])"
         
         # Colors 
-        self.UMAP_MAPPINGS = self.UMAP_MAPPINGS_MARKERS
+        self.COLOR_MAPPINGS = self.COLOR_MAPPINGS_MARKERS
         
         self.MARKERS_TO_EXCLUDE = ['FMRP']
 
@@ -1188,7 +1188,7 @@ class FUSPertUMAP1B1DMSOFigureConfig(DatasetConfig):
         self.MAP_LABELS_FUNCTION = "lambda self: lambda labels: __import__('numpy').asarray([l.split('_')[0] for l in labels])"
         
         # Colors 
-        self.UMAP_MAPPINGS = self.UMAP_MAPPINGS_MARKERS
+        self.COLOR_MAPPINGS = self.COLOR_MAPPINGS_MARKERS
         
         self.MARKERS_TO_EXCLUDE = ['FMRP']
 
@@ -1219,7 +1219,7 @@ class FUSPertUMAP0B1KOLFUntreatedSAFigureConfig(DatasetConfig):
 
         
         # Colors 
-        self.UMAP_MAPPINGS = self.UMAP_MAPPINGS_CONDITION_FUS
+        self.COLOR_MAPPINGS = self.COLOR_MAPPINGS_CONDITION_FUS
         
         # self.MARKERS_TO_EXCLUDE = ['FMRP']
 
@@ -1251,7 +1251,7 @@ class FUSPertUMAP0B1KOLFUntreatedSARep1FigureConfig(DatasetConfig):
 
         
         # Colors 
-        self.UMAP_MAPPINGS = self.UMAP_MAPPINGS_CONDITION_FUS
+        self.COLOR_MAPPINGS = self.COLOR_MAPPINGS_CONDITION_FUS
         
         # self.MARKERS_TO_EXCLUDE = ['FMRP']
 
@@ -1283,7 +1283,7 @@ class FUSPertUMAP0B1KOLFDMSOSARep2FigureConfig(DatasetConfig):
 
         
         # Colors 
-        self.UMAP_MAPPINGS = None#self.UMAP_MAPPINGS_CONDITION_FUS
+        self.COLOR_MAPPINGS = None#self.COLOR_MAPPINGS_CONDITION_FUS
         self.COLORMAP = 'Set1'
         # self.MARKERS_TO_EXCLUDE = ['FMRP']
 
@@ -1315,7 +1315,7 @@ class FUSPertUMAP0B1KOLFDMSOUntreatedRep2FigureConfig(DatasetConfig):
 
         
         # Colors 
-        self.UMAP_MAPPINGS = self.UMAP_MAPPINGS_CONDITION_FUS
+        self.COLOR_MAPPINGS = self.COLOR_MAPPINGS_CONDITION_FUS
         
         # self.MARKERS_TO_EXCLUDE = ['FMRP']
 
@@ -1347,7 +1347,7 @@ class FUSPertUMAP0B1KOLFUntreatedSARep2FigureConfig(DatasetConfig):
 
         
         # Colors 
-        self.UMAP_MAPPINGS = self.UMAP_MAPPINGS_CONDITION_FUS
+        self.COLOR_MAPPINGS = self.COLOR_MAPPINGS_CONDITION_FUS
         
         # self.MARKERS_TO_EXCLUDE = ['FMRP']
 
@@ -1379,7 +1379,7 @@ class FUSPertUMAP0B1KOLFUntreatedCisplatinRep2FigureConfig(DatasetConfig):
 
         
         # Colors 
-        self.UMAP_MAPPINGS = self.UMAP_MAPPINGS_CONDITION_FUS
+        self.COLOR_MAPPINGS = self.COLOR_MAPPINGS_CONDITION_FUS
         
         # self.MARKERS_TO_EXCLUDE = ['FMRP']
 
@@ -1411,7 +1411,7 @@ class FUSPertUMAP0B1KOLFUntreatedColchicineRep2FigureConfig(DatasetConfig):
 
         
         # Colors 
-        self.UMAP_MAPPINGS = self.UMAP_MAPPINGS_CONDITION_FUS
+        self.COLOR_MAPPINGS = self.COLOR_MAPPINGS_CONDITION_FUS
         
         # self.MARKERS_TO_EXCLUDE = ['FMRP']
 
@@ -1444,7 +1444,7 @@ class FUSPertUMAP0B1KOLFFUSHetDMSOCisplatinRep2FigureConfig(DatasetConfig):
 
         
         # Colors 
-        self.UMAP_MAPPINGS = None#self.UMAP_MAPPINGS_CONDITION_FUS
+        self.COLOR_MAPPINGS = None#self.COLOR_MAPPINGS_CONDITION_FUS
         self.COLORMAP = 'Set1'
         # self.MARKERS_TO_EXCLUDE = ['FMRP']
 
@@ -1476,7 +1476,7 @@ class FUSPertUMAP0B1KOLFFUSHetDMSOColchicineRep2FigureConfig(DatasetConfig):
 
         
         # Colors 
-        self.UMAP_MAPPINGS = None#self.UMAP_MAPPINGS_CONDITION_FUS
+        self.COLOR_MAPPINGS = None#self.COLOR_MAPPINGS_CONDITION_FUS
         self.COLORMAP = 'Set1'
         
         # self.MARKERS_TO_EXCLUDE = ['FMRP']
@@ -1511,7 +1511,7 @@ class FUSPertUMAP0B1KOLFUntreatedBothRepsFigureConfig(DatasetConfig):
 
         
         # Colors 
-        self.UMAP_MAPPINGS = None
+        self.COLOR_MAPPINGS = None
         self.COLORMAP = 'Set1'
         
         # self.MARKERS_TO_EXCLUDE = ['FMRP']
@@ -1545,7 +1545,7 @@ class FUSPertUMAP0B1KOLFDMSOBothRepsFigureConfig(DatasetConfig):
 
         
         # Colors 
-        self.UMAP_MAPPINGS = None
+        self.COLOR_MAPPINGS = None
         self.COLORMAP = 'Set1'
         
         # self.MARKERS_TO_EXCLUDE = ['FMRP']
@@ -1575,7 +1575,7 @@ class FUSPertB1_NeuronsB6_Rep2_KOLF_UMAP0_FigureConfig(DatasetConfig):
         self.MARKERS_TO_EXCLUDE = ['TIA1', 'FMRP']
         
         # Colors 
-        self.UMAP_MAPPINGS = None # self.UMAP_MAPPINGS_CONDITION_FUS
+        self.COLOR_MAPPINGS = None # self.COLOR_MAPPINGS_CONDITION_FUS
         self.COLORMAP = 'Set1'
         # self.MARKERS_TO_EXCLUDE = ['FMRP']
 
@@ -1604,7 +1604,7 @@ class FUSPertB1_NeuronsB6_Rep2_KOLF_DMSO_Untreated_UMAP0_FigureConfig(DatasetCon
         self.MARKERS_TO_EXCLUDE = ['TIA1', 'FMRP']
         
         # Colors 
-        self.UMAP_MAPPINGS = None # self.UMAP_MAPPINGS_CONDITION_FUS
+        self.COLOR_MAPPINGS = None # self.COLOR_MAPPINGS_CONDITION_FUS
         self.COLORMAP = 'Set1'
         # self.MARKERS_TO_EXCLUDE = ['FMRP']
 
@@ -1642,7 +1642,7 @@ class FUSPertUMAP0B1FUS_FUSHet_DMSO_VS_ALL_KOLF_FigureConfig(DatasetConfig):
         # self.MAP_LABELS_FUNCTION = "lambda self: lambda labels: __import__('numpy').asarray([l.split('_')[0] for l in labels])"
         
         # Colors 
-        self.UMAP_MAPPINGS = None#self.UMAP_MAPPINGS_ALS
+        self.COLOR_MAPPINGS = None#self.COLOR_MAPPINGS_ALS
         self.COLORMAP = 'tab20'
         # NEMO has batch effect!
         self.MARKERS = ['FUS']
@@ -1680,7 +1680,7 @@ class FUSPertUMAP0B1_PML_PSD95_FUSHet_DMSO_VS_ALL_KOLF_FigureConfig(DatasetConfi
         # self.MAP_LABELS_FUNCTION = "lambda self: lambda labels: __import__('numpy').asarray([l.split('_')[0] for l in labels])"
         
         # Colors 
-        self.UMAP_MAPPINGS = None#self.UMAP_MAPPINGS_ALS
+        self.COLOR_MAPPINGS = None#self.COLOR_MAPPINGS_ALS
         self.COLORMAP = 'tab20'
         self.MARKERS = ['PML', 'PSD95']
 
@@ -1719,7 +1719,7 @@ class FUSPertUMAP0B1_PML_PSD95_FUSHet_ALL_VS_KOLF_DMSO_FigureConfig(DatasetConfi
         # self.MAP_LABELS_FUNCTION = "lambda self: lambda labels: __import__('numpy').asarray([l.split('_')[0] for l in labels])"
         
         # Colors 
-        self.UMAP_MAPPINGS = None#self.UMAP_MAPPINGS_ALS
+        self.COLOR_MAPPINGS = None#self.COLOR_MAPPINGS_ALS
         self.COLORMAP = 'tab20'
         self.MARKERS = ['PML', 'PSD95']
 
@@ -1756,7 +1756,7 @@ class FUSPertUMAP2B1FigureConfig(DatasetConfig):
         # self.MAP_LABELS_FUNCTION = "lambda self: lambda labels: __import__('numpy').asarray([l.split('_')[0] for l in labels])"
         
         # Colors 
-        self.UMAP_MAPPINGS = None#self.UMAP_MAPPINGS_ALS
+        self.COLOR_MAPPINGS = None#self.COLOR_MAPPINGS_ALS
         self.COLORMAP = 'tab20'
         # NEMO has batch effect!
         self.MARKERS_TO_EXCLUDE = ['FMRP', 'TIA1']
@@ -1794,7 +1794,7 @@ class FUSPertUMAP2B1NEMOFigureConfig(DatasetConfig):
         # self.MAP_LABELS_FUNCTION = "lambda self: lambda labels: __import__('numpy').asarray([l.split('_')[0] for l in labels])"
         
         # Colors 
-        self.UMAP_MAPPINGS = None#self.UMAP_MAPPINGS_ALS
+        self.COLOR_MAPPINGS = None#self.COLOR_MAPPINGS_ALS
         self.COLORMAP = 'tab20'
         # NEMO has batch effect!
         self.MARKERS_TO_EXCLUDE = ['NEMO','FMRP', 'TIA1']
@@ -1832,7 +1832,7 @@ class FUSPertUMAP2B1FUSFigureConfig(DatasetConfig):
         # self.MAP_LABELS_FUNCTION = "lambda self: lambda labels: __import__('numpy').asarray([l.split('_')[0] for l in labels])"
         
         # Colors 
-        self.UMAP_MAPPINGS = None#self.UMAP_MAPPINGS_ALS
+        self.COLOR_MAPPINGS = None#self.COLOR_MAPPINGS_ALS
         self.COLORMAP = 'tab20'
         # NEMO has batch effect!
         self.MARKERS_TO_EXCLUDE = ['FUS','FMRP', 'TIA1']
@@ -1870,7 +1870,7 @@ class FUSPertUMAP2B1FUSNEMOFigureConfig(DatasetConfig):
         # self.MAP_LABELS_FUNCTION = "lambda self: lambda labels: __import__('numpy').asarray([l.split('_')[0] for l in labels])"
         
         # Colors 
-        self.UMAP_MAPPINGS = None#self.UMAP_MAPPINGS_ALS
+        self.COLOR_MAPPINGS = None#self.COLOR_MAPPINGS_ALS
         self.COLORMAP = 'tab20'
         # NEMO has batch effect!
         self.MARKERS_TO_EXCLUDE = ['FUS','NEMO', 'FMRP', 'TIA1']
@@ -1908,7 +1908,7 @@ class FUSPertUMAP2B1NEMOOnlyFigureConfig(DatasetConfig):
         # self.MAP_LABELS_FUNCTION = "lambda self: lambda labels: __import__('numpy').asarray([l.split('_')[0] for l in labels])"
         
         # Colors 
-        self.UMAP_MAPPINGS = None#self.UMAP_MAPPINGS_ALS
+        self.COLOR_MAPPINGS = None#self.COLOR_MAPPINGS_ALS
         self.COLORMAP = 'tab20'
         # NEMO has batch effect!
         self.MARKERS_TO_EXCLUDE = ['NEMO']
@@ -1946,7 +1946,7 @@ class FUSPertUMAP2B1FUSNEMOOnlyFigureConfig(DatasetConfig):
         # self.MAP_LABELS_FUNCTION = "lambda self: lambda labels: __import__('numpy').asarray([l.split('_')[0] for l in labels])"
         
         # Colors 
-        self.UMAP_MAPPINGS = None#self.UMAP_MAPPINGS_ALS
+        self.COLOR_MAPPINGS = None#self.COLOR_MAPPINGS_ALS
         self.COLORMAP = 'tab20'
         # NEMO has batch effect!
         self.MARKERS_TO_EXCLUDE = ['FUS','NEMO']
@@ -1987,7 +1987,7 @@ class FUSPertUMAP2B1NEMOOnly_KOLF_DMSO_FUSHet_ALL_FigureConfig(DatasetConfig):
         # self.MAP_LABELS_FUNCTION = "lambda self: lambda labels: __import__('numpy').asarray([l.split('_')[0] for l in labels])"
         
         # Colors 
-        self.UMAP_MAPPINGS = None#self.UMAP_MAPPINGS_ALS
+        self.COLOR_MAPPINGS = None#self.COLOR_MAPPINGS_ALS
         self.COLORMAP = 'tab20'
         # NEMO has batch effect!
         self.MARKERS_TO_EXCLUDE = ['NEMO']
@@ -2027,7 +2027,7 @@ class FUSPertUMAP2B1FUSNEMOOnly_KOLF_DMSO_FUSHet_ALL_FigureConfig(DatasetConfig)
         # self.MAP_LABELS_FUNCTION = "lambda self: lambda labels: __import__('numpy').asarray([l.split('_')[0] for l in labels])"
         
         # Colors 
-        self.UMAP_MAPPINGS = None#self.UMAP_MAPPINGS_ALS
+        self.COLOR_MAPPINGS = None#self.COLOR_MAPPINGS_ALS
         self.COLORMAP = 'tab20'
         # NEMO has batch effect!
         self.MARKERS_TO_EXCLUDE = ['FUS','NEMO']
@@ -2067,7 +2067,7 @@ class FUSPertUMAP2B1_FUS_NEMO_PML_PSD95_KOLF_DMSO_FUSHet_ALL_FigureConfig(Datase
         # self.MAP_LABELS_FUNCTION = "lambda self: lambda labels: __import__('numpy').asarray([l.split('_')[0] for l in labels])"
         
         # Colors 
-        self.UMAP_MAPPINGS = None#self.UMAP_MAPPINGS_ALS
+        self.COLOR_MAPPINGS = None#self.COLOR_MAPPINGS_ALS
         self.COLORMAP = 'tab20'
         # NEMO has batch effect!
         self.MARKERS_TO_EXCLUDE = ['FUS','NEMO', 'PML', 'PSD95']

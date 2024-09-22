@@ -2,11 +2,34 @@ import os
 import sys
 sys.path.insert(1, os.getenv("MOMAPS_HOME"))
 
-import colorcet as cc
-import seaborn as sns
-
 from src.common.configs.dataset_config import DatasetConfig
 
+
+class EmbeddingsOpenCellDatasetConfig(DatasetConfig):
+    def __init__(self):
+        super().__init__()
+
+        self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "spd2", "SpinningDisk", f) for f in 
+                        ["OpenCell"]]
+        self.SPLIT_DATA = True
+        self.ADD_BATCH_TO_LABEL = True
+        self.ADD_REP_TO_LABEL = True
+        self.CELL_LINES = ['WT']
+        self.CONDITIONS = ['Untreated']
+        self.EXPERIMENT_TYPE = 'Opencell'
+
+class EmbeddingsOpenCellFineTuneDatasetConfig(DatasetConfig):
+    def __init__(self):
+        super().__init__()
+
+        self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "spd2", "SpinningDisk", f) for f in 
+                        ["OpenCell"]]
+        self.SPLIT_DATA = False
+        self.ADD_BATCH_TO_LABEL = True
+        self.ADD_REP_TO_LABEL = True
+        self.CELL_LINES = ['WT']
+        self.CONDITIONS = ['Untreated']
+        self.EXPERIMENT_TYPE = 'Opencell'
 
 class EmbeddingsU2OSDatasetConfig(DatasetConfig):
     def __init__(self):
@@ -166,7 +189,7 @@ class EmbeddingsdNLSB25DatasetConfig(DatasetConfig):
         self.ADD_BATCH_TO_LABEL = True
         self.ADD_REP_TO_LABEL = True
         
-class EmbeddingsB78OpencellDatasetConfig(DatasetConfig):
+class EmbeddingsB78PretrainDatasetConfig(DatasetConfig):
     def __init__(self):
         super().__init__()
 
