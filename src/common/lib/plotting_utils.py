@@ -16,6 +16,6 @@ def save_plot(fig, savepath: str, dpi: int, save_png:bool=True, save_eps:bool=Fa
     if save_png:
         fig.savefig(f"{savepath}.png", dpi=dpi, bbox_inches='tight')
     if save_eps:
-        fig.savefig(f"{savepath}.eps", dpi=dpi, format='eps')
+        fig.savefig(f"{savepath}.eps", dpi=dpi, bbox_inches='tight', format='eps')
     if not save_eps and not save_png:
         logging.info(f"save_eps and save_png are both False, not saving!")

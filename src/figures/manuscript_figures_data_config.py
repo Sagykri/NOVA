@@ -133,6 +133,7 @@ class dNLSUMAP0B3DatasetConfig(DatasetConfig):
         
         self.SETS = ['testset']
         self.EXPERIMENT_TYPE = 'deltaNLS'
+        self.CELL_LINES = ['TDP43']
         self.MARKERS = ['TDP43B','DCP1A']
         self.SHOW_ARI = True
         self.ADD_REP_TO_LABEL=False
@@ -145,9 +146,11 @@ class dNLSUMAP0B4DatasetConfig(DatasetConfig):
         
         self.SETS = ['testset']
         self.EXPERIMENT_TYPE = 'deltaNLS'
+        self.CELL_LINES = ['TDP43']
         self.MARKERS = ['TDP43B','DCP1A']
         self.SHOW_ARI = True
         self.ADD_REP_TO_LABEL=False
+
 class dNLSUMAP0B5DatasetConfig(DatasetConfig):
     def __init__(self):
         super().__init__()
@@ -157,9 +160,11 @@ class dNLSUMAP0B5DatasetConfig(DatasetConfig):
         
         self.SETS = ['testset']
         self.EXPERIMENT_TYPE = 'deltaNLS'
+        self.CELL_LINES = ['TDP43']
         self.MARKERS = ['TDP43B','DCP1A']
         self.SHOW_ARI = True
         self.ADD_REP_TO_LABEL=False
+        
 class dNLSDistancesFigureConfig(DatasetConfig):
     def __init__(self):
         super().__init__()

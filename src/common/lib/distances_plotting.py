@@ -327,6 +327,13 @@ def __plot_boxplot(distances:pd.DataFrame, baseline:str, condition:str,
         legend.set_title("Conditions")
         for text, new_label in zip(legend.get_texts(), updated_labels):
             text.set_text(new_label)
+
+        # Remove the bottom and right spines
+        boxplot.spines['right'].set_visible(False)
+        boxplot.spines['top'].set_visible(False)
+
+        # Remove the box around the legend
+        legend.set_frame_on(False)
     
     else: #break the y axis
         fig, axs = plt.subplots(figsize=figsize, nrows=2)
@@ -342,6 +349,8 @@ def __plot_boxplot(distances:pd.DataFrame, baseline:str, condition:str,
         ax_upper.set_xlim(-1,dists_order.shape[0])
         ax_upper.set_ylabel(None)
         ax_upper.spines['bottom'].set_visible(False)
+        ax_upper.spines['top'].set_visible(False)
+        ax_upper.spines['right'].set_visible(False)
         ax_upper.set_xlabel(None)
         ax_upper.set_xticks('')
 
@@ -356,6 +365,7 @@ def __plot_boxplot(distances:pd.DataFrame, baseline:str, condition:str,
 
         ax_lower.legend().remove()
         ax_lower.spines['top'].set_visible(False)
+        ax_lower.spines['right'].set_visible(False)
         ax_lower.set_xlabel("Markers")
 
         # Diagonal lines to indicate the "cut"
@@ -396,6 +406,8 @@ def __plot_boxplot(distances:pd.DataFrame, baseline:str, condition:str,
         legend.set_title("Conditions")
         for text, new_label in zip(legend.get_texts(), updated_labels):
             text.set_text(new_label)
+        legend.set_frame_on(False)
+
     if savepath:
         save_plot(fig, savepath, dpi=100, save_eps=True)
     else:

@@ -2,7 +2,7 @@ echo "MOMAPS_HOME:" $MOMAPS_HOME
 
 pretrain_model=/home/labs/hornsteinlab/Collaboration/MOmaps/outputs/vit_models/pretrained_model
 finetune_model=/home/labs/hornsteinlab/Collaboration/MOmaps/outputs/vit_models/finetuned_model
-
+cytoself_model=/home/labs/hornsteinlab/Collaboration/MOmaps/outputs/vit_models/cytoself_vqvae2_vit_format
 data_configs=./src/figures/manuscript_figures_data_config
 plot_configs=./src/figures/manuscript_plot_config
 
@@ -19,6 +19,8 @@ plot_configs=./src/figures/manuscript_plot_config
 # $MOMAPS_HOME/bash_commands/run_py.sh $MOMAPS_HOME/src/runables/generate_umaps_and_plot -m 10000 \
 # -a $pretrain_model $data_configs/NeuronsUMAP1B9FigureConfig $plot_configs/UMAP1PlotConfig -q short -j umap1_b9_pretrain
 
+# $MOMAPS_HOME/bash_commands/run_py.sh $MOMAPS_HOME/src/runables/generate_umaps_and_plot -m 10000 \
+# -a $cytoself_model $data_configs/NeuronsUMAP1B6FigureConfig $plot_configs/UMAP1PlotConfig -q short -j umap1_b6_cyto
 
 # #######################
 # # Figure 2
@@ -54,8 +56,8 @@ plot_configs=./src/figures/manuscript_plot_config
 # $MOMAPS_HOME/bash_commands/run_py.sh $MOMAPS_HOME/src/runables/generate_umaps_and_plot -m 1000 \
 # -a $finetune_model $data_configs/dNLSUMAP0B5DatasetConfig $plot_configs/UMAP0dNLSPlotConfig -q short -j umap0_dnls_b5
 
-# $MOMAPS_HOME/bash_commands/run_py.sh $MOMAPS_HOME/src/runables/plot_distances_boxplots -m 1000 \
-# -a $finetune_model $data_configs/dNLSDistancesFigureConfig $plot_configs/DistancesdNLSPlotConfig -q short -j dnls_dist
+$MOMAPS_HOME/bash_commands/run_py.sh $MOMAPS_HOME/src/runables/plot_distances_boxplots -m 1000 \
+-a $finetune_model $data_configs/dNLSDistancesFigureConfig $plot_configs/DistancesdNLSPlotConfig -q short -j dnls_dist
 
 # #######################
 # # Figure 3 -  supp - some umap0 of other batch
@@ -107,8 +109,8 @@ plot_configs=./src/figures/manuscript_plot_config
 # $MOMAPS_HOME/bash_commands/run_py.sh $MOMAPS_HOME/src/runables/generate_umaps_and_plot -m 10000 \
 # -a $finetune_model $data_configs/NeuronsUMAP2StressB9FigureConfig $plot_configs/UMAP2StressPlotConfig -q short -j umap2_stress_b9
 
-$MOMAPS_HOME/bash_commands/run_py.sh $MOMAPS_HOME/src/runables/generate_umaps_and_plot -m 10000 \
--a $finetune_model $data_configs/NeuronsUMAP2ALSB9FigureConfig $plot_configs/UMAP2ALSPlotConfig -q short -j umap2_als_b9
+# $MOMAPS_HOME/bash_commands/run_py.sh $MOMAPS_HOME/src/runables/generate_umaps_and_plot -m 10000 \
+# -a $finetune_model $data_configs/NeuronsUMAP2ALSB9FigureConfig $plot_configs/UMAP2ALSPlotConfig -q short -j umap2_als_b9
 
 # $MOMAPS_HOME/bash_commands/run_py.sh $MOMAPS_HOME/src/runables/generate_umaps_and_plot -m 10000 \
 # -a $finetune_model $data_configs/NeuronsUMAP2ALSB6_without_fus_marker_FigureConfig $plot_configs/UMAP2ALSPlotConfig -q short -j umap2_als_no_fus
@@ -150,8 +152,8 @@ $MOMAPS_HOME/bash_commands/run_py.sh $MOMAPS_HOME/src/runables/generate_umaps_an
 # $MOMAPS_HOME/bash_commands/run_py.sh $MOMAPS_HOME/src/runables/generate_umaps_and_plot -m 1000 \
 # -a $pretrain_model $data_configs/U2OSUMAP0StressDatasetConfig $plot_configs/UMAP0StressPlotConfig -q short -j umap0_stress_U2OS
 
-# $MOMAPS_HOME/bash_commands/run_py.sh $MOMAPS_HOME/src/runables/plot_distances_boxplots -m 1000 \
-# -a $finetune_model $data_configs/dNLSDistancesFigureConfig $plot_configs/DistancesdNLSNoBaselinePlotConfig -q short -j dnls_dist
+$MOMAPS_HOME/bash_commands/run_py.sh $MOMAPS_HOME/src/runables/plot_distances_boxplots -m 1000 \
+-a $finetune_model $data_configs/dNLSDistancesFigureConfig $plot_configs/DistancesdNLSNoBaselinePlotConfig -q short -j dnls_dist
 
 # $MOMAPS_HOME/bash_commands/run_py.sh $MOMAPS_HOME/src/runables/plot_distances_boxplots -m 5000 \
 # -a $finetune_model $data_configs/NeuronsDistancesStressFigureConfig $plot_configs/DistancesNeuronsStressNoBaselinePlotConfig -q short -j dists_stress
