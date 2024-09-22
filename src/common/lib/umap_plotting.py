@@ -25,12 +25,6 @@ from matplotlib import font_manager as fm
 
 fm.fontManager.addfont(FONT_PATH)
 matplotlib.rcParams['font.family'] = 'Arial'
-# matplotlib.rcParams['font.size'] = FONT_SIZE
-# matplotlib.rcParams['axes.titlesize'] = TITLE_SIZE
-# matplotlib.rcParams['axes.labelsize'] = AXES_LABEL_SIZE
-# matplotlib.rcParams['legend.fontsize'] = LEGEND_SIZE
-# matplotlib.rcParams['xtick.labelsize'] = XTICK_LABEL_SIZE
-# matplotlib.rcParams['ytick.labelsize'] = YTICK_LABEL_SIZE
 
 def plot_umap(umap_embeddings: np.ndarray[float], labels: np.ndarray[str], config_data: DatasetConfig,
               config_plot: PlotConfig, saveroot: str, umap_idx: int, ari_scores:Dict[str,float]) -> None:
