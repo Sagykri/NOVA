@@ -8,7 +8,7 @@ from src.common.lib.path_utils import get_filename
 from src.common.lib.preprocessor import Preprocessor
 from src.common.configs.preprocessing_config import PreprocessingConfig
 
-class SPDPreprocessor(Preprocessor):
+class OperaPreprocessor(Preprocessor):
     """
     Preprocessor for preprocessing images captured by the spinning disk
     """
@@ -26,8 +26,7 @@ class SPDPreprocessor(Preprocessor):
             str: Image's id
         """
         
-        # Taking the value after the last _ as id (i.e. 's' and then a number)
-        return get_filename(path).split('_')[-1]
+        return get_filename(path).split('-')[0]
     
     def _get_path_regex_from_id(self, image_id: str)->str:
         """Get regex to search for path based on given image_id
@@ -38,4 +37,4 @@ class SPDPreprocessor(Preprocessor):
         Returns:
             str: The regex for the path
         """
-        return f"*{image_id}.tif*"
+        return f"{image_id}-*.tif*"

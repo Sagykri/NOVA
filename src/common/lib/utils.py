@@ -1,4 +1,6 @@
+import logging.handlers
 import os
+from pathlib import Path
 import sys
 from typing import Any, Callable, Dict, Iterable, List, Tuple, Union
 import uuid
@@ -56,7 +58,51 @@ def flat_list_of_lists(l:List[List[Any]])->List[Any]:
         List[Any]: The flatted list
     """
     return [item for sublist in l for item in sublist]
-  
+
+def filter_paths_by_substrings(paths: List[Path], substrings: List[str], part_index: int, filter_out: bool = False) -> List[Path]:
+    """
+    Filter paths by searching for substrings in a specified part of the path.
+    Supports both positive and negative part indices. Can either filter out or keep matching paths based on the 'filter_out' flag.
+
+    Args:
+        paths (List[Path]): A list of Path objects.
+        substrings (List[str]): A list of substrings to filter by.
+        part_index (int): The index of the part to search within (can be negative).
+        filter_out (bool): If True, filter out paths where the specified part contains any of the substrings. If False, keep only those paths.
+
+    Returns:
+        List[Path]: A filtered list of Path objects based on the provided parameters.
+
+    Example:
+        >>> paths = [Path("/folder1/file1/image1.tiff"), Path("/folder1/file2/image2.tiff"), Path("/folder2/file3/image1.tiff")]
+        >>> substrings = ["file1", "file3"]
+        
+        >>> # Filter out paths where part 1 contains 'file1' or 'file3'
+        >>> filter_paths_by_substrings(paths, substrings, 1, filter_out=True)
+        [PosixPath('/folder1/file2/image2.tiff')]
+
+        >>> # Keep only paths where part 1 contains 'file1' or 'file3'
+        >>> filter_paths_by_substrings(paths, substrings, 1, filter_out=False)
+        [PosixPath('/folder1/file1/image1.tiff'), PosixPath('/folder2/file3/image1.tiff')]
+
+        >>> # Negative index: filter out paths where the last part contains 'image1'
+        >>> filter_paths_by_substrings(paths, ["image1"], -1, filter_out=True)
+        [PosixPath('/folder1/file2/image2.tiff')]
+    """
+    
+    # If substrings list is empty, return the full list of paths
+    if not substrings or all(s.strip() == "" for s in substrings):
+        return paths
+    
+    # Determine whether to filter out or keep paths based on the part matching the substrings
+    return [
+        path for path in paths
+        if len(path.parts) > abs(part_index) and (
+            (not any(substring in path.parts[part_index] for substring in substrings)) if filter_out
+            else (any(substring in path.parts[part_index] for substring in substrings))
+        )
+    ]
+
 def load_config_file(path:string, custom_filename:string=None, savefolder:string=None):
     """Load config file (and save it to file for documentation)
 
@@ -119,7 +165,7 @@ def init_logging(path:string):
         path (string): Path to log file
     """
     logging.basicConfig(level=logging.INFO,
-                        format="%(asctime)s %(levelname)s %(message)s",
+                        format="%(asctime)s %(levelname)s: %(message)s",
                         datefmt="%Y-%m-%d %H:%M:%S",
                         handlers=[
                             logging.FileHandler(path),

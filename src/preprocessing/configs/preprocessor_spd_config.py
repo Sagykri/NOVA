@@ -1,28 +1,78 @@
 import os
 import sys
 sys.path.insert(1, os.getenv("MOMAPS_HOME"))
-
-
-
 from src.common.configs.preprocessing_config import PreprocessingConfig
 
-class SPDPreprocessingConfig(PreprocessingConfig):
-    # Break the 1024x1024 input image (after it has been normalized) 
-    # to 16 tiles of 256x256, and then downsample them to 100x100 
-    # (down-sample by 2 so tile is 128x128 and then resize tile to 100x100)
+class SPDPreprocessingBaseConfig(PreprocessingConfig):
     def __init__(self):
         super().__init__()
         
-        self.RAW_SUBFOLDER_ROOT = os.path.join(self.RAW_FOLDER_ROOT, 'SpinningDisk')
-        self.PROCESSED_SUBFOLDER_ROOT = os.path.join(self.PROCESSED_FOLDER_ROOT, "spd2", "SpinningDisk")
-        self.OUTPUTS_SUBSUBFOLDER = os.path.join(self.OUTPUTS_SUBFOLDER, "spd")
+        self.RAW_FOLDER_ROOT = os.path.join(self.RAW_FOLDER_ROOT, 'SpinningDisk')
+        self.PROCESSED_FOLDER_ROOT = os.path.join(self.PROCESSED_FOLDER_ROOT, "spd2", "SpinningDisk")
+        self.OUTPUTS_FOLDER = os.path.join(self.OUTPUTS_FOLDER, "preprocessing", "spd")
         self.PREPROCESSOR_CLASS_PATH = os.path.join("src", "preprocessing", "preprocessors", "preprocessor_spd", "SPDPreprocessor")
-        self.TO_DOWNSAMPLE = False
-        self.EXPECTED_SITE_WIDTH = 1024
-        self.EXPECTED_SITE_HEIGHT = 1024
-        self.TILE_WIDTH = 128 
-        self.TILE_HEIGHT = 128
-        self.WITH_NUCLEUS_DISTANCE = False
-        self.CELL_LINES_TO_INCLUDE = None
-        self.BRENNER_BOUNDS_PATH =  os.path.join(os.getenv("MOMAPS_HOME"), 'src', 'preprocessing', 'sites_validity_bounds.csv')
-        self.DELETE_MARKER_FOLDER_IF_EXISTS = False
+
+class NeuronsPreprocessingConfig(PreprocessingConfig):
+    def __init__(self):
+        super().__init__()
+        self.MARKERS_FOCUS_BOUNDRIES_PATH =  os.path.join(os.getenv("MOMAPS_HOME"), 'src', 'preprocessing', 'markers_focus_boundries', 'markers_focus_boundries_spd.csv')
+        
+class Batch6(NeuronsPreprocessingConfig):
+    def __init__(self):
+        super().__init__()
+        
+        self.INPUT_FOLDERS = [os.path.join(self.RAW_FOLDER_ROOT, "batch6")]
+        self.PROCESSED_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "batch6")]
+        
+class Batch7(NeuronsPreprocessingConfig):
+    def __init__(self):
+        super().__init__()
+        
+        self.INPUT_FOLDERS = [os.path.join(self.RAW_FOLDER_ROOT, "batch7")]
+        self.PROCESSED_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "batch7")]
+        
+class Batch8(NeuronsPreprocessingConfig):
+    def __init__(self):
+        super().__init__()
+        
+        self.INPUT_FOLDERS = [os.path.join(self.RAW_FOLDER_ROOT, "batch8")]
+        self.PROCESSED_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "batch8")]
+        
+class Batch9(NeuronsPreprocessingConfig):
+    def __init__(self):
+        super().__init__()
+        
+        self.INPUT_FOLDERS = [os.path.join(self.RAW_FOLDER_ROOT, "batch9")]
+        self.PROCESSED_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "batch9")]
+        
+###################
+#       dNLS      #
+###################
+
+class dNLSPreprocessingConfig(PreprocessingConfig):
+    def __init__(self):
+        super().__init__()
+        self.MARKERS_FOCUS_BOUNDRIES_PATH =  os.path.join(os.getenv("MOMAPS_HOME"), 'src', 'preprocessing', 'markers_focus_boundries', 'markers_focus_boundries_dNLS.csv')
+
+
+class dNLS_Batch3(dNLSPreprocessingConfig):
+    def __init__(self):
+        super().__init__()
+        
+        self.INPUT_FOLDERS = [os.path.join(self.RAW_FOLDER_ROOT, "deltaNLS_sort", "batch3")]
+        self.PROCESSED_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "deltaNLS","batch3")]
+        
+class dNLS_Batch4(dNLSPreprocessingConfig):
+    def __init__(self):
+        super().__init__()
+        
+        self.INPUT_FOLDERS = [os.path.join(self.RAW_FOLDER_ROOT, "deltaNLS_sort", "batch4")]
+        self.PROCESSED_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "deltaNLS","batch4")]
+        
+class dNLS_Batch5(dNLSPreprocessingConfig):
+    def __init__(self):
+        super().__init__()
+        
+        self.INPUT_FOLDERS = [os.path.join(self.RAW_FOLDER_ROOT, "deltaNLS_sort", "batch5")]
+        self.PROCESSED_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "deltaNLS","batch5")]
+        

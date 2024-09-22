@@ -10,7 +10,7 @@ import random
 import cv2
 from src.preprocessing.utils.preprocessing_utils import rescale_intensity
 from IPython.display import display, HTML
-from src.preprocessing.utils.image_sampling_utils import sample_images_all_markers_all_lines
+from tools.preprocessing_tools.image_sampling_utils import sample_images_all_markers_all_lines
 from multiprocessing import Pool
 import matplotlib
 import pathlib
