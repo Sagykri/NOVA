@@ -8,10 +8,11 @@ from src.common.lib.umap_plotting import MapLabelsFunction
 class UMAP1PlotConfig(PlotConfig):
     def __init__(self):
         super().__init__()
-
-        self.ORDERED_MARKER_NAMES = ["DAPI", 'TDP43', 'PEX14', 'NONO', 'ANXA11', 'FUS', 'Phalloidin', 
-                    'PURA', 'mitotracker', 'TOMM20', 'NCL', 'Calreticulin', 'CLTC', 'KIF5A', 'SCNA','SNCA', 'SQSTM1', 'PML',
-                    'DCP1A', 'PSD95', 'LAMP1', 'GM130', 'NEMO', 'CD41', 'G3BP1']
+        
+        self.ORDERED_MARKER_NAMES = ["DAPI", 'NCL','FUS', 'TDP43','NONO', 'ANXA11', 'GM130', 'LAMP1', 
+                                     'Calreticulin','PEX14', 'DCP1A', 'CD41', 'SQSTM1','PML',
+                                     'SCNA','SNCA', 'NEMO',
+                                     'PSD95','KIF5A',  'CLTC', 'TOMM20','mitotracker', 'PURA', 'G3BP1', 'Phalloidin']
     
         # Set the size of the dots
         self.SIZE = 1

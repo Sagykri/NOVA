@@ -9,18 +9,18 @@ plot_configs=./src/figures/manuscript_plot_config
 # #######################
 # # Figure 1
 # # #######################
-# $MOMAPS_HOME/bash_commands/run_py.sh $MOMAPS_HOME/src/runables/generate_umaps_and_plot -m 10000 \
-# -a $pretrain_model $data_configs/NeuronsUMAP1B6FigureConfig $plot_configs/UMAP1PlotConfig -q short -j umap1_b6_pretrain
+$MOMAPS_HOME/bash_commands/run_py.sh $MOMAPS_HOME/src/runables/generate_umaps_and_plot -m 10000 \
+-a $pretrain_model $data_configs/NeuronsUMAP1B6FigureConfig $plot_configs/UMAP1PlotConfig -q short -j umap1_b6_pretrain
 
 
 # #######################
 # # Figure 1 - supp
 # #######################
-# $MOMAPS_HOME/bash_commands/run_py.sh $MOMAPS_HOME/src/runables/generate_umaps_and_plot -m 10000 \
-# -a $pretrain_model $data_configs/NeuronsUMAP1B9FigureConfig $plot_configs/UMAP1PlotConfig -q short -j umap1_b9_pretrain
+$MOMAPS_HOME/bash_commands/run_py.sh $MOMAPS_HOME/src/runables/generate_umaps_and_plot -m 10000 \
+-a $pretrain_model $data_configs/NeuronsUMAP1B9FigureConfig $plot_configs/UMAP1PlotConfig -q short -j umap1_b9_pretrain
 
-# $MOMAPS_HOME/bash_commands/run_py.sh $MOMAPS_HOME/src/runables/generate_umaps_and_plot -m 10000 \
-# -a $cytoself_model $data_configs/NeuronsUMAP1B6FigureConfig $plot_configs/UMAP1PlotConfig -q short -j umap1_b6_cyto
+$MOMAPS_HOME/bash_commands/run_py.sh $MOMAPS_HOME/src/runables/generate_umaps_and_plot -m 10000 \
+-a $cytoself_model $data_configs/NeuronsUMAP1B6FigureConfig $plot_configs/UMAP1PlotConfig -q short -j umap1_b6_cyto
 
 # #######################
 # # Figure 2
@@ -37,8 +37,8 @@ plot_configs=./src/figures/manuscript_plot_config
 # $MOMAPS_HOME/bash_commands/run_py.sh $MOMAPS_HOME/src/runables/generate_umaps_and_plot -m 5000 \
 # -a $finetune_model $data_configs/NeuronsUMAP0StressB9FigureConfig $plot_configs/UMAP0StressPlotConfig -q short -j umap0_stress_9
 
-# $MOMAPS_HOME/bash_commands/run_py.sh $MOMAPS_HOME/src/runables/generate_umaps_and_plot -m 10000 \
-# -a $finetune_model $data_configs/NeuronsUMAP1B6FigureConfig $plot_configs/UMAP1PlotConfig -q short -j umap1_b6_finetune
+$MOMAPS_HOME/bash_commands/run_py.sh $MOMAPS_HOME/src/runables/generate_umaps_and_plot -m 10000 \
+-a $finetune_model $data_configs/NeuronsUMAP1B6FigureConfig $plot_configs/UMAP1PlotConfig -q short -j umap1_b6_finetune
 
 # $MOMAPS_HOME/bash_commands/run_py.sh $MOMAPS_HOME/src/runables/generate_umaps_and_plot -m 1000 \
 # -a $finetune_model $data_configs/U2OSUMAP0StressDatasetConfig $plot_configs/UMAP0StressPlotConfig -q short -j umap0_stress_U2OS
@@ -56,8 +56,8 @@ plot_configs=./src/figures/manuscript_plot_config
 # $MOMAPS_HOME/bash_commands/run_py.sh $MOMAPS_HOME/src/runables/generate_umaps_and_plot -m 1000 \
 # -a $finetune_model $data_configs/dNLSUMAP0B5DatasetConfig $plot_configs/UMAP0dNLSPlotConfig -q short -j umap0_dnls_b5
 
-$MOMAPS_HOME/bash_commands/run_py.sh $MOMAPS_HOME/src/runables/plot_distances_boxplots -m 1000 \
--a $finetune_model $data_configs/dNLSDistancesFigureConfig $plot_configs/DistancesdNLSPlotConfig -q short -j dnls_dist
+# $MOMAPS_HOME/bash_commands/run_py.sh $MOMAPS_HOME/src/runables/plot_distances_boxplots -m 1000 \
+# -a $finetune_model $data_configs/dNLSDistancesFigureConfig $plot_configs/DistancesdNLSPlotConfig -q short -j dnls_dist
 
 # #######################
 # # Figure 3 -  supp - some umap0 of other batch
@@ -137,23 +137,23 @@ $MOMAPS_HOME/bash_commands/run_py.sh $MOMAPS_HOME/src/runables/plot_distances_bo
 # # # experimental
 # # #######################
 
-# $MOMAPS_HOME/bash_commands/run_py.sh $MOMAPS_HOME/src/runables/generate_umaps_and_plot -m 10000 \
-# -a $finetune_model $data_configs/dNLSUMAP1B3TDP43_UntreatedFigureConfig $plot_configs/UMAP1dNLSPlotConfig -q short -j umap1_dnls_tdp_unt
+$MOMAPS_HOME/bash_commands/run_py.sh $MOMAPS_HOME/src/runables/generate_umaps_and_plot -m 10000 \
+-a $finetune_model $data_configs/dNLSUMAP1B3TDP43_UntreatedFigureConfig $plot_configs/UMAP1dNLSPlotConfig -q short -j umap1_dnls_tdp_unt
 
-# $MOMAPS_HOME/bash_commands/run_py.sh $MOMAPS_HOME/src/runables/generate_umaps_and_plot -m 10000 \
-# -a $finetune_model $data_configs/dNLSUMAP1B3TDP43_DOXFigureConfig $plot_configs/UMAP1dNLSPlotConfig -q short -j umap1_dnls_tdp_dox
+$MOMAPS_HOME/bash_commands/run_py.sh $MOMAPS_HOME/src/runables/generate_umaps_and_plot -m 10000 \
+-a $finetune_model $data_configs/dNLSUMAP1B3TDP43_DOXFigureConfig $plot_configs/UMAP1dNLSPlotConfig -q short -j umap1_dnls_tdp_dox
 
-# $MOMAPS_HOME/bash_commands/run_py.sh $MOMAPS_HOME/src/runables/generate_umaps_and_plot -m 10000 \
-# -a $finetune_model $data_configs/dNLSUMAP1B3WTFigureConfig $plot_configs/UMAP1dNLSPlotConfig -q short -j umap1_dnls_wt
+$MOMAPS_HOME/bash_commands/run_py.sh $MOMAPS_HOME/src/runables/generate_umaps_and_plot -m 10000 \
+-a $finetune_model $data_configs/dNLSUMAP1B3WTFigureConfig $plot_configs/UMAP1dNLSPlotConfig -q short -j umap1_dnls_wt
 
-# $MOMAPS_HOME/bash_commands/run_py.sh $MOMAPS_HOME/src/runables/generate_umaps_and_plot -m 10000 \
-# -a $finetune_model $data_configs/NeuronsUMAP1D18B1FigureConfig $plot_configs/UMAP1PlotConfig -q short -j umap1_d18
+$MOMAPS_HOME/bash_commands/run_py.sh $MOMAPS_HOME/src/runables/generate_umaps_and_plot -m 10000 \
+-a $finetune_model $data_configs/NeuronsUMAP1D18B1FigureConfig $plot_configs/UMAP1PlotConfig -q short -j umap1_d18
 
 # $MOMAPS_HOME/bash_commands/run_py.sh $MOMAPS_HOME/src/runables/generate_umaps_and_plot -m 1000 \
 # -a $pretrain_model $data_configs/U2OSUMAP0StressDatasetConfig $plot_configs/UMAP0StressPlotConfig -q short -j umap0_stress_U2OS
 
-$MOMAPS_HOME/bash_commands/run_py.sh $MOMAPS_HOME/src/runables/plot_distances_boxplots -m 1000 \
--a $finetune_model $data_configs/dNLSDistancesFigureConfig $plot_configs/DistancesdNLSNoBaselinePlotConfig -q short -j dnls_dist
+# $MOMAPS_HOME/bash_commands/run_py.sh $MOMAPS_HOME/src/runables/plot_distances_boxplots -m 1000 \
+# -a $finetune_model $data_configs/dNLSDistancesFigureConfig $plot_configs/DistancesdNLSNoBaselinePlotConfig -q short -j dnls_dist
 
 # $MOMAPS_HOME/bash_commands/run_py.sh $MOMAPS_HOME/src/runables/plot_distances_boxplots -m 5000 \
 # -a $finetune_model $data_configs/NeuronsDistancesStressFigureConfig $plot_configs/DistancesNeuronsStressNoBaselinePlotConfig -q short -j dists_stress

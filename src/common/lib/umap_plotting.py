@@ -185,6 +185,7 @@ def __plot_umap_embeddings(umap_embeddings: np.ndarray[float],
         logging.info(f'[_plot_umap_embeddings]: adding {group}')
         indices = np.where(label_data==group)[0]
         if group == 'DAPI':
+            np.random.seed(config_plot.SEED)
             indices = np.random.choice(indices, size=int(len(indices) * 0.1), replace=False)
         # Get hex color and convert to RGBA
         base_color = name_color_dict[group][color_key] if name_color_dict else plt.get_cmap(cmap)(i)
