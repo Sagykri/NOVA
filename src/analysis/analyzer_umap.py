@@ -4,8 +4,8 @@ sys.path.insert(1, os.getenv("MOMAPS_HOME"))
 
 
 from src.analysis.analyzer import Analyzer
-from src.common.configs.dataset_config import DatasetConfig
-from src.common.lib.metrics import calc_ari_with_kmeans
+from src.datasets.dataset_config import DatasetConfig
+from src.analysis.analyzer_utils import calc_ari_with_kmeans
 
 from abc import abstractmethod
 from enum import Enum

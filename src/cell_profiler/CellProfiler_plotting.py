@@ -186,8 +186,7 @@ def plot_umap0(df, marker,
     logging.info(f"Starting plot_umap0() of marker {marker}...\n")
     #logging.info('%s %s', "\n", df.value_counts(subset=['replicate', 'cell_line', 'marker']))
     
-    from src.common.lib.metrics import calc_ari_with_kmeans
-    from src.common.lib.umap_plotting import __get_metrics_figure
+    from src.figures.umap_plotting import __get_metrics_figure
     from matplotlib.gridspec import GridSpec
     
     if stress:

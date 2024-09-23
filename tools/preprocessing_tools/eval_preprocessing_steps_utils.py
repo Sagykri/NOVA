@@ -10,10 +10,8 @@ print(f"MOMAPS_HOME: {os.getenv('MOMAPS_HOME')}")
 
 
 
-from src.common.lib import image_metrics
-from src.common.lib.preprocessing_utils import rescale_intensity, handle_img_shape, segment
-from src.common.lib.image_sampling_utils import sample_images_all_markers_all_lines, sample_raw_images, sample_processed_images
-from src.common.lib import metrics 
+from src.preprocessing.preprocessing_utils import get_image_focus_quality, rescale_intensity, fit_image_shape, get_nuclei_segmentations
+from tools.preprocessing_tools.image_sampling_utils import sample_raw_images, sample_processed_images
 
 def plot_images(images, paths, n_samples=3, expected_site_width=1024, expected_site_height=1024, figsize=(16,8), suptitle=None):
     fig, ax = plt.subplots(1, n_samples, figsize=figsize)
@@ -66,15 +64,10 @@ def test_cellpose(images, images_paths):
     import cellpose
     from shapely.geometry import Polygon
     
+    cp_model = models.Cellpose(gpu=True, model_type='nuclei')
     for i, image in enumerate(images):
         img = np.stack([image, image], axis=-1)
-        kernel = np.array([[-1,-1,-1], [-1,25,-1], [-1,-1,-1]])
-        img_for_seg = cv2.filter2D(img, -1, kernel)
-        cp_model = models.Cellpose(gpu=True, model_type='nuclei')
-        masks, _,_,_ = segment(img=img_for_seg, channels=[0,0],\
-                                        model=cp_model, diameter=60,#60,\
-                                        cellprob_threshold=0,\
-                                        flow_threshold=0.4, show_plot=True) #channel_axis=-1,
+        masks = get_nuclei_segmentations(img=img, cellpose_model=cp_model,show_plot=True) #channel_axis=-1,
         # flow_threshold - The default is flow_threshold=0.4. Increase this threshold if cellpose is not returning as many ROIs as you’d expect. 
         #                   Similarly, decrease this threshold if cellpose is returning too many ill-shaped ROIs.
         # cellprob_threshold - The default is cellprob_threshold=0.0. Decrease this threshold if cellpose is not returning as many ROIs as you’d expect. 
@@ -90,37 +83,6 @@ def test_cellpose(images, images_paths):
         axs[1].set_title(f'Segmented {len(np.unique(masks))-1} objects')
         plt.tight_layout()
         plt.show()
-
-def reconstruct_images(model, images):
-    import torch
-    
-    data_ch = ['target', 'nucleus']
-    img = images.copy()
-    img = np.transpose(img, (0, 3, 1, 2))
-    print(img.shape)
-    torch.cuda.empty_cache()
-    reconstructed = model.model.infer_reconstruction(img)
-    fig, ax = plt.subplots(2, len(data_ch), figsize=(5 * len(data_ch), 5), squeeze=False)
-    for ii, ch in enumerate(data_ch):
-        t0 = np.zeros((2 * 100, 5 * 100))
-        for i, im in enumerate(img[:10, ii, ...]):
-            i0, i1 = np.unravel_index(i, (2, 5))
-            t0[i0 * 100 : (i0 + 1) * 100, i1 * 100 : (i1 + 1) * 100] = im
-        t1 = np.zeros((2 * 100, 5 * 100))
-        for i, im in enumerate(reconstructed[:10, ii, ...]):
-            i0, i1 = np.unravel_index(i, (2, 5))
-            t1[i0 * 100 : (i0 + 1) * 100, i1 * 100 : (i1 + 1) * 100] = im
-        ax[0, ii].imshow(t0, cmap='gray', vmin=0, vmax=1)
-        ax[0, ii].axis('off')
-        ax[0, ii].set_title('input ' + ch)
-        ax[1, ii].imshow(t1, cmap='gray', vmin=0, vmax=1)
-        ax[1, ii].axis('off')
-        ax[1, ii].set_title('output ' + ch)
-
-    mses = metrics.calculate_mse(img, reconstructed)
-    plt.suptitle(f"MSE target: {torch.round(mses['target'], decimals=4)}, nucleus: {torch.round(mses['nucleus'],decimals=4)}")
-    fig.tight_layout()
-    plt.show()
 
 def check_preprocessing_steps(input_dir_batch, sample_size, brenner_path, marker, cell_line, condition, rep, panel=None,
                               expected_site_width=1024,expected_site_height=1024):
@@ -147,7 +109,7 @@ def check_preprocessing_steps(input_dir_batch, sample_size, brenner_path, marker
     # Handle image sizes
     
     for i in range(len(images)):
-        images_processed[i] = handle_img_shape(images[i], expected_site_width, expected_site_height)
+        images_processed[i] = fit_image_shape(images[i], (expected_site_width, expected_site_height))
     
     plot_images(images_processed, images_paths_processed)
     
@@ -166,7 +128,7 @@ def check_preprocessing_steps(input_dir_batch, sample_size, brenner_path, marker
     brenner_for_sampled_images = []
 
     for i in range(len(images_processed)):
-        brenner_for_sampled_images.append(image_metrics.calculate_image_sharpness_brenner(images_processed[i]))
+        brenner_for_sampled_images.append(get_image_focus_quality(images_processed[i]))
     brenner_for_sampled_images = np.asarray(brenner_for_sampled_images)
 
     # Show images passed filter

@@ -7,7 +7,7 @@ import numpy as np
 import logging
 from functools import partial
 from typing import List, Tuple, Callable, Optional
-from src.common.configs.dataset_config import DatasetConfig
+from src.datasets.dataset_config import DatasetConfig
 
 MARKER_IDX = 0
 CELL_LINE_IDX = 1

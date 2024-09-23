@@ -7,8 +7,8 @@ import sys
 
 sys.path.insert(1, os.getenv("MOMAPS_HOME"))
 
-from src.common.lib.dataset_base import DatasetBase
-from src.common.configs.dataset_config import DatasetConfig
+from src.datasets.dataset_base import DatasetBase
+from src.datasets.dataset_config import DatasetConfig
 
 class DatasetNOVA(DatasetBase):
     """

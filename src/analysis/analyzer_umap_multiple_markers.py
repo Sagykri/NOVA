@@ -2,7 +2,7 @@ import sys
 import os
 sys.path.insert(1, os.getenv("MOMAPS_HOME"))
 
-from src.common.configs.dataset_config import DatasetConfig
+from src.datasets.dataset_config import DatasetConfig
 
 from src.analysis.analyzer_umap import AnalyzerUMAP
 

@@ -4,7 +4,7 @@ from typing import Dict, Tuple
 
 sys.path.insert(1, os.getenv("MOMAPS_HOME"))
 from src.datasets.label_utils import split_markers_from_labels
-from src.common.configs.dataset_config import DatasetConfig
+from src.datasets.dataset_config import DatasetConfig
 
 from src.analysis.analyzer_umap import AnalyzerUMAP
 import logging
