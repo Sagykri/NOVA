@@ -2,8 +2,8 @@ import os
 import sys
 
 
-sys.path.insert(1, os.getenv("MOMAPS_HOME"))
-print(f"MOMAPS_HOME: {os.getenv('MOMAPS_HOME')}")
+sys.path.insert(1, os.getenv("NOVA_HOME"))
+print(f"NOVA_HOME: {os.getenv('NOVA_HOME')}")
 
 import logging
 
@@ -38,7 +38,7 @@ def generate_umaps(output_folder_path:str, config_path_data:str, config_path_plo
     logging.info(f"[Generate {UMAP_name} UMAP]")
 
      # Create the analyzer instance and calculate the UMAP embeddings
-    analyzer_UMAP = AnalyzerUMAPClass(config_data, output_folder_path)
+    analyzer_UMAP:AnalyzerUMAP = AnalyzerUMAPClass(config_data, output_folder_path)
     umap_embeddings, labels, ari_scores = analyzer_UMAP.calculate(embeddings, labels)
 
     # Define the output folder path and plot the UMAP

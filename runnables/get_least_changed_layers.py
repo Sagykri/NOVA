@@ -2,8 +2,8 @@ import os
 import sys
 from typing import Dict
 
-sys.path.insert(1, os.getenv("MOMAPS_HOME"))
-print(f"MOMAPS_HOME: {os.getenv('MOMAPS_HOME')}")
+sys.path.insert(1, os.getenv("NOVA_HOME"))
+print(f"NOVA_HOME: {os.getenv('NOVA_HOME')}")
 
 from src.models.architectures.NOVA_model import NOVAModel
 from src.models.utils.fine_tuning_utils import angle_metrics, compare_models, get_changed_layers_based_on_cutoff

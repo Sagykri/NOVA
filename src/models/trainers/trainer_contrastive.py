@@ -7,7 +7,7 @@ from typing import Dict, List, Tuple
 import numpy as np
 from info_nce import InfoNCE
 
-sys.path.insert(1, os.getenv("MOMAPS_HOME"))
+sys.path.insert(1, os.getenv("NOVA_HOME"))
 from src.models.architectures.NOVA_model import NOVAModel
 from src.models.trainers.trainer_base import TrainerBase
 from src.models.trainers.trainer_config import TrainerConfig

@@ -10,7 +10,7 @@ from cellpose import models
 from shapely.geometry import Polygon
 import skimage.exposure
 
-sys.path.insert(1, os.getenv("MOMAPS_HOME"))
+sys.path.insert(1, os.getenv("NOVA_HOME"))
 from src.common.utils import xy_to_tuple
 
 def fit_image_shape(img:np.ndarray , expected_shape:Tuple[int,int]=(1024,1024))->np.ndarray :

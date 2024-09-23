@@ -1,6 +1,6 @@
 import os
 import sys
-sys.path.insert(1, os.getenv("MOMAPS_HOME"))
+sys.path.insert(1, os.getenv("NOVA_HOME"))
 from src.preprocessing.preprocessing_config import PreprocessingConfig
 
 class SPDPreprocessingBaseConfig(PreprocessingConfig):
@@ -15,7 +15,7 @@ class SPDPreprocessingBaseConfig(PreprocessingConfig):
 class NeuronsPreprocessingConfig(PreprocessingConfig):
     def __init__(self):
         super().__init__()
-        self.MARKERS_FOCUS_BOUNDRIES_PATH =  os.path.join(os.getenv("MOMAPS_HOME"), 'manuscript', 'markers_focus_boundries', 'markers_focus_boundries_spd.csv')
+        self.MARKERS_FOCUS_BOUNDRIES_PATH =  os.path.join(os.getenv("NOVA_HOME"), 'manuscript', 'markers_focus_boundries', 'markers_focus_boundries_spd.csv')
         
 class Batch6(NeuronsPreprocessingConfig):
     def __init__(self):
@@ -52,7 +52,7 @@ class Batch9(NeuronsPreprocessingConfig):
 class dNLSPreprocessingConfig(PreprocessingConfig):
     def __init__(self):
         super().__init__()
-        self.MARKERS_FOCUS_BOUNDRIES_PATH =  os.path.join(os.getenv("MOMAPS_HOME"), 'manuscript', 'markers_focus_boundries', 'markers_focus_boundries_dNLS.csv')
+        self.MARKERS_FOCUS_BOUNDRIES_PATH =  os.path.join(os.getenv("NOVA_HOME"), 'manuscript', 'markers_focus_boundries', 'markers_focus_boundries_dNLS.csv')
 
 
 class dNLS_Batch3(dNLSPreprocessingConfig):

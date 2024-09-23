@@ -1,6 +1,6 @@
 import sys
 import os
-sys.path.insert(1, os.getenv("MOMAPS_HOME"))
+sys.path.insert(1, os.getenv("NOVA_HOME"))
 
 from src.datasets.label_utils import get_markers_from_labels
 from src.datasets.dataset_config import DatasetConfig

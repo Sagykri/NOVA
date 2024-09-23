@@ -3,7 +3,7 @@ from abc import abstractmethod
 
 import sys
 import os
-sys.path.insert(1, os.getenv("MOMAPS_HOME"))
+sys.path.insert(1, os.getenv("NOVA_HOME"))
 
 from src.datasets.dataset_config import DatasetConfig
 from src.datasets.label_utils import get_batches_from_input_folders

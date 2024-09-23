@@ -1,6 +1,6 @@
 import os
 import sys
-sys.path.insert(1, os.getenv("MOMAPS_HOME")) 
+sys.path.insert(1, os.getenv("NOVA_HOME")) 
 
 from typing import List, Optional, Tuple, Callable
 from copy import deepcopy
@@ -17,7 +17,7 @@ from src.datasets.label_utils import get_batches_from_labels, get_unique_parts_f
     edit_labels_by_config, get_batches_from_input_folders, get_reps_from_labels, get_conditions_from_labels, get_cell_lines_from_labels
 
 ###############################################################
-# Utils for Generate Embeddings (run from MOmaps/src/runables/generate_embeddings.py)
+# Utils for Generate Embeddings (run from HOME/src/runables/generate_embeddings.py)
 ###############################################################
 
 def generate_embeddings(model:NOVAModel, config_data:DatasetConfig, 

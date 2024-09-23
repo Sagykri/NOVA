@@ -2,7 +2,7 @@ import os
 
 import sys
 from typing import List
-sys.path.insert(1, os.getenv("MOMAPS_HOME"))
+sys.path.insert(1, os.getenv("NOVA_HOME"))
 
 from src.models.trainers.trainer_config import TrainerConfig
 
@@ -13,7 +13,7 @@ class ClassificationTrainerConfig(TrainerConfig):
     def __init__(self):
         super().__init__()
         
-        self.OUTPUTS_FOLDER:str = os.path.join(os.getenv("MOMAPS_HOME"), "outputs/vit_models/pretrained_model")
+        self.OUTPUTS_FOLDER:str = os.path.join(os.getenv("NOVA_HOME"), "outputs/vit_models/pretrained_model")
 
         # Training parameters
         self.LR:float = 0.0008
@@ -32,7 +32,7 @@ class ContrastiveTrainerNoFreezeConfig(TrainerConfig):
     def __init__(self):
         super().__init__()
        
-        self.OUTPUTS_FOLDER:str = os.path.join(os.getenv("MOMAPS_HOME"), "outputs/vit_models/finetuned_model_no_freeze")
+        self.OUTPUTS_FOLDER:str = os.path.join(os.getenv("NOVA_HOME"), "outputs/vit_models/finetuned_model_no_freeze")
 
         # Training parameters
         self.LR:float = 0.0008
@@ -48,7 +48,7 @@ class ContrastiveTrainerNoFreezeConfig(TrainerConfig):
         self.NEGATIVE_COUNT:int = 5
         
         # Original pretraiend
-        self.PRETRAINED_MODEL_PATH:str = os.path.join(os.getenv("MOMAPS_HOME"), "outputs/vit_models/pretrained_model/checkpoints/checkpoint_best.pth")
+        self.PRETRAINED_MODEL_PATH:str = os.path.join(os.getenv("NOVA_HOME"), "outputs/vit_models/pretrained_model/checkpoints/checkpoint_best.pth")
         
 class ContrastiveTrainerConfig(TrainerConfig):
     """Trainer configuration for the contrastive learning model (finetuned model)
@@ -56,7 +56,7 @@ class ContrastiveTrainerConfig(TrainerConfig):
     def __init__(self):
         super().__init__()
        
-        self.OUTPUTS_FOLDER:str = os.path.join(os.getenv("MOMAPS_HOME"), "outputs/vit_models/finetuned_model")
+        self.OUTPUTS_FOLDER:str = os.path.join(os.getenv("NOVA_HOME"), "outputs/vit_models/finetuned_model")
 
         # Training parameters
         self.LR:float = 0.0008
@@ -72,7 +72,7 @@ class ContrastiveTrainerConfig(TrainerConfig):
         self.NEGATIVE_COUNT:int = 5
         
         # Original pretraiend
-        self.PRETRAINED_MODEL_PATH:str = os.path.join(os.getenv("MOMAPS_HOME"), "outputs/vit_models/pretrained_model/checkpoints/checkpoint_best.pth")
+        self.PRETRAINED_MODEL_PATH:str = os.path.join(os.getenv("NOVA_HOME"), "outputs/vit_models/pretrained_model/checkpoints/checkpoint_best.pth")
 
         
         self.LAYERS_TO_FREEZE:List[str] = ['blocks.10.attn.proj.bias', 'blocks.8.norm2.bias',

@@ -4,8 +4,8 @@ from typing import List, Tuple, Union
 from torch.utils.data import DataLoader
 import logging
 
-sys.path.insert(1, os.getenv("MOMAPS_HOME"))
-print(f"MOMAPS_HOME: {os.getenv('MOMAPS_HOME')}")
+sys.path.insert(1, os.getenv("NOVA_HOME"))
+print(f"NOVA_HOME: {os.getenv('NOVA_HOME')}")
 
 
 from src.datasets.dataset_NOVA import DatasetNOVA

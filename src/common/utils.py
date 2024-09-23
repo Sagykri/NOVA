@@ -5,7 +5,7 @@ import sys
 from typing import Any, Callable, Dict, Iterable, List, Tuple, Union
 import uuid
 
-sys.path.insert(1, os.getenv("MOMAPS_HOME"))
+sys.path.insert(1, os.getenv("NOVA_HOME"))
 
 import importlib
 import json

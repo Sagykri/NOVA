@@ -1,7 +1,7 @@
 import os
 import sys
 
-sys.path.insert(1, os.getenv("MOMAPS_HOME")) 
+sys.path.insert(1, os.getenv("NOVA_HOME")) 
 
 
 import torch

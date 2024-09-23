@@ -14,7 +14,7 @@ import pandas as pd
 
 from skimage import transform
 
-sys.path.insert(1, os.getenv("MOMAPS_HOME"))
+sys.path.insert(1, os.getenv("NOVA_HOME"))
 from src.common.utils import filter_paths_by_substrings, flat_list_of_lists, get_if_exists
 from src.preprocessing import path_utils
 from src.preprocessing.preprocessing_utils import crop_image_to_tiles, extract_polygons_from_mask,\

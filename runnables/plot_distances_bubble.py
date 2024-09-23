@@ -2,8 +2,8 @@ import os
 import sys
 
 
-sys.path.insert(1, os.getenv("MOMAPS_HOME"))
-print(f"MOMAPS_HOME: {os.getenv('MOMAPS_HOME')}")
+sys.path.insert(1, os.getenv("NOVA_HOME"))
+print(f"NOVA_HOME: {os.getenv('NOVA_HOME')}")
 
 import logging
 

@@ -1,6 +1,6 @@
 import os
 import sys
-sys.path.insert(1, os.getenv("MOMAPS_HOME"))
+sys.path.insert(1, os.getenv("NOVA_HOME"))
 
 from manuscript.plot_config import PlotConfig
 from src.figures.umap_plotting import MapLabelsFunction

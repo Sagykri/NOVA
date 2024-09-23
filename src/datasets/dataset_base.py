@@ -9,7 +9,7 @@ import numpy as np
 import torch
 from copy import deepcopy
 
-sys.path.insert(1, os.getenv("MOMAPS_HOME"))
+sys.path.insert(1, os.getenv("NOVA_HOME"))
 from sklearn.model_selection import train_test_split
 from src.datasets.dataset_config import DatasetConfig
 import src.common.utils as utils

@@ -7,7 +7,7 @@ from torch.utils.data import DataLoader
 from typing import Dict, List, Tuple
 from collections import OrderedDict
 
-sys.path.insert(1, os.getenv("MOMAPS_HOME"))
+sys.path.insert(1, os.getenv("NOVA_HOME"))
 
 from src.models.utils.checkpoint_info import CheckpointInfo
 from src.datasets.dataset_config import DatasetConfig

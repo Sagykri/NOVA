@@ -1,6 +1,6 @@
 import os
 import sys
-sys.path.insert(1, os.getenv("MOMAPS_HOME"))
+sys.path.insert(1, os.getenv("NOVA_HOME"))
 
 from src.figures.figures_config import FigureConfig
 from manuscript.plot_config import PlotConfig

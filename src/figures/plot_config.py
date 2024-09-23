@@ -2,7 +2,7 @@ import sys
 import os
 from typing import Dict
 
-sys.path.insert(1, os.getenv("MOMAPS_HOME")) 
+sys.path.insert(1, os.getenv("NOVA_HOME")) 
 from src.common.base_config import BaseConfig
 
 class PlotConfig(BaseConfig):

@@ -9,7 +9,7 @@ import numpy as np
 import torch
 import torch.backends.cudnn as cudnn
 
-sys.path.insert(1, os.getenv("MOMAPS_HOME")) 
+sys.path.insert(1, os.getenv("NOVA_HOME")) 
 from src.common.utils import are_dicts_equal_except_keys, init_logging
 
 
@@ -22,9 +22,9 @@ class BaseConfig():
         
         self.__SEED = 1
 
-        self.HOME_FOLDER = os.environ['MOMAPS_HOME']
-        self.HOME_DATA_FOLDER = os.environ['MOMAPS_DATA_HOME'] \
-                                    if 'MOMAPS_DATA_HOME' in os.environ \
+        self.HOME_FOLDER = os.environ['NOVA_HOME']
+        self.HOME_DATA_FOLDER = os.environ['NOVA_DATA_HOME'] \
+                                    if 'NOVA_DATA_HOME' in os.environ \
                                     else os.path.join(self.HOME_FOLDER, "input")
                         
         # Output
@@ -135,7 +135,7 @@ class BaseConfig():
         init_logging(log_file_path)
         
         logging.info(f"[{self.__class__.__name__}] Init (log path: {log_file_path}; JOBID: {jobid} Username: {username}) JOBNAME: {jobname}")
-        logging.info(f"[{self.__class__.__name__}] MOMAPS_HOME={self.HOME_FOLDER}, MOMAPS_DATA_HOME={self.HOME_DATA_FOLDER}")
+        logging.info(f"[{self.__class__.__name__}] NOVA_HOME={self.HOME_FOLDER}, NOVA_DATA_HOME={self.HOME_DATA_FOLDER}")
 
     @property
     def OUTPUTS_FOLDER(self)->str:

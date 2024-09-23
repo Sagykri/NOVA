@@ -17,8 +17,8 @@ from PIL import Image
 import sys
 import logging
 
-sys.path.insert(1, os.getenv("MOMAPS_HOME"))
-print(f"MOMAPS_HOME: {os.getenv('MOMAPS_HOME')}")
+sys.path.insert(1, os.getenv("NOVA_HOME"))
+print(f"NOVA_HOME: {os.getenv('NOVA_HOME')}")
 
 from src.preprocessing.preprocessing_utils import fit_image_shape, get_image_focus_quality, rescale_intensity
 from src.common.utils import init_logging, flat_list_of_lists

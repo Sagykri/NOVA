@@ -5,8 +5,8 @@ import cv2
 import pandas as pd
 import matplotlib.pyplot as plt 
 
-sys.path.insert(1, os.getenv('MOMAPS_HOME'))
-print(f"MOMAPS_HOME: {os.getenv('MOMAPS_HOME')}")
+sys.path.insert(1, os.getenv('NOVA_HOME'))
+print(f"NOVA_HOME: {os.getenv('NOVA_HOME')}")
 
 
 

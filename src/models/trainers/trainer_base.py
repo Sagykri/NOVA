@@ -13,7 +13,7 @@ from typing import Callable, Dict, List
 
 from torch.utils.tensorboard import SummaryWriter
 
-sys.path.insert(1, os.getenv("MOMAPS_HOME"))
+sys.path.insert(1, os.getenv("NOVA_HOME"))
 from src.common.utils import get_class, get_if_exists
 from src.models.architectures.NOVA_model import NOVAModel
 from src.models.utils.checkpoint_info import CheckpointInfo
