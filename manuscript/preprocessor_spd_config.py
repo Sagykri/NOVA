@@ -12,7 +12,7 @@ class SPDPreprocessingBaseConfig(PreprocessingConfig):
         self.OUTPUTS_FOLDER = os.path.join(self.OUTPUTS_FOLDER, "preprocessing", "spd")
         self.PREPROCESSOR_CLASS_PATH = os.path.join("src", "preprocessing", "preprocessors", "preprocessor_spd", "SPDPreprocessor")
 
-class NeuronsPreprocessingConfig(PreprocessingConfig):
+class NeuronsPreprocessingConfig(SPDPreprocessingBaseConfig):
     def __init__(self):
         super().__init__()
         self.MARKERS_FOCUS_BOUNDRIES_PATH =  os.path.join(os.getenv("NOVA_HOME"), 'manuscript', 'markers_focus_boundries', 'markers_focus_boundries_spd.csv')
@@ -49,7 +49,7 @@ class Batch9(NeuronsPreprocessingConfig):
 #       dNLS      #
 ###################
 
-class dNLSPreprocessingConfig(PreprocessingConfig):
+class dNLSPreprocessingConfig(SPDPreprocessingBaseConfig):
     def __init__(self):
         super().__init__()
         self.MARKERS_FOCUS_BOUNDRIES_PATH =  os.path.join(os.getenv("NOVA_HOME"), 'manuscript', 'markers_focus_boundries', 'markers_focus_boundries_dNLS.csv')
