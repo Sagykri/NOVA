@@ -184,7 +184,7 @@ $NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/plot_distances_bubble -m 1000 -
 
 
 ## Data
-You'r data folder should be organized as follows:
+Your data folder should be organized as follows:
 ```
 - The first batch’s name and its number (for example batch1)
   - The name of the first cell line (for example, WT, TDP43, ...)
