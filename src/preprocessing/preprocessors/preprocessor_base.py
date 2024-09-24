@@ -16,13 +16,13 @@ from skimage import transform
 
 sys.path.insert(1, os.getenv("NOVA_HOME"))
 from src.common.utils import filter_paths_by_substrings, flat_list_of_lists, get_if_exists
+from src.preprocessing.log_df_preprocessing import LogDFPreprocessing
 from src.preprocessing import path_utils
-from src.preprocessing.preprocessing_utils import crop_image_to_tiles, extract_polygons_from_mask,\
+from src.preprocessing.preprocessing_utils import get_nuclei_count, crop_image_to_tiles, extract_polygons_from_mask,\
                                                       fit_image_shape, get_nuclei_segmentations, is_image_focused,\
                                                       is_contains_whole_nucleus, rescale_intensity
 from src.preprocessing.preprocessing_config import PreprocessingConfig
 
-# TODO: HANDLE WRITING LogDF (noam?)
 class Preprocessor(ABC):
     def __init__(self, preprocessing_config: PreprocessingConfig):
         self.preprocessing_config = preprocessing_config
@@ -40,6 +40,8 @@ class Preprocessor(ABC):
             logging.info(f"Focus boundries file for markers has been detected: {self.markers_focus_boundries_path}. Loading the file...")
             self.markers_focus_boundries = pd.read_csv(self.markers_focus_boundries_path, index_col=0)
         
+        self.logging_df = LogDFPreprocessing(self.preprocessing_config.LOGS_FOLDER)
+
     @staticmethod
     def raw2processed_path(refpath:Union[str, Path])->str:
         """Converting raw path to processed path
@@ -223,7 +225,7 @@ class Preprocessor(ABC):
         """
         pass
     
-    def _get_valid_tiles_indexes(self, nucleus_image: np.ndarray) -> np.ndarray:
+    def _get_valid_tiles_indexes(self, nucleus_image: np.ndarray, return_masked_tiles:bool = True) -> np.ndarray:
         """
         Get the indexes of valid tiles 
         
@@ -241,15 +243,11 @@ class Preprocessor(ABC):
             flow_threshold=self.preprocessing_config.CELLPOSE['FLOW_THRESHOLD'],
             show_plot=False
         )
-
-        # TODO: LOG: Save in the log the cell count found by cellpose (len(np.unique(nucleu_mask) - 1))
-
         # Tile the nucleus mask and validate each tile
         nuclei_mask_tiled = crop_image_to_tiles(nuclei_mask, self.preprocessing_config.TILE_INTERMEDIATE_SHAPE)
         valid_tiles_indexes = np.where([self.__is_valid_tile(masked_tile) for masked_tile in nuclei_mask_tiled])[0]
-        
-        # TODO: LOG: Save in the log number of valid tiles (len(valid_tiles_indexes))
-        
+        if return_masked_tiles:
+            return valid_tiles_indexes, nuclei_mask_tiled
         return valid_tiles_indexes
 
     def _get_image(self, path: str) -> Union[np.ndarray , None]:
@@ -280,9 +278,7 @@ class Preprocessor(ABC):
             thresholds = tuple(self.markers_focus_boundries.loc[marker].values)
             if not is_image_focused(image, thresholds): 
                 logging.warning(f"out-of-focus for {marker}: {path}")
-                # TODO: LOG: Save to log with out-of-focus=True column
                 return None
-        
         return image
 
     def _process_images_group_and_save(self, group_id: str, images_group: Dict[str, str], save_folder_path:str):
@@ -333,10 +329,12 @@ class Preprocessor(ABC):
         logging.info(f"[{group_id}] Processing {self.__NUCLEUS_MARKER_NAME}: {nucleus_path}")
         
         processed_nucleus = self._get_image(nucleus_path)
-        if processed_nucleus is None: return
+        if processed_nucleus is None: return 
         
         # Get valid tile indexes for the nucleus image
-        valid_tiles_indexes = self._get_valid_tiles_indexes(processed_nucleus)
+        valid_tiles_indexes, nuclei_mask_tiled  = self._get_valid_tiles_indexes(processed_nucleus)
+
+        self.logging_df.log_nucleus(nuclei_mask_tiled, valid_tiles_indexes, nucleus_path)
         if len(valid_tiles_indexes) == 0: 
             logging.warning(f"[{group_id}] No valid tiles were found for nucleus image: {nucleus_path}")
             return
@@ -346,9 +344,12 @@ class Preprocessor(ABC):
         # Process each marker image in the same plate as the current nucleus
         for marker_name, marker_path in images_group.items():
             logging.info(f"[{group_id}] Processing {marker_name}: {marker_path}")
-            
+
             processed_marker = self._get_image(marker_path)
+
             if processed_marker is None: continue
+            if marker_name != self.__NUCLEUS_MARKER_NAME:
+                self.logging_df.log_marker(valid_tiles_indexes, marker_path)
             
             # Pair marker and nucleus images
             image_pair = np.stack([processed_marker, processed_nucleus], axis=-1)
@@ -379,9 +380,8 @@ class Preprocessor(ABC):
             bool: True if the tile contains a whole nucleus and not more than the maximum allowed nucleus, False otherwise.
         """
         polygons = extract_polygons_from_mask(masked_tile)
-        return is_contains_whole_nucleus(polygons, self.preprocessing_config.TILE_INTERMEDIATE_SHAPE) and len(polygons) <= self.preprocessing_config.MAX_NUM_NUCLEI
+        return is_contains_whole_nucleus(polygons, self.preprocessing_config.TILE_INTERMEDIATE_SHAPE) and get_nuclei_count(masked_tile) <= self.preprocessing_config.MAX_NUM_NUCLEI
     
-
     def __get_grouped_images_for_folder(self, folder_path:str)->Dict[str, Dict[str, str]]:
         """Get groups of images for the given folder, filtered based on the configuration settings
 

@@ -209,8 +209,6 @@ def extract_polygons_from_mask(mask:np.ndarray )->List[Polygon]:
     polygons = [Polygon(xy_to_tuple(o)) for o in cellpose.utils.outlines_list(mask)]
     
     return polygons
-    
-
 def is_contains_whole_nucleus(
     nuclei_polygons: List[Polygon], 
     tile_shape: Tuple[int, int], 
@@ -228,6 +226,38 @@ def is_contains_whole_nucleus(
     Returns:
         bool: True if a whole nucleus exists within the image boundaries, False otherwise.
     """
+    is_exists = get_whole_nuclei_count(nuclei_polygons=nuclei_polygons, tile_shape=tile_shape, min_edge_distance=min_edge_distance) > 0
+
+    return is_exists
+
+def get_whole_nuclei_count(
+    nuclei_polygons: List[Polygon] = None, 
+    tile_shape: Tuple[int, int] = None, 
+    min_edge_distance: int = 2,
+    masked_tile: np.ndarray = None
+) -> int:
+    """ Count the number of whole nucleus within the given mask that is completely inside
+    the boundaries of the image, accounting for a minimum required distance from the edges.    
+    
+    Args:
+        nuclei_polygons (List[Polygon], optiona): List of nuclei polygons. 
+        tile_shape (Tuple[int, int], optiona): The shape of the tile (width, height).
+        min_edge_distance (int, optional): Minimum required distance (in pixels) from the image edges. Defaults to 2.
+        masked_tile (np.ndarray, optional): Segmented tile for nuclei within
+        
+        *Note*: You may set the masked_tile or nuclei_polygons, but not both. 
+        Priority is given to masked_tile.
+
+    Returns:
+        int: The number of whole nuclei in a tile size
+    """
+    
+    if nuclei_polygons is not None and masked_tile is not None:
+        logging.warning("Both 'nuclei_polygons' and 'masked_tile' are given, using 'masked_tile'")
+    
+    if masked_tile is not None:
+        nuclei_polygons = extract_polygons_from_mask(masked_tile)
+        tile_shape = masked_tile.shape[:2]
     
     tile_width, tile_height = tile_shape
 
@@ -240,9 +270,20 @@ def is_contains_whole_nucleus(
     ])
 
     # Check if any nucleus is fully within the image boundaries
-    is_exists = any(p.covered_by(boundries_polygon) for p in nuclei_polygons)
+    whole_nuclei_counts = sum([p.covered_by(boundries_polygon) for p in nuclei_polygons])
+    return whole_nuclei_counts
 
-    return is_exists
+def get_nuclei_count(masked_tile: np.ndarray) -> int:
+    """
+    Count how many nuclei are in a tile 
+
+    Args:
+        masked_tile (np.ndarray): Segmented tile for nuclei within
+    
+    Returns:
+        int: The number of nuclei in a tile
+    """
+    return np.max(masked_tile)
 
 def get_image_focus_quality(image: np.ndarray) -> float:
     """
