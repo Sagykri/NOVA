@@ -12,9 +12,10 @@ from multiprocessing import Pool
 import numpy as np
 import os
 import sys
+
 sys.path.insert(1, os.getenv("MOMAPS_HOME"))
 
-from src.common.lib.image_sampling_utils import sample_images_all_markers_all_lines, sample_images_all_markers
+from tools.preprocessing_tools.image_sampling_utils import sample_images_all_markers_all_lines, sample_images_all_markers
 
 BASE_DIR = os.path.join('/home','labs','hornsteinlab','Collaboration','MOmaps')
 INPUT_DIR = os.path.join(BASE_DIR,'input','images','processed','spd2','SpinningDisk')

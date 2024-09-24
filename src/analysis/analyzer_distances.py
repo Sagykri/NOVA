@@ -2,7 +2,7 @@
 import sys
 import os
 
-sys.path.insert(1, os.getenv("MOMAPS_HOME"))
+sys.path.insert(1, os.getenv("NOVA_HOME"))
 
 from abc import abstractmethod
 import logging
@@ -12,9 +12,9 @@ from typing import List, Tuple, Iterable, Dict
 import itertools
 
 from src.datasets.label_utils import get_unique_parts_from_labels, get_cell_lines_conditions_from_labels, get_markers_from_labels, get_batches_from_labels
-from src.common.configs.dataset_config import DatasetConfig
+from src.datasets.dataset_config import DatasetConfig
 from src.analysis.analyzer import Analyzer
-from src.common.lib.utils import get_if_exists
+from src.common.utils import get_if_exists
 
 class AnalyzerDistances(Analyzer):
     """

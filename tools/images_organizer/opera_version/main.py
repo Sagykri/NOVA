@@ -6,7 +6,7 @@ import sys
 
 sys.path.insert(1, os.getenv("MOMAPS_HOME"))
 from tools.images_organizer.opera_version.utils import Utils
-from src.common.lib.utils import get_class
+from src.common.utils import get_class
 
 def main():
     config_path = sys.argv[1]

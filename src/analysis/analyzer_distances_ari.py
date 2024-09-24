@@ -1,14 +1,14 @@
 import sys
 import os
-sys.path.insert(1, os.getenv("MOMAPS_HOME"))
+sys.path.insert(1, os.getenv("NOVA_HOME"))
 
 import numpy as np
 from typing import Tuple
 
+from src.analysis.analyzer_utils import calc_ari_with_kmeans
 from src.analysis.analyzer_distances import AnalyzerDistances
-from src.common.configs.dataset_config import DatasetConfig
-from src.common.lib.metrics import calc_ari_with_kmeans
-from src.common.lib.utils import get_if_exists
+from src.datasets.dataset_config import DatasetConfig
+from src.common.utils import get_if_exists
 
 class AnalyzerDistancesARI(AnalyzerDistances):
     def __init__(self, data_config: DatasetConfig, output_folder_path:str):

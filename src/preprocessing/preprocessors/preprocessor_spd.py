@@ -1,12 +1,12 @@
 import os
 import sys
 
-sys.path.insert(1, os.getenv("MOMAPS_HOME"))
+sys.path.insert(1, os.getenv("NOVA_HOME"))
 
 
-from src.common.lib.path_utils import get_filename
-from src.common.lib.preprocessor import Preprocessor
-from src.common.configs.preprocessing_config import PreprocessingConfig
+from src.preprocessing.path_utils import get_filename
+from src.preprocessing.preprocessors.preprocessor_base import Preprocessor
+from src.preprocessing.preprocessing_config import PreprocessingConfig
 
 class SPDPreprocessor(Preprocessor):
     """

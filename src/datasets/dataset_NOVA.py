@@ -5,10 +5,10 @@ from typing import Dict, List, Tuple
 import numpy as np
 import sys
 
-sys.path.insert(1, os.getenv("MOMAPS_HOME"))
+sys.path.insert(1, os.getenv("NOVA_HOME"))
 
-from src.common.lib.dataset_base import DatasetBase
-from src.common.configs.dataset_config import DatasetConfig
+from src.datasets.dataset_base import DatasetBase
+from src.datasets.dataset_config import DatasetConfig
 
 class DatasetNOVA(DatasetBase):
     """

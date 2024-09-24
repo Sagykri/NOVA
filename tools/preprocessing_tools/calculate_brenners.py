@@ -17,13 +17,12 @@ from PIL import Image
 import sys
 import logging
 
-sys.path.insert(1, os.getenv("MOMAPS_HOME"))
-print(f"MOMAPS_HOME: {os.getenv('MOMAPS_HOME')}")
+sys.path.insert(1, os.getenv("NOVA_HOME"))
+print(f"NOVA_HOME: {os.getenv('NOVA_HOME')}")
 
-from src.common.lib.preprocessing_utils import handle_img_shape, rescale_intensity
-from src.common.lib import image_metrics
-from src.common.lib.utils import init_logging, flat_list_of_lists
-from src.common.lib.image_sampling_utils import sample_images_all_markers_all_lines
+from src.preprocessing.preprocessing_utils import fit_image_shape, get_image_focus_quality, rescale_intensity
+from src.common.utils import init_logging, flat_list_of_lists
+from tools.preprocessing_tools.image_sampling_utils import sample_images_all_markers_all_lines
 
 
 BASE_DIR = os.path.join('/home','labs','hornsteinlab','Collaboration','MOmaps')
@@ -92,7 +91,7 @@ def _calc_image_metrics(img_path):
         return None
     
     # img = img[12:-12,12:-12]
-    img = handle_img_shape(img, expected_site_width=1024, expected_site_height=1024)
+    img = fit_image_shape(img, (1024, 1024))
     
     scaled_img = rescale_intensity(img)
     
@@ -126,7 +125,7 @@ def save_to_file(results, savepath):
     df.to_csv(savepath, index=False)
 
 def get_metrics(tile):
-    sharpness_brenner = image_metrics.calculate_image_sharpness_brenner(tile)    
+    sharpness_brenner = get_image_focus_quality(tile)    
     return (sharpness_brenner,)
 
 
