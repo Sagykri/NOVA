@@ -4,8 +4,9 @@ from typing import Union
 
 
 class PathParts:
-    def __init__(self, cell_line_part_indx:int, panel_part_indx:int, condition_part_indx:int,\
+    def __init__(self, batch_part_index:int, cell_line_part_indx:int, panel_part_indx:int, condition_part_indx:int,\
                         rep_part_indx:int, marker_part_indx:int):
+        self.batch_part_index = batch_part_index
         self.cell_line_part_indx = cell_line_part_indx
         self.panel_part_indx = panel_part_indx
         self.condition_part_indx = condition_part_indx
@@ -13,10 +14,21 @@ class PathParts:
         self.marker_part_indx = marker_part_indx
 
 """Holds the parts' indexes in the raw path configuration"""
-raw_parts = PathParts(cell_line_part_indx=-6, panel_part_indx=-5, condition_part_indx=-4, rep_part_indx=-3, marker_part_indx=-2)
+raw_parts = PathParts(batch_part_index=-7, cell_line_part_indx=-6, panel_part_indx=-5, condition_part_indx=-4, rep_part_indx=-3, marker_part_indx=-2)
 
 """Holds the parts' indexes in the processed path configuration"""
-processed_parts = PathParts(cell_line_part_indx=-4, panel_part_indx=-3, condition_part_indx=-3, rep_part_indx=0, marker_part_indx=-2)
+processed_parts = PathParts(batch_part_index=-5, cell_line_part_indx=-4, panel_part_indx=-3, condition_part_indx=-3, rep_part_indx=0, marker_part_indx=-2)
+
+def get_raw_batch(path:Union[str, Path])->str:
+    """Get the batch from a given path to the raw data
+
+    Args:
+        path (Union[str, Path]): The path
+
+    Returns:
+        str: The batch
+    """
+    return __get_part(path, raw_parts.batch_part_index)
 
 def get_raw_cell_line(path:Union[str, Path])->str:
     """Get the cell line from a given path to the raw data
