@@ -61,6 +61,38 @@ The pretrained model also be downloaded using the link: [pretrained_model.pth](h
 
 ## Usage
 
+### Preprocess the data
+```bash
+python $NOVA_HOME/runnables/preprocessing *RELATIVE_PATH_TO_DATASET_CONFIG_CLASS*
+```
+
+For example:
+```bash
+python $NOVA_HOME/runnables/preprocessing /manuscript/dataset_config/OpenCellTrainDatasetConfig
+```
+
+For WEXAC:
+```bash
+$NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/preprocessing -g -m 20000 -b 10 -j preprocess -a ./manuscript/dataset_config/OpenCellTrainDatasetConfig
+```
+
+### Train a model
+```bash
+python $NOVA_HOME/runnables/train *RELATIVE_PATH_TO_MODEL_CONFIG_CLASS* *RELATIVE_PATH_TO_TRAINER_CONFIG_CLASS* *RELATIVE_PATH_TO_DATASET_CONFIG_CLASS*
+```
+
+For example:
+```bash
+python $NOVA_HOME/runnables/train ./manuscript/model_config/ClassificationModelConfig /manuscript/trainer_config/ClassificationTrainerConfig  /manuscript/dataset_config/OpenCellTrainDatasetConfig
+```
+
+For WEXAC:
+```bash
+$NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/train -g -m 40000 -b 44 -j train -a ./manuscript/model_config/ClassificationModelConfig ./manuscript/trainer_config/ClassificationTrainerConfig  ./manuscript/dataset_config/OpenCellTrainDatasetConfig
+```
+
+<br/>
+
 ### Generate Embeddings
 Once you have a trained model, you may proceed to generate embeddings for further analysis and plots creation.
 To generate embeddings you need to run the following:
@@ -149,22 +181,6 @@ For WEXAC:
 $NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/plot_distances_bubble -m 1000 -a $NOVA_HOME/outputs/vit_models/finetuned_model ./manuscript/manuscript_figures_data_config/DistancesFigureConfig ./manuscript/manuscript_plot_config/DistancesPlotConfig -q short -j boxplots
 ```
 
-<br/>
-
-### Train a model
-```bash
-python $NOVA_HOME/runnables/train *RELATIVE_PATH_TO_MODEL_CONFIG_CLASS* *RELATIVE_PATH_TO_TRAINER_CONFIG_CLASS* *RELATIVE_PATH_TO_DATASET_CONFIG_CLASS*
-```
-
-For example:
-```bash
-python $NOVA_HOME/runnables/train ./manuscript/model_config/ClassificationModelConfig /manuscript/trainer_config/ClassificationTrainerConfig  /manuscript/dataset_config/OpenCellTrainDatasetConfig
-```
-
-For WEXAC:
-```bash
-$NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/train -g -m 40000 -b 44 -j train -a ./manuscript/model_config/ClassificationModelConfig ./manuscript/trainer_config/ClassificationTrainerConfig  ./manuscript/dataset_config/OpenCellTrainDatasetConfig
-```
 
 
 ## Data
