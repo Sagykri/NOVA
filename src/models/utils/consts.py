@@ -1,0 +1,6 @@
+CHECKPOINT_LAST_FILENAME = "checkpoint_last.pth"
+CHECKPOINT_BEST_FILENAME = "checkpoint_best.pth"
+MODEL_FILENAME           = "model.pth"
+LOGS_FOLDERNAME          = "logs"
+TENSORBOARD_FOLDERNAME   = "tensorboard"
+CHECKPOINTS_FOLDERNAME   = "checkpoints"

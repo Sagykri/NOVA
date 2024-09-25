@@ -3,7 +3,8 @@
 .vscode/
 .ipynb_checkpoints/
 *.csv
-!/src/preprocessing/brenner_cutoffs/*.csv
+*.npy
+!/manuscript/markers_focus_boundries/*.csv
 anaconda3/
 logs/
 
@@ -25,8 +26,12 @@ input/images/processed/*
 data/processed/*
 !input/images/processed/.gitkeep
 
+./tools
+./tests
+
 /tools/lena/models_outputs_Lena/embeddings/**/*.npy
 /tools/lena/UMAPs/**/*.npy
+/sandbox/**
 /sandbox/**/*.npy
 /sandbox/**/*.pdf
 

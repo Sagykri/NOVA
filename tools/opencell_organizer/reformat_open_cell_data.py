@@ -9,7 +9,7 @@ import numpy as np
 import pandas as pd
 from multiprocessing import Pool
 
-from src.common.configs.base_config import BaseConfig
+from src.common.base_config import BaseConfig
 
 # Paths
 SOURCE_DATA = os.path.join('/home','labs','hornsteinlab','Collaboration','MOmaps', 'OpenCell', 'downloaded_files')
