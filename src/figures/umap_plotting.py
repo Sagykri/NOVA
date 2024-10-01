@@ -5,15 +5,12 @@ sys.path.insert(1, os.getenv("NOVA_HOME"))
 from src.figures.plotting_utils import save_plot, FONT_PATH
 from src.datasets.dataset_config import DatasetConfig
 from src.figures.plot_config import PlotConfig
-from src.datasets.label_utils import get_markers_from_labels, get_unique_parts_from_labels, get_conditions_from_labels,\
-    get_cell_lines_from_labels, get_cell_lines_conditions_from_labels, get_reps_from_labels, get_conditions_from_multiplex_labels,\
-        get_cell_lines_from_multiplex_labels, get_cell_lines_conditions_from_multiplex_labels
+from src.datasets.label_utils import get_markers_from_labels, get_unique_parts_from_labels, map_labels
 from src.common.utils import get_if_exists, save_config
 
 import logging
 import numpy as np
 from typing import Dict, Tuple
-from enum import Enum
 
 import matplotlib.pyplot as plt
 from matplotlib.axes import Axes
@@ -64,7 +61,7 @@ def plot_umap(umap_embeddings: np.ndarray[float], labels: np.ndarray[str], confi
             marker_labels = labels[indices].reshape(-1,)
 
             savepath = os.path.join(saveroot, f'{marker}') if saveroot else None
-            label_data = __map_labels(marker_labels, config_plot, config_data)
+            label_data = map_labels(marker_labels, config_plot, config_data)
 
             if config_data.SHOW_ARI:
                 ari_score = ari_scores[marker]
@@ -81,7 +78,7 @@ def plot_umap(umap_embeddings: np.ndarray[float], labels: np.ndarray[str], confi
         # Mode: Concatenated embeddings
         savepath = os.path.join(saveroot, 'umap2') if saveroot else None
     
-    label_data = __map_labels(labels, config_plot, config_data)
+    label_data = map_labels(labels, config_plot, config_data)
     if config_data.SHOW_ARI:
             ari_score = ari_scores['ari']
     else:
@@ -159,7 +156,7 @@ def __plot_umap_embeddings(umap_embeddings: np.ndarray[float],
     color_key = config_plot.UMAP_MAPPINGS_COLOR_KEY
     marker_size = config_plot.SIZE
     alpha = config_plot.ALPHA
-
+    to_color = get_if_exists(config_plot, 'TO_COLOR', None)
     show_metric = config_data.SHOW_ARI
     
     unique_groups = np.unique(label_data)
@@ -182,7 +179,15 @@ def __plot_umap_embeddings(umap_embeddings: np.ndarray[float],
             np.random.seed(config_plot.SEED)
             indices = np.random.choice(indices, size=int(len(indices) * 0.1), replace=False)
         # Get hex color and convert to RGBA
-        base_color = name_color_dict[group][color_key] if name_color_dict else plt.get_cmap(cmap)(i)
+        if to_color is not None:
+            if group in to_color:
+                base_color = name_color_dict[group][color_key] if name_color_dict else plt.get_cmap(cmap)(i)
+            else:
+                base_color = '#bab5b5'
+                alpha = 0.4
+        else:
+            base_color = name_color_dict[group][color_key] if name_color_dict else plt.get_cmap(cmap)(i)
+
         rgba_color = mcolors.to_rgba(base_color, alpha=alpha)  # Convert hex to RGBA and apply alpha
         
         # Create a color array for each point
@@ -240,23 +245,3 @@ def __format_UMAP_legend(ax:Axes, marker_size: int) -> None:
     for handle in leg.legendHandles:
         handle.set_alpha(1)
         handle.set_sizes([max(6, marker_size)])
-
-
-class MapLabelsFunction(Enum):
-    MARKERS = (get_markers_from_labels,)
-    CONDITIONS = (get_conditions_from_labels,)
-    CELL_LINES = (get_cell_lines_from_labels,)
-    CELL_LINES_CONDITIONS = (get_cell_lines_conditions_from_labels,)
-    REPS = (get_reps_from_labels,)
-    MULTIPLEX_CONDITIONS = (get_conditions_from_multiplex_labels,)
-    MULTIPLEX_CELL_LINES = (get_cell_lines_from_multiplex_labels,)
-    MULTIPLEX_CELL_LINES_CONDITIONS = (get_cell_lines_conditions_from_multiplex_labels,)
-
-def __map_labels(labels: np.ndarray[str], config_plot: PlotConfig, config_data: DatasetConfig,) -> np.ndarray[str]:
-    """Maps labels based on the provided function in the configuration."""
-    map_function_name:str = get_if_exists(config_plot, 'MAP_LABELS_FUNCTION', None)
-    
-    if map_function_name:
-        map_function = MapLabelsFunction[map_function_name].value[0]
-        return map_function(labels, config_data)
-    return labels

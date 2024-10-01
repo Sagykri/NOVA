@@ -3,7 +3,8 @@ import os
 from typing import Dict, Tuple
 
 sys.path.insert(1, os.getenv("NOVA_HOME"))
-from src.datasets.label_utils import split_markers_from_labels
+from src.common.utils import get_if_exists
+from src.datasets.label_utils import map_labels, split_markers_from_labels
 from src.datasets.dataset_config import DatasetConfig
 
 from src.analysis.analyzer_umap import AnalyzerUMAP
@@ -45,7 +46,8 @@ class AnalyzerUMAPMultiplexMarkers(AnalyzerUMAP):
         umap_embeddings = self._compute_umap_embeddings(multiplexed_embeddings)     
         
         if self.data_config.SHOW_ARI:
-            ari = self._compute_ari(multiplexed_embeddings, multiplexed_labels)
+            multiplexed_labels_for_ari = map_labels(multiplexed_labels, self.data_config, self.data_config, config_function_name='ARI_LABELS_FUNC')
+            ari = self._compute_ari(multiplexed_embeddings, multiplexed_labels_for_ari)
             ari_score = {'ari':ari}
 
         else:

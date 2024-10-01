@@ -36,7 +36,7 @@ line_colors = {
     'FUSHomozygous': colorblind_palette[1],
     'FUSRevertant': colorblind_palette[2],
     'OPTN': colorblind_palette[8],
-    # 'SCNA': colorblind_palette[4],
+    'SCNA': colorblind_palette[4],
     'TBK1': colorblind_palette[5],
     'TDP43': colorblind_palette[6],
     'WT Untreated': colorblind_palette[9],
@@ -375,7 +375,7 @@ per_custom_palette = [condition_colors[cond] for cond in condition_order]
 per_cell_lines_for_disp = {f'{cell_line}_{per}':f'{cell_line}_{per}' for cell_line in per_cell_lines for per in pers}
 
 # deltaNLS
-dnls_cell_lines = per_cell_lines
+dnls_cell_lines = ['WT','TDP43']
 dnls_cell_lines_to_cond = {'WT':['Untreated'], 'TDP43':['dox','Untreated']}
 dnls_panels = pd.DataFrame([['G3BP1','TDP43','SQSTM1','PSD95',np.nan,'GM130','NCL','ANXA11','Calreticulin','Pericentrin','Rab5','KIFC1','mitotracker',np.nan],
                             ['KIF5A','DCP1A','FMRP','CLTC','KIF20A','TOMM20','FUS','SCNA','LAMP1','TIA1','NONO','NEMO','PML','TDP43'],

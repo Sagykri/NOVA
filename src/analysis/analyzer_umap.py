@@ -68,6 +68,7 @@ class AnalyzerUMAP(Analyzer):
         """
         umap_type = self.UMAPType(umap_idx).name
         saveroot = self.get_saving_folder(feature_type = os.path.join('UMAPs', umap_type))  
+        os.makedirs(saveroot, exist_ok=True)
         np.save(os.path.join(saveroot,f'{umap_type}.npy'), self.features)
         np.save(os.path.join(saveroot,f'{umap_type}_labels.npy'), self.labels)
 

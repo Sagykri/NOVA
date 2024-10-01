@@ -1,13 +1,18 @@
 import os
 import sys
 
+
 sys.path.insert(1, os.getenv("NOVA_HOME"))
 
 import numpy as np
 import logging
 from functools import partial
-from typing import List, Tuple, Callable, Optional
+from typing import List, Tuple, Callable, Optional, Union
+from enum import Enum
+
 from src.datasets.dataset_config import DatasetConfig
+from src.common.utils import get_if_exists
+from src.figures.plot_config import PlotConfig
 
 MARKER_IDX = 0
 CELL_LINE_IDX = 1
@@ -140,3 +145,28 @@ def split_markers_from_labels(labels:np.ndarray[str], dataset_config:DatasetConf
     rest_of_labels = get_parts_from_labels(labels=labels, indices=(MARKER_IDX+1,None))
 
     return markers, rest_of_labels
+
+def remove_markers(labels:np.ndarray[str], dataset_config:DatasetConfig)->np.ndarray[str]:
+    _, rest_of_labels = split_markers_from_labels(labels, dataset_config)
+    return rest_of_labels
+
+class MapLabelsFunction(Enum):
+    MARKERS = (get_markers_from_labels,)
+    CONDITIONS = (get_conditions_from_labels,)
+    CELL_LINES = (get_cell_lines_from_labels,)
+    CELL_LINES_CONDITIONS = (get_cell_lines_conditions_from_labels,)
+    REPS = (get_reps_from_labels,)
+    MULTIPLEX_CONDITIONS = (get_conditions_from_multiplex_labels,)
+    MULTIPLEX_CELL_LINES = (get_cell_lines_from_multiplex_labels,)
+    MULTIPLEX_CELL_LINES_CONDITIONS = (get_cell_lines_conditions_from_multiplex_labels,)
+    REMOVE_MARKER = (remove_markers,)
+
+def map_labels(labels: np.ndarray[str], config_plot: Union[PlotConfig, DatasetConfig],
+                config_data: DatasetConfig, config_function_name:str = 'MAP_LABELS_FUNCTION') -> np.ndarray[str]:
+    """Maps labels based on the provided function in the configuration."""
+    map_function_name:str = get_if_exists(config_plot, config_function_name, None)
+    
+    if map_function_name:
+        map_function = MapLabelsFunction[map_function_name].value[0]
+        return map_function(labels, config_data)
+    return labels

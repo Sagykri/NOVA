@@ -2,7 +2,7 @@ import sys
 import os
 sys.path.insert(1, os.getenv("NOVA_HOME"))
 
-from src.datasets.label_utils import get_markers_from_labels
+from src.datasets.label_utils import get_markers_from_labels, map_labels
 from src.datasets.dataset_config import DatasetConfig
 from src.analysis.analyzer_umap import AnalyzerUMAP
 from src.datasets.label_utils import get_unique_parts_from_labels, get_markers_from_labels
@@ -52,8 +52,8 @@ class AnalyzerUMAPSingleMarkers(AnalyzerUMAP):
             umap_labels.append(marker_labels)
 
             if self.data_config.SHOW_ARI:
-                # If we want to change the ari to be calculated on the embeddings themself and not the umap, just send here the embeddings of the marker
-                ari = self._compute_ari(marker_embeddings, marker_labels)
+                labels_for_ari = map_labels(marker_labels, self.data_config, self.data_config, config_function_name='ARI_LABELS_FUNC')
+                ari = self._compute_ari(marker_embeddings, labels_for_ari)
                 ari_scores[marker] = ari
 
         umap_embeddings = np.concatenate(umap_embeddings)

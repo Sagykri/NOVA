@@ -88,7 +88,6 @@ class Analyzer():
 
         title = f"{'_'.join(input_folders)}_{'_'.join(reps)}_{'_'.join(cell_lines)}_{'_'.join(conditions)}_{'_'.join(excluded_markers)}"
         saveroot = os.path.join(feature_folder_path,f'{title}')
-        os.makedirs(saveroot, exist_ok=True)
 
         return saveroot
 

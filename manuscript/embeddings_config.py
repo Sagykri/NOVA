@@ -54,7 +54,7 @@ class EmbeddingsB78DatasetConfig(EmbeddingsConfig):
         
         self.SPLIT_DATA = True
         self.EXPERIMENT_TYPE = 'neurons'    
-        self.MARKERS_TO_EXCLUDE = ['FMRP','TIA1']
+        self.MARKERS_TO_EXCLUDE = ['TIA1']
         self.ADD_BATCH_TO_LABEL = True
         self.ADD_REP_TO_LABEL = True
 
@@ -67,7 +67,7 @@ class EmbeddingsB6DatasetConfig(EmbeddingsConfig):
         
         self.SPLIT_DATA = False
         self.EXPERIMENT_TYPE = 'neurons'    
-        self.MARKERS_TO_EXCLUDE = ['TIA1','FMRP']
+        self.MARKERS_TO_EXCLUDE = ['TIA1']
         self.ADD_BATCH_TO_LABEL = True
         self.ADD_REP_TO_LABEL = True
 
@@ -80,7 +80,7 @@ class EmbeddingsB9DatasetConfig(EmbeddingsConfig):
         
         self.SPLIT_DATA = False
         self.EXPERIMENT_TYPE = 'neurons'    
-        self.MARKERS_TO_EXCLUDE = ['TIA1','FMRP']
+        self.MARKERS_TO_EXCLUDE = ['TIA1']
         self.ADD_BATCH_TO_LABEL = True
         self.ADD_REP_TO_LABEL = True
 
@@ -93,7 +93,7 @@ class EmbeddingsB3DatasetConfig(EmbeddingsConfig):
         
         self.SPLIT_DATA = False
         self.EXPERIMENT_TYPE = 'neurons'    
-        self.MARKERS_TO_EXCLUDE = ['TIA1','FMRP']
+        self.MARKERS_TO_EXCLUDE = ['TIA1']
         self.ADD_BATCH_TO_LABEL = True
         self.ADD_REP_TO_LABEL = True
 
@@ -106,7 +106,7 @@ class EmbeddingsB4DatasetConfig(EmbeddingsConfig):
         
         self.SPLIT_DATA = False
         self.EXPERIMENT_TYPE = 'neurons'    
-        self.MARKERS_TO_EXCLUDE = ['TIA1','FMRP']
+        self.MARKERS_TO_EXCLUDE = ['TIA1']
         self.ADD_BATCH_TO_LABEL = True
         self.ADD_REP_TO_LABEL = True
 
@@ -119,7 +119,7 @@ class EmbeddingsB5DatasetConfig(EmbeddingsConfig):
         
         self.SPLIT_DATA = False
         self.EXPERIMENT_TYPE = 'neurons'    
-        self.MARKERS_TO_EXCLUDE = ['TIA1','FMRP']
+        self.MARKERS_TO_EXCLUDE = ['TIA1']
         self.ADD_BATCH_TO_LABEL = True
         self.ADD_REP_TO_LABEL = True
 
@@ -174,21 +174,7 @@ class EmbeddingsdNLSB5DatasetConfig(EmbeddingsConfig):
         self.MARKERS_TO_EXCLUDE = ['TIA1']
         self.ADD_BATCH_TO_LABEL = True
         self.ADD_REP_TO_LABEL = True
-
-class EmbeddingsdNLSB25DatasetConfig(EmbeddingsConfig):
-    def __init__(self):
-        super().__init__()
-
-        self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "spd2", "SpinningDisk", "deltaNLS", f) for f in 
-                        ["batch2","batch5"]]
-        
-        self.SPLIT_DATA = True
-        self.EXPERIMENT_TYPE = 'deltaNLS'
-        self.MARKERS_TO_EXCLUDE = ['TIA1']
-        self.RETURN_CLS_TOKEN = False
-        self.ADD_BATCH_TO_LABEL = True
-        self.ADD_REP_TO_LABEL = True
-        
+       
 class EmbeddingsB78PretrainDatasetConfig(EmbeddingsConfig):
     def __init__(self):
         super().__init__()
@@ -198,7 +184,7 @@ class EmbeddingsB78PretrainDatasetConfig(EmbeddingsConfig):
         
         self.SPLIT_DATA = False
         self.EXPERIMENT_TYPE = 'neurons'    
-        self.MARKERS_TO_EXCLUDE = ['FMRP','TIA1']
+        self.MARKERS_TO_EXCLUDE = ['TIA1']
         self.ADD_BATCH_TO_LABEL = True
         self.ADD_REP_TO_LABEL = True
 

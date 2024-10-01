@@ -43,6 +43,14 @@ def generate_umaps(output_folder_path:str, config_path_data:str, config_path_plo
 
     # Define the output folder path and plot the UMAP
     saveroot = analyzer_UMAP.get_saving_folder(feature_type = os.path.join('UMAPs', analyzer_UMAP.UMAPType(umap_idx).name))  
+    colored_by = get_if_exists(config_plot, 'MAP_LABELS_FUNCTION',None)
+    if colored_by is not None:
+        saveroot += f'_colored_by_{colored_by}'
+    to_color = get_if_exists(config_plot, 'TO_COLOR',None)
+    if to_color is not None:
+        saveroot += f'_coloring_{to_color[0].split("_")[0]}'
+
+    os.makedirs(saveroot, exist_ok=True)
     plot_umap(umap_embeddings, labels, config_data, config_plot, saveroot, umap_idx, ari_scores)
         
 

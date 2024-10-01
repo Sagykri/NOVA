@@ -15,7 +15,7 @@ class B78DatasetConfig(DatasetConfig):
                         ["batch7", "batch8"]]
 
         self.SPLIT_DATA = True
-        self.MARKERS_TO_EXCLUDE = ['TIA1','DAPI']
+        self.MARKERS_TO_EXCLUDE = ['TIA1','DAPI','FMRP']
 
 ############################################################
 # deltaNLS

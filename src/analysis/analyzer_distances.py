@@ -51,6 +51,13 @@ class AnalyzerDistances(Analyzer):
         baseline_cell_line_cond = get_if_exists(self.data_config, 'BASELINE_CELL_LINE_CONDITION', None)
         assert baseline_cell_line_cond is not None, "BASELINE_CELL_LINE_CONDITION is None. You have to specify the baseline to calculate the distance score against (for example: WT_Untreated or TDP43_Untreated)"
 
+        random_split = get_if_exists(self.data_config, 'RANDOM_SPLIT', True)
+        logging.info(f'random_split for baseline reps is {random_split}')
+        
+        reps = self.data_config.REPS
+        if reps is None:
+            reps = ['rep1', 'rep2']
+        logging.info(f'Calculating distance metric between {reps}')
         # Next we extract info from our labels: which other conditions we have, which unique markers and batches we can work with
         conditions = self._get_conditions_for_distances(labels)
         markers = get_unique_parts_from_labels(labels, get_markers_from_labels)
@@ -64,12 +71,12 @@ class AnalyzerDistances(Analyzer):
             for marker in markers:   
                 logging.info(f"[AnalyzerDistances.calculate] marker: {marker}")
                 new_scores = self._calculate_metrics_for_baseline(embeddings, labels, baseline_cell_line_cond,
-                                                                  batch, marker)
+                                                                  batch, marker, random_split, reps)
                 scores.append(new_scores)
                 for cond in conditions:
                     new_scores = self._calculate_metrics_for_condition_vs_baseline(embeddings, labels, 
                                                                                    baseline_cell_line_cond,
-                                                                                   cond, batch, marker)
+                                                                                   cond, batch, marker, reps)
                     scores.append(new_scores)
 
         scores = pd.concat(scores, ignore_index=True)
@@ -93,6 +100,7 @@ class AnalyzerDistances(Analyzer):
         Save the calculated distances to a specified file.
         """
         output_folder_path = self.get_saving_folder(feature_type='distances')
+        os.makedirs(output_folder_path, exist_ok=True)
         savepath = self._get_save_path(output_folder_path)
         logging.info(f"Saving scores to {savepath}")
         self.features.to_csv(savepath, index=False)
@@ -115,7 +123,8 @@ class AnalyzerDistances(Analyzer):
 
     def _calculate_metrics_for_baseline(self, embeddings:np.ndarray[float], labels:np.ndarray[str],
                                                 baseline_cell_line_cond:str, batch:str,
-                                                marker:str)->pd.DataFrame:
+                                                marker:str,
+                                                random_split:bool=True, reps:List[str]=None)->pd.DataFrame:
         """
         Calculate metrics for the baseline samples.
 
@@ -132,7 +141,7 @@ class AnalyzerDistances(Analyzer):
         # We want to calculate the baseline distances: the distances between the baseline to itself.
         # These distances will be compared to the baseline vs condition distances, and they represent the inherent variance in the data (including rep effect).
         # First step is to generate the artifical splits of the two baseline reps:
-        baseline_reps, baseline_indices_dict = self._generate_reps_of_baseline(labels, batch, marker, baseline_cell_line_cond)
+        baseline_reps, baseline_indices_dict = self._generate_reps_of_baseline(labels, batch, marker, baseline_cell_line_cond, random_split, reps)
         if len(baseline_indices_dict)==0:
             logging.warning(f'No data for {batch},{marker}, {baseline_cell_line_cond}: cannot perform distance calculations!')
             return None
@@ -152,7 +161,7 @@ class AnalyzerDistances(Analyzer):
 
     def _calculate_metrics_for_condition_vs_baseline(self, embeddings:np.ndarray[float], labels:np.ndarray[str],
                                                 baseline_cell_line_cond:str, cond:str, batch:str,
-                                                marker:str)->pd.DataFrame:
+                                                marker:str, reps:List[str])->pd.DataFrame:
         """
         Calculate metrics between baseline samples and the condition samples.
 
@@ -168,7 +177,7 @@ class AnalyzerDistances(Analyzer):
             pd.DataFrame: DataFrame with calculated scores.
         """
         logging.info(f"cell line: {cond}")
-        condition_reps, condition_indices_dict = self._generate_reps_of_condition_vs_baseline(labels, cond, batch, marker, baseline_cell_line_cond)
+        condition_reps, condition_indices_dict = self._generate_reps_of_condition_vs_baseline(labels, cond, batch, marker, baseline_cell_line_cond, reps)
         if len(condition_indices_dict)==0:
             logging.warning(f'No data for {batch},{marker}, {cond}: cannot perform distance calculations!')
             return None
@@ -212,7 +221,8 @@ class AnalyzerDistances(Analyzer):
         return conditions
 
     def _generate_reps_of_baseline(self, labels:np.ndarray[str],
-                                   batch:str, marker:str, baseline_cell_line_cond:str)->Tuple[Iterable,Dict]:
+                                   batch:str, marker:str, baseline_cell_line_cond:str,
+                                   random_split:bool=True, reps:List[str]=None)->Tuple[Iterable,Dict]:
         """
         Generate random splits for baseline replicates.
 
@@ -236,28 +246,55 @@ class AnalyzerDistances(Analyzer):
             Warning: If no replicates for the given marker and batch are found, a warning is logged, and the function returns 
             `None` and an empty dictionary.
         """
-        rep1_indices = np.where(np.char.find(labels.astype(str), f'{marker}_{baseline_cell_line_cond}_{batch}_rep1')>-1)[0]
-        rep2_indices = np.where(np.char.find(labels.astype(str), f'{marker}_{baseline_cell_line_cond}_{batch}_rep2')>-1)[0]
+        if random_split:
+            rep1_indices = np.where(np.char.find(labels.astype(str), f'{marker}_{baseline_cell_line_cond}_{batch}_rep1')>-1)[0]
+            rep2_indices = np.where(np.char.find(labels.astype(str), f'{marker}_{baseline_cell_line_cond}_{batch}_rep2')>-1)[0]
 
-        if len(rep1_indices) == 0 or len(rep2_indices) == 0:
-            logging.warn(f"Marker {marker} couldn't be found in batch {batch}. Skipping this marker..")
-            return None, {}
+            if len(rep1_indices) == 0 or len(rep2_indices) == 0:
+                logging.warn(f"Marker {marker} couldn't be found in batch {batch}. Skipping this marker..")
+                return None, {}
 
-        r1_part1, r1_part2 = self._random_split_indices(rep1_indices)
-        r2_part1, r2_part2 = self._random_split_indices(rep2_indices)
+            r1_part1, r1_part2 = self._random_split_indices(rep1_indices)
+            r2_part1, r2_part2 = self._random_split_indices(rep2_indices)
 
-        logging.info(f"Baseline split sizes: r1_part1={len(r1_part1)}, r1_part2={len(r1_part2)}, r2_part1={len(r2_part1)}, r2_part2={len(r2_part2)}")
+            logging.info(f"Baseline split sizes: r1_part1={len(r1_part1)}, r1_part2={len(r1_part2)}, r2_part1={len(r2_part1)}, r2_part2={len(r2_part2)}")
 
-        partial_reps = itertools.product(['rep1_part1', 'rep1_part2'], ['rep2_part1', 'rep2_part2'])
-        indices_dict = {'rep1_part1': r1_part1, 'rep1_part2': r1_part2, 'rep2_part1': r2_part1, 'rep2_part2': r2_part2}
+            partial_reps = itertools.product(['rep1_part1', 'rep1_part2'], ['rep2_part1', 'rep2_part2'])
+            indices_dict = {'rep1_part1': r1_part1, 'rep1_part2': r1_part2, 'rep2_part1': r2_part1, 'rep2_part2': r2_part2}
+            return partial_reps, indices_dict
+        
+        elif reps is not None:
+            reps_combinations = itertools.permutations(reps, r=2)
+            indices_dict = {}
+            reps = []
+            for repA,repB in reps_combinations:
+                logging.info(f'{repA},{repB}')
+                condition_indices = np.where(np.char.find(labels.astype(str), f'{marker}_{baseline_cell_line_cond}_{batch}_{repA}')>-1)[0]
+                baseline_indices = np.where(np.char.find(labels.astype(str), f'{marker}_{baseline_cell_line_cond}_{batch}_{repB}')>-1)[0]
+                
+                logging.info(f"{marker}_{baseline_cell_line_cond}_{batch}_{repA} size: {len(condition_indices)}")
+                logging.info(f"{marker}_{baseline_cell_line_cond}_{batch}_{repB} size: {len(baseline_indices)}")
 
-        return partial_reps, indices_dict
+                if len(condition_indices) == 0:
+                    logging.info(f"No samples for {marker}_{baseline_cell_line_cond}_{batch}_{repA}. Skipping...")
+                    continue
+                if len(baseline_indices) == 0:
+                    logging.info(f"No samples for {marker}_{baseline_cell_line_cond}_{repB}. Skipping...")
+                    continue
+                
+                indices_dict[f'{repA}'] = condition_indices
+                indices_dict[f'{repB}'] = baseline_indices
+                reps.append([f'{repA}',f'{repB}'])
+
+            return reps, indices_dict
+        else:
+            logging.warning(f'You must either define `random_split`=True or speficy which reps to run on!')
+            return None, None
     
     def _generate_reps_of_condition_vs_baseline(self, labels:np.ndarray[str],
                                                 cond:str, batch:str, marker:str, 
                                                 baseline_cell_line_cond:str,
-                                                first_rep:str = 'rep1',
-                                                second_rep:str = 'rep2')->Tuple[Iterable,Dict]:
+                                                reps:List[str]=['rep1','rep2'])->Tuple[Iterable,Dict]:
         """
         Generate combinations of replicates for condition vs baseline.
 
@@ -274,12 +311,13 @@ class AnalyzerDistances(Analyzer):
                 - A dictionary where the keys are `rep1_cond`, `rep1_baseline`, `rep2_cond`, `rep2_baseline` and the values 
                     are the corresponding indices in the `labels` array.
         """
-        reps_combinations = itertools.product([first_rep, second_rep], repeat=2)
+        reps_combinations = itertools.product(reps, repeat=2)
         indices_dict = {}
         reps = []
         for repA,repB in reps_combinations:
-            condition_indices = np.where(np.char.find(labels.astype(str), f'{marker}_{cond}_{batch}_{repA}')>-1)[0]
-            baseline_indices = np.where(np.char.find(labels.astype(str), f'{marker}_{baseline_cell_line_cond}_{batch}_{repB}')>-1)[0]
+            logging.info(f'{repA},{repB}')
+            condition_indices = np.where(labels== f'{marker}_{cond}_{batch}_{repA}')[0]
+            baseline_indices = np.where(labels == f'{marker}_{baseline_cell_line_cond}_{batch}_{repB}')[0]
             
             logging.info(f"{marker}_{cond}_{batch}_{repA} size: {len(condition_indices)}")
             logging.info(f"{marker}_{baseline_cell_line_cond}_{batch}_{repB} size: {len(baseline_indices)}")
