@@ -178,12 +178,12 @@ opera_expected_dapi_raw = 1000
 # expected_raw=2200 # Unused
 
 # Opera 18 days
-opera18days_panels = pd.DataFrame( [['PURA','CD41','Phalloidin',np.nan,     np.nan, np.nan, np.nan, np.nan, np.nan,            'Tubulin', np.nan, 'PEX14'],
-                                  ['TOMM20','TDP43','FMRP',     'CLTC',     'DCP1A', 'KIF5A', 'NCL','ANXA11', 'Calreticulin',     'PSPC1',  'VDAC1', 'PML'],
-                                    ['G3BP1','AGO2','SQSTM1',   'PSD95',    'NEMO', 'GM130', 'FUS', 'SNCA',   'LAMP1',          'HNRNPA1',  'NONO', 'mitotracker'],
+opera18days_panels = pd.DataFrame( [['TOMM20','TDP43','FMRP','PSD95','NEMO','GM130','FUS','SNCA','LAMP1','Tubulin','VDAC1', 'PML',],
+                                    ['PURA','CD41','Phalloidin','CLTC','DCP1A','KIF5A','NCL','ANXA11','Calreticulin','PSPC1',np.nan,'PEX14'],
+                                    ['G3BP1','AGO2','SQSTM1',np.nan,np.nan,np.nan,np.nan,np.nan,np.nan,'HNRNPA1','NONO','mitotracker'],
                                     ['DAPI']*12],
                                   columns=['A','B','C','D','E','F','G','H','I','J', 'K', 'L'],
-                                    index=['GFP', 'mCherry', 'Cy5','DAPI'])
+                                    index=['ch2', 'ch3', 'ch4','ch1'])
 opera18days_markers = ['G3BP1','NONO','SQSTM1','PSD95','NEMO',
            'GM130','NCL','ANXA11','Calreticulin','mitotracker',
             'KIF5A','TDP43','FMRP','CLTC','DCP1A',
@@ -191,13 +191,13 @@ opera18days_markers = ['G3BP1','NONO','SQSTM1','PSD95','NEMO',
             'PURA','CD41','Phalloidin', 'PEX14','DAPI',
             'Tubulin', 'PSPC1', 'VDAC1', 'AGO2', 'HNRNPA1']
 
-opera18days_marker_info = pd.DataFrame([[['GFP']]*5 + [['mCherry']]*12 + [['Cy5']]*12,
-                          [['A'],['B'],['C'],['J'],['L'],
-                          ['A'],['B'],['C'],['D'],['E'],['F'],['G'],['H'],['I'],['J'],['K'], ['L'],
-                          ['A'],['B'],['C'],['D'],['E'],['F'],['G'],['H'],['I'],['J'],['K'], ['L']]], index=['Antibody','panel'],
-                         columns = ['PURA','CD41','Phalloidin','Tubulin','PEX14',
-                                    'TOMM20','TDP43','FMRP',     'CLTC',     'DCP1A', 'KIF5A', 'NCL','ANXA11', 'Calreticulin',     'PSPC1',  'VDAC1', 'PML',
-                                    'G3BP1','AGO2','SQSTM1',   'PSD95',    'NEMO', 'GM130', 'FUS', 'SNCA',   'LAMP1',  'HNRNPA1',  'NONO', 'mitotracker']).T  #order here is important - 
+opera18days_marker_info = pd.DataFrame([[['ch2']]*12 + [['ch3']]*11 + [['ch4']]*6,
+                          [['A'],['B'],['C'],['D'],['E'],['F'],['G'],['H'],['I'],['J'],['K'], ['L'],
+                           ['A'],['B'],['C'],['D'],['E'], ['F'],['G'],['H'],['I'],['J'],['L'],
+                          ['A'],['B'],['C'],['J'],['K'], ['L']]], index=['Antibody','panel'],
+                         columns = ['TOMM20','TDP43','FMRP','PSD95','NEMO','GM130','FUS','SNCA','LAMP1','Tubulin','VDAC1', 'PML',
+                                    'PURA','CD41','Phalloidin','CLTC','DCP1A','KIF5A','NCL','ANXA11','Calreticulin','PSPC1','PEX14',
+                                    'G3BP1','AGO2','SQSTM1','HNRNPA1','NONO','mitotracker']).T  #order here is important - 
 opera18days_cell_lines = ['WT', 'FUSHomozygous', 'FUSHeterozygous', 'TBK1', 'TDP43', 'FUSRevertant', 'OPTN', 'SNCA'] 
 opera18days_cell_lines_to_cond = {'WT':['Untreated','stress'],
                       'FUSHomozygous':['Untreated', 'stress'],
@@ -214,9 +214,10 @@ opera18days_cell_lines_for_disp = {f'{k}_{c}':f'{k}_{c}' for k,conds in opera18d
 #                         'OPTN_Untreated':'OPTN', 'FUSHeterozygous_Untreated':'FUSHeterozygous'} #'SCNA_Untreated':'SCNA',
 opera18days_reps = ['rep1','rep2']
 opera18days_colorblind_palette = sns.color_palette('colorblind')
-opera18days_line_colors = {f'{k} {c}': opera_colorblind_palette[i%len(opera18days_colorblind_palette)] 
-                   for i, (k,conds) in enumerate(opera18days_cell_lines_to_cond.items())
-                   for c in conds}
+opera18days_line_colors = {f'{k} {c}': opera_colorblind_palette[count % len(opera_colorblind_palette)] 
+                           for count, (k, c) in enumerate((k, c) 
+                                                          for k, conds in opera18days_cell_lines_to_cond.items() 
+                                                          for c in conds)}
 # fus_line_colors = {
 #     'KOLF Untreated': colorblind_palette[9],
 #     'KOLF BMAA': colorblind_palette[3],

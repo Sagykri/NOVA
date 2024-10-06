@@ -241,7 +241,7 @@ def __format_UMAP_legend(ax:Axes, marker_size: int) -> None:
     handles, labels = ax.get_legend_handles_labels()
     leg = ax.legend(handles, labels, prop={'size': 6},
                     bbox_to_anchor=(1, 1), loc='upper left',
-                    ncol=1 + len(labels) // 25, frameon=False)
+                    ncol=1 + len(labels) // 26, frameon=False)
     for handle in leg.legendHandles:
         handle.set_alpha(1)
         handle.set_sizes([max(6, marker_size)])

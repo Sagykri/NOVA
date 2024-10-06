@@ -281,7 +281,7 @@ def __plot_boxplot(distances:pd.DataFrame, baseline:str, condition:str,
     median_variance = cur_distances.groupby("marker")[metric].agg(['median', 'var']) # ordering by median, then variance.
     pvalues_df['significant'] = np.where(pvalues_df.pvalue<=0.05,1,0)
     median_variance = median_variance.merge(pvalues_df[pvalues_df.condition==condition][['marker','significant']], left_index=True, right_on='marker')
-    median_variance = median_variance.sort_values(by=['significant','median', 'var'], ascending=[False, False,False]).reset_index(drop=True)
+    median_variance = median_variance.sort_values(by=['significant','median', 'var'], ascending=[False, False,True]).reset_index(drop=True)
     ####cliffs delta version:
     # median_variance = median_variance.merge(pvalues_df[pvalues_df.condition==condition][['marker','d']], left_index=True, right_on='marker')
     # median_variance = median_variance.sort_values(by=['d'], ascending=[False]).reset_index(drop=True)

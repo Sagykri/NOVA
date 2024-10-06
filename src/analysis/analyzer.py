@@ -77,8 +77,8 @@ class Analyzer():
         conditions = self.data_config.CONDITIONS if self.data_config.CONDITIONS else ["all_conditions"]
 
         excluded_markers = self.data_config.MARKERS_TO_EXCLUDE if self.data_config.MARKERS_TO_EXCLUDE else ["all_markers"]
-        if 'FMRP' in excluded_markers:
-            excluded_markers.remove('FMRP')
+        # if 'FMRP' in excluded_markers:
+        #     excluded_markers.remove('FMRP')
         if 'TIA1' in excluded_markers:
             excluded_markers.remove('TIA1')
         if len(excluded_markers)==0:
@@ -88,6 +88,5 @@ class Analyzer():
 
         title = f"{'_'.join(input_folders)}_{'_'.join(reps)}_{'_'.join(cell_lines)}_{'_'.join(conditions)}_{'_'.join(excluded_markers)}"
         saveroot = os.path.join(feature_folder_path,f'{title}')
-
         return saveroot
 

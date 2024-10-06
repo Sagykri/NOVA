@@ -37,11 +37,10 @@ def generate_umaps(output_folder_path:str, config_path_data:str, config_path_plo
     AnalyzerUMAPClass, UMAP_name = analyzer_mapping[umap_idx]
     logging.info(f"[Generate {UMAP_name} UMAP]")
 
-     # Create the analyzer instance and calculate the UMAP embeddings
+     # Create the analyzer instance
     analyzer_UMAP:AnalyzerUMAP = AnalyzerUMAPClass(config_data, output_folder_path)
-    umap_embeddings, labels, ari_scores = analyzer_UMAP.calculate(embeddings, labels)
-
-    # Define the output folder path and plot the UMAP
+    
+    # Define the output folder path
     saveroot = analyzer_UMAP.get_saving_folder(feature_type = os.path.join('UMAPs', analyzer_UMAP.UMAPType(umap_idx).name))  
     colored_by = get_if_exists(config_plot, 'MAP_LABELS_FUNCTION',None)
     if colored_by is not None:
@@ -51,6 +50,12 @@ def generate_umaps(output_folder_path:str, config_path_data:str, config_path_plo
         saveroot += f'_coloring_{to_color[0].split("_")[0]}'
 
     os.makedirs(saveroot, exist_ok=True)
+    logging.info(f'saveroot: {saveroot}')
+    
+    # Calculate the UMAP embeddings
+    umap_embeddings, labels, ari_scores = analyzer_UMAP.calculate(embeddings, labels)
+
+    # Plot the UMAP
     plot_umap(umap_embeddings, labels, config_data, config_plot, saveroot, umap_idx, ari_scores)
         
 

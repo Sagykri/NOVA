@@ -1,7 +1,7 @@
 import os
 import pandas as pd
 import sys
-sys.path.insert(1, os.getenv("MOMAPS_HOME"))
+sys.path.insert(1, os.getenv("NOVA_HOME"))
 import numpy as np
 import seaborn as sns
 import matplotlib.pyplot as plt
@@ -17,13 +17,6 @@ import pathlib
 from tools.preprocessing_tools.qc_config import *
 import re
 import warnings
-
-
-MOMAPS_HOME = '/home/labs/hornsteinlab/Collaboration/MOmaps/'
-BASE_DIR = os.path.join('/home','labs','hornsteinlab','Collaboration','MOmaps')
-INPUT_DIR_RAW = os.path.join(BASE_DIR,'input','images','raw','SpinningDisk')
-
-INPUT_DIR_PROC = os.path.join(BASE_DIR,'input','images','processed','spd2','SpinningDisk')
 
 def _calc_variance(img_path):
 
@@ -83,7 +76,7 @@ def validate_files_proc(path, batch_df, bad_files, marker_info, cell_lines_for_d
             batch_df.loc[(cur_marker, rep), cell_line_for_disp] = len_rep
 
     else:
-        cur_antybodies = ['DAPI']
+        cur_antybodies = ['DAPI','ch1']
         for rep in batch_df.index.get_level_values(1):
             len_rep = len([file for file in all_files_of_marker if rep in file])
             batch_df.loc[(cur_marker, rep), cell_line_for_disp] = len_rep
@@ -123,19 +116,19 @@ def validate_files_raw(path, batch_df, bad_files, marker_info,cell_lines_for_dis
     if cur_marker !='DAPI':
         cur_antybodies = marker_info.loc[cur_marker, 'Antibody']
     else:
-        cur_antybodies = ['DAPI']
+        cur_antybodies = ['DAPI','ch1']
     if pd.isna(batch_df.loc[cur_marker,cur_rep][cell_line_for_disp]):
         batch_df.loc[(cur_marker, cur_rep), cell_line_for_disp] = len(all_files_of_marker_rep)
     else:
         batch_df.loc[(cur_marker, cur_rep), cell_line_for_disp] += len(all_files_of_marker_rep)
-
     for file in all_files_of_marker_rep:
-        if '.tif' not in file:
-            bad_files.append(file)
+        file_ext = os.path.splitext(file)[1]
+        if file_ext != '.tiff' and file_ext!='.tif':
+            bad_files.append(f'{path}, {file}')
             continue
         try:
             size = os.path.getsize(os.path.join(path, file))
-            if size < 2049000: #size in bytes
+            if size < 1000000: #size in bytes
                 bad_files.append(f'{path}, {file} small size ({size/1000} kB)')
                 continue
         except:
@@ -147,7 +140,7 @@ def validate_files_raw(path, batch_df, bad_files, marker_info,cell_lines_for_dis
                 good_file = True
                 break
         if not good_file:
-                bad_files.append(f'{path}, {file}')
+            bad_files.append(f'{path}, {file}')
     return bad_files, batch_df
                  
 def validate_folder_structure(root_dir, folder_structure, missing_paths, bad_files, batch_df,
@@ -195,7 +188,7 @@ def convert_to_list(array_string):
     int_list = [int(x) for x in string_list]
     return int_list
 
-def log_files_qc(LOGS_PATH, only_wt_cond = True):
+def log_files_qc(LOGS_PATH, only_wt_cond = True, filename_split='_',site_location=-1):
     files_pds = []
 
     # Go over all files under logs
@@ -224,7 +217,7 @@ def log_files_qc(LOGS_PATH, only_wt_cond = True):
     print("Before dup handeling ", all_df.shape)
     
     #handle duplicates
-    all_df['site_num'] = all_df.filename.str.split("_").str[-1]
+    all_df['site_num'] = all_df.filename.str.split(filename_split).str[site_location]
     # drop rows with duplicated "filename-batch-cellline-panel-site"  combination, but keep the row with max "cells_count_mean"
     df_tmp = all_df.sort_values('cells_count_mean', ascending=False).drop_duplicates(subset=['filename','batch', 'cell_line', 'panel', 'condition', 'rep', 'marker'], 
                                 keep='first',
@@ -448,7 +441,6 @@ def plot_filtering_table(filtered, extra_index, width=8, height=8):
 def plot_table(df, file_name, plot_path, reps, expected_dapi, fig_height=8, fig_width=8, to_save=False):
     fig, ax = plt.subplots(figsize=(fig_width, fig_height))
     colored_df_without_DAPI = df.drop('DAPI', level=0).apply(lambda x: x.map(apply_color) if x.name else x)
-
     dapi_index_data = [['DAPI']*len(reps),reps]
     
     dapi = df.loc['DAPI']
@@ -459,6 +451,10 @@ def plot_table(df, file_name, plot_path, reps, expected_dapi, fig_height=8, fig_
     colored_df['Rep'] = 'white'
     colored_df = colored_df[ ['Rep']+ [col for col in colored_df.columns if col != 'Rep']]
     df_reset = df.reset_index(level=1)
+    # print(df_reset)
+    df_dapi = df_reset.loc['DAPI']
+    df_reset = df_reset.drop(index='DAPI')
+    df_reset = pd.concat([df_reset, df_dapi])
     col_labels = [col.replace("_", "\n") for col in df_reset.columns]
     table = ax.table(cellText=df_reset.apply(lambda x: x.map(str)).values,
              rowLabels=df_reset.index,
@@ -540,13 +536,13 @@ def run_validate_folder_structure(root_dir, proc, panels, markers,plot_path, mar
         if len(missing_paths) == 0:
             print("Folder structure is valid.")
         else:
-            print("Folder structure is invalid. Missing paths:")
+            print(f"Folder structure is invalid. Missing {len(missing_paths)} paths:")
             for path in missing_paths:
                 print(path)
         if len(bad_files) == 0:
             print('No bad files are found.')
         else:
-            print('Some files are bad:')
+            print(f'{len(bad_files)} files are bad:')
             for file in bad_files:
                 print(file)
 
@@ -591,12 +587,14 @@ def plot_cell_count(df, order, custom_palette, y, title, norm=False):
             fig, axs = plt.subplots(nrows=1, ncols=no_batches, sharey=False, sharex=False, figsize=(15,6))
             fig.subplots_adjust(wspace=0)
             max_y_value = (max(df.groupby(['batch','rep','cell_line_cond'])[y].std()+df.groupby(['batch','rep','cell_line_cond'])[y].mean()))
+            min_y_value = (min(-df.groupby(['batch','rep','cell_line_cond'])[y].std()+df.groupby(['batch','rep','cell_line_cond'])[y].mean()))
+
             for i, (batch_name, batch) in enumerate(df.groupby('batch')):
                 c = sns.barplot(data=batch, x='rep', hue='cell_line_cond', y=y, hue_order = order, 
                                 ax=axs[i], palette=custom_palette, errorbar='sd', err_kws={'linewidth': 1})
                 c.set_xlabel(batch_name, fontsize=12) 
                 c.tick_params(axis='x', labelsize=10)
-                axs[i].set_ylim(0, max_y_value*1.1)
+                axs[i].set_ylim(min_y_value*1.3, max_y_value*1.1)
                 if 0<i<no_batches-1: #middle plots
                     # c.spines['left'].set_visible(False)
                     # c.spines['right'].set_visible(False)
@@ -605,13 +603,13 @@ def plot_cell_count(df, order, custom_palette, y, title, norm=False):
                     axs[i].set_yticks([])
                     axs[i].set_yticklabels([])
                 if i==no_batches-1:
-                    c.spines['left'].set_visible(False)
+                    # c.spines['left'].set_visible(False)
                     c.set_ylabel('')
                     c.legend(title='Cell Line', loc='upper left', bbox_to_anchor=(1, 0.8), fontsize=14)
                     axs[i].set_yticks([])
                     axs[i].set_yticklabels([])
                 if i==0:
-                    c.spines['right'].set_visible(False)
+                    # c.spines['right'].set_visible(False)
                     c.legend_.remove()
                     c.set_ylabel(ylabel)
         else:
@@ -951,14 +949,14 @@ def plot_hist_lines(mean_hist_raw, mean_hist_rescale, mean_hist_proc, batch_num,
         plt.show()
 
         
-def run_calc_hist_new(batch, cell_lines_for_disp, markers, hist_sample=1, 
+def run_calc_hist_new(batch, cell_lines_for_disp, markers, input_dir_raw, input_dir_proc, hist_sample=1, 
                       sample_size_per_markers=200, ncols=3, nrows=3, rep_count=2, cond_count=2, dnls=False):    
-    INPUT_DIR_BATCH_RAW = os.path.join(INPUT_DIR_RAW, batch.replace('_16bit','').replace('_no_downsample',''))
-    INPUT_DIR_BATCH_PROC = os.path.join(INPUT_DIR_PROC, batch.replace("_sort",""))
+    input_dir_batch_raw = os.path.join(input_dir_raw, batch.replace('_16bit','').replace('_no_downsample',''))
+    input_dir_batch_proc = os.path.join(input_dir_proc, batch.replace("_sort",""))
 
-    images_raw = sample_images_all_markers_all_lines(INPUT_DIR_BATCH_RAW, sample_size_per_markers, _num_markers=len(markers),
+    images_raw = sample_images_all_markers_all_lines(input_dir_batch_raw, sample_size_per_markers, _num_markers=len(markers),
                                                      raw=True, all_conds=False, rep_count=rep_count, cond_count=cond_count, exclude_DAPI=True)
-    images_proc = sample_images_all_markers_all_lines(INPUT_DIR_BATCH_PROC, _sample_size_per_markers=sample_size_per_markers,#*2, 
+    images_proc = sample_images_all_markers_all_lines(input_dir_batch_proc, _sample_size_per_markers=sample_size_per_markers,#*2, 
                                                  _num_markers=len(markers), raw=False, all_conds=True)
 
     if dnls:

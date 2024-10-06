@@ -66,7 +66,7 @@ class NeuronsUMAP0StressB6FigureConfig(FigureConfig):
         self.SETS = ['testset']
         self.EXPERIMENT_TYPE = 'neurons'    
         self.CELL_LINES = ['WT']
-        self.MARKERS_TO_EXCLUDE = ['FMRP', 'TIA1']
+        self.MARKERS_TO_EXCLUDE = ['TIA1']
         
         # Decide if to show ARI metric on the UMAP
         self.SHOW_ARI = True
@@ -80,7 +80,7 @@ class NeuronsDistancesStressFigureConfig(FigureConfig):
         
         self.SETS = ['testset']
         self.EXPERIMENT_TYPE = 'neurons'
-        self.MARKERS_TO_EXCLUDE = ['FMRP','TIA1']
+        self.MARKERS_TO_EXCLUDE = ['TIA1']
         self.BASELINE_CELL_LINE_CONDITION = "WT_Untreated"
         self.CELL_LINES_CONDITIONS = ['WT_stress']
         self.MARKERS = list(PlotConfig().COLOR_MAPPINGS_MARKERS.keys())
@@ -101,7 +101,7 @@ class NeuronsUMAP0StressB9FigureConfig(FigureConfig):
         self.SETS = ['testset']
         self.EXPERIMENT_TYPE = 'neurons'    
         self.CELL_LINES = ['WT']
-        self.MARKERS_TO_EXCLUDE = ['FMRP', 'TIA1']
+        self.MARKERS_TO_EXCLUDE = ['TIA1']
         
         # Decide if to show ARI metric on the UMAP
         self.SHOW_ARI = True
@@ -118,7 +118,7 @@ class NeuronsUMAP0StressB3FigureConfig(FigureConfig):
         self.SETS = ['testset']
         self.EXPERIMENT_TYPE = 'neurons'    
         self.CELL_LINES = ['WT']
-        self.MARKERS_TO_EXCLUDE = ['FMRP', 'TIA1']
+        self.MARKERS_TO_EXCLUDE = ['TIA1']
         
         # Decide if to show ARI metric on the UMAP
         self.SHOW_ARI = True
@@ -135,7 +135,7 @@ class NeuronsUMAP0StressB4FigureConfig(FigureConfig):
         self.SETS = ['testset']
         self.EXPERIMENT_TYPE = 'neurons'    
         self.CELL_LINES = ['WT']
-        self.MARKERS_TO_EXCLUDE = ['FMRP', 'TIA1']
+        self.MARKERS_TO_EXCLUDE = ['TIA1']
         
         # Decide if to show ARI metric on the UMAP
         self.SHOW_ARI = True
@@ -152,7 +152,7 @@ class NeuronsUMAP0StressB5FigureConfig(FigureConfig):
         self.SETS = ['testset']
         self.EXPERIMENT_TYPE = 'neurons'    
         self.CELL_LINES = ['WT']
-        self.MARKERS_TO_EXCLUDE = ['FMRP', 'TIA1']
+        self.MARKERS_TO_EXCLUDE = ['TIA1']
         
         # Decide if to show ARI metric on the UMAP
         self.SHOW_ARI = True
@@ -178,7 +178,7 @@ class NeuronsDistancesStress345FigureConfig(FigureConfig):
         
         self.SETS = ['testset']
         self.EXPERIMENT_TYPE = 'neurons'
-        self.MARKERS_TO_EXCLUDE = ['FMRP','TIA1']
+        self.MARKERS_TO_EXCLUDE = ['TIA1']
         self.BASELINE_CELL_LINE_CONDITION = "WT_Untreated"
         self.CELL_LINES_CONDITIONS = ['WT_stress']
         self.MARKERS = list(PlotConfig().COLOR_MAPPINGS_MARKERS.keys())
@@ -193,7 +193,7 @@ class NeuronsDistancesStressWith345FigureConfig(FigureConfig):
         
         self.SETS = ['testset']
         self.EXPERIMENT_TYPE = 'neurons'
-        self.MARKERS_TO_EXCLUDE = ['FMRP','TIA1']
+        self.MARKERS_TO_EXCLUDE = ['TIA1']
         self.BASELINE_CELL_LINE_CONDITION = "WT_Untreated"
         self.CELL_LINES_CONDITIONS = ['WT_stress']
         self.MARKERS = list(PlotConfig().COLOR_MAPPINGS_MARKERS.keys())
@@ -251,7 +251,7 @@ class dNLSDistancesFigureConfig(FigureConfig):
         
         self.SETS = ['testset']
         self.EXPERIMENT_TYPE = 'deltaNLS'
-        self.MARKERS_TO_EXCLUDE = ['FMRP','TIA1']
+        self.MARKERS_TO_EXCLUDE = ['TIA1']
         self.BASELINE_CELL_LINE_CONDITION = "TDP43_Untreated"
         self.CELL_LINES_CONDITIONS = ['TDP43_dox']
         self.MARKERS = list(PlotConfig().COLOR_MAPPINGS_MARKERS.keys())
@@ -276,7 +276,7 @@ class NeuronsUMAP2StressB6FigureConfig(FigureConfig):
         self.SETS = ['testset']
         self.EXPERIMENT_TYPE = 'neurons'    
         self.CELL_LINES = ['WT']
-        self.MARKERS_TO_EXCLUDE = ['FMRP', 'TIA1']
+        self.MARKERS_TO_EXCLUDE = ['TIA1']
         
         # Decide if to show ARI metric on the UMAP
         self.SHOW_ARI = True
@@ -293,7 +293,7 @@ class dNLSUMAP2B3FigureConfig(FigureConfig):
         self.SETS = ['testset']
         self.EXPERIMENT_TYPE = 'deltaNLS'    
         self.CELL_LINES = ['TDP43']
-        self.MARKERS_TO_EXCLUDE = ['FMRP', 'TIA1']
+        self.MARKERS_TO_EXCLUDE = ['TIA1']
         self.MARKERS = list(PlotConfig().COLOR_MAPPINGS_MARKERS.keys())
         # Decide if to show ARI metric on the UMAP
         self.SHOW_ARI = True
@@ -310,7 +310,7 @@ class dNLSUMAP2B4FigureConfig(FigureConfig):
         self.SETS = ['testset']
         self.EXPERIMENT_TYPE = 'deltaNLS'    
         self.CELL_LINES = ['TDP43']
-        self.MARKERS_TO_EXCLUDE = ['FMRP', 'TIA1']
+        self.MARKERS_TO_EXCLUDE = ['TIA1']
         self.MARKERS = list(PlotConfig().COLOR_MAPPINGS_MARKERS.keys())
         # Decide if to show ARI metric on the UMAP
         self.SHOW_ARI = True
@@ -327,7 +327,7 @@ class dNLSUMAP2B5FigureConfig(FigureConfig):
         self.SETS = ['testset']
         self.EXPERIMENT_TYPE = 'deltaNLS'    
         self.CELL_LINES = ['TDP43']
-        self.MARKERS_TO_EXCLUDE = ['FMRP', 'TIA1']
+        self.MARKERS_TO_EXCLUDE = ['TIA1']
         self.MARKERS = list(PlotConfig().COLOR_MAPPINGS_MARKERS.keys())
         # Decide if to show ARI metric on the UMAP
         self.SHOW_ARI = True
@@ -340,7 +340,7 @@ class NeuronsUMAP2ALSFigureConfig(FigureConfig):
         self.SETS = ['testset']
         self.EXPERIMENT_TYPE = 'neurons'    
         self.CONDITIONS = ['Untreated']
-        self.MARKERS_TO_EXCLUDE = ['FMRP', 'TIA1']
+        self.MARKERS_TO_EXCLUDE = ['TIA1']
         
         # Decide if to show ARI metric on the UMAP
         self.SHOW_ARI = True
@@ -360,7 +360,7 @@ class NeuronsDistancesALSFigureConfig(FigureConfig):
         
         self.SETS = ['testset']
         self.EXPERIMENT_TYPE = 'neurons'
-        self.MARKERS_TO_EXCLUDE = ['FMRP','TIA1']
+        self.MARKERS_TO_EXCLUDE = ['TIA1']
         self.BASELINE_CELL_LINE_CONDITION = "WT_Untreated"
         self.CELL_LINES_CONDITIONS = ['FUSHomozygous_Untreated','FUSHeterozygous_Untreated','FUSRevertant_Untreated',
                                       'TBK1_Untreated','OPTN_Untreated','TDP43_Untreated']
@@ -375,7 +375,7 @@ class NeuronsUMAP0ALSFigureConfig(FigureConfig):
         self.SETS = ['testset']
         self.EXPERIMENT_TYPE = 'neurons'    
         self.CONDITIONS = ['Untreated']
-        self.MARKERS_TO_EXCLUDE = ['FMRP', 'TIA1']
+        self.MARKERS_TO_EXCLUDE = ['TIA1']
         
         # Decide if to show ARI metric on the UMAP
         self.SHOW_ARI = True
@@ -454,7 +454,7 @@ class NeuronsUMAP0ALSB6FigureConfig(FigureConfig):
         self.SETS = ['testset']
         self.EXPERIMENT_TYPE = 'neurons'    
         self.CONDITIONS = ['Untreated']
-        self.MARKERS_TO_EXCLUDE = ['FMRP', 'TIA1']
+        self.MARKERS_TO_EXCLUDE = ['TIA1']
         
         # Decide if to show ARI metric on the UMAP
         self.SHOW_ARI = True
@@ -563,7 +563,7 @@ class NeuronsUMAP2StressB9FigureConfig(FigureConfig):
         self.SETS = ['testset']
         self.EXPERIMENT_TYPE = 'neurons'    
         self.CELL_LINES = ['WT']
-        self.MARKERS_TO_EXCLUDE = ['FMRP', 'TIA1']
+        self.MARKERS_TO_EXCLUDE = ['TIA1']
         
         # Decide if to show ARI metric on the UMAP
         self.SHOW_ARI = True
@@ -580,7 +580,7 @@ class NeuronsUMAP2StressB3FigureConfig(FigureConfig):
         self.SETS = ['testset']
         self.EXPERIMENT_TYPE = 'neurons'    
         self.CELL_LINES = ['WT']
-        self.MARKERS_TO_EXCLUDE = ['FMRP', 'TIA1']
+        self.MARKERS_TO_EXCLUDE = ['TIA1']
         
         # Decide if to show ARI metric on the UMAP
         self.SHOW_ARI = True
@@ -597,7 +597,7 @@ class NeuronsUMAP2StressB4FigureConfig(FigureConfig):
         self.SETS = ['testset']
         self.EXPERIMENT_TYPE = 'neurons'    
         self.CELL_LINES = ['WT']
-        self.MARKERS_TO_EXCLUDE = ['FMRP', 'TIA1']
+        self.MARKERS_TO_EXCLUDE = ['TIA1']
         
         # Decide if to show ARI metric on the UMAP
         self.SHOW_ARI = True
@@ -614,7 +614,7 @@ class NeuronsUMAP2StressB5FigureConfig(FigureConfig):
         self.SETS = ['testset']
         self.EXPERIMENT_TYPE = 'neurons'    
         self.CELL_LINES = ['WT']
-        self.MARKERS_TO_EXCLUDE = ['FMRP', 'TIA1']
+        self.MARKERS_TO_EXCLUDE = ['TIA1']
         
         # Decide if to show ARI metric on the UMAP
         self.SHOW_ARI = True
@@ -650,7 +650,7 @@ class NeuronsUMAP2ALSB5FigureConfig(NeuronsUMAP2ALSFigureConfig):
 class NeuronsUMAP2ALSB6_without_fus_marker_FigureConfig(NeuronsUMAP2ALSB6FigureConfig):
     def __init__(self):
         super().__init__()
-        self.MARKERS_TO_EXCLUDE = ['FMRP', 'TIA1','FUS']
+        self.MARKERS_TO_EXCLUDE = ['TIA1','FUS']
 
 class NeuronsUMAP2ALSB6_without_SCNA_line_FigureConfig(NeuronsUMAP2ALSB6FigureConfig):
     def __init__(self):
@@ -679,7 +679,7 @@ class NeuronsUMAP2ALSB6_without_fusrev_FigureConfig(NeuronsUMAP2ALSB6FigureConfi
 class NeuronsUMAP2ALSB9_without_fus_marker_FigureConfig(NeuronsUMAP2ALSB9FigureConfig):
     def __init__(self):
         super().__init__()
-        self.MARKERS_TO_EXCLUDE = ['FMRP', 'TIA1','FUS']
+        self.MARKERS_TO_EXCLUDE = ['TIA1','FUS']
 
 class NeuronsUMAP2ALSB9_without_SCNA_line_FigureConfig(NeuronsUMAP2ALSB9FigureConfig):
     def __init__(self):
@@ -717,7 +717,7 @@ class NeuronsUMAP2ALSD18B1FigureConfig(FigureConfig):
         self.EXPERIMENT_TYPE = 'neurons_d18'    
         self.CONDITIONS = ['Untreated']
         self.CELL_LINES = ['WT', 'FUSHomozygous','FUSHeterozygous','FUSRevertant']
-        self.MARKERS_TO_EXCLUDE = ['FMRP', 'TIA1']
+        self.MARKERS_TO_EXCLUDE = ['TIA1']
         
         # Decide if to show ARI metric on the UMAP
         self.SHOW_ARI = True
@@ -735,7 +735,7 @@ class NeuronsUMAP2ALSD18B2FigureConfig(FigureConfig):
         self.EXPERIMENT_TYPE = 'neurons_d18'    
         self.CONDITIONS = ['Untreated']
         self.CELL_LINES = ['WT', 'FUSHomozygous','FUSHeterozygous','FUSRevertant']
-        self.MARKERS_TO_EXCLUDE = ['FMRP', 'TIA1']
+        self.MARKERS_TO_EXCLUDE = ['TIA1']
         
         # Decide if to show ARI metric on the UMAP
         self.SHOW_ARI = True
@@ -752,7 +752,7 @@ class NeuronsUMAP0ALSB9FigureConfig(FigureConfig):
         self.SETS = ['testset']
         self.EXPERIMENT_TYPE = 'neurons'    
         self.CONDITIONS = ['Untreated']
-        self.MARKERS_TO_EXCLUDE = ['FMRP', 'TIA1']
+        self.MARKERS_TO_EXCLUDE = ['TIA1']
         
         # Decide if to show ARI metric on the UMAP
         self.SHOW_ARI = True
@@ -802,7 +802,7 @@ class NeuronsDistancesALS345FigureConfig(FigureConfig):
         
         self.SETS = ['testset']
         self.EXPERIMENT_TYPE = 'neurons'
-        self.MARKERS_TO_EXCLUDE = ['FMRP','TIA1']
+        self.MARKERS_TO_EXCLUDE = ['TIA1']
         self.BASELINE_CELL_LINE_CONDITION = "WT_Untreated"
         self.CELL_LINES_CONDITIONS = ['FUSHomozygous_Untreated','FUSHeterozygous_Untreated','FUSRevertant_Untreated',
                                       'TBK1_Untreated','OPTN_Untreated','TDP43_Untreated']
@@ -817,7 +817,7 @@ class NeuronsDistancesALSWith345FigureConfig(FigureConfig):
         
         self.SETS = ['testset']
         self.EXPERIMENT_TYPE = 'neurons'
-        self.MARKERS_TO_EXCLUDE = ['FMRP','TIA1']
+        self.MARKERS_TO_EXCLUDE = ['TIA1']
         self.BASELINE_CELL_LINE_CONDITION = "WT_Untreated"
         self.CELL_LINES_CONDITIONS = ['FUSHomozygous_Untreated','FUSHeterozygous_Untreated','FUSRevertant_Untreated',
                                       'TBK1_Untreated','OPTN_Untreated','TDP43_Untreated']
@@ -844,7 +844,7 @@ class NeuronsUMAP1D18B1FigureConfig(FigureConfig):
         self.CELL_LINES = ['WT']
         self.CONDITIONS = ['Untreated']
         self.MARKERS = list(PlotConfig().COLOR_MAPPINGS_MARKERS.keys())
-        self.MARKERS_TO_EXCLUDE = ['FMRP', 'TIA1']
+        self.MARKERS_TO_EXCLUDE = ['TIA1']
         # Decide if to show ARI metric on the UMAP
         self.SHOW_ARI = False
 
