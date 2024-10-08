@@ -79,7 +79,7 @@ class PlotConfig(plot_config.PlotConfig):
             'PURA':{self.UMAP_MAPPINGS_ALIAS_KEY:'PURA granules', self.UMAP_MAPPINGS_COLOR_KEY:'#ACE142'},
             'G3BP1':{self.UMAP_MAPPINGS_ALIAS_KEY:'Stress granules', self.UMAP_MAPPINGS_COLOR_KEY:'#F0A3A3'},
             'Phalloidin':{self.UMAP_MAPPINGS_ALIAS_KEY:'Cytoskeleton', self.UMAP_MAPPINGS_COLOR_KEY:'#06A0E9'},
-            'FMRP':{self.UMAP_MAPPINGS_ALIAS_KEY:'RNA granules', self.UMAP_MAPPINGS_COLOR_KEY:'#EF218B'},
+            'FMRP':{self.UMAP_MAPPINGS_ALIAS_KEY:'FMRP granules', self.UMAP_MAPPINGS_COLOR_KEY:'#EF218B'},
 
             'MERGED':{self.UMAP_MAPPINGS_ALIAS_KEY:'MERGED', self.UMAP_MAPPINGS_COLOR_KEY:'gray'},
             'Map2':{self.UMAP_MAPPINGS_ALIAS_KEY:'Neuronal marker', self.UMAP_MAPPINGS_COLOR_KEY:'gray'},
@@ -102,7 +102,7 @@ class PlotConfig(plot_config.PlotConfig):
             'Controls_Untreated':{self.UMAP_MAPPINGS_ALIAS_KEY: 'Controls',self.UMAP_MAPPINGS_COLOR_KEY: '#58cfdf'},
             'sALSPositiveCytoTDP43_Untreated':{self.UMAP_MAPPINGS_ALIAS_KEY:'sALS Positive TDP-43', self.UMAP_MAPPINGS_COLOR_KEY:'#f6ce55'},
             'sALSNegativeCytoTDP43_Untreated':{self.UMAP_MAPPINGS_ALIAS_KEY:'sALS Negative TDP-43', self.UMAP_MAPPINGS_COLOR_KEY:'#3ce23c'},
-            'c9orf72ALSPatients_Untreated':{self.UMAP_MAPPINGS_ALIAS_KEY:'c9orf72', self.UMAP_MAPPINGS_COLOR_KEY:'#ff66ff'},
+            'c9orf72ALSPatients_Untreated':{self.UMAP_MAPPINGS_ALIAS_KEY:'c9orf72', self.UMAP_MAPPINGS_COLOR_KEY:'#eb3440'},
 
             'Controls_rep1':{self.UMAP_MAPPINGS_ALIAS_KEY: '1',self.UMAP_MAPPINGS_COLOR_KEY: '#58cfdf'},
             'Controls_rep2':{self.UMAP_MAPPINGS_ALIAS_KEY: '2',self.UMAP_MAPPINGS_COLOR_KEY: '#4db6c4'},
@@ -125,9 +125,9 @@ class PlotConfig(plot_config.PlotConfig):
             'sALSNegativeCytoTDP43_rep1':{self.UMAP_MAPPINGS_ALIAS_KEY:'1', self.UMAP_MAPPINGS_COLOR_KEY:'#3ce23c'},
             'sALSNegativeCytoTDP43_rep2':{self.UMAP_MAPPINGS_ALIAS_KEY:'2', self.UMAP_MAPPINGS_COLOR_KEY:'#1e711e'},
 
-            'c9orf72ALSPatients_rep1':{self.UMAP_MAPPINGS_ALIAS_KEY:'1', self.UMAP_MAPPINGS_COLOR_KEY:'#ff66ff'},
-            'c9orf72ALSPatients_rep2':{self.UMAP_MAPPINGS_ALIAS_KEY:'2', self.UMAP_MAPPINGS_COLOR_KEY:'#bf4dbf'},
-            'c9orf72ALSPatients_rep3':{self.UMAP_MAPPINGS_ALIAS_KEY:'3', self.UMAP_MAPPINGS_COLOR_KEY:'#803380'},
+            'c9orf72ALSPatients_rep1':{self.UMAP_MAPPINGS_ALIAS_KEY:'1', self.UMAP_MAPPINGS_COLOR_KEY:'#eb3440'},
+            'c9orf72ALSPatients_rep2':{self.UMAP_MAPPINGS_ALIAS_KEY:'2', self.UMAP_MAPPINGS_COLOR_KEY:'#bc2a33'},
+            'c9orf72ALSPatients_rep3':{self.UMAP_MAPPINGS_ALIAS_KEY:'3', self.UMAP_MAPPINGS_COLOR_KEY:'#8d1f26'},
 
         }
         self.COLOR_MAPPINGS_ALYSSA['Controls'] = self.COLOR_MAPPINGS_ALYSSA['Controls_Untreated']

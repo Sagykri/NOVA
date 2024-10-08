@@ -45,7 +45,6 @@ line_colors = {
 lines_order = line_colors.keys()
 custom_palette = [line_colors[line] for line in lines_order]
 expected_dapi_raw = 1100
-expected_raw=2200
 
 # regular neurons FUS pertubations
 fus_panels = pd.DataFrame( [['KIF5A','TDP43','FMRP','CLTC','DCP1A','TOMM20','NCL','ANXA11','Calreticulin','mitotracker'],
@@ -91,7 +90,6 @@ fus_line_colors = {f'{k} {c}': fus_colorblind_palette[i%len(fus_colorblind_palet
 fus_lines_order = fus_line_colors.keys()
 fus_custom_palette = [fus_line_colors[line] for line in fus_line_colors]
 fus_expected_dapi_raw = 1000
-# expected_raw=2200 # Unused
 
 # regular neurons 28 days
 days28_panels = pd.DataFrame( [['PURA'],
@@ -129,7 +127,6 @@ days28_line_colors = {f'{k} {c}': days28_colorblind_palette[i%len(days28_colorbl
 days28_lines_order = days28_line_colors.keys()
 days28_custom_palette = [days28_line_colors[line] for line in days28_line_colors]
 days28_expected_dapi_raw = 1000
-# expected_raw=2200 # Unused
 
 # Opera
 opera_panels = pd.DataFrame( [['KIF5A','TDP43','FMRP','CLTC','DCP1A','TOMM20','NCL','ANXA11','Calreticulin','mitotracker'],
@@ -175,7 +172,6 @@ opera_line_colors = {f'{k} {c}': opera_colorblind_palette[i%len(opera_colorblind
 opera_lines_order = opera_line_colors.keys()
 opera_custom_palette = [opera_line_colors[line] for line in opera_line_colors]
 opera_expected_dapi_raw = 1000
-# expected_raw=2200 # Unused
 
 # Opera 18 days
 opera18days_panels = pd.DataFrame( [['TOMM20','TDP43','FMRP','PSD95','NEMO','GM130','FUS','SNCA','LAMP1','Tubulin','VDAC1', 'PML',],
@@ -229,7 +225,6 @@ opera18days_line_colors = {f'{k} {c}': opera_colorblind_palette[count % len(oper
 opera18days_lines_order = opera18days_line_colors.keys()
 opera18days_custom_palette = [opera18days_line_colors[line] for line in opera18days_line_colors]
 opera18days_expected_dapi_raw = 1200
-# expected_raw=2200 # Unused
 
 
 # SPD 18 days
@@ -283,7 +278,6 @@ spd18days_line_colors = {f'{k} {c}': opera_colorblind_palette[i%len(spd18days_co
 spd18days_lines_order = opera18days_line_colors.keys()
 spd18days_custom_palette = [spd18days_line_colors[line] for line in spd18days_line_colors]
 spd18days_expected_dapi_raw = 1200
-# expected_raw=2200 # Unused
 
 
 # Microglia
@@ -360,7 +354,6 @@ pers=['Chloroquine','DMSO1uM','Riluzole','Untreated',
 per_cell_lines_to_cond = {cell_line:pers for cell_line in per_cell_lines}
 
 per_expected_dapi_raw = 200
-per_expected_raw=200
 condition_colors = {
     'Chloroquine': colorblind_palette[1],
     'DMSO100uM': colorblind_palette[2],
@@ -405,7 +398,6 @@ dnls_line_colors = {
 dnls_lines_order = dnls_line_colors.keys()
 dnls_custom_palette = [dnls_line_colors[line] for line in dnls_lines_order]
 dnls_expected_dapi_raw = 100*len(dnls_panels.columns)
-dnls_expected_raw=100*2*len(dnls_panels.columns)
 
 
 # NP
@@ -440,4 +432,48 @@ np_line_colors = {
 np_lines_order = np_line_colors.keys()
 np_custom_palette = [np_line_colors[line] for line in np_lines_order]
 np_expected_dapi_raw = 100*len(np_panels.columns)
-np_expected_raw=100*2*len(np_panels.columns)
+
+
+### Alyssa Coyne data
+AC_panels = pd.DataFrame([['DCP1A'],['Map2'],['TDP43'],['DAPI']], columns=['A'],
+            index=['Cy5', 'mCherry', 'GFP','DAPI'])
+
+AC_markers = ['DCP1A','Map2','TDP43','DAPI']
+
+AC_reps = ['rep1', 'rep2', 'rep3', 'rep4', 'rep5', 'rep6', 'rep7', 'rep8', 'rep9', 'rep10']
+
+AC_marker_info = pd.DataFrame([[['Cy5']]*1 + [['mCherry']]*1 + [['GFP']]*1,
+                          [['A'],['A'],['A']]], index=['Antibody','panel'],
+                         columns = ['DCP1A','Map2','TDP43']).T  #order here is important - taken from Lena's sheet
+
+AC_cell_lines = ['Controls','sALS_Negative_cytoTDP43','sALS_Positive_cytoTDP43','c9orf72_ALS_patients']
+
+AC_cell_lines_to_cond = {
+                    'Controls':['Untreated'], 
+                    'sALSNegativeCytoTDP43':['Untreated'], 
+                    'sALSPositiveCytoTDP43':['Untreated'],
+                    'c9orf72ALSPatients':['Untreated']}
+
+AC_cell_lines_for_disp = {'Controls_Untreated':'Controls', 
+                       'sALSNegativeCytoTDP43_Untreated':'sALS_Negative_cytoTDP43', 
+                       'sALSPositiveCytoTDP43_Untreated':'sALS_Positive_cytoTDP43', 
+                       'c9orf72ALSPatients_Untreated':'c9orf72_ALS_patients'
+                      } 
+
+AC_colorblind_palette = sns.color_palette('colorblind')
+AC_line_colors = {
+    'c9orf72ALSPatients': AC_colorblind_palette[8],
+    'sALSPositiveCytoTDP43': AC_colorblind_palette[5],
+    'sALSNegativeCytoTDP43': AC_colorblind_palette[6],
+    'Controls': AC_colorblind_palette[9]
+}
+AC_lines_order = AC_line_colors.keys()
+AC_custom_palette = [AC_line_colors[line] for line in AC_lines_order]
+AC_expected_dapi_raw = 10
+
+AC_cell_lines_to_reps = {
+    'c9orf72ALSPatients': [f'rep{i}' for i in range(1,4)],
+    'sALSPositiveCytoTDP43': [f'rep{i}' for i in range(1,10)],
+    'sALSNegativeCytoTDP43': [f'rep{i}' for i in range(1,3)],
+    'Controls': [f'rep{i}' for i in range(1,7)]
+}

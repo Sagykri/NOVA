@@ -103,23 +103,23 @@ plot_configs=./manuscript/manuscript_plot_config
 # # Figure 5
 # #######################
 
-$NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_umaps_and_plot -m 10000 \
--a $finetune_model $data_configs/NeuronsUMAP2ALSB9FigureConfig $plot_configs/UMAP2ALSPlotConfig -q short -j umap2_als_b9
+# $NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_umaps_and_plot -m 10000 \
+# -a $finetune_model $data_configs/NeuronsUMAP2ALSB9FigureConfig $plot_configs/UMAP2ALSPlotConfig -q short -j umap2_als_b9
 
-$NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/plot_distances_bubble -m 1000 \
--a $finetune_model $data_configs/NeuronsDistancesALSFigureConfig $plot_configs/DistancesNeuronsALSPlotConfig -q short -j als_dist
+# $NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/plot_distances_bubble -m 1000 \
+# -a $finetune_model $data_configs/NeuronsDistancesALSFigureConfig $plot_configs/DistancesNeuronsALSPlotConfig -q short -j als_dist
 
-$NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_umaps_and_plot -m 5000 \
--a $finetune_model $data_configs/NeuronsUMAP0ALSB9FUSFigureConfig $plot_configs/UMAP0ALSPlotConfig -q short -j umap0_b9_FUS
+# $NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_umaps_and_plot -m 5000 \
+# -a $finetune_model $data_configs/NeuronsUMAP0ALSB9FUSFigureConfig $plot_configs/UMAP0ALSPlotConfig -q short -j umap0_b9_FUS
 
-$NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_umaps_and_plot -m 5000 \
--a $finetune_model $data_configs/NeuronsUMAP0ALSB9DCP1AFigureConfig $plot_configs/UMAP0ALSPlotConfig -q short -j umap0_b9_dcp1a
+# $NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_umaps_and_plot -m 5000 \
+# -a $finetune_model $data_configs/NeuronsUMAP0ALSB9DCP1AFigureConfig $plot_configs/UMAP0ALSPlotConfig -q short -j umap0_b9_dcp1a
 
-$NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_umaps_and_plot -m 5000 \
--a $finetune_model $data_configs/NeuronsUMAP0ALSB9ANXA11FigureConfig $plot_configs/UMAP0ALSPlotConfig -q short -j umap0_b9_anxa11
+# $NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_umaps_and_plot -m 5000 \
+# -a $finetune_model $data_configs/NeuronsUMAP0ALSB9ANXA11FigureConfig $plot_configs/UMAP0ALSPlotConfig -q short -j umap0_b9_anxa11
 
-$NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_umaps_and_plot -m 5000 \
--a $finetune_model $data_configs/NeuronsUMAP0ALSB9CLTCFigureConfig $plot_configs/UMAP0ALSPlotConfig -q short -j umap0_b9_cltc
+# $NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_umaps_and_plot -m 5000 \
+# -a $finetune_model $data_configs/NeuronsUMAP0ALSB9CLTCFigureConfig $plot_configs/UMAP0ALSPlotConfig -q short -j umap0_b9_cltc
 
 # $NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_umaps_and_plot -m 10000 \
 # -a $finetune_model $data_configs/AlyssaCoyneUMAP2FigureConfig $plot_configs/UMAP2AlyssaCoyneColorByGroupPlotConfig -q short -j umap2_alyssa
@@ -141,104 +141,104 @@ $NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_umaps_and_plot -m 5000
 # # #######################
 
 # #### als umap2 ####
-$NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_umaps_and_plot -m 10000 \
--a $finetune_model $data_configs/NeuronsUMAP2ALSB6FigureConfig $plot_configs/UMAP2ALSPlotConfig -q short -j umap2_als_b6
+# $NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_umaps_and_plot -m 10000 \
+# -a $finetune_model $data_configs/NeuronsUMAP2ALSB6FigureConfig $plot_configs/UMAP2ALSPlotConfig -q short -j umap2_als_b6
 
-$NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_umaps_and_plot -m 10000 \
--a $finetune_model $data_configs/NeuronsUMAP2ALSB3FigureConfig $plot_configs/UMAP2ALSPlotConfig -q short -j umap2_als_b3
+# $NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_umaps_and_plot -m 10000 \
+# -a $finetune_model $data_configs/NeuronsUMAP2ALSB3FigureConfig $plot_configs/UMAP2ALSPlotConfig -q short -j umap2_als_b3
 
-$NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_umaps_and_plot -m 10000 \
--a $finetune_model $data_configs/NeuronsUMAP2ALSB4FigureConfig $plot_configs/UMAP2ALSPlotConfig -q short -j umap2_als_b4
+# $NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_umaps_and_plot -m 10000 \
+# -a $finetune_model $data_configs/NeuronsUMAP2ALSB4FigureConfig $plot_configs/UMAP2ALSPlotConfig -q short -j umap2_als_b4
 
-$NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_umaps_and_plot -m 10000 \
--a $finetune_model $data_configs/NeuronsUMAP2ALSB5FigureConfig $plot_configs/UMAP2ALSPlotConfig -q short -j umap2_als_b5
+# $NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_umaps_and_plot -m 10000 \
+# -a $finetune_model $data_configs/NeuronsUMAP2ALSB5FigureConfig $plot_configs/UMAP2ALSPlotConfig -q short -j umap2_als_b5
 
-# #### stress umap2 ####
-$NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_umaps_and_plot -m 10000 \
--a $finetune_model $data_configs/NeuronsUMAP2StressB6FigureConfig $plot_configs/UMAP2StressPlotConfig -q short -j umap2_stress_b6
+# # #### stress umap2 ####
+# $NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_umaps_and_plot -m 10000 \
+# -a $finetune_model $data_configs/NeuronsUMAP2StressB6FigureConfig $plot_configs/UMAP2StressPlotConfig -q short -j umap2_stress_b6
 
-$NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_umaps_and_plot -m 10000 \
--a $finetune_model $data_configs/NeuronsUMAP2StressB9FigureConfig $plot_configs/UMAP2StressPlotConfig -q short -j umap2_stress_b9
+# $NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_umaps_and_plot -m 10000 \
+# -a $finetune_model $data_configs/NeuronsUMAP2StressB9FigureConfig $plot_configs/UMAP2StressPlotConfig -q short -j umap2_stress_b9
 
-$NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_umaps_and_plot -m 10000 \
--a $finetune_model $data_configs/NeuronsUMAP2StressB3FigureConfig $plot_configs/UMAP2StressPlotConfig -q short -j umap2_stress_b3
+# $NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_umaps_and_plot -m 10000 \
+# -a $finetune_model $data_configs/NeuronsUMAP2StressB3FigureConfig $plot_configs/UMAP2StressPlotConfig -q short -j umap2_stress_b3
 
-$NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_umaps_and_plot -m 10000 \
--a $finetune_model $data_configs/NeuronsUMAP2StressB4FigureConfig $plot_configs/UMAP2StressPlotConfig -q short -j umap2_stress_b4
+# $NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_umaps_and_plot -m 10000 \
+# -a $finetune_model $data_configs/NeuronsUMAP2StressB4FigureConfig $plot_configs/UMAP2StressPlotConfig -q short -j umap2_stress_b4
 
-$NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_umaps_and_plot -m 10000 \
--a $finetune_model $data_configs/NeuronsUMAP2StressB5FigureConfig $plot_configs/UMAP2StressPlotConfig -q short -j umap2_stress_b5
+# $NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_umaps_and_plot -m 10000 \
+# -a $finetune_model $data_configs/NeuronsUMAP2StressB5FigureConfig $plot_configs/UMAP2StressPlotConfig -q short -j umap2_stress_b5
 
-# #### dnls umap2 ####
-$NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_umaps_and_plot -m 10000 \
--a $finetune_model $data_configs/dNLSUMAP2B3FigureConfig $plot_configs/UMAP2dNLSPlotConfig -q short -j umap2_dNLS_b3
+# # #### dnls umap2 ####
+# $NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_umaps_and_plot -m 10000 \
+# -a $finetune_model $data_configs/dNLSUMAP2B3FigureConfig $plot_configs/UMAP2dNLSPlotConfig -q short -j umap2_dNLS_b3
 
-$NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_umaps_and_plot -m 10000 \
--a $finetune_model $data_configs/dNLSUMAP2B4FigureConfig $plot_configs/UMAP2dNLSPlotConfig -q short -j umap2_dNLS_b4
+# $NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_umaps_and_plot -m 10000 \
+# -a $finetune_model $data_configs/dNLSUMAP2B4FigureConfig $plot_configs/UMAP2dNLSPlotConfig -q short -j umap2_dNLS_b4
 
-$NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_umaps_and_plot -m 10000 \
--a $finetune_model $data_configs/dNLSUMAP2B5FigureConfig $plot_configs/UMAP2dNLSPlotConfig -q short -j umap2_dNLS_b5
+# $NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_umaps_and_plot -m 10000 \
+# -a $finetune_model $data_configs/dNLSUMAP2B5FigureConfig $plot_configs/UMAP2dNLSPlotConfig -q short -j umap2_dNLS_b5
 
-# #### distances ####
+# # #### distances ####
 
-$NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/plot_distances_bubble -m 1000 \
--a $finetune_model $data_configs/NeuronsDistancesALS345FigureConfig $plot_configs/DistancesNeuronsALSPlotConfig -q short -j als_dist_345
+# $NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/plot_distances_bubble -m 1000 \
+# -a $finetune_model $data_configs/NeuronsDistancesALS345FigureConfig $plot_configs/DistancesNeuronsALSPlotConfig -q short -j als_dist_345
 
-$NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/plot_distances_bubble -m 1000 \
--a $finetune_model $data_configs/NeuronsDistancesALSWith345FigureConfig $plot_configs/DistancesNeuronsALSPlotConfig -q short -j als_dist_with_345
+# $NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/plot_distances_bubble -m 1000 \
+# -a $finetune_model $data_configs/NeuronsDistancesALSWith345FigureConfig $plot_configs/DistancesNeuronsALSPlotConfig -q short -j als_dist_with_345
 
 
 
 # #### multiple pairs (batch6) ####
-$NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_umaps_and_plot -m 5000 \
--a $finetune_model $data_configs/NeuronsUMAP0ALSB6FUSFigureConfig $plot_configs/UMAP0ALSPlotConfig -q short -j umap0_b6_FUS
+# $NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_umaps_and_plot -m 5000 \
+# -a $finetune_model $data_configs/NeuronsUMAP0ALSB6FUSFigureConfig $plot_configs/UMAP0ALSPlotConfig -q short -j umap0_b6_FUS
 
-$NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_umaps_and_plot -m 5000 \
--a $finetune_model $data_configs/NeuronsUMAP0ALSB6DCP1AFigureConfig $plot_configs/UMAP0ALSPlotConfig -q short -j umap0_b6_dcp1a
+# $NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_umaps_and_plot -m 5000 \
+# -a $finetune_model $data_configs/NeuronsUMAP0ALSB6DCP1AFigureConfig $plot_configs/UMAP0ALSPlotConfig -q short -j umap0_b6_dcp1a
 
-$NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_umaps_and_plot -m 5000 \
--a $finetune_model $data_configs/NeuronsUMAP0ALSB6ANXA11FigureConfig $plot_configs/UMAP0ALSPlotConfig -q short -j umap0_b6_anxa11
+# $NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_umaps_and_plot -m 5000 \
+# -a $finetune_model $data_configs/NeuronsUMAP0ALSB6ANXA11FigureConfig $plot_configs/UMAP0ALSPlotConfig -q short -j umap0_b6_anxa11
 
-$NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_umaps_and_plot -m 5000 \
--a $finetune_model $data_configs/NeuronsUMAP0ALSB6CLTCFigureConfig $plot_configs/UMAP0ALSPlotConfig -q short -j umap0_b6_cltc
+# $NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_umaps_and_plot -m 5000 \
+# -a $finetune_model $data_configs/NeuronsUMAP0ALSB6CLTCFigureConfig $plot_configs/UMAP0ALSPlotConfig -q short -j umap0_b6_cltc
 
 
 # ### pairs ####
-$NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_umaps_and_plot -m 5000 \
--a $finetune_model $data_configs/NeuronsUMAP0ALS_FUSHomozygous_B9FigureConfig $plot_configs/UMAP0ALSPlotConfig -q short -j umap0_als_fushomo_9
+# $NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_umaps_and_plot -m 5000 \
+# -a $finetune_model $data_configs/NeuronsUMAP0ALS_FUSHomozygous_B9FigureConfig $plot_configs/UMAP0ALSPlotConfig -q short -j umap0_als_fushomo_9
 
-$NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_umaps_and_plot -m 5000 \
--a $finetune_model $data_configs/NeuronsUMAP0ALS_FUSHeterozygous_B9FigureConfig $plot_configs/UMAP0ALSPlotConfig -q short -j umap0_als_fushetero_9
+# $NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_umaps_and_plot -m 5000 \
+# -a $finetune_model $data_configs/NeuronsUMAP0ALS_FUSHeterozygous_B9FigureConfig $plot_configs/UMAP0ALSPlotConfig -q short -j umap0_als_fushetero_9
 
-$NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_umaps_and_plot -m 5000 \
--a $finetune_model $data_configs/NeuronsUMAP0ALS_FUSRevertant_B9FigureConfig $plot_configs/UMAP0ALSPlotConfig -q short -j umap0_als_fusrev_9
+# $NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_umaps_and_plot -m 5000 \
+# -a $finetune_model $data_configs/NeuronsUMAP0ALS_FUSRevertant_B9FigureConfig $plot_configs/UMAP0ALSPlotConfig -q short -j umap0_als_fusrev_9
 
-$NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_umaps_and_plot -m 5000 \
--a $finetune_model $data_configs/NeuronsUMAP0ALS_TBK1_B9FigureConfig $plot_configs/UMAP0ALSPlotConfig -q short -j umap0_als_tbk1_9
+# $NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_umaps_and_plot -m 5000 \
+# -a $finetune_model $data_configs/NeuronsUMAP0ALS_TBK1_B9FigureConfig $plot_configs/UMAP0ALSPlotConfig -q short -j umap0_als_tbk1_9
 
-$NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_umaps_and_plot -m 5000 \
--a $finetune_model $data_configs/NeuronsUMAP0ALS_OPTN_B9FigureConfig $plot_configs/UMAP0ALSPlotConfig -q short -j umap0_als_optn_9
+# $NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_umaps_and_plot -m 5000 \
+# -a $finetune_model $data_configs/NeuronsUMAP0ALS_OPTN_B9FigureConfig $plot_configs/UMAP0ALSPlotConfig -q short -j umap0_als_optn_9
 
-$NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_umaps_and_plot -m 5000 \
--a $finetune_model $data_configs/NeuronsUMAP0ALS_TDP43_B9FigureConfig $plot_configs/UMAP0ALSPlotConfig -q short -j umap0_als_tdp43_9
+# $NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_umaps_and_plot -m 5000 \
+# -a $finetune_model $data_configs/NeuronsUMAP0ALS_TDP43_B9FigureConfig $plot_configs/UMAP0ALSPlotConfig -q short -j umap0_als_tdp43_9
 
-$NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_umaps_and_plot -m 5000 \
--a $finetune_model $data_configs/NeuronsUMAP0ALS_FUSHomozygous_B6FigureConfig $plot_configs/UMAP0ALSPlotConfig -q short -j umap0_als_fushomo_6
+# $NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_umaps_and_plot -m 5000 \
+# -a $finetune_model $data_configs/NeuronsUMAP0ALS_FUSHomozygous_B6FigureConfig $plot_configs/UMAP0ALSPlotConfig -q short -j umap0_als_fushomo_6
 
-$NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_umaps_and_plot -m 5000 \
--a $finetune_model $data_configs/NeuronsUMAP0ALS_FUSHeterozygous_B6FigureConfig $plot_configs/UMAP0ALSPlotConfig -q short -j umap0_als_fushetero_6
+# $NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_umaps_and_plot -m 5000 \
+# -a $finetune_model $data_configs/NeuronsUMAP0ALS_FUSHeterozygous_B6FigureConfig $plot_configs/UMAP0ALSPlotConfig -q short -j umap0_als_fushetero_6
 
-$NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_umaps_and_plot -m 5000 \
--a $finetune_model $data_configs/NeuronsUMAP0ALS_FUSRevertant_B6FigureConfig $plot_configs/UMAP0ALSPlotConfig -q short -j umap0_als_fusrev_6
+# $NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_umaps_and_plot -m 5000 \
+# -a $finetune_model $data_configs/NeuronsUMAP0ALS_FUSRevertant_B6FigureConfig $plot_configs/UMAP0ALSPlotConfig -q short -j umap0_als_fusrev_6
 
-$NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_umaps_and_plot -m 5000 \
--a $finetune_model $data_configs/NeuronsUMAP0ALS_TBK1_B6FigureConfig $plot_configs/UMAP0ALSPlotConfig -q short -j umap0_als_tbk1_6
+# $NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_umaps_and_plot -m 5000 \
+# -a $finetune_model $data_configs/NeuronsUMAP0ALS_TBK1_B6FigureConfig $plot_configs/UMAP0ALSPlotConfig -q short -j umap0_als_tbk1_6
 
-$NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_umaps_and_plot -m 5000 \
--a $finetune_model $data_configs/NeuronsUMAP0ALS_OPTN_B6FigureConfig $plot_configs/UMAP0ALSPlotConfig -q short -j umap0_als_optn_6
+# $NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_umaps_and_plot -m 5000 \
+# -a $finetune_model $data_configs/NeuronsUMAP0ALS_OPTN_B6FigureConfig $plot_configs/UMAP0ALSPlotConfig -q short -j umap0_als_optn_6
 
-$NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_umaps_and_plot -m 5000 \
--a $finetune_model $data_configs/NeuronsUMAP0ALS_TDP43_B6FigureConfig $plot_configs/UMAP0ALSPlotConfig -q short -j umap0_als_tdp43_6
+# $NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_umaps_and_plot -m 5000 \
+# -a $finetune_model $data_configs/NeuronsUMAP0ALS_TDP43_B6FigureConfig $plot_configs/UMAP0ALSPlotConfig -q short -j umap0_als_tdp43_6
 ###############################
 
 ########## ALYSSA ################
@@ -246,50 +246,50 @@ $NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_umaps_and_plot -m 5000
 # $NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/plot_distances_bubble -m 1000 \
 # -a $finetune_model $data_configs/AlyssaCoyneDistancesFigureConfig $plot_configs/DistancesAlyssaCoynePlotConfig -q short -j alyssa_dist
 
-# $NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_umaps_and_plot -m 5000 \
-# -a $finetune_model $data_configs/AlyssaCoyneUMAP0FigureConfig $plot_configs/UMAP0AlyssaCoyneColorByGroupPlotConfig -q short -j umap0_alyssa
+$NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_umaps_and_plot -m 5000 \
+-a $finetune_model $data_configs/AlyssaCoyneUMAP0FigureConfig $plot_configs/UMAP0AlyssaCoyneColorByGroupPlotConfig -q short -j umap0_alyssa
 
-# $NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_umaps_and_plot -m 5000 \
-# -a $finetune_model $data_configs/AlyssaCoyneUMAP0FigureConfig $plot_configs/UMAP0AlyssaCoyneColorByPatientPlotConfig -q short -j umap0_alyssa
+$NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_umaps_and_plot -m 5000 \
+-a $finetune_model $data_configs/AlyssaCoyneUMAP0FigureConfig $plot_configs/UMAP0AlyssaCoyneColorByPatientPlotConfig -q short -j umap0_alyssa
 
 
 ############ special umap2 als ###################
 
-$NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_umaps_and_plot -m 10000 \
--a $finetune_model $data_configs/NeuronsUMAP2ALSB6_without_fus_marker_FigureConfig $plot_configs/UMAP2ALSPlotConfig -q short -j umap2_als_no_fus
+# $NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_umaps_and_plot -m 10000 \
+# -a $finetune_model $data_configs/NeuronsUMAP2ALSB6_without_fus_marker_FigureConfig $plot_configs/UMAP2ALSPlotConfig -q short -j umap2_als_no_fus
 
-$NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_umaps_and_plot -m 10000 \
--a $finetune_model $data_configs/NeuronsUMAP2ALSB6_without_SCNA_line_FigureConfig $plot_configs/UMAP2ALSPlotConfig -q short -j umap2_als_no_snca
+# $NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_umaps_and_plot -m 10000 \
+# -a $finetune_model $data_configs/NeuronsUMAP2ALSB6_without_SCNA_line_FigureConfig $plot_configs/UMAP2ALSPlotConfig -q short -j umap2_als_no_snca
 
-$NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_umaps_and_plot -m 10000 \
--a $finetune_model $data_configs/NeuronsUMAP2ALSB6_without_fushomo_FigureConfig $plot_configs/UMAP2ALSPlotConfig -q short -j umap2_als_no_fushomo
+# $NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_umaps_and_plot -m 10000 \
+# -a $finetune_model $data_configs/NeuronsUMAP2ALSB6_without_fushomo_FigureConfig $plot_configs/UMAP2ALSPlotConfig -q short -j umap2_als_no_fushomo
 
-$NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_umaps_and_plot -m 10000 \
--a $finetune_model $data_configs/NeuronsUMAP2ALSB6_without_fushetero_FigureConfig $plot_configs/UMAP2ALSPlotConfig -q short -j umap2_als_no_fushetero
+# $NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_umaps_and_plot -m 10000 \
+# -a $finetune_model $data_configs/NeuronsUMAP2ALSB6_without_fushetero_FigureConfig $plot_configs/UMAP2ALSPlotConfig -q short -j umap2_als_no_fushetero
 
-$NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_umaps_and_plot -m 10000 \
--a $finetune_model $data_configs/NeuronsUMAP2ALSB6_without_fusrev_FigureConfig $plot_configs/UMAP2ALSPlotConfig -q short -j umap2_als_no_fusrev
+# $NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_umaps_and_plot -m 10000 \
+# -a $finetune_model $data_configs/NeuronsUMAP2ALSB6_without_fusrev_FigureConfig $plot_configs/UMAP2ALSPlotConfig -q short -j umap2_als_no_fusrev
 
-$NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_umaps_and_plot -m 10000 \
--a $finetune_model $data_configs/NeuronsUMAP2ALSB9_without_fus_marker_FigureConfig $plot_configs/UMAP2ALSPlotConfig -q short -j umap2_als_no_fus_9
+# $NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_umaps_and_plot -m 10000 \
+# -a $finetune_model $data_configs/NeuronsUMAP2ALSB9_without_fus_marker_FigureConfig $plot_configs/UMAP2ALSPlotConfig -q short -j umap2_als_no_fus_9
 
-$NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_umaps_and_plot -m 10000 \
--a $finetune_model $data_configs/NeuronsUMAP2ALSB9_without_SCNA_line_FigureConfig $plot_configs/UMAP2ALSPlotConfig -q short -j umap2_als_no_snca_9
+# $NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_umaps_and_plot -m 10000 \
+# -a $finetune_model $data_configs/NeuronsUMAP2ALSB9_without_SCNA_line_FigureConfig $plot_configs/UMAP2ALSPlotConfig -q short -j umap2_als_no_snca_9
 
-$NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_umaps_and_plot -m 10000 \
--a $finetune_model $data_configs/NeuronsUMAP2ALSB9_without_fushomo_FigureConfig $plot_configs/UMAP2ALSPlotConfig -q short -j umap2_als_no_fushomo_9
+# $NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_umaps_and_plot -m 10000 \
+# -a $finetune_model $data_configs/NeuronsUMAP2ALSB9_without_fushomo_FigureConfig $plot_configs/UMAP2ALSPlotConfig -q short -j umap2_als_no_fushomo_9
 
-$NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_umaps_and_plot -m 10000 \
--a $finetune_model $data_configs/NeuronsUMAP2ALSB9_without_fushetero_FigureConfig $plot_configs/UMAP2ALSPlotConfig -q short -j umap2_als_no_fushetero_9
+# $NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_umaps_and_plot -m 10000 \
+# -a $finetune_model $data_configs/NeuronsUMAP2ALSB9_without_fushetero_FigureConfig $plot_configs/UMAP2ALSPlotConfig -q short -j umap2_als_no_fushetero_9
 
-$NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_umaps_and_plot -m 10000 \
--a $finetune_model $data_configs/NeuronsUMAP2ALSB9_without_fusrev_FigureConfig $plot_configs/UMAP2ALSPlotConfig -q short -j umap2_als_no_fusrev_9
+# $NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_umaps_and_plot -m 10000 \
+# -a $finetune_model $data_configs/NeuronsUMAP2ALSB9_without_fusrev_FigureConfig $plot_configs/UMAP2ALSPlotConfig -q short -j umap2_als_no_fusrev_9
 
-$NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_umaps_and_plot -m 10000 \
--a $finetune_model $data_configs/NeuronsUMAP2ALSD18B1FigureConfig $plot_configs/UMAP2ALSPlotConfig -q short -j umap2_als_d18_1
+# $NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_umaps_and_plot -m 10000 \
+# -a $finetune_model $data_configs/NeuronsUMAP2ALSD18B1FigureConfig $plot_configs/UMAP2ALSPlotConfig -q short -j umap2_als_d18_1
 
-$NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_umaps_and_plot -m 10000 \
--a $finetune_model $data_configs/NeuronsUMAP2ALSD18B2FigureConfig $plot_configs/UMAP2ALSPlotConfig -q short -j umap2_als_d18_2
+# $NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_umaps_and_plot -m 10000 \
+# -a $finetune_model $data_configs/NeuronsUMAP2ALSD18B2FigureConfig $plot_configs/UMAP2ALSPlotConfig -q short -j umap2_als_d18_2
 
 
 # # #######################

@@ -26,8 +26,9 @@ class NeuronsUMAP1B6FigureConfig(FigureConfig):
         
         self.MARKERS_TO_EXCLUDE = ['TIA1']
         # Decide if to show ARI metric on the UMAP
-        self.SHOW_ARI = False
-
+        self.SHOW_ARI = True
+        self.ADD_REP_TO_LABEL = False
+        
 ############################################################
 # Figure 1 - supp
 ############################################################
@@ -49,8 +50,8 @@ class NeuronsUMAP1B9FigureConfig(FigureConfig):
         
         self.MARKERS_TO_EXCLUDE = ['TIA1']
         # Decide if to show ARI metric on the UMAP
-        self.SHOW_ARI = False
-
+        self.SHOW_ARI = True
+        self.ADD_REP_TO_LABEL = False
 
 ############################################################
 # Figure 2 
@@ -846,8 +847,8 @@ class NeuronsUMAP1D18B1FigureConfig(FigureConfig):
         self.MARKERS = list(PlotConfig().COLOR_MAPPINGS_MARKERS.keys())
         self.MARKERS_TO_EXCLUDE = ['TIA1']
         # Decide if to show ARI metric on the UMAP
-        self.SHOW_ARI = False
-
+        self.SHOW_ARI = True
+        self.ADD_REP_TO_LABEL = False
         
 class NeuronsUMAP0ALS_FUSHomozygous_B69FigureConfig(NeuronsUMAP0ALSB6FigureConfig):
     def __init__(self):
