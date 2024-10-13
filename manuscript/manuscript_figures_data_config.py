@@ -508,8 +508,8 @@ class NeuronsUMAP2ALSD18B1FigureConfig(FigureConfig):
         self.SETS = ['testset']
         self.EXPERIMENT_TYPE = 'neurons_d18'    
         self.CONDITIONS = ['Untreated']
-        self.CELL_LINES = ['WT', 'FUSHomozygous','FUSHeterozygous','FUSRevertant']
-        self.MARKERS_TO_EXCLUDE = ['TIA1']
+        # self.CELL_LINES = ['WT', 'FUSHomozygous','FUSHeterozygous','FUSRevertant']
+        self.MARKERS = list(PlotConfig().COLOR_MAPPINGS_MARKERS.keys())
         
         # Decide if to show ARI metric on the UMAP
         self.SHOW_ARI = True
@@ -526,8 +526,8 @@ class NeuronsUMAP2ALSD18B2FigureConfig(FigureConfig):
         self.SETS = ['testset']
         self.EXPERIMENT_TYPE = 'neurons_d18'    
         self.CONDITIONS = ['Untreated']
-        self.CELL_LINES = ['WT', 'FUSHomozygous','FUSHeterozygous','FUSRevertant']
-        self.MARKERS_TO_EXCLUDE = ['TIA1']
+        # self.CELL_LINES = ['WT', 'FUSHomozygous','FUSHeterozygous','FUSRevertant']
+        self.MARKERS = list(PlotConfig().COLOR_MAPPINGS_MARKERS.keys())
         
         # Decide if to show ARI metric on the UMAP
         self.SHOW_ARI = True
@@ -687,7 +687,22 @@ class NeuronsDistancesALSWith45FigureConfig(FigureConfig):
 ############################################################
 # experimental
 ############################################################
+
+class NeuronsDistancesALSD18FigureConfig(FigureConfig):
+    def __init__(self):
+        super().__init__()
+        self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "spd2", "SpinningDisk", f) for f in 
+                        [f"batch{i}" for i in range(1,3)]]
         
+        self.SETS = ['testset']
+        self.EXPERIMENT_TYPE = 'neurons_d18'
+        self.MARKERS = list(PlotConfig().COLOR_MAPPINGS_MARKERS.keys())
+        self.BASELINE_CELL_LINE_CONDITION = "WT_Untreated"
+        self.CELL_LINES_CONDITIONS = ['FUSHomozygous_Untreated','FUSHeterozygous_Untreated','FUSRevertant_Untreated',
+                                      'TBK1_Untreated','OPTN_Untreated','TDP43_Untreated']
+        self.ADD_BATCH_TO_LABEL = True
+        self.ADD_REP_TO_LABEL = True
+
 class NeuronsUMAP1D18B1FigureConfig(FigureConfig):
     def __init__(self):
         super().__init__()

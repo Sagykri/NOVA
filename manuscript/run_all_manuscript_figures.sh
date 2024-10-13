@@ -180,8 +180,11 @@ plot_configs=./manuscript/manuscript_plot_config
 
 # # #### distances ####
 
+# $NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/plot_distances_bubble -m 1000 \
+# -a $finetune_model $data_configs/NeuronsDistancesALSWith45FigureConfig $plot_configs/DistancesNeuronsALSPlotConfig -q short -j als_dist_with_45
+
 $NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/plot_distances_bubble -m 1000 \
--a $finetune_model $data_configs/NeuronsDistancesALSWith45FigureConfig $plot_configs/DistancesNeuronsALSPlotConfig -q short -j als_dist_with_45
+-a $finetune_model $data_configs/NeuronsDistancesALSD18FigureConfig $plot_configs/DistancesNeuronsALSPlotConfig -q short -j als_dist_d18
 
 
 
@@ -281,11 +284,11 @@ $NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/plot_distances_bubble -m 1000 \
 # $NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_umaps_and_plot -m 10000 \
 # -a $finetune_model $data_configs/NeuronsUMAP2ALSB9_without_fusrev_FigureConfig $plot_configs/UMAP2ALSPlotConfig -q short -j umap2_als_no_fusrev_9
 
-# $NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_umaps_and_plot -m 10000 \
-# -a $finetune_model $data_configs/NeuronsUMAP2ALSD18B1FigureConfig $plot_configs/UMAP2ALSPlotConfig -q short -j umap2_als_d18_1
+$NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_umaps_and_plot -m 10000 \
+-a $finetune_model $data_configs/NeuronsUMAP2ALSD18B1FigureConfig $plot_configs/UMAP2ALSPlotConfig -q short -j umap2_als_d18_1
 
-# $NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_umaps_and_plot -m 10000 \
-# -a $finetune_model $data_configs/NeuronsUMAP2ALSD18B2FigureConfig $plot_configs/UMAP2ALSPlotConfig -q short -j umap2_als_d18_2
+$NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_umaps_and_plot -m 10000 \
+-a $finetune_model $data_configs/NeuronsUMAP2ALSD18B2FigureConfig $plot_configs/UMAP2ALSPlotConfig -q short -j umap2_als_d18_2
 
 
 # # #######################
