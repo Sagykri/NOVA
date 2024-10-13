@@ -73,7 +73,7 @@ class Day18DistanceConfig(DistanceConfig):
         
         self.SETS = ['testset']
         self.EXPERIMENT_TYPE = 'neurons_d18'    
-        self.MARKERS_TO_EXCLUDE = None
+        self.MARKERS = list(PlotConfig().COLOR_MAPPINGS_MARKERS.keys())
         
         self.ADD_BATCH_TO_LABEL = True
         self.ADD_REP_TO_LABEL = True         
