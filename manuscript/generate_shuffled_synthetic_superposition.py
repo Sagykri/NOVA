@@ -13,6 +13,7 @@ from src.figures.umap_plotting import plot_umap
 from src.datasets.dataset_config import DatasetConfig
 from src.figures.plot_config import PlotConfig
 from src.analysis.analyzer_umap_multiplex_markers import AnalyzerUMAPMultiplexMarkers
+from src.datasets.label_utils import split_markers_from_labels
 
 
 def generate_shuffled_synthetic_superposition_umap(output_folder_path:str, config_path_data:str, config_path_plot:str)->None:
@@ -28,7 +29,7 @@ def generate_shuffled_synthetic_superposition_umap(output_folder_path:str, confi
     embeddings, labels = load_embeddings(output_folder_path, config_data)
     
     # Shuffle phenotypes within the labels while keeping the markers identity
-    labels = __get_shuffled_labels_by_phenotype(seed=config_data.SEED)
+    labels = __get_shuffled_labels_by_phenotype(labels, mismatch_threshold=0.95, seed=config_data.SEED)
 
     analyzer_UMAP = AnalyzerUMAPMultiplexMarkers(config_data, output_folder_path)
     umap_embeddings, labels, ari_scores = analyzer_UMAP.calculate(embeddings, labels)
@@ -52,8 +53,7 @@ def __get_shuffled_labels_by_phenotype(labels:np.ndarray[str], mismatch_threshol
     logging.info(f"Labels before shuffling: {labels}")
 
     # Split the marker from the phenotype
-    split_labels = np.array([s.split('_', 1) for s in labels])
-    marker_labels, phenotype_labels = split_labels[:, 0], split_labels[:, 1]
+    marker_labels, phenotype_labels = split_markers_from_labels([labels], None)
 
     # Shuffle the phenotypes
     phenotype_labels = __shuffle_labels(phenotype_labels, mismatch_threshold=mismatch_threshold, seed=seed)
@@ -93,20 +93,20 @@ def __shuffle_labels(labels: np.ndarray[str], mismatch_threshold:float=0.95, see
     threshold = int(len(labels) * mismatch_threshold)
     logging.info(f"Mismatch threshold is {threshold}")
     
-    # Keep track of which elements are still in the same position
+    # Keep track of which elements are in the different position
     mismatches = labels != shuffled_labels
 
-    # Continue shuffling only the matching positions
+    # Continue shuffling only the mismatching positions
     while np.sum(mismatches) <= threshold:
-        # Find the indices where the label hasn't changed
-        matching_indices = np.where(mismatches)[0]
+        # Find the indices where the label changed
+        mismatching_indices = np.where(mismatches)[0]
         
-        # Shuffle only the labels at the matching positions
-        shuffled_subset = shuffled_labels[matching_indices].copy()  
+        # Shuffle only the labels at the mismatching positions
+        shuffled_subset = shuffled_labels[mismatching_indices].copy()  
         np.random.shuffle(shuffled_subset)  
-        shuffled_labels[matching_indices] = shuffled_subset
+        shuffled_labels[mismatching_indices] = shuffled_subset
         
-        # Recompute matches after shuffling
+        # Recompute mismatches after shuffling
         mismatches = labels != shuffled_labels
 
     return shuffled_labels
