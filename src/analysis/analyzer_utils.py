@@ -19,8 +19,6 @@ def cluster_without_outliers(X:np.ndarray[float], n_clusters:int, outliers_fract
   
   size_min = int(len(X)*outliers_fraction)
   logging.info(f"[K Means Constrained clustering] size_min = {size_min}")
-  if (size_min * n_clusters) > X.shape[0]:
-    logging.warning(f'size_min * n_clusters = {size_min * n_clusters}, and X shape is {X.shape[0]}')
   clf = KMeansConstrained(
           n_clusters=n_clusters,
           size_min=size_min,

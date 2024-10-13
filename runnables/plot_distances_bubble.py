@@ -30,7 +30,7 @@ def plot_distances(output_folder_path:str, config_path_data:str, config_path_plo
         save_config(config_plot, plot_output_folder_path)
     
     plot_bubble_plot(analyzer_distances.features, plot_output_folder_path, config_data, config_plot,
-                     vmin_d=0, vmax_d=1)
+                     vmin_effect=0, vmax_effect=1)
 
         
 if __name__ == "__main__":

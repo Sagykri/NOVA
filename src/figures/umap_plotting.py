@@ -179,12 +179,9 @@ def __plot_umap_embeddings(umap_embeddings: np.ndarray[float],
             np.random.seed(config_plot.SEED)
             indices = np.random.choice(indices, size=int(len(indices) * 0.1), replace=False)
         # Get hex color and convert to RGBA
-        if to_color is not None:
-            if group in to_color:
-                base_color = name_color_dict[group][color_key] if name_color_dict else plt.get_cmap(cmap)(i)
-            else:
-                base_color = '#bab5b5'
-                alpha = 0.4
+        if to_color is not None and group not in to_color:
+            base_color = '#bab5b5'
+            alpha = 0.4
         else:
             base_color = name_color_dict[group][color_key] if name_color_dict else plt.get_cmap(cmap)(i)
 

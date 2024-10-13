@@ -149,7 +149,7 @@ def plot_clustermap(distances:pd.DataFrame, saveroot:str, config_data:DatasetCon
     return
       
 def plot_bubble_plot(distances:pd.DataFrame, saveroot:str, config_data:DatasetConfig, config_plot:PlotConfig, 
-                     metric:str='ARI_KMeansConstrained', effect_cmap:str = 'Blues', vmin_d:int =-1, vmax_d:int =10)->None:
+                     metric:str='ARI_KMeansConstrained', effect_cmap:str = 'Blues', vmin_effect:int =-1, vmax_effect:int =10)->None:
     """Generate and save a bubble plot of marker p-values and effect size per condition.
     Args:
         distances (pd.DataFrame): Distances between conditions and baseline for each marker
@@ -164,8 +164,8 @@ def plot_bubble_plot(distances:pd.DataFrame, saveroot:str, config_data:DatasetCo
         config_plot (PlotConfig): plot config
         metric (str): The metric used to evaluate the distances, e.g., 'ARI_KMeansConstrained', 'dist', etc.
         effect_cmap (str, optional): Colormap for the bubble_plot. Defaults to 'Blues'.
-        vmin_d (int, optional): Minimum value of the effect (for normalization). Defaults to -1.
-        vmax_d (int, optional): Maximum value of the effect (for normalization). Defaults to 10.
+        vmin_effect (int, optional): Minimum value of the effect (for normalization). Defaults to -1.
+        vmax_effect (int, optional): Maximum value of the effect (for normalization). Defaults to 10.
     """
 
     logging.info(f"[_plot_bubble_plot]")
@@ -181,7 +181,7 @@ def plot_bubble_plot(distances:pd.DataFrame, saveroot:str, config_data:DatasetCo
         pvalues_df.sort_values(by=['condition'])
 
     # Normalize effect sizes and adjust p-values for visualization
-    norm_d = mcolors.Normalize(vmin=vmin_d, vmax=vmax_d) if vmin_d is not None else None
+    norm_effect_size = mcolors.Normalize(vmin=vmin_effect, vmax=vmax_effect) if vmin_effect is not None else None
     pvalues_df['log_pvalue'] = -np.log10(__bin_pvalues(pvalues_df['pvalue']))
 
     # Plot
@@ -193,8 +193,8 @@ def plot_bubble_plot(distances:pd.DataFrame, saveroot:str, config_data:DatasetCo
         x="condition",
         y="marker",
         size='log_pvalue',
-        hue='d',
-        hue_norm = norm_d,
+        hue='effect_size',
+        hue_norm = norm_effect_size,
         legend='full',
         palette=effect_cmap,
         sizes=(1, 200),
@@ -206,7 +206,7 @@ def plot_bubble_plot(distances:pd.DataFrame, saveroot:str, config_data:DatasetCo
     plt.xticks(rotation=90)
     plt.title(f'vs {baseline}')
 
-    __customize_bubbleplot_legend(scatter, effect_cmap, norm_d)
+    __customize_bubbleplot_legend(scatter, effect_cmap, norm_effect_size)
 
     savepath = None
     if saveroot:
@@ -234,6 +234,7 @@ def __calculate_marker_pvalue_per_condition(distances:pd.DataFrame, baseline:str
         baseline (str): The name of the baseline condition against which comparisons are made.
         conditions (List[str]): List of the conditions to comapre to the baseline
         metric (str): The metric used to evaluate the distances, e.g., 'ARI_KMeansConstrained', 'dist', etc.
+        effect_size_function (callable): a function to calculate the effect size with
 
     Returns:
         pd.DataFrame: A DataFrame with calculated p-values and effect sizes as columns,
@@ -282,10 +283,7 @@ def __plot_boxplot(distances:pd.DataFrame, baseline:str, condition:str,
     pvalues_df['significant'] = np.where(pvalues_df.pvalue<=0.05,1,0)
     median_variance = median_variance.merge(pvalues_df[pvalues_df.condition==condition][['marker','significant']], left_index=True, right_on='marker')
     median_variance = median_variance.sort_values(by=['significant','median', 'var'], ascending=[False, False,True]).reset_index(drop=True)
-    ####cliffs delta version:
-    # median_variance = median_variance.merge(pvalues_df[pvalues_df.condition==condition][['marker','d']], left_index=True, right_on='marker')
-    # median_variance = median_variance.sort_values(by=['d'], ascending=[False]).reset_index(drop=True)
-
+    
     dists_order = median_variance.marker.values # do the ordering
     if show_baseline:
         cur_distances=distances[distances.condition.isin([baseline,condition])] # after sorting, we can include also the baseline distances
@@ -306,11 +304,11 @@ def __plot_boxplot(distances:pd.DataFrame, baseline:str, condition:str,
             cur_marker = pvalues_df[(pvalues_df.condition==condition)&(pvalues_df.marker==marker)]
             marker_pvalue = cur_marker.pvalue.values[0]
             __add_pvalue(marker, i, dists_order, marker_pvalue, show_baseline, ax=boxplot)
-            effect_size_formatted = round(cur_marker.d.values[0],2)
+            effect_size_formatted = round(cur_marker.effect_size.values[0],2)
             
             label = marker_name_color_dict[marker][name_key] if marker_name_color_dict else marker
             if show_effect_size:
-                label = f'{label} (d={effect_size_formatted})'
+                label = f'{label} (effect size={effect_size_formatted})'
             labels.append(label)
 
         boxplot.set_xticklabels(labels,rotation=90)
@@ -393,7 +391,7 @@ def __plot_boxplot(distances:pd.DataFrame, baseline:str, condition:str,
                 __add_pvalue(marker, i, dists_order, marker_pvalue, show_baseline, upper_graph_ylim=upper_graph_ylim, ax_upper=ax_upper, ax_lower=ax_lower)
             
             label = marker_name_color_dict[marker][name_key] if marker_name_color_dict else marker
-            effect_size_formatted = round(cur_marker.d.values[0],2)
+            effect_size_formatted = round(cur_marker.effect_size.values[0],2)
             if show_effect_size:
                 label = f'{label} (d={effect_size_formatted})'
             labels.append(label)
@@ -477,6 +475,7 @@ def __calc_pvalue_and_effect(distances:pd.DataFrame, baseline:str, condition:str
         baseline (str): The name of the 'cell_line_condition' which is the baseline in the calculations
         condition (str): The name of the 'cell_line_condition' to compare with the baseline
         metric (str): The metric used to evaluate the distances, e.g., 'ARI_KMeansConstrained', 'dist', etc.
+        effect_size_function (callable): a function to calculate the effect size with
 
     Returns:
         dict: Dictionary containing for each marker its pvalue and effect size
@@ -493,9 +492,9 @@ def __calc_pvalue_and_effect(distances:pd.DataFrame, baseline:str, condition:str
         marker_pval[marker]['pvalue'] = pval
         
         # calc effect size
-        d = effect_size_function(condition_distances, baseline_distances)
+        effect_size = effect_size_function(condition_distances, baseline_distances)
 
-        marker_pval[marker]['d']=d
+        marker_pval[marker]['effect_size']=effect_size
         
     return marker_pval
 
@@ -527,7 +526,16 @@ def __calc_cohens_d(x, y)->float:
 
     return d
 
-def __cliffs_delta(x, y):
+def __cliffs_delta(x, y)->float:
+    """Calculate Cliff's delta for two independent samples: https://doi.org/10.1037/0033-2909.114.3.494
+
+    Args:
+        x (array-like): First sample data.
+        y (array-like): Second sample data.
+
+    Returns:
+        float: Cliff's delta value.
+    """
     n_x = len(x)
     n_y = len(y)
     comparisons = np.sum([np.sign(a - b) for a in x for b in y])
