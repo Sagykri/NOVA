@@ -67,15 +67,14 @@ plot_configs=./manuscript/manuscript_plot_config
 # $NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_umaps_and_plot -m 5000 \
 # -a $finetune_model $data_configs/NeuronsUMAP0StressB5FigureConfig $plot_configs/UMAP0StressPlotConfig -q short -j umap0_stress_5
 
-# $NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/plot_distances_boxplots -m 5000 \
-# -a $finetune_model $data_configs/NeuronsDistancesStress345FigureConfig $plot_configs/DistancesNeuronsStressPlotConfig -q short -j dists_stress_345
-
-# $NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/plot_distances_boxplots -m 5000 \
-# -a $finetune_model $data_configs/NeuronsDistancesStressWith345FigureConfig $plot_configs/DistancesNeuronsStressPlotConfig -q short -j dists_stress_with_345
-
 # $NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_umaps_and_plot -m 1000 \
 # -a $finetune_model $data_configs/U2OSUMAP0StressDatasetConfig $plot_configs/UMAP0StressPlotConfig -q short -j umap0_stress_U2OS
 
+# $NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/plot_distances_boxplots -m 5000 \
+# -a $finetune_model $data_configs/NeuronsDistancesStressWith45FigureConfig $plot_configs/DistancesNeuronsStressPlotConfig -q short -j dists_stress_with_45
+
+# $NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/plot_distances_boxplots -m 5000 \
+# -a $cellprofiler $data_configs/NeuronsDistancesStressFigureConfig $plot_configs/DistancesNeuronsStressPlotConfig -q short -j dists_stress_cellprofiler
 
 # # # #######################
 # # # # Figure 3
@@ -181,11 +180,8 @@ plot_configs=./manuscript/manuscript_plot_config
 
 # # #### distances ####
 
-# $NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/plot_distances_bubble -m 1000 \
-# -a $finetune_model $data_configs/NeuronsDistancesALS345FigureConfig $plot_configs/DistancesNeuronsALSPlotConfig -q short -j als_dist_345
-
-# $NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/plot_distances_bubble -m 1000 \
-# -a $finetune_model $data_configs/NeuronsDistancesALSWith345FigureConfig $plot_configs/DistancesNeuronsALSPlotConfig -q short -j als_dist_with_345
+$NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/plot_distances_bubble -m 1000 \
+-a $finetune_model $data_configs/NeuronsDistancesALSWith45FigureConfig $plot_configs/DistancesNeuronsALSPlotConfig -q short -j als_dist_with_45
 
 
 
@@ -246,11 +242,11 @@ plot_configs=./manuscript/manuscript_plot_config
 # $NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/plot_distances_bubble -m 1000 \
 # -a $finetune_model $data_configs/AlyssaCoyneDistancesFigureConfig $plot_configs/DistancesAlyssaCoynePlotConfig -q short -j alyssa_dist
 
-$NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_umaps_and_plot -m 5000 \
--a $finetune_model $data_configs/AlyssaCoyneUMAP0FigureConfig $plot_configs/UMAP0AlyssaCoyneColorByGroupPlotConfig -q short -j umap0_alyssa
+# $NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_umaps_and_plot -m 5000 \
+# -a $finetune_model $data_configs/AlyssaCoyneUMAP0FigureConfig $plot_configs/UMAP0AlyssaCoyneColorByGroupPlotConfig -q short -j umap0_alyssa
 
-$NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_umaps_and_plot -m 5000 \
--a $finetune_model $data_configs/AlyssaCoyneUMAP0FigureConfig $plot_configs/UMAP0AlyssaCoyneColorByPatientPlotConfig -q short -j umap0_alyssa
+# $NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_umaps_and_plot -m 5000 \
+# -a $finetune_model $data_configs/AlyssaCoyneUMAP0FigureConfig $plot_configs/UMAP0AlyssaCoyneColorByPatientPlotConfig -q short -j umap0_alyssa
 
 
 ############ special umap2 als ###################

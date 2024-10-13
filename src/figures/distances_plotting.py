@@ -604,17 +604,10 @@ def __customize_bubbleplot_legend(scatter, effect_cmap:str, norm_d:Normalize):
     handles = handles[labels.index("log_pvalue")+1:]
     labels = labels[labels.index("log_pvalue")+1:]
     
-    # Create a dictionary to format p-value labels (can remove if don't want to show the original p-values, but only the -log)
-    labels_dict = {}
-    for l in labels:
-        p_value = 10**(-float(l)) # Convert the -log10 p-value back to the original p-value
-        # Format the p-value as scientific notation if very small, otherwise as a decimal
-        labels_dict[l] = f'{p_value:.0e}' if p_value < 0.001 else f'{p_value:.2f}'
-    
     # Add the customized pvalue legend with formatted labels showing -log p-value and actual p-value
     plt.legend(
         handles=handles,
-        labels=[f'{round(float(l),1)} ({labels_dict[l]})' for l in labels], # Format legend labels
+        labels=[f'{round(float(l),1)}' for l in labels], # Format legend labels
         title="-log pvalue",
         loc='upper left',
         bbox_to_anchor=(1, 1)  # Place the legend outside the plot

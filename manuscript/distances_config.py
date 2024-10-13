@@ -19,26 +19,12 @@ class NeuronsDistanceConfig(DistanceConfig):
         self.ADD_REP_TO_LABEL = True        
         self.MARKERS_TO_EXCLUDE = [ 'TIA1']
 
-class NeuronsDistance345Config(DistanceConfig):
+class NeuronsDistanceWith45Config(DistanceConfig):
     def __init__(self):
         super().__init__()
 
         self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "spd2", "SpinningDisk", f) for f in 
-                        [f"batch{i}" for i in range(3,6)]]
-        
-        self.SETS = ['testset']
-        self.EXPERIMENT_TYPE = 'neurons'    
-        self.BASELINE_CELL_LINE_CONDITION = "WT_Untreated"
-        self.ADD_BATCH_TO_LABEL = True
-        self.ADD_REP_TO_LABEL = True        
-        self.MARKERS_TO_EXCLUDE = ['TIA1']
-
-class NeuronsDistanceWith345Config(DistanceConfig):
-    def __init__(self):
-        super().__init__()
-
-        self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "spd2", "SpinningDisk", f) for f in 
-                        [f"batch{i}" for i in range(3,10)]]
+                        [f"batch{i}" for i in range(4,10)]]
         
         self.SETS = ['testset']
         self.EXPERIMENT_TYPE = 'neurons'    
@@ -106,4 +92,4 @@ class AlyssaCoyneDistanceConfig(DistanceConfig):
         self.ADD_REP_TO_LABEL = True
         self.RANDOM_SPLIT = False
         self.MARKERS_TO_EXCLUDE = ['MERGED']
-        self.REPS = [f'rep{i}' for i in range(1,11)]     
+        self.REPS = [f'rep{i}' for i in range(1,11)]   
