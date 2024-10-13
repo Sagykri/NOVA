@@ -19,7 +19,7 @@ class NeuronsDistanceConfig(DistanceConfig):
         self.ADD_REP_TO_LABEL = True        
         self.MARKERS_TO_EXCLUDE = [ 'TIA1']
 
-class NeuronsDistanceWith45Config(DistanceConfig):
+class NeuronsDistanceWithBioReplicateConfig(DistanceConfig):
     def __init__(self):
         super().__init__()
 
