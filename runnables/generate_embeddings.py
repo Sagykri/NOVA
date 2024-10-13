@@ -4,7 +4,6 @@ import sys
 sys.path.insert(1, os.getenv("NOVA_HOME"))
 print(f"NOVA_HOME: {os.getenv('NOVA_HOME')}")
 
-import numpy as np
 import logging
 
 from src.models.architectures.NOVA_model import NOVAModel

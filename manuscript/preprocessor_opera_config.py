@@ -19,6 +19,7 @@ class d18_Batch1(Opera18DaysReimagedPreprocessingBaseConfig):
         
         self.INPUT_FOLDERS = [os.path.join(self.RAW_FOLDER_ROOT, "batch1")]
         self.PROCESSED_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "batch1")]
+        self.OUTPUTS_FOLDER = os.path.join(self.OUTPUTS_FOLDER, "batch1")
         
         
 class d18_Batch2(Opera18DaysReimagedPreprocessingBaseConfig):
@@ -27,3 +28,4 @@ class d18_Batch2(Opera18DaysReimagedPreprocessingBaseConfig):
         
         self.INPUT_FOLDERS = [os.path.join(self.RAW_FOLDER_ROOT, "batch2")]
         self.PROCESSED_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "batch2")]
+        self.OUTPUTS_FOLDER = os.path.join(self.OUTPUTS_FOLDER, "batch2")

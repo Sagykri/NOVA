@@ -23,6 +23,7 @@ def plot_distances(output_folder_path:str, config_path_data:str, config_path_plo
     analyzer_distances = AnalyzerDistancesARI(config_data, output_folder_path)
     analyzer_distances.load()
     plot_output_folder_path = analyzer_distances.get_saving_folder(feature_type='distances')
+    os.makedirs(plot_output_folder_path, exist_ok=True)
     plot_distances_plots(distances=analyzer_distances.features, config_data=config_data, config_plot=config_plot,
                          saveroot=plot_output_folder_path)
 
