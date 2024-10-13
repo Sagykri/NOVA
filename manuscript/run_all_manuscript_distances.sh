@@ -14,7 +14,7 @@ distances_configs=./manuscript/distances_config
 # -a $output_folder $distances_configs/NeuronsDistanceConfig -j dist_neurons
 
 # $NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_distances -g \
-# -a $output_folder $distances_configs/NeuronsDistanceWith45Config -j dist_neurons_with_345
+# -a $output_folder $distances_configs/NeuronsDistanceWithBioReplicateConfig -j dist_neurons_with_345
 
 # $NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_distances -g \
 # -a $output_folder $distances_configs/NeuronsTBK1DistanceConfig -j dist_neurons_tbk1
