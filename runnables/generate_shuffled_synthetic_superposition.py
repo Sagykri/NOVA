@@ -24,14 +24,15 @@ def generate_shuffled_synthetic_superposition_umap(output_folder_path:str, confi
     config_plot:PlotConfig = load_config_file(config_path_plot, 'plot')
     umap_idx = get_if_exists(config_plot, 'UMAP_TYPE', None)
     
-    assert umap_idx == analyzer_UMAP.UMAPType['MULTIPLEX_MARKERS'], "plot configuration is not set for MULTIPLEX_MARKERS umap"
-    
     embeddings, labels = load_embeddings(output_folder_path, config_data)
     
     # Shuffle phenotypes within the labels while keeping the markers identity
     labels = __get_shuffled_labels_by_phenotype(labels, match_threshold=0.05, seed=config_data.SEED)
 
     analyzer_UMAP = AnalyzerUMAPMultiplexMarkers(config_data, output_folder_path)
+    
+    assert umap_idx == analyzer_UMAP.UMAPType['MULTIPLEX_MARKERS'].value, "plot configuration is not set for MULTIPLEX_MARKERS umap"
+    
     umap_embeddings, labels, ari_scores = analyzer_UMAP.calculate(embeddings, labels)
 
     # Define the output folder path and plot the UMAP
@@ -53,14 +54,14 @@ def __get_shuffled_labels_by_phenotype(labels:np.ndarray[str], match_threshold:f
     logging.info(f"Labels before shuffling: {labels}")
 
     # Split the marker from the phenotype
-    marker_labels, phenotype_labels = split_markers_from_labels([labels], None)
-
+    marker_labels, phenotype_labels = split_markers_from_labels(labels, None)
+    
     # Shuffle the phenotypes
     phenotype_labels = __shuffle_labels(phenotype_labels, match_threshold=match_threshold, seed=seed)
 
     # Reconstruct the labels
     shuffled_labels = np.array([f"{marker}_{phenotype}" for marker, phenotype in zip(marker_labels, phenotype_labels)])
-    logging.info(f"Labels after shuffling: {labels}")
+    logging.info(f"Labels after shuffling: {shuffled_labels}")
 
     # Since labels might keep their origianl place after shuffling, we want to see how many kept their original position
     matches_count = len(np.where(shuffled_labels == labels)[0])
