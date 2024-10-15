@@ -1,2 +1,0 @@
-batch3_16bit_no_downsample/TBK1/Untreated/rep2/Calreticulin: 81.25%
-batch9_16bit_no_downsample/OPTN/Untreated/rep2/KIF5A: 18.75%

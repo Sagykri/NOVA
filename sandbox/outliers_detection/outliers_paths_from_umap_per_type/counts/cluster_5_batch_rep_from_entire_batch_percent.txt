@@ -1,1 +1,0 @@
-batch6_16bit_no_downsample/rep2: 0.005%

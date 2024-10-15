@@ -1,5 +1,0 @@
-FUSHeterozygous: 0.623%
-FUSHomozygous: 2.388%
-OPTN: 19.315%
-TBK1: 32.606%
-WT: 45.067%

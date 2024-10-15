@@ -1,9 +1,0 @@
-batch3_16bit_no_downsample/rep1: 0.011%
-batch4_16bit_no_downsample/rep1: 0.44%
-batch4_16bit_no_downsample/rep2: 0.553%
-batch5_16bit_no_downsample/rep1: 0.519%
-batch5_16bit_no_downsample/rep2: 0.083%
-batch6_16bit_no_downsample/rep1: 0.029%
-batch6_16bit_no_downsample/rep2: 0.004%
-batch9_16bit_no_downsample/rep1: 0.067%
-batch9_16bit_no_downsample/rep2: 0.05%

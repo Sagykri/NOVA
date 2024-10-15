@@ -1,2 +1,0 @@
-FUSHeterozygous: 4.167%
-FUSHomozygous: 95.833%

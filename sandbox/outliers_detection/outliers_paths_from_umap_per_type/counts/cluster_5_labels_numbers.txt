@@ -1,2 +1,0 @@
-batch6_16bit_no_downsample/FUSHeterozygous/Untreated/rep2/TDP43: 4.167%
-batch6_16bit_no_downsample/FUSHomozygous/Untreated/rep2/ANXA11: 95.833%
