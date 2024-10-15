@@ -21,7 +21,7 @@ from functools import partial
 BASE_DIR = os.path.join('/home','labs','hornsteinlab','Collaboration','MOmaps')
 sys.path.insert(1, BASE_DIR)
 
-from src.cell_profiler.CellProfiler_unbiased_analysis import *
+from cell_profiler.CellProfiler_unbiased_analysis import *
 
 # Global paths
 BATCH_TO_RUN = 'toxicity2' 
@@ -97,7 +97,7 @@ def main():
     #     pool.terminate()        
 
     # logging.info("Starting to collect and plot data")
-    from src.cell_profiler.CellProfiler_combine_output import find_marker_folders_output
+    from cell_profiler.CellProfiler_combine_output import find_marker_folders_output
     
     frames = []
     for sub_folder in find_marker_folders_output(batch_path=OUTPUT_DIR_BATCH, depth=3):

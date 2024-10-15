@@ -21,8 +21,8 @@ BASE_DIR = os.path.join('/home','labs','hornsteinlab','Collaboration','MOmaps')
 sys.path.insert(1, BASE_DIR)
 
 # If importing all from a script, it will also import global variables
-from src.cell_profiler.CellProfiler_unbiased_analysis import *
-from src.cell_profiler.CellProfiler_combine_output import *
+from cell_profiler.CellProfiler_unbiased_analysis import *
+from cell_profiler.CellProfiler_combine_output import *
 
 # Global paths
 BATCH_TO_RUN = 'batch3' 
@@ -37,134 +37,7 @@ OUTPUT_DIR_PLOTS = os.path.join(OUTPUT_DIR_BATCH, 'plots')
 LOG_DIR_PATH = os.path.join(BASE_DIR, 'outputs','cell_profiler','logs')
 
 # Initialize marker dictionary
-marker_dict = {f'{MARKER}':[]}
-
-def get_measurements(input_path, marker = MARKER):
-    
-    logging.info(f'Collecting object measurements for marker: {MARKER}, {input_path}')
-    
-    # collect labels
-    rep_dir = pathlib.Path(input_path).parent.resolve()
-    rep = os.path.basename(rep_dir)    
-    treatment_dir = pathlib.Path(rep_dir).parent.resolve()
-    treatment = os.path.basename(treatment_dir)
-    panel_dir = pathlib.Path(treatment_dir).parent.resolve()
-    cell_line_dir = pathlib.Path(panel_dir).parent.resolve()
-    cell_line = os.path.basename(cell_line_dir)
-    
-    #combine measurements of all objects
-    for file in os.listdir(input_path):
-        
-        if marker not in str(file): 
-            continue                           #process only files with object measurements
-        
-        else:
-            file_full_name = os.path.join(input_path, file) 
-            logging.info(f'Reading {file_full_name}')
-            matrix = pd.read_csv(file_full_name)
-            logging.info(f'\n length {len(matrix)} \n')
-            logging.info(f'matrix keys {matrix.keys()} \n')
-            #average object measurements per image
-            matrix = matrix.groupby(['ImageNumber']).mean()
-            #add labels
-            matrix['replicate'] = rep
-            matrix['treatment'] = treatment
-            matrix['cell_line'] = cell_line   
-
-    #add the dataframe with all object measurements to the right marker list in the dictionary
-    marker_dict[os.path.basename(input_path)].append(matrix)
-    
-    return marker_dict
-
-def get_log_ax(orient="v"):
-    """ 
-    From https://github.com/trevismd/statannotations-tutorials/blob/main/Tutorial_1/utils.py
-    """
-    if orient == "v":
-        figsize = (10, 6)
-        set_scale = "set_yscale"
-    else:
-        figsize = (10, 8)
-        set_scale = "set_xscale"
-    fig, ax = plt.subplots(1, 1, figsize=figsize)
-    fig.patch.set_alpha(1)
-    #getattr(ax, set_scale)("log")
-    return ax
-
-def plot_CP_features(file_path):
-    
-    """
-    Code for customized plots for individual features; adjust accordingly.
-    """
-    
-    logging.info(f'Starting to plot CP features of {INPUT_DIR_BATCH}')
-    matrix = pd.read_csv(file_path)
-    matrix = matrix.loc[matrix['treatment'] == 'Untreated'] 
-    # Keep desired lines for comparison
-    matrix = matrix.loc[(matrix['cell_line'] == 'WT') | (matrix['cell_line'] == 'FUSHomozygous') | (matrix['cell_line'] == 'FUSHeterozygous') | (matrix['cell_line'] == 'FUSRevertant')]
-    
-    # Create cell line dataframes for statistical testing below
-    WT = matrix.loc[(matrix['cell_line'] == 'WT')]
-    FUSHomozygous = matrix.loc[(matrix['cell_line'] == 'FUSHomozygous')]
-    FUSHeterozygous = matrix.loc[(matrix['cell_line'] == 'FUSHeterozygous')]
-    FUSRevertant = matrix.loc[(matrix['cell_line'] == 'FUSRevertant')]
-    
-    # Choose and change the features you want to plot
-    features_to_plot = ['Intensity_MeanIntensity_ANXA11', 'Intensity_MaxIntensity_ANXA11',
-                        'RadialDistribution_FracAtD_ANXA11_1of4', 'RadialDistribution_FracAtD_ANXA11_2of4',
-                        'RadialDistribution_FracAtD_ANXA11_3of4', 'RadialDistribution_FracAtD_ANXA11_4of4',
-                        'Texture_Contrast_ANXA11_3_00_256', 'Texture_Contrast_ANXA11_3_01_256', 'Texture_Variance_ANXA11_3_00_256']
-    
-    for feature in features_to_plot:
-        # Check whether feature values are normally distributed and do appropriate statistics
-        res = stats.normaltest(matrix[feature])
-        if res.pvalue < 0.05:
-            logging.info(f'values of {feature} not normally distributed; calculating Mann Whitney')
-            stat_results = [stats.mannwhitneyu(WT[feature], FUSHomozygous[feature], alternative="two-sided"),
-                            stats.mannwhitneyu(WT[feature], FUSHeterozygous[feature], alternative="two-sided"),
-                            stats.mannwhitneyu(WT[feature], FUSRevertant[feature], alternative="two-sided"),
-                            stats.mannwhitneyu(FUSHomozygous[feature], FUSHeterozygous[feature], alternative="two-sided"),
-                            stats.mannwhitneyu(FUSHomozygous[feature], FUSRevertant[feature], alternative="two-sided"),
-                            stats.mannwhitneyu(FUSHeterozygous[feature], FUSRevertant[feature], alternative="two-sided"),]
-            logging.info(stat_results)
-            pvalues = [result.pvalue for result in stat_results]
-            pairs = [('WT', 'FUSHomozygous'), ('WT', 'FUSHeterozygous'), ('WT', 'FUSRevertant'),
-                    ('FUSHomozygous', 'FUSHeterozygous'), ('FUSHomozygous', 'FUSRevertant'),
-                    ('FUSHeterozygous', 'FUSRevertant')]
-            #formatted_pvalues = [f'p={pvalue:.2e}' for pvalue in pvalues]
-        else:
-            logging.info(f'values of {feature} normally distributed; calculating Tukey HSD')
-            tukey_df = posthoc_tukey(matrix, val_col=feature, group_col="cell_line")
-            remove = np.tril(np.ones(tukey_df.shape), k=0).astype("bool")
-            tukey_df[remove] = np.nan
-            molten_df = tukey_df.melt(ignore_index=False).reset_index().dropna()
-            logging.info(molten_df)
-            pairs = [(i[1]["index"], i[1]["variable"]) for i in molten_df.iterrows()]
-            pvalues = [i[1]["value"] for i in molten_df.iterrows()]  
-            
-        my_pal = {'WT':'#00668B', 'FUSHomozygous':'#6E3B0B', 'FUSHeterozygous':'#A86343', 'FUSRevertant':'#C7A036'}
-        plotting_parameters = {'data':matrix, 'x':'cell_line', 'y':feature, 'showfliers':False, 
-                                'palette':my_pal, 'order':['WT', 'FUSHomozygous', 'FUSHeterozygous', 'FUSRevertant']}
-        
-        with sns.plotting_context('notebook', font_scale = 1.4):
-            # Create new plot
-            #fig = plt.figure()
-            ax = get_log_ax()
-            # Plot with seaborn
-            sns.boxplot(**plotting_parameters)
-            # Add annotations
-            annotator = Annotator(ax, pairs, **plotting_parameters)
-            annotator.set_pvalues(pvalues)
-            annotator.annotate()
-            # Label and save
-            plt.title(f'{MARKER} {feature} {BATCH_TO_RUN}')
-            ax.set_xlabel("cell line")
-            plt.tight_layout()
-            plt.savefig(os.path.join(OUTPUT_DIR_PLOTS, f'boxplot_{feature}_{BATCH_TO_RUN}.eps'), format = 'eps')
-            plt.savefig(os.path.join(OUTPUT_DIR_PLOTS, f'boxplot_{feature}_{BATCH_TO_RUN}.pdf'))
-            plt.clf()
-            logging.info(f'Saved boxplot of CP {feature} of {MARKER} in {BATCH_TO_RUN}')
-                                 
+marker_dict = {f'{MARKER}':[]}                   
 
 # Specifically for deltaNLS, file structure is different
 def get_measurements_deltaNLS(input_path, marker = MARKER):
@@ -286,9 +159,9 @@ def main():
     
     ### deltaNLS ###
     logging.info('Starting to combine and plot deltaNLS')
-    # for sub_folder in find_marker_folders_output(batch_path=OUTPUT_DIR_BATCH, depth=5):
-    #     results = get_measurements_deltaNLS(sub_folder)
-    # concatenate_features(results, os.path.join(OUTPUT_DIR_BATCH, 'combined'))
+    for sub_folder in find_marker_folders_output(batch_path=OUTPUT_DIR_BATCH, depth=5):
+        results = get_measurements_deltaNLS(sub_folder)
+    concatenate_features(results, os.path.join(OUTPUT_DIR_BATCH, 'combined'))
     plot_CP_features_deltaNLS(os.path.join(OUTPUT_DIR_BATCH, 'combined', f'{MARKER}_all.csv'))
     logging.info(f'Finished plotting features of {INPUT_DIR_BATCH}')
 
