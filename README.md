@@ -144,7 +144,7 @@ python $NOVA_HOME/runnables/generate_distances $NOVA_HOME/outputs/vit_models/fin
 ```
 On WEXAC:
 ```bash
-$MOMAPS_HOME/bash_commands/run_py.sh $MOMAPS_HOME/src/runables/generate_distances -a /home/labs/hornsteinlab/Collaboration/MOmaps/outputs/vit_models/finetuned_model ./manuscript/distances_config/NeuronsDistanceConfig -j dist_neurons
+$NOVA_HOME/bash_commands/run_py.sh $NOVA_HOME/src/runables/generate_distances -a $NOVA_HOME/outputs/vit_models/finetuned_model ./manuscript/distances_config/NeuronsDistanceConfig -j dist_neurons
 ```
 <br/>
 
