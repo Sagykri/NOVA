@@ -24,7 +24,8 @@ fm.fontManager.addfont(FONT_PATH)
 matplotlib.rcParams['font.family'] = 'Arial'
 
 def plot_umap(umap_embeddings: np.ndarray[float], labels: np.ndarray[str], config_data: DatasetConfig,
-              config_plot: PlotConfig, saveroot: str, umap_idx: int, ari_scores:Dict[str,float]) -> None:
+              config_plot: PlotConfig, saveroot: str, umap_idx: int, 
+              ari_scores:Dict[str,float], figsize: Tuple[int,int] = (6,5)) -> None:
     """Unified function to plot 2D UMAP embeddings with different modes.
 
     Args:
@@ -34,6 +35,7 @@ def plot_umap(umap_embeddings: np.ndarray[float], labels: np.ndarray[str], confi
         saveroot (str): Root path to save the plot and configuration.
         umap_idx (int): UMAP type index to distinguish between modes (0: individual markers, 1: all markers, 2: concatenated embeddings).
         ari_scores (Dict): A dictionary with ari values
+        figsize (Tuple(int,int)): figure size, defaults to (6,5)
 
     Raises:
         ValueError: If an invalid `umap_idx` is provided.
@@ -53,6 +55,11 @@ def plot_umap(umap_embeddings: np.ndarray[float], labels: np.ndarray[str], confi
             indices = np.where(np.char.startswith(labels.astype(str), f"{marker}_"))[0]
             logging.info(f"[plot_umap]: {len(indices)} indexes have been selected")
 
+            if marker == 'DAPI':
+                np.random.seed(config_plot.SEED)
+                indices = np.random.choice(indices, size=int(len(indices) * 0.25), replace=False)
+                logging.info(f"[plot_umap]: {len(indices)} indexes have been selected after DAPI downsample")
+
             if len(indices) == 0:
                 logging.info(f"[plot_umap] No data for marker {marker}, skipping.")
                 continue
@@ -67,8 +74,9 @@ def plot_umap(umap_embeddings: np.ndarray[float], labels: np.ndarray[str], confi
                 ari_score = ari_scores[marker]
             else:
                 ari_score = None
+            
             __plot_umap_embeddings(marker_umap_embeddings, label_data, config_data, config_plot, savepath=savepath, title=marker,
-                                   ari_score=ari_score)
+                                   ari_score=ari_score, figsize=figsize)
         return
 
     elif umap_idx == 1:
@@ -83,7 +91,8 @@ def plot_umap(umap_embeddings: np.ndarray[float], labels: np.ndarray[str], confi
             ari_score = ari_scores['ari']
     else:
         ari_score = None
-    __plot_umap_embeddings(umap_embeddings, label_data, config_data, config_plot, savepath, ari_score=ari_score)
+    __plot_umap_embeddings(umap_embeddings, label_data, config_data, config_plot, savepath,
+                           ari_score=ari_score, figsize=figsize)
 
     
 def __get_metrics_figure(score:float, ax:Axes=None)->Axes:
@@ -158,7 +167,8 @@ def __plot_umap_embeddings(umap_embeddings: np.ndarray[float],
     alpha = config_plot.ALPHA
     to_color = get_if_exists(config_plot, 'TO_COLOR', None)
     show_metric = config_data.SHOW_ARI
-    
+    combine_samples = get_if_exists(config_plot, 'COMBINE_SAMPLES', False)
+    logging.info(f'combine_samples: {combine_samples}')
     unique_groups = np.unique(label_data)
 
     ordered_marker_names = get_if_exists(config_plot, 'ORDERED_MARKER_NAMES', None)
@@ -172,12 +182,14 @@ def __plot_umap_embeddings(umap_embeddings: np.ndarray[float],
     gs = GridSpec(2,1,height_ratios=[20,1])
 
     ax = fig.add_subplot(gs[0])
+    indices = []
+    colors = []
     for i, group in enumerate(unique_groups):
         logging.info(f'[_plot_umap_embeddings]: adding {group}')
-        indices = np.where(label_data==group)[0]
+        group_indices = np.where(label_data==group)[0]
         if group == 'DAPI':
             np.random.seed(config_plot.SEED)
-            indices = np.random.choice(indices, size=int(len(indices) * 0.1), replace=False)
+            group_indices = np.random.choice(group_indices, size=int(len(group_indices) * 0.1), replace=False)
         # Get hex color and convert to RGBA
         if to_color is not None and group not in to_color:
             base_color = '#bab5b5'
@@ -188,24 +200,42 @@ def __plot_umap_embeddings(umap_embeddings: np.ndarray[float],
         rgba_color = mcolors.to_rgba(base_color, alpha=alpha)  # Convert hex to RGBA and apply alpha
         
         # Create a color array for each point
-        color_array = np.array([rgba_color] * indices.shape[0])
+        color_array = np.array([rgba_color] * group_indices.shape[0])
 
         label = name_color_dict[group][name_key] if name_color_dict else group
-
+        if not combine_samples:
+            ax.scatter(
+                umap_embeddings[group_indices, 0],
+                umap_embeddings[group_indices, 1],
+                s=marker_size,
+                alpha=alpha,
+                c=color_array,
+                marker = 'o',
+                label=label,
+                linewidths=0,
+            )
+            logging.info(f'[_plot_umap_embeddings]: adding label {label}')
+        else:
+            colors.append(color_array)
+            indices.append(group_indices)
+    
+    if combine_samples:
+        colors = np.concatenate(colors)
+        indices = np.concatenate(indices)
+        shuffled_indices = np.random.permutation(len(indices))
+        shuffled_colors = colors[shuffled_indices]
         ax.scatter(
-            umap_embeddings[indices, 0],
-            umap_embeddings[indices, 1],
+            umap_embeddings[shuffled_indices, 0],
+            umap_embeddings[shuffled_indices, 1],
             s=marker_size,
             alpha=alpha,
-            c=color_array,
+            c=shuffled_colors,
             marker = 'o',
-            label=label,
             linewidths=0,
-        )
-        logging.info(f'[_plot_umap_embeddings]: adding label {label}')
-        
+        )                    
     __format_UMAP_axes(ax, title)
-    __format_UMAP_legend(ax, marker_size)
+    if not combine_samples:
+        __format_UMAP_legend(ax, marker_size)
         
     if show_metric:
         gs_bottom = fig.add_subplot(gs[1])

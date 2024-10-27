@@ -55,8 +55,8 @@ class AnalyzerUMAP(Analyzer):
             umap_idx (int): int indicating the umap type (0,1,2)
         """
         umap_type = self.UMAPType(umap_idx).name
-        saveroot = self.get_saving_folder(feature_type = os.path.join('UMAPs', self.UMAPType(umap_idx).name))  
-         
+        self.save_path = os.path.join('UMAPs', self.UMAPType(umap_idx).name)
+        saveroot = self.save_path
         self.features = np.load(os.path.join(saveroot,f'{umap_type}.npy'))
         self.labels = np.load(os.path.join(saveroot,f'{umap_type}_labels.npy'))
     
@@ -67,7 +67,8 @@ class AnalyzerUMAP(Analyzer):
             umap_idx (int): int indicating the umap type (0,1,2)
         """
         umap_type = self.UMAPType(umap_idx).name
-        saveroot = self.get_saving_folder(feature_type = os.path.join('UMAPs', umap_type))  
+        self.save_path = os.path.join('UMAPs', self.UMAPType(umap_idx).name)
+        saveroot = self.save_path
         os.makedirs(saveroot, exist_ok=True)
         np.save(os.path.join(saveroot,f'{umap_type}.npy'), self.features)
         np.save(os.path.join(saveroot,f'{umap_type}_labels.npy'), self.labels)

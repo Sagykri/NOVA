@@ -3,7 +3,7 @@
 <head><meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>qc_report_CoyneLab_iPSC_patients_TDP43_PB_7tiles</title><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.1.10/require.min.js"></script>
+<title>qc_report_CoyneLab_iPSC_patients</title><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.1.10/require.min.js"></script>
 
 
 
@@ -15119,15 +15119,15 @@ body[data-format='mobile'] .jp-OutputArea-child .jp-OutputArea-output {
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[3]:</div>
+<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[2]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
      <div class="CodeMirror cm-s-jupyter">
 <div class=" highlight hl-ipython3"><pre><span></span><span class="kn">import</span> <span class="nn">os</span>
-<span class="n">NOVA_HOME</span> <span class="o">=</span> <span class="s1">&#39;/home/labs/hornsteinlab/Collaboration/MOmaps_Noam/MOmaps&#39;</span>
-<span class="n">NOVA_DATA_HOME</span> <span class="o">=</span> <span class="s1">&#39;/home/labs/hornsteinlab/Collaboration/MOmaps&#39;</span>
+<span class="n">NOVA_HOME</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+<span class="n">NOVA_DATA_HOME</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
 
-<span class="n">LOGS_PATH</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">NOVA_DATA_HOME</span><span class="p">,</span> <span class="s2">&quot;outputs/preprocessing/spd/logs/preprocessing_CoyneLab_iPSC_patients_TDP43_PB_7tiles/&quot;</span><span class="p">)</span>
-<span class="n">PLOT_PATH</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">NOVA_DATA_HOME</span><span class="p">,</span> <span class="s2">&quot;outputs/preprocessing/spd/logs/preprocessing_CoyneLab_iPSC_patients_TDP43_PB_7tiles/plots&quot;</span><span class="p">)</span>
+<span class="n">LOGS_PATH</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">NOVA_DATA_HOME</span><span class="p">,</span> <span class="s2">&quot;outputs/preprocessing/AlyssaCoyne/logs/preprocessing_CoyneLab_iPSC_patients_TDP43_PB_7tiles/&quot;</span><span class="p">)</span>
+<span class="n">PLOT_PATH</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">NOVA_DATA_HOME</span><span class="p">,</span> <span class="s2">&quot;outputs/preprocessing/AlyssaCoyne/logs/preprocessing_CoyneLab_iPSC_patients_TDP43_PB_7tiles/plots&quot;</span><span class="p">)</span>
 <span class="n">os</span><span class="o">.</span><span class="n">chdir</span><span class="p">(</span><span class="n">NOVA_HOME</span><span class="p">)</span>
 
 <span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
@@ -15135,14 +15135,14 @@ body[data-format='mobile'] .jp-OutputArea-child .jp-OutputArea-output {
 <span class="kn">import</span> <span class="nn">io</span>
 <span class="kn">from</span> <span class="nn">IPython.display</span> <span class="kn">import</span> <span class="n">display</span><span class="p">,</span> <span class="n">Javascript</span>
 <span class="kn">import</span> <span class="nn">seaborn</span> <span class="k">as</span> <span class="nn">sns</span>
-<span class="kn">from</span> <span class="nn">tools.preprocessing_tools.qc_utils</span> <span class="kn">import</span> <span class="n">log_files_qc</span><span class="p">,</span> <span class="n">run_validate_folder_structure</span><span class="p">,</span> <span class="n">display_diff</span><span class="p">,</span> <span class="n">sample_and_calc_variance</span><span class="p">,</span> \
+<span class="kn">from</span> <span class="nn">tools.preprocessing_tools.qc_reports.qc_utils</span> <span class="kn">import</span> <span class="n">log_files_qc</span><span class="p">,</span> <span class="n">run_validate_folder_structure</span><span class="p">,</span> <span class="n">display_diff</span><span class="p">,</span> <span class="n">sample_and_calc_variance</span><span class="p">,</span> \
                                                 <span class="n">show_site_survival_dapi_brenner</span><span class="p">,</span> <span class="n">show_site_survival_dapi_cellpose</span><span class="p">,</span> \
                                                 <span class="n">show_site_survival_dapi_tiling</span><span class="p">,</span> <span class="n">show_site_survival_target_brenner</span><span class="p">,</span> \
                                                 <span class="n">calc_total_sums</span><span class="p">,</span> <span class="n">plot_filtering_heatmap</span><span class="p">,</span> <span class="n">show_total_sum_tables</span><span class="p">,</span> \
                                                 <span class="n">plot_cell_count</span><span class="p">,</span> <span class="n">plot_catplot</span><span class="p">,</span> <span class="n">plot_hm_combine_batches</span><span class="p">,</span> <span class="n">plot_hm</span><span class="p">,</span> \
                                                 <span class="n">run_calc_hist_new</span>
                                                 
-<span class="kn">from</span> <span class="nn">tools.preprocessing_tools.qc_config</span> <span class="kn">import</span> <span class="n">AC_panels</span><span class="p">,</span> <span class="n">AC_markers</span><span class="p">,</span> <span class="n">AC_marker_info</span><span class="p">,</span> <span class="n">AC_cell_lines</span><span class="p">,</span> <span class="n">AC_cell_lines_to_cond</span><span class="p">,</span>\
+<span class="kn">from</span> <span class="nn">tools.preprocessing_tools.qc_reports.qc_config</span> <span class="kn">import</span> <span class="n">AC_panels</span><span class="p">,</span> <span class="n">AC_markers</span><span class="p">,</span> <span class="n">AC_marker_info</span><span class="p">,</span> <span class="n">AC_cell_lines</span><span class="p">,</span> <span class="n">AC_cell_lines_to_cond</span><span class="p">,</span>\
                                     <span class="n">AC_cell_lines_for_disp</span><span class="p">,</span> <span class="n">AC_reps</span><span class="p">,</span> <span class="n">AC_line_colors</span><span class="p">,</span> <span class="n">AC_lines_order</span><span class="p">,</span> <span class="n">AC_custom_palette</span><span class="p">,</span>\
                                     <span class="n">AC_expected_dapi_raw</span><span class="p">,</span> <span class="n">AC_cell_lines_to_reps</span>
 <span class="o">%</span><span class="k">load_ext</span> autoreload
@@ -15159,7 +15159,7 @@ body[data-format='mobile'] .jp-OutputArea-child .jp-OutputArea-output {
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[53]:</div>
+<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[3]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
      <div class="CodeMirror cm-s-jupyter">
 <div class=" highlight hl-ipython3"><pre><span></span><span class="n">df</span> <span class="o">=</span> <span class="n">log_files_qc</span><span class="p">(</span><span class="n">LOGS_PATH</span><span class="p">,</span><span class="n">only_wt_cond</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
@@ -15204,7 +15204,7 @@ After duplication removal #2: (1050, 23)
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[55]:</div>
+<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[4]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
      <div class="CodeMirror cm-s-jupyter">
 <div class=" highlight hl-ipython3"><pre><span></span><span class="c1"># choose batches</span>
@@ -15225,7 +15225,7 @@ After duplication removal #2: (1050, 23)
 <div class="jp-OutputArea jp-Cell-outputArea">
 <div class="jp-OutputArea-child jp-OutputArea-executeResult">
     
-    <div class="jp-OutputPrompt jp-OutputArea-prompt">Out[55]:</div>
+    <div class="jp-OutputPrompt jp-OutputArea-prompt">Out[4]:</div>
 
 
 
@@ -15822,7 +15822,7 @@ class="
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[80]:</div>
+<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[5]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
      <div class="CodeMirror cm-s-jupyter">
 <div class=" highlight hl-ipython3"><pre><span></span><span class="n">names</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;Total number of tiles&#39;</span><span class="p">,</span> <span class="s1">&#39;Total number of whole cells&#39;</span><span class="p">]</span>
@@ -15851,11 +15851,10 @@ class="
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[81]:</div>
+<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[8]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
      <div class="CodeMirror cm-s-jupyter">
-<div class=" highlight hl-ipython3"><pre><span></span><span class="c1">## Are we using FMRP? and batch3-5?</span>
-<span class="n">total_sum</span><span class="p">[</span><span class="o">~</span><span class="n">total_sum</span><span class="o">.</span><span class="n">marker</span><span class="o">.</span><span class="n">str</span><span class="o">.</span><span class="n">contains</span><span class="p">(</span><span class="s1">&#39;DAPI&#39;</span><span class="p">,</span> <span class="n">regex</span><span class="o">=</span><span class="kc">True</span><span class="p">)]</span><span class="o">.</span><span class="n">n_valid_tiles</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+<div class=" highlight hl-ipython3"><pre><span></span><span class="n">total_sum</span><span class="o">.</span><span class="n">n_valid_tiles</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
 </pre></div>
 
      </div>
@@ -15871,13 +15870,13 @@ class="
 <div class="jp-OutputArea jp-Cell-outputArea">
 <div class="jp-OutputArea-child jp-OutputArea-executeResult">
     
-    <div class="jp-OutputPrompt jp-OutputArea-prompt">Out[81]:</div>
+    <div class="jp-OutputPrompt jp-OutputArea-prompt">Out[8]:</div>
 
 
 
 
 <div class="jp-RenderedText jp-OutputArea-output jp-OutputArea-executeResult" data-mime-type="text/plain">
-<pre>4416</pre>
+<pre>5888</pre>
 </div>
 
 </div>
@@ -15887,25 +15886,25 @@ class="
 </div>
 
 </div>
-<div id="cell-id=566b9c59-0822-45e6-9a9e-a38cb688c0b7" class="jp-Cell jp-MarkdownCell jp-Notebook-cell">
+<div id="cell-id=7e4e3bae-4a08-4610-aa40-727b9a9b8808" class="jp-Cell jp-MarkdownCell jp-Notebook-cell">
 <div class="jp-Cell-inputWrapper">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<h3 id="Total-Dapi-tiles">Total Dapi tiles<a class="anchor-link" href="#Total-Dapi-tiles">&#182;</a></h3>
+<h3 id="Total-whole-nuclei-in-tiles">Total whole nuclei in tiles<a class="anchor-link" href="#Total-whole-nuclei-in-tiles">&#182;</a></h3>
 </div>
 </div>
 </div>
-</div><div id="cell-id=a14ac589-473d-4954-9177-5d2413f2e0bc" class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
+</div><div id="cell-id=88fef222-c465-427d-ba0e-b4e5ea785f99" class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
 <div class="jp-Cell-inputWrapper">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[82]:</div>
+<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[9]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
      <div class="CodeMirror cm-s-jupyter">
-<div class=" highlight hl-ipython3"><pre><span></span><span class="n">total_sum</span><span class="p">[</span><span class="n">total_sum</span><span class="o">.</span><span class="n">marker</span> <span class="o">==</span> <span class="s1">&#39;DAPI&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">n_valid_tiles</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+<div class=" highlight hl-ipython3"><pre><span></span><span class="n">total_sum</span><span class="p">[</span><span class="n">total_sum</span><span class="o">.</span><span class="n">marker</span> <span class="o">==</span><span class="s1">&#39;DAPI&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">site_whole_cells_counts_sum</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
 </pre></div>
 
      </div>
@@ -15921,13 +15920,13 @@ class="
 <div class="jp-OutputArea jp-Cell-outputArea">
 <div class="jp-OutputArea-child jp-OutputArea-executeResult">
     
-    <div class="jp-OutputPrompt jp-OutputArea-prompt">Out[82]:</div>
+    <div class="jp-OutputPrompt jp-OutputArea-prompt">Out[9]:</div>
 
 
 
 
 <div class="jp-RenderedText jp-OutputArea-output jp-OutputArea-executeResult" data-mime-type="text/plain">
-<pre>1472</pre>
+<pre>1983.0</pre>
 </div>
 
 </div>
@@ -15937,13 +15936,13 @@ class="
 </div>
 
 </div>
-<div id="cell-id=566bfe46-1641-4420-ae6b-9d37f463e65a" class="jp-Cell jp-MarkdownCell jp-Notebook-cell">
+<div id="cell-id=8dab3ba8-1ff9-49c0-b428-84c26b7f9a19" class="jp-Cell jp-MarkdownCell jp-Notebook-cell">
 <div class="jp-Cell-inputWrapper">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<h3 id="Total-neurons">Total neurons<a class="anchor-link" href="#Total-neurons">&#182;</a></h3>
+<h3 id="Total-nuclei-in-sites">Total nuclei in sites<a class="anchor-link" href="#Total-nuclei-in-sites">&#182;</a></h3>
 </div>
 </div>
 </div>
@@ -15952,10 +15951,10 @@ class="
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[88]:</div>
+<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[10]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
      <div class="CodeMirror cm-s-jupyter">
-<div class=" highlight hl-ipython3"><pre><span></span><span class="n">total_sum</span><span class="p">[</span><span class="o">~</span><span class="n">total_sum</span><span class="o">.</span><span class="n">marker</span><span class="o">.</span><span class="n">str</span><span class="o">.</span><span class="n">contains</span><span class="p">(</span><span class="s1">&#39;DAPI&#39;</span><span class="p">,</span> <span class="n">regex</span><span class="o">=</span><span class="kc">True</span><span class="p">)]</span><span class="o">.</span><span class="n">site_cell_count_sum</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+<div class=" highlight hl-ipython3"><pre><span></span><span class="n">total_sum</span><span class="p">[</span><span class="n">total_sum</span><span class="o">.</span><span class="n">marker</span> <span class="o">==</span><span class="s1">&#39;DAPI&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">site_cell_count</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
 </pre></div>
 
      </div>
@@ -15971,63 +15970,13 @@ class="
 <div class="jp-OutputArea jp-Cell-outputArea">
 <div class="jp-OutputArea-child jp-OutputArea-executeResult">
     
-    <div class="jp-OutputPrompt jp-OutputArea-prompt">Out[88]:</div>
+    <div class="jp-OutputPrompt jp-OutputArea-prompt">Out[10]:</div>
 
 
 
 
 <div class="jp-RenderedText jp-OutputArea-output jp-OutputArea-executeResult" data-mime-type="text/plain">
-<pre>45285.0</pre>
-</div>
-
-</div>
-
-</div>
-
-</div>
-
-</div>
-<div id="cell-id=ac57fc44-9e1e-4968-b68c-a49e865a8426" class="jp-Cell jp-MarkdownCell jp-Notebook-cell">
-<div class="jp-Cell-inputWrapper">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
-</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<h3 id="Total-Dapi-neurons">Total Dapi neurons<a class="anchor-link" href="#Total-Dapi-neurons">&#182;</a></h3>
-</div>
-</div>
-</div>
-</div><div id="cell-id=0277097d-88bf-4d1e-9680-4df3e0b39330" class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
-<div class="jp-Cell-inputWrapper">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[87]:</div>
-<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
-     <div class="CodeMirror cm-s-jupyter">
-<div class=" highlight hl-ipython3"><pre><span></span><span class="n">total_sum</span><span class="p">[</span><span class="n">total_sum</span><span class="o">.</span><span class="n">marker</span> <span class="o">==</span> <span class="s1">&#39;DAPI&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">site_cell_count_sum</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
-</pre></div>
-
-     </div>
-</div>
-</div>
-</div>
-
-<div class="jp-Cell-outputWrapper">
-<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
-</div>
-
-
-<div class="jp-OutputArea jp-Cell-outputArea">
-<div class="jp-OutputArea-child jp-OutputArea-executeResult">
-    
-    <div class="jp-OutputPrompt jp-OutputArea-prompt">Out[87]:</div>
-
-
-
-
-<div class="jp-RenderedText jp-OutputArea-output jp-OutputArea-executeResult" data-mime-type="text/plain">
-<pre>15095.0</pre>
+<pre>7951.0</pre>
 </div>
 
 </div>
@@ -16786,12 +16735,12 @@ class="
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[4]:</div>
+<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[&nbsp;]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
      <div class="CodeMirror cm-s-jupyter">
 <div class=" highlight hl-ipython3"><pre><span></span><span class="c1"># save notebook as HTML ( the HTML will be saved in the same folder the original script is)</span>
 <span class="n">display</span><span class="p">(</span><span class="n">Javascript</span><span class="p">(</span><span class="s1">&#39;IPython.notebook.save_checkpoint();&#39;</span><span class="p">))</span>
-<span class="n">os</span><span class="o">.</span><span class="n">system</span><span class="p">(</span><span class="s1">&#39;jupyter nbconvert --to html src/preprocessing/notebooks/no_ds/qc_report_CoyneLab_iPSC_patients_TDP43_PB_7tiles.ipynb&#39;</span><span class="p">)</span>
+<span class="n">os</span><span class="o">.</span><span class="n">system</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;jupyter nbconvert --to html tools/preprocessing_tools/qc_reports/qc_report_CoyneLab_iPSC_patients.ipynb --output </span><span class="si">{</span><span class="n">NOVA_HOME</span><span class="si">}</span><span class="s1">/manuscript/preprocessing_qc_reports/qc_report_CoyneLab_iPSC_patients.html&#39;</span><span class="p">)</span>
 </pre></div>
 
      </div>
@@ -16813,9 +16762,9 @@ class="
 
 
 
-<div id="eaf5ae70-ac86-4b31-a09d-b8deb5cb7879" class="jp-RenderedJavaScript jp-OutputArea-output " data-mime-type="application/javascript">
+<div id="bf38ea2d-6297-4010-89c9-c94a25f36126" class="jp-RenderedJavaScript jp-OutputArea-output " data-mime-type="application/javascript">
 <script type="text/javascript">
-var element = document.getElementById('eaf5ae70-ac86-4b31-a09d-b8deb5cb7879');
+var element = document.getElementById('bf38ea2d-6297-4010-89c9-c94a25f36126');
 IPython.notebook.save_checkpoint();
 </script>
 </div>
@@ -16827,22 +16776,9 @@ IPython.notebook.save_checkpoint();
 
 
 <div class="jp-RenderedText jp-OutputArea-output" data-mime-type="application/vnd.jupyter.stderr">
-<pre>[NbConvertApp] Converting notebook src/preprocessing/notebooks/no_ds/qc_report_CoyneLab_iPSC_patients_TDP43_PB_7tiles.ipynb to html
-[NbConvertApp] Writing 2832239 bytes to src/preprocessing/notebooks/no_ds/qc_report_CoyneLab_iPSC_patients_TDP43_PB_7tiles.html
+<pre>[NbConvertApp] Converting notebook tools/preprocessing_tools/qc_reports/qc_report_CoyneLab_iPSC_patients.ipynb to html
 </pre>
 </div>
-</div>
-<div class="jp-OutputArea-child jp-OutputArea-executeResult">
-    
-    <div class="jp-OutputPrompt jp-OutputArea-prompt">Out[4]:</div>
-
-
-
-
-<div class="jp-RenderedText jp-OutputArea-output jp-OutputArea-executeResult" data-mime-type="text/plain">
-<pre>0</pre>
-</div>
-
 </div>
 
 </div>

@@ -1197,7 +1197,7 @@ def plot_hm(df, split_by, rows, columns, value='cells_count_in_valid_tiles_mean'
             fig.tight_layout()
             plt.show()
 
-def plot_hm_combine_batches(df,  batches, reps, rows, columns):
+def plot_hm_combine_batches(df,  batches, reps, rows, columns, vmin=1, vmax=4):
     ncols = len(batches)*len(reps)
     fig, axs = plt.subplots(figsize=(6*ncols, 7), ncols=ncols, sharey=False, sharex=False,
                             gridspec_kw={'width_ratios': [0.8]*(ncols-1) + [1]})
@@ -1205,8 +1205,6 @@ def plot_hm_combine_batches(df,  batches, reps, rows, columns):
         cur_df = df[(df['batch'] == batch) & (df['rep'] == rep)]
         a = pd.crosstab(cur_df[rows], cur_df[columns], 
                         values=cur_df['cells_count_in_valid_tiles_mean'], aggfunc="mean")
-        vmin = 1
-        vmax = 2
         ytick_labels = [f'cell line {i}' for i in range(1, a.shape[0] + 1)]
         heatmap = sns.heatmap(a, annot=True, cmap="flare", linewidths=1, linecolor='gray', 
                         cbar=False, ax=axs[i], vmin=vmin, vmax=vmax,annot_kws={"fontsize": 12}, yticklabels=ytick_labels)

@@ -53,10 +53,51 @@ class NeuronsUMAP1B6FigureConfig(FigureConfig):
         self.SHOW_ARI = True
         self.ADD_REP_TO_LABEL = False
 
+class NeuronsUMAP1B6WithoutDAPIFigureConfig(FigureConfig):
+    def __init__(self):
+        super().__init__()
+        
+        """UMAP1 of WT untreated
+        """
+
+        # Batches used for model development
+        self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "spd2", "SpinningDisk", f) for f in 
+                        ["batch6"]]
+        
+        self.SETS = ['testset']
+        self.EXPERIMENT_TYPE = 'neurons'    
+        self.CELL_LINES = ['WT']
+        self.CONDITIONS = ['Untreated']
+        
+        self.MARKERS_TO_EXCLUDE = ['TIA1','DAPI']
+        # Decide if to show ARI metric on the UMAP
+        self.SHOW_ARI = True
+        self.ADD_REP_TO_LABEL = False
+
+class NeuronsUMAP1B9WithoutDapiFigureConfig(FigureConfig):
+    def __init__(self):
+        super().__init__()
+        
+        """UMAP1 of WT untreated
+        """
+
+        # Batches used for model development
+        self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "spd2", "SpinningDisk", f) for f in 
+                        ["batch9"]]
+        
+        self.SETS = ['testset']
+        self.EXPERIMENT_TYPE = 'neurons'    
+        self.CELL_LINES = ['WT']
+        self.CONDITIONS = ['Untreated']
+        
+        self.MARKERS_TO_EXCLUDE = ['TIA1','DAPI']
+        # Decide if to show ARI metric on the UMAP
+        self.SHOW_ARI = True
+        self.ADD_REP_TO_LABEL = False
 ############################################################
 # Figure 2 
 ############################################################
-class NeuronsUMAP0StressB9FigureConfig(FigureConfig):
+class NeuronsUMAP0StressB9WithoutDAPIFigureConfig(FigureConfig):
     def __init__(self):
         super().__init__()
 
@@ -67,7 +108,25 @@ class NeuronsUMAP0StressB9FigureConfig(FigureConfig):
         self.SETS = ['testset']
         self.EXPERIMENT_TYPE = 'neurons'    
         self.CELL_LINES = ['WT']
-        self.MARKERS_TO_EXCLUDE = ['TIA1']
+        self.MARKERS_TO_EXCLUDE = ['TIA1','DAPI']
+        
+        # Decide if to show ARI metric on the UMAP
+        self.SHOW_ARI = True
+        self.ADD_REP_TO_LABEL=False
+
+class NeuronsUMAP0StressB9DAPIFigureConfig(FigureConfig):
+    def __init__(self):
+        super().__init__()
+
+        # Batches used for model development
+        self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "spd2", "SpinningDisk", f) for f in 
+                        ["batch9"]]
+        
+        self.SETS = ['testset']
+        self.EXPERIMENT_TYPE = 'neurons'    
+        self.CELL_LINES = ['WT']
+        self.MARKERS_TO_EXCLUDE = None
+        self.MARKERS = ['DAPI']
         
         # Decide if to show ARI metric on the UMAP
         self.SHOW_ARI = True
@@ -233,7 +292,7 @@ class NeuronsDistancesALSFigureConfig(FigureConfig):
         self.EXPERIMENT_TYPE = 'neurons'
         self.MARKERS_TO_EXCLUDE = ['TIA1']
         self.BASELINE_CELL_LINE_CONDITION = "WT_Untreated"
-        self.CELL_LINES_CONDITIONS = ['FUSHomozygous_Untreated','FUSHeterozygous_Untreated','FUSRevertant_Untreated',
+        self.CELL_LINES_CONDITIONS = ['FUSHomozygous_Untreated','FUSHeterozygous_Untreated',
                                       'TBK1_Untreated','OPTN_Untreated','TDP43_Untreated']
         self.ADD_BATCH_TO_LABEL = True
         self.ADD_REP_TO_LABEL = True
@@ -257,7 +316,7 @@ class NeuronsUMAP0ALSB9FUSFigureConfig(NeuronsUMAP0ALSFigureConfig):
         super().__init__()
 
         self.INPUT_FOLDERS = ["batch9"]
-        self.CELL_LINES = ['WT','FUSHomozygous','FUSHeterozygous','FUSRevertant']
+        self.CELL_LINES = ['WT','FUSHomozygous']
         self.MARKERS = ['FUS']
 
 class NeuronsUMAP0ALSB9DCP1AFigureConfig(NeuronsUMAP0ALSFigureConfig):
@@ -277,7 +336,6 @@ class NeuronsUMAP0ALSB9ANXA11FigureConfig(NeuronsUMAP0ALSFigureConfig):
         self.CELL_LINES = ['WT','OPTN','TBK1']
         self.MARKERS = ['ANXA11']
 
-
 class NeuronsUMAP0ALSB9CLTCFigureConfig(NeuronsUMAP0ALSFigureConfig):
     def __init__(self):
         super().__init__()
@@ -286,6 +344,13 @@ class NeuronsUMAP0ALSB9CLTCFigureConfig(NeuronsUMAP0ALSFigureConfig):
         self.CELL_LINES = ['WT','OPTN','TBK1']
         self.MARKERS = ['CLTC']
 
+class NeuronsUMAP0ALSB9SQSTM1FigureConfig(NeuronsUMAP0ALSFigureConfig):
+    def __init__(self):
+        super().__init__()
+
+        self.INPUT_FOLDERS = ["batch9"]
+        self.CELL_LINES = ['WT','OPTN']
+        self.MARKERS = ['SQSTM1']
 class AlyssaCoyneDistancesFigureConfig(FigureConfig):
     def __init__(self):
         super().__init__()
@@ -444,11 +509,24 @@ class NeuronsUMAP2ALSB6_without_fus_marker_FigureConfig(NeuronsUMAP2ALSB6FigureC
         super().__init__()
         self.MARKERS_TO_EXCLUDE = ['TIA1','FUS']
 
-class NeuronsUMAP2ALSB6_without_SCNA_line_FigureConfig(NeuronsUMAP2ALSB6FigureConfig):
+class NeuronsUMAP2ALSB6ALSLines_wo_fusFigureConfig(NeuronsUMAP2ALSB6FigureConfig):
     def __init__(self):
         super().__init__()
-        self.CELL_LINES = ['WT','TDP43','FUSHomozygous', 'FUSHeterozygous',
-                           'TBK1','FUSRevertant','OPTN']
+        self.MARKERS_TO_EXCLUDE = ['TIA1','FUS']
+        self.CELL_LINES = ['WT','TDP43','FUSHomozygous', 
+                           'TBK1','SCNA','OPTN']
+        
+class NeuronsUMAP2ALSB9ALSLines_wo_fusFigureConfig(NeuronsUMAP2ALSB9FigureConfig):
+    def __init__(self):
+        super().__init__()
+        self.MARKERS_TO_EXCLUDE = ['TIA1','FUS']
+        self.CELL_LINES = ['WT','TDP43','FUSHomozygous',
+                           'TBK1','SCNA','OPTN']
+class NeuronsUMAP2ALSB6ALSLinesWOSNCAFigureConfig(NeuronsUMAP2ALSB6FigureConfig):
+    def __init__(self):
+        super().__init__()
+        self.CELL_LINES = ['WT','TDP43','FUSHomozygous',
+                           'TBK1','OPTN']
         
 class NeuronsUMAP2ALSB6_without_fushomo_FigureConfig(NeuronsUMAP2ALSB6FigureConfig):
     def __init__(self):
@@ -462,28 +540,28 @@ class NeuronsUMAP2ALSB6_without_fushetero_FigureConfig(NeuronsUMAP2ALSB6FigureCo
         self.CELL_LINES = ['WT','TDP43','SCNA', 'FUSHomozygous',
                            'TBK1','FUSRevertant','OPTN']
         
-class NeuronsUMAP2ALSB6_without_fusrev_FigureConfig(NeuronsUMAP2ALSB6FigureConfig):
+class NeuronsUMAP2ALSB6ALSLinesFigureConfig(NeuronsUMAP2ALSB6FigureConfig):
     def __init__(self):
         super().__init__()
         self.CELL_LINES = ['WT','TDP43','SCNA', 'FUSHomozygous',
-                           'TBK1','FUSHeterozygous','OPTN']
+                           'TBK1','OPTN']
 
 class NeuronsUMAP2ALSB9_without_fus_marker_FigureConfig(NeuronsUMAP2ALSB9FigureConfig):
     def __init__(self):
         super().__init__()
         self.MARKERS_TO_EXCLUDE = ['TIA1','FUS']
 
-class NeuronsUMAP2ALSB9_without_SCNA_line_FigureConfig(NeuronsUMAP2ALSB9FigureConfig):
+class NeuronsUMAP2ALSB9ALSLinesWOSNCAFigureConfig(NeuronsUMAP2ALSB9FigureConfig):
     def __init__(self):
         super().__init__()
-        self.CELL_LINES = ['WT','TDP43','FUSHomozygous', 'FUSHeterozygous',
-                           'TBK1','FUSRevertant','OPTN']
+        self.CELL_LINES = ['WT','TDP43','FUSHomozygous',
+                           'TBK1','OPTN']
         
 class NeuronsUMAP2ALSB9_without_fushomo_FigureConfig(NeuronsUMAP2ALSB9FigureConfig):
     def __init__(self):
         super().__init__()
         self.CELL_LINES = ['WT','TDP43','SCNA', 'FUSHeterozygous',
-                           'TBK1','FUSRevertant','OPTN']
+                           'TBK1','OPTN']
         
 class NeuronsUMAP2ALSB9_without_fushetero_FigureConfig(NeuronsUMAP2ALSB9FigureConfig):
     def __init__(self):
@@ -491,11 +569,11 @@ class NeuronsUMAP2ALSB9_without_fushetero_FigureConfig(NeuronsUMAP2ALSB9FigureCo
         self.CELL_LINES = ['WT','TDP43','SCNA', 'FUSHomozygous',
                            'TBK1','FUSRevertant','OPTN']
         
-class NeuronsUMAP2ALSB9_without_fusrev_FigureConfig(NeuronsUMAP2ALSB9FigureConfig):
+class NeuronsUMAP2ALSB9ALSLinesFigureConfig(NeuronsUMAP2ALSB9FigureConfig):
     def __init__(self):
         super().__init__()
         self.CELL_LINES = ['WT','TDP43','SCNA', 'FUSHomozygous',
-                           'TBK1','FUSHeterozygous','OPTN']
+                           'TBK1','OPTN']
             
 class NeuronsUMAP2ALSD18B1FigureConfig(FigureConfig):
     def __init__(self):
@@ -508,13 +586,29 @@ class NeuronsUMAP2ALSD18B1FigureConfig(FigureConfig):
         self.SETS = ['testset']
         self.EXPERIMENT_TYPE = 'neurons_d18'    
         self.CONDITIONS = ['Untreated']
-        # self.CELL_LINES = ['WT', 'FUSHomozygous','FUSHeterozygous','FUSRevertant']
+        self.CELL_LINES = ['WT', 'FUSHomozygous','FUSHeterozygous','FUSRevertant']
         self.MARKERS = list(PlotConfig().COLOR_MAPPINGS_MARKERS.keys())
         
         # Decide if to show ARI metric on the UMAP
         self.SHOW_ARI = True
         self.ADD_REP_TO_LABEL=False
 
+class NeuronsUMAP2ALSB9FUSFigureConfig(NeuronsUMAP2ALSB9FigureConfig):
+    def __init__(self):
+        super().__init__()
+
+        # Batches used for model development
+        self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "spd2", "SpinningDisk", f) for f in 
+                        ["batch9"]]
+        
+        self.SETS = ['testset']
+        self.EXPERIMENT_TYPE = 'neurons'    
+        self.CONDITIONS = ['Untreated']
+        self.CELL_LINES = ['WT', 'FUSHomozygous','FUSHeterozygous','FUSRevertant']
+        
+        # Decide if to show ARI metric on the UMAP
+        self.SHOW_ARI = True
+        self.ADD_REP_TO_LABEL=False
 class NeuronsUMAP2ALSD18B2FigureConfig(FigureConfig):
     def __init__(self):
         super().__init__()
@@ -526,7 +620,7 @@ class NeuronsUMAP2ALSD18B2FigureConfig(FigureConfig):
         self.SETS = ['testset']
         self.EXPERIMENT_TYPE = 'neurons_d18'    
         self.CONDITIONS = ['Untreated']
-        # self.CELL_LINES = ['WT', 'FUSHomozygous','FUSHeterozygous','FUSRevertant']
+        self.CELL_LINES = ['WT', 'FUSHomozygous','FUSHeterozygous','FUSRevertant']
         self.MARKERS = list(PlotConfig().COLOR_MAPPINGS_MARKERS.keys())
         
         # Decide if to show ARI metric on the UMAP
@@ -609,6 +703,13 @@ class NeuronsUMAP0ALSB6ANXA11FigureConfig(NeuronsUMAP0ALSFigureConfig):
         self.CELL_LINES = ['WT','OPTN','TBK1']
         self.MARKERS = ['ANXA11']
 
+class NeuronsUMAP0ALSB6TDP43FigureConfig(NeuronsUMAP0ALSFigureConfig):
+    def __init__(self):
+        super().__init__()
+
+        self.INPUT_FOLDERS = ["batch6"]
+        self.CELL_LINES = ['WT','OPTN','TBK1','FUSHomozygous','TDP43']
+        self.MARKERS = ['TDP43']
 class NeuronsUMAP0ALSB6CLTCFigureConfig(NeuronsUMAP0ALSFigureConfig):
     def __init__(self):
         super().__init__()
@@ -679,7 +780,7 @@ class NeuronsDistancesALSWith45FigureConfig(FigureConfig):
         self.EXPERIMENT_TYPE = 'neurons'
         self.MARKERS_TO_EXCLUDE = ['TIA1']
         self.BASELINE_CELL_LINE_CONDITION = "WT_Untreated"
-        self.CELL_LINES_CONDITIONS = ['FUSHomozygous_Untreated','FUSHeterozygous_Untreated','FUSRevertant_Untreated',
+        self.CELL_LINES_CONDITIONS = ['FUSHomozygous_Untreated',
                                       'TBK1_Untreated','OPTN_Untreated','TDP43_Untreated']
         self.ADD_BATCH_TO_LABEL = True
         self.ADD_REP_TO_LABEL = True
@@ -698,8 +799,21 @@ class NeuronsDistancesALSD18FigureConfig(FigureConfig):
         self.EXPERIMENT_TYPE = 'neurons_d18'
         self.MARKERS = list(PlotConfig().COLOR_MAPPINGS_MARKERS.keys())
         self.BASELINE_CELL_LINE_CONDITION = "WT_Untreated"
-        self.CELL_LINES_CONDITIONS = ['FUSHomozygous_Untreated','FUSHeterozygous_Untreated','FUSRevertant_Untreated',
-                                      'TBK1_Untreated','OPTN_Untreated','TDP43_Untreated']
+        self.CELL_LINES_CONDITIONS = ['FUSHomozygous_Untreated','FUSHeterozygous_Untreated','FUSRevertant_Untreated']
+        self.ADD_BATCH_TO_LABEL = True
+        self.ADD_REP_TO_LABEL = True
+
+class NeuronsDistancesALSFUSFigureConfig(FigureConfig):
+    def __init__(self):
+        super().__init__()
+        self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "spd2", "SpinningDisk", f) for f in 
+                        [f"batch{i}" for i in range(4,10)]]
+        
+        self.SETS = ['testset']
+        self.EXPERIMENT_TYPE = 'neurons'
+        self.MARKERS = list(PlotConfig().COLOR_MAPPINGS_MARKERS.keys())
+        self.BASELINE_CELL_LINE_CONDITION = "WT_Untreated"
+        self.CELL_LINES_CONDITIONS = ['FUSHomozygous_Untreated','FUSHeterozygous_Untreated','FUSRevertant_Untreated']
         self.ADD_BATCH_TO_LABEL = True
         self.ADD_REP_TO_LABEL = True
 
