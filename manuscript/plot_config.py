@@ -34,7 +34,7 @@ class PlotConfig(plot_config.PlotConfig):
             'TBK1_Untreated':{self.UMAP_MAPPINGS_ALIAS_KEY:'TBK1', self.UMAP_MAPPINGS_COLOR_KEY:'#319278'},
             'SCNA_Untreated':{self.UMAP_MAPPINGS_ALIAS_KEY:'SNCA', self.UMAP_MAPPINGS_COLOR_KEY:'black'},
             'SNCA_Untreated':{self.UMAP_MAPPINGS_ALIAS_KEY:'SNCA', self.UMAP_MAPPINGS_COLOR_KEY:'black'},
-            'TDP43_Untreated':{self.UMAP_MAPPINGS_ALIAS_KEY:'TDP43', self.UMAP_MAPPINGS_COLOR_KEY:'#A8559E'},
+            'TDP43_Untreated':{self.UMAP_MAPPINGS_ALIAS_KEY:'TDP-43', self.UMAP_MAPPINGS_COLOR_KEY:'#A8559E'},
         }
         self.COLOR_MAPPINGS_ALS['WT'] = self.COLOR_MAPPINGS_ALS['WT_Untreated']
         self.COLOR_MAPPINGS_ALS['FUSHeterozygous'] = self.COLOR_MAPPINGS_ALS['FUSHeterozygous_Untreated']

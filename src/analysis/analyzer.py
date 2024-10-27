@@ -5,6 +5,7 @@ import sys
 import os
 sys.path.insert(1, os.getenv("NOVA_HOME"))
 
+from src.common.utils import get_if_exists
 from src.datasets.dataset_config import DatasetConfig
 from src.datasets.label_utils import get_batches_from_input_folders
 import numpy as np
@@ -75,12 +76,14 @@ class Analyzer():
         reps = self.data_config.REPS if self.data_config.REPS else ['all_reps']
         cell_lines = self.data_config.CELL_LINES if self.data_config.CELL_LINES else ["all_cell_lines"]
         conditions = self.data_config.CONDITIONS if self.data_config.CONDITIONS else ["all_conditions"]
-
-        excluded_markers = self.data_config.MARKERS_TO_EXCLUDE if self.data_config.MARKERS_TO_EXCLUDE else ["all_markers"]
-        if excluded_markers != ['all_markers']:
-            excluded_markers.insert(0,"without")
-
-        title = f"{'_'.join(input_folders)}_{'_'.join(reps)}_{'_'.join(cell_lines)}_{'_'.join(conditions)}_{'_'.join(excluded_markers)}"
+        markers = get_if_exists(self.data_config, 'MARKERS', None)
+        if markers is not None and len(markers)<=3:
+            title = f"{'_'.join(input_folders)}_{'_'.join(reps)}_{'_'.join(cell_lines)}_{'_'.join(conditions)}_{'_'.join(markers)}"
+        else:
+            excluded_markers = self.data_config.MARKERS_TO_EXCLUDE if self.data_config.MARKERS_TO_EXCLUDE else ["all_markers"]
+            if excluded_markers != ['all_markers']:
+                excluded_markers.insert(0,"without")
+            title = f"{'_'.join(input_folders)}_{'_'.join(reps)}_{'_'.join(cell_lines)}_{'_'.join(conditions)}_{'_'.join(excluded_markers)}"
         saveroot = os.path.join(feature_folder_path,f'{title}')
         return saveroot
 

@@ -174,19 +174,23 @@ def plot_bubble_plot(distances:pd.DataFrame, saveroot:str, config_data:DatasetCo
 
     # Calculate marker p-values and process the dataframe
     pvalues_df = __calculate_marker_pvalue_per_condition(distances, baseline, conditions, metric, __cliffs_delta)  
-    __sort_markers_by_linkage(pvalues_df)
     conditions_order = get_if_exists(config_plot, 'ORDERED_CELL_LINES_NAMES',None)
     if conditions_order is not None:
         pvalues_df['condition'] = pd.Categorical(pvalues_df['condition'], categories=conditions_order, ordered=True)
         pvalues_df.sort_values(by=['condition'])
+
+    marker_order = get_if_exists(config_plot, 'ORDERED_MARKERS',None)
+    if marker_order is not None:
+        pvalues_df['marker'] = pd.Categorical(pvalues_df['marker'], categories=marker_order, ordered=True)
+        pvalues_df.sort_values(by=['marker'])
 
     # Normalize effect sizes and adjust p-values for visualization
     norm_effect_size = mcolors.Normalize(vmin=vmin_effect, vmax=vmax_effect) if vmin_effect is not None else None
     pvalues_df['log_pvalue'] = -np.log10(__bin_pvalues(pvalues_df['pvalue']))
 
     # Plot
-    fig_width = int(len(conditions)*4/3)
-    fig_height = max(int(np.unique(pvalues_df.marker).shape[0]/4),3)
+    fig_width = int(len(conditions))
+    fig_height = 7 #max(int(np.unique(pvalues_df.marker).shape[0]/4),3)
     fig = plt.figure(figsize=(fig_width, fig_height), dpi=300)
     scatter = sns.scatterplot(
         data=pvalues_df,
@@ -210,7 +214,7 @@ def plot_bubble_plot(distances:pd.DataFrame, saveroot:str, config_data:DatasetCo
 
     savepath = None
     if saveroot:
-        savepath = os.path.join(saveroot, f'vs_{baseline}_bubbleplot')
+        savepath = os.path.join(saveroot, f'{"_".join(conditions)}_vs_{baseline}_bubbleplot')
     if savepath:
         save_plot(fig, savepath, dpi=100, save_eps=True)
     else:

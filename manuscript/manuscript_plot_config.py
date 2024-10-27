@@ -35,6 +35,13 @@ class UMAP0StressPlotConfig(PlotConfig):
         self.COLOR_MAPPINGS = self.COLOR_MAPPINGS_CONDITION
         # umap type
         self.UMAP_TYPE = 0
+
+class UMAP0StressDAPIPlotConfig(UMAP0StressPlotConfig):
+    def __init__(self):
+        super().__init__()
+               
+        self.COMBINE_SAMPLES = True
+
 class UMAP0ALSPlotConfig(PlotConfig):
     def __init__(self):
         super().__init__()
@@ -186,9 +193,33 @@ class DistancesNeuronsALSPlotConfig(PlotConfig):
         super().__init__()
 
         self.COLOR_MAPPINGS_CELL_LINE_CONDITION = self.COLOR_MAPPINGS_CONDITION_AND_ALS
-        self.ORDERED_CELL_LINES_NAMES = ['FUSRevertant_Untreated','FUSHomozygous_Untreated','FUSHeterozygous_Untreated',
+        self.ORDERED_CELL_LINES_NAMES = ['FUSHomozygous_Untreated',
                                          'TDP43_Untreated','TBK1_Untreated','OPTN_Untreated']
+        self.ORDERED_MARKERS = ['GM130','Phalloidin','G3BP1','CLTC','mitotracker','NCL','KIF5A', 'TOMM20', 'PURA',
+         'NONO','SCNA','ANXA11','FUS','TDP43','PEX14', 'DAPI','PSD95','PML',
+        'CD41','NEMO','Calreticulin','LAMP1','SQSTM1','DCP1A','FMRP']
 
+class DistancesNeuronsFUSPlotConfig(PlotConfig):
+    def __init__(self):
+        super().__init__()
+
+        self.COLOR_MAPPINGS_CELL_LINE_CONDITION = self.COLOR_MAPPINGS_CONDITION_AND_ALS
+        self.ORDERED_CELL_LINES_NAMES = ['FUSHomozygous_Untreated','FUSHeterozygous_Untreated',
+                                         'FUSRevertant_Untreated']
+        self.ORDERED_MARKERS = ['GM130','Phalloidin','G3BP1','CLTC','mitotracker','NCL','KIF5A', 'TOMM20', 'PURA',
+         'NONO','SCNA','ANXA11','FUS','TDP43','PEX14', 'DAPI','PSD95','PML',
+        'CD41','NEMO','Calreticulin','LAMP1','SQSTM1','DCP1A','FMRP']
+
+class DistancesNeuronsFUSD18PlotConfig(PlotConfig):
+    def __init__(self):
+        super().__init__()
+
+        self.COLOR_MAPPINGS_CELL_LINE_CONDITION = self.COLOR_MAPPINGS_CONDITION_AND_ALS
+        self.ORDERED_CELL_LINES_NAMES = ['FUSHomozygous_Untreated','FUSHeterozygous_Untreated',
+                                         'FUSRevertant_Untreated']
+        self.ORDERED_MARKERS = ['GM130','Phalloidin','G3BP1','CLTC','mitotracker','NCL','KIF5A', 'TOMM20', 'PURA',
+         'NONO','SNCA','ANXA11','FUS','TDP43','PEX14', 'DAPI','PSD95','PML',
+        'CD41','NEMO','Calreticulin','LAMP1','SQSTM1','DCP1A','FMRP']
 class DistancesdNLSPlotConfig(PlotConfig):
     def __init__(self):
         super().__init__()
