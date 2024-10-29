@@ -3,9 +3,9 @@ import sys
 from typing import List
 sys.path.insert(1, os.getenv("NOVA_HOME"))
 
-from src.datasets.dataset_config import DatasetConfig
+from src.embeddings.embeddings_config import EmbeddingsConfig
 
-class DistanceConfig(DatasetConfig):
+class DistanceConfig(EmbeddingsConfig):
     def __init__(self):
         super().__init__()
 
@@ -14,3 +14,6 @@ class DistanceConfig(DatasetConfig):
         
         # Which cell line + condition to use as baseline
         self.BASELINE_CELL_LINE_CONDITION:str = "WT_Untreated"
+
+        # Wether to use random split on the baseline samples
+        self.RANDOM_SPLIT:bool = True

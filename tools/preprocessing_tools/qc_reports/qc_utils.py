@@ -737,7 +737,7 @@ def create_sublists_by_marker_cell_line(images, raw, n, cell_lines_for_disp):
             marker = parts[-2]
             cur_cond = parts[-3]
             cur_cell_line = parts[-4]
-        if 'SCNA' in cur_cell_line:
+        if f'{cur_cell_line}_{cur_cond}' not in cell_lines_for_disp:
             continue
         cell_line_for_disp = cell_lines_for_disp[f'{cur_cell_line}_{cur_cond}']
         # Create a key from the combination of marker and cell line
@@ -1187,6 +1187,7 @@ def plot_hm(df, split_by, rows, columns, value='cells_count_in_valid_tiles_mean'
             ax1.set_ylabel(rows.replace("_", " "), color="navy")
             ax2.set_ylabel('')
             ax2.set_yticks([])
+            ax1.set_yticklabels(ax1.get_yticklabels(), rotation=0)#, ha="right", rotation_mode="anchor")
             # Adjust the position of the colorbar
             # cbar = ax1.figure.colorbar(ax1.collections[0])
             # cbar.ax.tick_params(labelsize=16)

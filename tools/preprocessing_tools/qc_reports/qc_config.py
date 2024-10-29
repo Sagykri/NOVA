@@ -369,8 +369,8 @@ per_custom_palette = [condition_colors[cond] for cond in condition_order]
 per_cell_lines_for_disp = {f'{cell_line}_{per}':f'{cell_line}_{per}' for cell_line in per_cell_lines for per in pers}
 
 # deltaNLS
-dnls_cell_lines = ['WT','TDP43']
-dnls_cell_lines_to_cond = {'WT':['Untreated'], 'TDP43':['dox','Untreated']}
+dnls_cell_lines = ['TDP43']
+dnls_cell_lines_to_cond = {'TDP43':['dox','Untreated']}
 dnls_panels = pd.DataFrame([['G3BP1','TDP43','SQSTM1','PSD95',np.nan,'GM130','NCL','ANXA11','Calreticulin','Pericentrin','Rab5','KIFC1','mitotracker',np.nan],
                             ['KIF5A','DCP1A','FMRP','CLTC','KIF20A','TOMM20','FUS','SCNA','LAMP1','TIA1','NONO','NEMO','PML','TDP43'],
                             ['PURA','Tubulin','Phalloidin','CD41',np.nan,np.nan,np.nan,np.nan,np.nan,np.nan,np.nan,np.nan,'PEX14',np.nan],
@@ -392,7 +392,7 @@ dnls_marker_info = pd.DataFrame([[['Cy5']]*12 + [['mCherry']]*14 + [['GFP']]*5 +
 
 dnls_line_colors = {
     'TDP43 Untreated': colorblind_palette[4],
-    'WT Untreated': colorblind_palette[9],
+    # 'WT Untreated': colorblind_palette[9],
     'TDP43 dox': colorblind_palette[2]
 }
 dnls_lines_order = dnls_line_colors.keys()

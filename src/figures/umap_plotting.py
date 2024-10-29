@@ -161,8 +161,8 @@ def __plot_umap_embeddings(umap_embeddings: np.ndarray[float],
         raise ValueError("The number of embeddings and labels must match.")
 
     name_color_dict =  config_plot.COLOR_MAPPINGS
-    name_key = config_plot.UMAP_MAPPINGS_ALIAS_KEY
-    color_key = config_plot.UMAP_MAPPINGS_COLOR_KEY
+    name_key = config_plot.MAPPINGS_ALIAS_KEY
+    color_key = config_plot.MAPPINGS_COLOR_KEY
     marker_size = config_plot.SIZE
     alpha = config_plot.ALPHA
     to_color = get_if_exists(config_plot, 'TO_COLOR', None)

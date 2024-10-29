@@ -293,8 +293,8 @@ def __plot_boxplot(distances:pd.DataFrame, baseline:str, condition:str,
         cur_distances=distances[distances.condition.isin([baseline,condition])] # after sorting, we can include also the baseline distances
     # Plotting
     marker_name_color_dict = config_plot.COLOR_MAPPINGS_MARKERS
-    name_key=config_plot.UMAP_MAPPINGS_ALIAS_KEY
-    color_key=config_plot.UMAP_MAPPINGS_COLOR_KEY
+    name_key=config_plot.MAPPINGS_ALIAS_KEY
+    color_key=config_plot.MAPPINGS_COLOR_KEY
     condition_name_color_dict = config_plot.COLOR_MAPPINGS_CELL_LINE_CONDITION
     condition_to_color = {key: value[color_key] for key, value in condition_name_color_dict.items()}
     if not upper_graph_ylim: # case where we don't split the y axis
@@ -442,7 +442,7 @@ def __convert_labels(plot, baseline:str, config_plot:PlotConfig)->str:
     """
     marker_name_color_dict = config_plot.COLOR_MAPPINGS_MARKERS
     condition_name_color_dict = config_plot.COLOR_MAPPINGS_CELL_LINE_CONDITION
-    name_key=config_plot.UMAP_MAPPINGS_ALIAS_KEY
+    name_key=config_plot.MAPPINGS_ALIAS_KEY
     if not marker_name_color_dict:
         return baseline
 
