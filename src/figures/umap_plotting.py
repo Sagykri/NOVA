@@ -167,8 +167,8 @@ def __plot_umap_embeddings(umap_embeddings: np.ndarray[float],
     alpha = config_plot.ALPHA
     to_color = get_if_exists(config_plot, 'TO_COLOR', None)
     show_metric = config_data.SHOW_ARI
-    combine_samples = get_if_exists(config_plot, 'COMBINE_SAMPLES', False)
-    logging.info(f'combine_samples: {combine_samples}')
+    mix_groups = get_if_exists(config_plot, 'MIX_GROUPS', False)
+    logging.info(f'mix_groups: {mix_groups}')
     unique_groups = np.unique(label_data)
 
     ordered_marker_names = get_if_exists(config_plot, 'ORDERED_MARKER_NAMES', None)
@@ -203,7 +203,7 @@ def __plot_umap_embeddings(umap_embeddings: np.ndarray[float],
         color_array = np.array([rgba_color] * group_indices.shape[0])
 
         label = name_color_dict[group][name_key] if name_color_dict else group
-        if not combine_samples:
+        if not mix_groups:
             ax.scatter(
                 umap_embeddings[group_indices, 0],
                 umap_embeddings[group_indices, 1],
@@ -219,7 +219,7 @@ def __plot_umap_embeddings(umap_embeddings: np.ndarray[float],
             colors.append(color_array)
             indices.append(group_indices)
     
-    if combine_samples:
+    if mix_groups:
         colors = np.concatenate(colors)
         indices = np.concatenate(indices)
         shuffled_indices = np.random.permutation(len(indices))
@@ -234,7 +234,7 @@ def __plot_umap_embeddings(umap_embeddings: np.ndarray[float],
             linewidths=0,
         )                    
     __format_UMAP_axes(ax, title)
-    if not combine_samples:
+    if not mix_groups:
         __format_UMAP_legend(ax, marker_size)
         
     if show_metric:

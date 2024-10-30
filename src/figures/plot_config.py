@@ -19,8 +19,8 @@ class PlotConfig(BaseConfig):
         # Set the alpha of the dots (0=max opacity, 1=no opacity)
         self.ALPHA:float = None
         
-        # Wether to mix-up different groups' plotting order in UMAP
-        self.COMBINE_SAMPLES:bool = False
+        # Whether to mix-up different groups' plotting order in UMAP; used when groups are plotted on top of each other.
+        self.MIX_GROUPS:bool = False
 
         # Set the color mapping dictionary (name: {alias:alias, color:color})
         self.COLOR_MAPPINGS:Dict[str, Dict[str,str]] = None
@@ -37,11 +37,8 @@ class PlotConfig(BaseConfig):
         self.ORDERED_MARKERS:List[str] = None
         
         # Define cell line order for bubble plot
-        self.ORDERED_CELL_LINES_NAMES:List[str] = None
+        self.ORDERED_CELL_LINES:List[str] = None
 
-        # Define a range for the upper graph's y-axis (used for marker ranking graph, if y-axis cut is needed)
-        self.UPPER_GRAPH_YLIM:Tuple[float,float] = None
-
-        # Define a range for the lower graph's y-axis (used for marker ranking graph, if y-axis cut is needed)
-        self.LOWER_GRAPH_YLIM:Tuple[float,float] = None
+        # Define a range for the y-axis break (used for marker ranking graph, if y-axis cut is needed)
+        self.YAXIS_CUT_RANGES:Dict[str:Tuple[float,float], str:Tuple[float,float]] = None
 

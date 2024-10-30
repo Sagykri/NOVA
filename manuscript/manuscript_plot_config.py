@@ -40,7 +40,7 @@ class UMAP0StressDAPIPlotConfig(UMAP0StressPlotConfig):
     def __init__(self):
         super().__init__()
                
-        self.COMBINE_SAMPLES = True
+        self.MIX_GROUPS = True
 
 class UMAP0ALSPlotConfig(PlotConfig):
     def __init__(self):
@@ -193,7 +193,7 @@ class DistancesNeuronsALSPlotConfig(PlotConfig):
         super().__init__()
 
         self.COLOR_MAPPINGS_CELL_LINE_CONDITION = self.COLOR_MAPPINGS_CONDITION_AND_ALS
-        self.ORDERED_CELL_LINES_NAMES = ['FUSHomozygous_Untreated',
+        self.ORDERED_CELL_LINES = ['FUSHomozygous_Untreated',
                                          'TDP43_Untreated','TBK1_Untreated','OPTN_Untreated']
         self.ORDERED_MARKERS = ['GM130','Phalloidin','G3BP1','CLTC','mitotracker','NCL','KIF5A', 'TOMM20', 'PURA',
          'NONO','SCNA','ANXA11','FUS','TDP43','PEX14', 'DAPI','PSD95','PML',
@@ -204,7 +204,7 @@ class DistancesNeuronsFUSPlotConfig(PlotConfig):
         super().__init__()
 
         self.COLOR_MAPPINGS_CELL_LINE_CONDITION = self.COLOR_MAPPINGS_CONDITION_AND_ALS
-        self.ORDERED_CELL_LINES_NAMES = ['FUSHomozygous_Untreated','FUSHeterozygous_Untreated',
+        self.ORDERED_CELL_LINES = ['FUSHomozygous_Untreated','FUSHeterozygous_Untreated',
                                          'FUSRevertant_Untreated']
         self.ORDERED_MARKERS = ['GM130','Phalloidin','G3BP1','CLTC','mitotracker','NCL','KIF5A', 'TOMM20', 'PURA',
          'NONO','SCNA','ANXA11','FUS','TDP43','PEX14', 'DAPI','PSD95','PML',
@@ -215,7 +215,7 @@ class DistancesNeuronsFUSD18PlotConfig(PlotConfig):
         super().__init__()
 
         self.COLOR_MAPPINGS_CELL_LINE_CONDITION = self.COLOR_MAPPINGS_CONDITION_AND_ALS
-        self.ORDERED_CELL_LINES_NAMES = ['FUSHomozygous_Untreated','FUSHeterozygous_Untreated',
+        self.ORDERED_CELL_LINES = ['FUSHomozygous_Untreated','FUSHeterozygous_Untreated',
                                          'FUSRevertant_Untreated']
         self.ORDERED_MARKERS = ['GM130','Phalloidin','G3BP1','CLTC','mitotracker','NCL','KIF5A', 'TOMM20', 'PURA',
          'NONO','SNCA','ANXA11','FUS','TDP43','PEX14', 'DAPI','PSD95','PML',
@@ -225,8 +225,7 @@ class DistancesdNLSPlotConfig(PlotConfig):
         super().__init__()
 
         self.COLOR_MAPPINGS_CELL_LINE_CONDITION = self.COLOR_MAPPINGS_DOX
-        self.UPPER_GRAPH_YLIM = (0.55, 1)
-        self.LOWER_GRAPH_YLIM = (-0.01, 0.25)
+        self.YAXIS_CUT_RANGES = {'upper_graph':(0.55, 1), 'lower_graph':(-0.01, 0.25)}
         self.SHOW_BASELINE = True
 
 class DistancesdNLSNoBaselinePlotConfig(PlotConfig):
@@ -234,8 +233,7 @@ class DistancesdNLSNoBaselinePlotConfig(PlotConfig):
         super().__init__()
 
         self.COLOR_MAPPINGS_CELL_LINE_CONDITION = self.COLOR_MAPPINGS_DOX
-        self.UPPER_GRAPH_YLIM = (0.55, 1)
-        self.LOWER_GRAPH_YLIM = (-0.01, 0.25)
+        self.YAXIS_CUT_RANGES = {'upper_graph':(0.55, 1), 'lower_graph':(-0.01, 0.25)}
         self.SHOW_BASELINE = False
 
 class DistancesAlyssaCoynePlotConfig(PlotConfig):

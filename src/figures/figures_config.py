@@ -15,8 +15,9 @@ class FigureConfig(DatasetConfig):
         # Decide if to show ARI metric on the UMAP
         self.SHOW_ARI:bool = False
 
-        # Function to edit labels; only used when SHOW_ARI==True and if the ARI labels needs to be different than the shown labels
-        self.ARI_LABELS_FUNC:str = None
+        # Function to edit labels; only used when SHOW_ARI==True and if the labels used for the ARI calculation, needs to be different than the shown labels.
+        # Example of usage: self.ARI_LABELS_FUNC = MapLabelsFunction.CELL_LINES.name
+        self.ARI_LABELS_FUNC:str = None 
 
         # Which cell line + condition is used as baseline; used for distances figures
         self.BASELINE_CELL_LINE_CONDITION:str = None

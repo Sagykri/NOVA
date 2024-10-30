@@ -480,7 +480,8 @@ INPUT_FOLDERS:List[str]
 # Decide if to show ARI metric on the UMAP
 SHOW_ARI:bool
 
-# Function to edit labels; only used when SHOW_ARI==True and if the ARI labels needs to be different than the shown labels
+# Function to edit labels; only used when SHOW_ARI==True and if the labels used for the ARI calculation, needs to be different than the shown labels.
+# Example of usage: self.ARI_LABELS_FUNC = MapLabelsFunction.CELL_LINES.name
 ARI_LABELS_FUNC:str
 
 # Which cell line + condition is used as baseline; used for distances figures
@@ -498,8 +499,8 @@ SIZE:int
 # Set the alpha of the dots (0=max opacity, 1=no opacity)
 ALPHA:float 
 
-# Wether to mix-up different groups' plotting order in UMAP
-COMBINE_SAMPLES:bool
+# Whether to mix-up different groups' plotting order in UMAP; used when groups are plotted on top of each other.
+MIX_GROUPS:bool
 
 # Set the color mapping dictionary (name: {alias:alias, color:color})
 COLOR_MAPPINGS:Dict[str, Dict[str,str]]
@@ -516,13 +517,10 @@ SHOW_BASELINE:bool
 ORDERED_MARKERS:List[str]
 
 # Define cell line order for bubble plot
-ORDERED_CELL_LINES_NAMES:List[str]
+ORDERED_CELL_LINES:List[str]
 
-# Define a range for the upper graph's y-axis (used for marker ranking graph, if y-axis cut is needed)
-UPPER_GRAPH_YLIM:Tuple[float,float]
-
-# Define a range for the lower graph's y-axis (used for marker ranking graph, if y-axis cut is needed)
-LOWER_GRAPH_YLIM:Tuple[float,float]
+# Define a range for the y-axis break (used for marker ranking graph, if y-axis cut is needed)
+YAXIS_CUT_RANGES:Dict[str:Tuple[float,float], str:Tuple[float,float]]
 ```
 
 ### Creating a new configuration
