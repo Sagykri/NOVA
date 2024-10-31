@@ -520,7 +520,10 @@ ORDERED_MARKERS:List[str]
 ORDERED_CELL_LINES:List[str]
 
 # Define a range for the y-axis break (used for marker ranking graph, if y-axis cut is needed)
-YAXIS_CUT_RANGES:Dict[str:Tuple[float,float], str:Tuple[float,float]]
+YAXIS_CUT_RANGES = {
+'UPPER_GRAPH': Tuple[float,float],
+'LOWER_GRAPH': Tuple[float,float]
+}
 ```
 
 ### Creating a new configuration

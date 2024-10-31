@@ -225,7 +225,7 @@ class DistancesdNLSPlotConfig(PlotConfig):
         super().__init__()
 
         self.COLOR_MAPPINGS_CELL_LINE_CONDITION = self.COLOR_MAPPINGS_DOX
-        self.YAXIS_CUT_RANGES = {'upper_graph':(0.55, 1), 'lower_graph':(-0.01, 0.25)}
+        self.YAXIS_CUT_RANGES = {'UPPER_GRAPH':(0.55, 1), 'LOWER_GRAPH':(-0.01, 0.25)}
         self.SHOW_BASELINE = True
 
 class DistancesdNLSNoBaselinePlotConfig(PlotConfig):
@@ -233,7 +233,7 @@ class DistancesdNLSNoBaselinePlotConfig(PlotConfig):
         super().__init__()
 
         self.COLOR_MAPPINGS_CELL_LINE_CONDITION = self.COLOR_MAPPINGS_DOX
-        self.YAXIS_CUT_RANGES = {'upper_graph':(0.55, 1), 'lower_graph':(-0.01, 0.25)}
+        self.YAXIS_CUT_RANGES = {'UPPER_GRAPH':(0.55, 1), 'LOWER_GRAPH':(-0.01, 0.25)}
         self.SHOW_BASELINE = False
 
 class DistancesAlyssaCoynePlotConfig(PlotConfig):

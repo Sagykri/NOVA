@@ -40,5 +40,8 @@ class PlotConfig(BaseConfig):
         self.ORDERED_CELL_LINES:List[str] = None
 
         # Define a range for the y-axis break (used for marker ranking graph, if y-axis cut is needed)
-        self.YAXIS_CUT_RANGES:Dict[str:Tuple[float,float], str:Tuple[float,float]] = None
+        self.YAXIS_CUT_RANGES = {
+        'UPPER_GRAPH': Tuple[float,float],
+        'LOWER_GRAPH': Tuple[float,float]
+        }
 

@@ -344,8 +344,8 @@ def __plot_boxplot(distances:pd.DataFrame, baseline:str, condition:str,
     
     else: #break the y axis
 
-        upper_graph_ylim = get_if_exists(yaxis_cut_ranges, 'upper_graph', None)
-        lower_graph_ylim = get_if_exists(yaxis_cut_ranges, 'lower_graph', None)
+        upper_graph_ylim = get_if_exists(yaxis_cut_ranges, 'UPPER_GRAPH', None)
+        lower_graph_ylim = get_if_exists(yaxis_cut_ranges, 'LOWER_GRAPH', None)
 
         fig, axs = plt.subplots(figsize=figsize, nrows=2)
         fig.subplots_adjust(hspace=0.0)
