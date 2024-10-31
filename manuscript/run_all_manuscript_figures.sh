@@ -65,11 +65,15 @@ $NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_umaps_and_plot -m 1000
 # #######################
 # # Figure 3 -  supp
 # #######################
-# $NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_umaps_and_plot -m 1000 \
-# -a $finetune_model $data_configs/dNLSUMAP0B4DatasetConfig $plot_configs/UMAP0dNLSPlotConfig -q short -j umap0_dnls_b4
 
 # $NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_umaps_and_plot -m 1000 \
-# -a $finetune_model $data_configs/dNLSUMAP0B5DatasetConfig $plot_configs/UMAP0dNLSPlotConfig -q short -j umap0_dnls_b5
+# -a $finetune_model $data_configs/dNLSUMAP0B3TDP43DatasetConfig $plot_configs/UMAP0dNLSPlotConfig -q short -j umap0_dnls_b3
+
+# $NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_umaps_and_plot -m 1000 \
+# -a $finetune_model $data_configs/dNLSUMAP0B4TDP43DatasetConfig $plot_configs/UMAP0dNLSPlotConfig -q short -j umap0_dnls_b4
+
+# $NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_umaps_and_plot -m 1000 \
+# -a $finetune_model $data_configs/dNLSUMAP0B5TDP43DatasetConfig $plot_configs/UMAP0dNLSPlotConfig -q short -j umap0_dnls_b5
 
 # #######################
 # # Figure 5

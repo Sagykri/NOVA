@@ -21,14 +21,14 @@ marker_info = pd.DataFrame([[['Cy5']]*10 + [['mCherry']]*11 + [['GFP']]*4,
                          columns = ['G3BP1','NONO','SQSTM1','PSD95','NEMO','GM130','NCL','ANXA11','Calreticulin','mitotracker',
                                  'KIF5A','TDP43','FMRP','CLTC','DCP1A','TOMM20','FUS','SCNA','LAMP1','TIA1','PML',
                                  'PURA','CD41','Phalloidin', 'PEX14']).T  #order here is important - taken from Lena's sheet
-cell_lines = ['FUSHomozygous', 'TDP43', 'TBK1', 'WT', 'FUSRevertant','OPTN', 'FUSHeterozygous'] #'SCNA',
+cell_lines = ['FUSHomozygous', 'TDP43', 'TBK1', 'WT', 'FUSRevertant','OPTN', 'FUSHeterozygous', 'SCNA']
 cell_lines_to_cond = {'FUSHomozygous':['Untreated'], 'TDP43':['Untreated'], 'TBK1':['Untreated'],
                       'WT':['Untreated','stress'], 'FUSRevertant':['Untreated'],
-                      'OPTN':['Untreated'], 'FUSHeterozygous':['Untreated']} #'SCNA':['Untreated'],
+                      'OPTN':['Untreated'], 'FUSHeterozygous':['Untreated'],'SCNA':['Untreated']}
 cell_lines_for_disp = {'FUSHomozygous_Untreated':'FUSHomozygous', 'TDP43_Untreated':'TDP43', 
                        'TBK1_Untreated':'TBK1', 'WT_stress':'WT_stress', 'WT_Untreated':'WT_Untreated',
                         'FUSRevertant_Untreated':'FUSRevertant',
-                        'OPTN_Untreated':'OPTN', 'FUSHeterozygous_Untreated':'FUSHeterozygous'} #'SCNA_Untreated':'SCNA',
+                        'OPTN_Untreated':'OPTN', 'FUSHeterozygous_Untreated':'FUSHeterozygous','SCNA_Untreated':'SNCA'}
 reps = ['rep1','rep2']
 colorblind_palette = sns.color_palette('colorblind')
 line_colors = {
@@ -36,7 +36,7 @@ line_colors = {
     'FUSHomozygous': colorblind_palette[1],
     'FUSRevertant': colorblind_palette[2],
     'OPTN': colorblind_palette[8],
-    'SCNA': colorblind_palette[4],
+    'SNCA': colorblind_palette[4],
     'TBK1': colorblind_palette[5],
     'TDP43': colorblind_palette[6],
     'WT Untreated': colorblind_palette[9],
@@ -369,8 +369,8 @@ per_custom_palette = [condition_colors[cond] for cond in condition_order]
 per_cell_lines_for_disp = {f'{cell_line}_{per}':f'{cell_line}_{per}' for cell_line in per_cell_lines for per in pers}
 
 # deltaNLS
-dnls_cell_lines = ['WT','TDP43']
-dnls_cell_lines_to_cond = {'WT':['Untreated'], 'TDP43':['dox','Untreated']}
+dnls_cell_lines = ['TDP43']
+dnls_cell_lines_to_cond = {'TDP43':['dox','Untreated']}
 dnls_panels = pd.DataFrame([['G3BP1','TDP43','SQSTM1','PSD95',np.nan,'GM130','NCL','ANXA11','Calreticulin','Pericentrin','Rab5','KIFC1','mitotracker',np.nan],
                             ['KIF5A','DCP1A','FMRP','CLTC','KIF20A','TOMM20','FUS','SCNA','LAMP1','TIA1','NONO','NEMO','PML','TDP43'],
                             ['PURA','Tubulin','Phalloidin','CD41',np.nan,np.nan,np.nan,np.nan,np.nan,np.nan,np.nan,np.nan,'PEX14',np.nan],
@@ -392,7 +392,6 @@ dnls_marker_info = pd.DataFrame([[['Cy5']]*12 + [['mCherry']]*14 + [['GFP']]*5 +
 
 dnls_line_colors = {
     'TDP43 Untreated': colorblind_palette[4],
-    'WT Untreated': colorblind_palette[9],
     'TDP43 dox': colorblind_palette[2]
 }
 dnls_lines_order = dnls_line_colors.keys()

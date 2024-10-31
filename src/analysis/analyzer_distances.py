@@ -51,7 +51,7 @@ class AnalyzerDistances(Analyzer):
         baseline_cell_line_cond = get_if_exists(self.data_config, 'BASELINE_CELL_LINE_CONDITION', None)
         assert baseline_cell_line_cond is not None, "BASELINE_CELL_LINE_CONDITION is None. You have to specify the baseline to calculate the distance score against (for example: WT_Untreated or TDP43_Untreated)"
 
-        random_split = get_if_exists(self.data_config, 'RANDOM_SPLIT', True)
+        random_split = get_if_exists(self.data_config, 'RANDOM_SPLIT_BASELINE', True)
         logging.info(f'random_split for baseline reps is {random_split}')
         
         reps = self.data_config.REPS

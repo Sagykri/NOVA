@@ -12,7 +12,7 @@ import pandas as pd
 import logging
 import math
 
-from typing import List, Tuple
+from typing import Dict, List, Tuple
 import seaborn as sns
 import matplotlib.colors as mcolors
 import matplotlib.pyplot as plt
@@ -78,12 +78,10 @@ def plot_marker_ranking(distances:pd.DataFrame, saveroot:str, config_data:Datase
             savepath = os.path.join(saveroot, f'{cond}_vs_{baseline}_boxplot') 
             if not show_baseline:
                 savepath = f'{savepath}_without_baseline'
-        upper_graph_ylim = get_if_exists(config_plot, 'UPPER_GRAPH_YLIM', None)
-        lower_graph_ylim = get_if_exists(config_plot, 'LOWER_GRAPH_YLIM', None)
+        yaxis_cut_ranges = get_if_exists(config_plot, 'YAXIS_CUT_RANGES', None)
         __plot_boxplot(distances, baseline, cond, metric, 
                      pvalues_df, config_plot, show_effect_size=show_effect_size, savepath = savepath,
-                     upper_graph_ylim=upper_graph_ylim, 
-                     lower_graph_ylim=lower_graph_ylim, show_baseline=show_baseline)
+                     yaxis_cut_ranges=yaxis_cut_ranges,show_baseline=show_baseline)
         
 def plot_clustermap(distances:pd.DataFrame, saveroot:str, config_data:DatasetConfig, config_plot:PlotConfig, metric:str='ARI_KMeansConstrained',
                     cmap:str='Blues_r', figsize:Tuple[int,int]=(10, 10))->None:
@@ -174,7 +172,7 @@ def plot_bubble_plot(distances:pd.DataFrame, saveroot:str, config_data:DatasetCo
 
     # Calculate marker p-values and process the dataframe
     pvalues_df = __calculate_marker_pvalue_per_condition(distances, baseline, conditions, metric, __cliffs_delta)  
-    conditions_order = get_if_exists(config_plot, 'ORDERED_CELL_LINES_NAMES',None)
+    conditions_order = get_if_exists(config_plot, 'ORDERED_CELL_LINES',None)
     if conditions_order is not None:
         pvalues_df['condition'] = pd.Categorical(pvalues_df['condition'], categories=conditions_order, ordered=True)
         pvalues_df.sort_values(by=['condition'])
@@ -258,8 +256,8 @@ def __calculate_marker_pvalue_per_condition(distances:pd.DataFrame, baseline:str
 
 def __plot_boxplot(distances:pd.DataFrame, baseline:str, condition:str, 
                   metric:str, pvalues_df:pd.DataFrame, config_plot:PlotConfig, show_effect_size:bool=False,
-                  savepath:str=None, upper_graph_ylim:Tuple[float,float]=None, figsize:Tuple[int,int]=(12,3),
-                  lower_graph_ylim:Tuple[float,float]=None, show_baseline:bool=True)->None:
+                  savepath:str=None, yaxis_cut_ranges:Dict[str:Tuple[float,float],str:Tuple[float,float]]=None, 
+                  figsize:Tuple[int,int]=(12,3),show_baseline:bool=True)->None:
     """
     Plot a boxplot to visualize the distribution and significance of distances for a given condition compared to a baseline.
     The markers are displayed in descending order of their distance from baseline. Optionally, effect sizes can be shown.
@@ -280,6 +278,10 @@ def __plot_boxplot(distances:pd.DataFrame, baseline:str, condition:str,
         config_plot (PlotConfig): plot config
         show_effect_size (bool, optional): If True, effect sizes are displayed on the plot. Defaults to False.
         savepath (str, optional): File path to save the plot. If None, the plot is shown but not saved. Defaults to None.
+        yaxis_cut_ranges (Dict[str:Tuple[float,float],str:Tuple[float,float]], optional): Dictionary holding y axis ranges, in case y axis break is needed. Defaults to None.
+        figsize (Tuple[int,int]): figures size. Defaults to (12,3). 
+        show_baseline (bool): Whether to show the baseline's ARI boxplot. Defaults to True.
+
     """
     # Filter and sort the data
     cur_distances=distances[distances.condition==condition] # for sorting we want only the condition distances
@@ -293,11 +295,11 @@ def __plot_boxplot(distances:pd.DataFrame, baseline:str, condition:str,
         cur_distances=distances[distances.condition.isin([baseline,condition])] # after sorting, we can include also the baseline distances
     # Plotting
     marker_name_color_dict = config_plot.COLOR_MAPPINGS_MARKERS
-    name_key=config_plot.UMAP_MAPPINGS_ALIAS_KEY
-    color_key=config_plot.UMAP_MAPPINGS_COLOR_KEY
+    name_key=config_plot.MAPPINGS_ALIAS_KEY
+    color_key=config_plot.MAPPINGS_COLOR_KEY
     condition_name_color_dict = config_plot.COLOR_MAPPINGS_CELL_LINE_CONDITION
     condition_to_color = {key: value[color_key] for key, value in condition_name_color_dict.items()}
-    if not upper_graph_ylim: # case where we don't split the y axis
+    if not yaxis_cut_ranges: # case where we don't split the y axis
         fig = plt.figure(figsize=figsize)
         boxplot=sns.boxplot(data=cur_distances, order=dists_order, hue='condition',
                 x='marker', y=metric, fliersize=0, palette=condition_to_color)
@@ -341,6 +343,10 @@ def __plot_boxplot(distances:pd.DataFrame, baseline:str, condition:str,
         legend.set_frame_on(False)
     
     else: #break the y axis
+
+        upper_graph_ylim = get_if_exists(yaxis_cut_ranges, 'UPPER_GRAPH', None)
+        lower_graph_ylim = get_if_exists(yaxis_cut_ranges, 'LOWER_GRAPH', None)
+
         fig, axs = plt.subplots(figsize=figsize, nrows=2)
         fig.subplots_adjust(hspace=0.0)
 
@@ -442,7 +448,7 @@ def __convert_labels(plot, baseline:str, config_plot:PlotConfig)->str:
     """
     marker_name_color_dict = config_plot.COLOR_MAPPINGS_MARKERS
     condition_name_color_dict = config_plot.COLOR_MAPPINGS_CELL_LINE_CONDITION
-    name_key=config_plot.UMAP_MAPPINGS_ALIAS_KEY
+    name_key=config_plot.MAPPINGS_ALIAS_KEY
     if not marker_name_color_dict:
         return baseline
 
