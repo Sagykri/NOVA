@@ -84,6 +84,6 @@ class AlyssaCoyneDistanceConfig(DistanceConfig):
         self.BASELINE_CELL_LINE_CONDITION = "Controls_Untreated"
         self.ADD_BATCH_TO_LABEL = True
         self.ADD_REP_TO_LABEL = True
-        self.RANDOM_SPLIT = False
+        self.RANDOM_SPLIT_BASELINE = False
         self.MARKERS_TO_EXCLUDE = ['MERGED']
         self.REPS = [f'rep{i}' for i in range(1,11)]   

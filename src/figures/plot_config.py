@@ -30,7 +30,7 @@ class PlotConfig(BaseConfig):
         # Set the color mapping key
         self.MAPPINGS_COLOR_KEY:str = 'color'
 
-        # Wether to show the baseline's ARI boxplot; used for marker ranking plots
+        # Whether to show the baseline's ARI boxplot; used for marker ranking plots
         self.SHOW_BASELINE:bool = True
 
         # Define marker order for bubble plot

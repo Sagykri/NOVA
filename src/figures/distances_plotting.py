@@ -280,7 +280,7 @@ def __plot_boxplot(distances:pd.DataFrame, baseline:str, condition:str,
         savepath (str, optional): File path to save the plot. If None, the plot is shown but not saved. Defaults to None.
         yaxis_cut_ranges (Dict[str:Tuple[float,float],str:Tuple[float,float]], optional): Dictionary holding y axis ranges, in case y axis break is needed. Defaults to None.
         figsize (Tuple[int,int]): figures size. Defaults to (12,3). 
-        show_baseline (bool): Wether to show the baseline's ARI boxplot. Defaults to True.
+        show_baseline (bool): Whether to show the baseline's ARI boxplot. Defaults to True.
 
     """
     # Filter and sort the data
