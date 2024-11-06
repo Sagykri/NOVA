@@ -1,6 +1,6 @@
 import sys
 import os
-from typing import Dict, List, Tuple
+from typing import Dict, List, Optional, Tuple
 
 sys.path.insert(1, os.getenv("NOVA_HOME")) 
 from src.common.base_config import BaseConfig
@@ -40,8 +40,8 @@ class PlotConfig(BaseConfig):
         self.ORDERED_CELL_LINES:List[str] = None
 
         # Define a range for the y-axis break (used for marker ranking graph, if y-axis cut is needed)
-        self.YAXIS_CUT_RANGES = {
-        'UPPER_GRAPH': Tuple[float,float],
-        'LOWER_GRAPH': Tuple[float,float]
+        self.YAXIS_CUT_RANGES: dict[str, Optional[Tuple[float, float]]] = {
+            'UPPER_GRAPH': None,
+            'LOWER_GRAPH': None
         }
 

@@ -256,7 +256,7 @@ def __calculate_marker_pvalue_per_condition(distances:pd.DataFrame, baseline:str
 
 def __plot_boxplot(distances:pd.DataFrame, baseline:str, condition:str, 
                   metric:str, pvalues_df:pd.DataFrame, config_plot:PlotConfig, show_effect_size:bool=False,
-                  savepath:str=None, yaxis_cut_ranges:Dict[str:Tuple[float,float],str:Tuple[float,float]]=None, 
+                  savepath:str=None, yaxis_cut_ranges:Dict[str, Tuple[float, float]] = None, 
                   figsize:Tuple[int,int]=(12,3),show_baseline:bool=True)->None:
     """
     Plot a boxplot to visualize the distribution and significance of distances for a given condition compared to a baseline.

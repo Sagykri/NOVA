@@ -74,3 +74,7 @@ $NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_embeddings -g -m 20000
 
 # $NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_embeddings -g -m 20000 -b 10 \
 # -a $finetuned_model $embeddings_configs/EmbeddingsDay18B2DatasetConfig -q short-gpu -j emb_d18_2
+
+## Alyssa
+# $NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_embeddings -g -m 20000 -b 10 \
+# -a $finetuned_model $embeddings_configs/EmbeddingsAlyssaCoyneDatasetConfig -q short-gpu -j emb_alyssa
