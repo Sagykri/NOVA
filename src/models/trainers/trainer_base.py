@@ -63,6 +63,15 @@ class TrainerBase():
         """
         self.__set_params(trainer_config)     
         self.nova_model:NOVAModel = nova_model
+
+        # For fine-tuning
+        self.pretrained_model_path:str = get_if_exists(self.trainer_config, 'PRETRAINED_MODEL_PATH', None, verbose=True)
+        if self.pretrained_model_path is not None:
+            self.__load_weights_from_pretrained_model()
+            
+        layers_to_freeze = get_if_exists(self.trainer_config, 'LAYERS_TO_FREEZE', None)
+        if layers_to_freeze is not None and len(layers_to_freeze) > 0:
+            self.__try_freeze_layers(layers_to_freeze)
         
     @abstractmethod
     def loss(self, **kwargs)->float:
@@ -249,7 +258,44 @@ class TrainerBase():
         
         logging.info(f"Instantiate data augmentation object from class {data_augmentation_class.__name__}")
         self.data_augmentation = data_augmentation_class()
-            
+      
+  
+    def __load_weights_from_pretrained_model(self):
+        """Loads the weights from a given pretrained model path, while changing the output dimension of the head to the new output_dim
+        """
+        if self.pretrained_model_path is None:
+            logging.warning("'pretrained_model_path' was set to None. Can't load pretrained model.")
+            return
+        
+        assert os.path.exists(self.pretrained_model_path), f"The path to the pretrained model isn't exists ({self.pretrained_model_path})"
+        
+        logging.info(f"Loading pretrained model ({self.pretrained_model_path})")
+        pretrained_model = NOVAModel.load_from_checkpoint(self.pretrained_model_path).model
+        
+        # Modifying the head's output dim 
+        pretrained_model_out_dim = pretrained_model.head.out_features
+        model_out_dim = self.nova_model.model_config.OUTPUT_DIM
+        if pretrained_model_out_dim != model_out_dim:
+            logging.info(f"Changing the head output dim from {pretrained_model_out_dim} to {model_out_dim}")
+            pretrained_model.head = torch.nn.Linear(pretrained_model.head.in_features, model_out_dim)
+        
+        # Set the modified pretrained model to be the starting point for our model
+        self.nova_model.model = pretrained_model
+        logging.info(f"The updated head is: {self.nova_model.model.head}")
+        
+    def __try_freeze_layers(self, layers_to_freeze:List[str]):
+        """Trying to freeze layers based on the LAYERS_TO_FREEZE param in the config, if exists
+        """
+        
+        if len(layers_to_freeze) == 0:
+            logging.warning("No layers to freeze")
+            return
+        
+        # Freezing the layers
+        logging.info(f"Freeze layers: {layers_to_freeze}")
+        _freezed_layers = self._freeze_layers(layers_to_freeze)
+        logging.info(f"Layers freezed successfully : {_freezed_layers}")
+  
     def __try_restart_from_last_checkpoint(self):
         """Try restrat the training from the last checkpoint
         """

@@ -43,5 +43,3 @@ if __name__ == "__main__":
         raise e
     
     logging.info("Done")
-    
-# ./bash_commands/run_py.sh ./src/runables/preprocessing -g -m 20000 -b 10 -a ./src/preprocessing/configs/spd_batch3/SPD_Batch3 True  -j preprocessing_SPD_Batch3

@@ -38,14 +38,8 @@ class TrainerContrastive(TrainerBase):
         super().__init__(trainer_config, nova_model)
         
         self.negative_count:int = get_if_exists(self.trainer_config, 'NEGATIVE_COUNT', 5, verbose=True)
-        self.pretrained_model_path:str = get_if_exists(self.trainer_config, 'PRETRAINED_MODEL_PATH', None, verbose=True)
         
         self.loss_infoNCE:InfoNCE = InfoNCE(negative_mode = 'paired')
-        
-        if self.pretrained_model_path is not None:
-            # Handle fine-tuning
-            self.__load_weights_from_pretrained_model()
-            self.__try_freeze_layers()
         
     def loss(self, embeddings:torch.Tensor, anchor_idx:List[int], positive_idx:List[int], negative_idx:List[int])->float:
         """Calculating the loss value
@@ -211,34 +205,3 @@ class TrainerContrastive(TrainerBase):
         assert len(negative_idx[0])==negative_count, f"Mismatch in number of negatives, expected {negative_count}, but got {len(negative_idx[0])}"
 
         return anchor_idx, positive_idx, negative_idx
-    
-    def __try_freeze_layers(self):
-        """Trying to freeze layers based on the LAYERS_TO_FREEZE param in the config, if exists
-        """
-        layers_to_freeze = get_if_exists(self.trainer_config, 'LAYERS_TO_FREEZE', None)
-        if layers_to_freeze is None or len(layers_to_freeze) == 0:
-            # No layers to freeze
-            return
-        
-        # Freezing the layers
-        logging.info(f"Freeze layers: {layers_to_freeze}")
-        _freezed_layers = self._freeze_layers(layers_to_freeze)
-        logging.info(f"Layers freezed successfully : {_freezed_layers}")
-            
-    def __load_weights_from_pretrained_model(self):
-        """Loads the weights from a given pretrained model path, while changing the output dimension of the head to the new output_dim
-        """
-        if self.pretrained_model_path is None:
-            logging.warning("'pretrained_model_path' was set to None. Can't load pretrained model.")
-            return
-        
-        logging.info(f"Loading pretrained model ({self.pretrained_model_path})")
-        pretrained_model = NOVAModel.load_from_checkpoint(self.pretrained_model_path).model
-        
-        # Modifying the head's output dim 
-        logging.info(f"Changing the head output dim from {pretrained_model.head.out_features} to {self.nova_model.model_config.OUTPUT_DIM}")
-        pretrained_model.head = torch.nn.Linear(pretrained_model.head.in_features, self.nova_model.model_config.OUTPUT_DIM)
-        
-        # Set the modified pretrained model to be the starting point for our model
-        self.nova_model.model = pretrained_model
-        logging.info(f"The updated head is: {self.nova_model.model.head}")

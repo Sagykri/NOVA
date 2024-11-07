@@ -69,6 +69,3 @@ if __name__ == "__main__":
         logging.exception(str(e))
         raise e
     logging.info("Done")
-    
-# Example how to run:    
-# ./bash_commands/run_py.sh ./src/runables/train -g -m 40000 -b 44 -j train -a ./src/common/configs/model_config/ClassificationModelConfig ./src/common/configs/trainer_config/ClassificationTrainerConfig  ./src/datasets/configs/training_data_config/OpenCellTrainDatasetConfig
