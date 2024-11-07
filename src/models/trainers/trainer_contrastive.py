@@ -38,14 +38,8 @@ class TrainerContrastive(TrainerBase):
         super().__init__(trainer_config, nova_model)
         
         self.negative_count:int = get_if_exists(self.trainer_config, 'NEGATIVE_COUNT', 5, verbose=True)
-        self.pretrained_model_path:str = get_if_exists(self.trainer_config, 'PRETRAINED_MODEL_PATH', None, verbose=True)
         
         self.loss_infoNCE:InfoNCE = InfoNCE(negative_mode = 'paired')
-        
-        if self.pretrained_model_path is not None:
-            # Handle fine-tuning
-            self.__load_weights_from_pretrained_model()
-            self.__try_freeze_layers()
         
     def loss(self, embeddings:torch.Tensor, anchor_idx:List[int], positive_idx:List[int], negative_idx:List[int])->float:
         """Calculating the loss value
