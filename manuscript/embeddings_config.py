@@ -213,3 +213,16 @@ class EmbeddingsDay18B2DatasetConfig(EmbeddingsConfig):
         self.MARKERS_TO_EXCLUDE = None
         self.ADD_BATCH_TO_LABEL = True
         self.ADD_REP_TO_LABEL = True
+
+class EmbeddingsAlyssaCoyneDatasetConfig(EmbeddingsConfig):
+    def __init__(self):
+        super().__init__()
+
+        self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "AlyssaCoyne", "MOmaps_iPSC_patients_TDP43_PB_CoyneLab_7tiles", f) for f in 
+                        ["batch1"]]
+        
+        self.SPLIT_DATA = False
+        self.EXPERIMENT_TYPE = 'AlyssaCoyne_7tiles'    
+        self.MARKERS_TO_EXCLUDE = ['MERGED']
+        self.ADD_BATCH_TO_LABEL = True
+        self.ADD_REP_TO_LABEL = True

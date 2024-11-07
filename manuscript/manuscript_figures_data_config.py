@@ -487,12 +487,7 @@ class NeuronsUMAP2ALSB6FigureConfig(NeuronsUMAP2ALSFigureConfig):
         self.INPUT_FOLDERS = ["batch6"]
 
 
-class NeuronsUMAP2ALSB9FigureConfig(NeuronsUMAP2ALSFigureConfig):
-    def __init__(self):
-        super().__init__()
-        self.INPUT_FOLDERS = ["batch9"]
-
-        
+      
 class NeuronsUMAP2ALSB6_without_fus_marker_FigureConfig(NeuronsUMAP2ALSB6FigureConfig):
     def __init__(self):
         super().__init__()
