@@ -57,7 +57,7 @@ export NOVA_DATA_HOME=*path to the data folder*
 The model file can be downloaded from here:
 [model.pth](https://github.com/Sagykri/MOmaps/tree/main/outputs/vit_models/finetuned_model/model.pth) 
 
-The pretrained model also be downloaded using the link: [pretrained_model.pth](https://github.com/Sagykri/MOmaps/tree/main/outputs/vit_models/pretrained_model/model.pth)
+The pretrained model can be downloaded from here: [pretrained_model.pth](https://github.com/Sagykri/MOmaps/tree/main/outputs/vit_models/pretrained_model/model.pth)
 
 ## Usage
 
