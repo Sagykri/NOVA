@@ -11,7 +11,9 @@ Welcome to the official repository for **NOVA**, a deep learning framework desig
   - [Table of Contents](#table-of-contents)
   - [Introduction](#introduction)
   - [Installation](#installation)
-  - [Download the model](#download-the-model)
+  - [Download files](#download-files)
+    - [Download the model](#download-the-model)
+    - [Download the images](#download-the-images)
   - [Usage](#usage)
     - [Generate Embeddings](#generate-embeddings)
     - [Generate UMAPs](#generate-umaps)
@@ -53,8 +55,15 @@ export NOVA_HOME=*path to NOVAs root folder*
 export NOVA_DATA_HOME=*path to the data folder*
 ```
 
-## Download the model
+## Download files
+### Download The Model
 The model (.pth) file can be downloaded from [here](https://github.com/Sagykri/NOVA/tree/main/model/model.pth), or via [HuggingFace](https://huggingface.co/sagykri/NOVA)
+### Download The Images
+The images are stored in an Amazon S3 bucket named "organellomics". <br/>
+To download them to your local machine you may use the [```download_images_from_S3.py```](https://github.com/Sagykri/NOVA/tree/main/download_images_from_S3.py) script as follows:
+```bash
+python download_images_from_S3.py path_to_local_folder
+```
 
 ## Usage
 
