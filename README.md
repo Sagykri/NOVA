@@ -64,7 +64,7 @@ To download them to your local machine you may use the [```download_images_from_
 ```bash
 python download_images_from_S3.py path_to_local_folder
 ```
-
+The list of files can be seen [here](https://organellomics.s3.amazonaws.com/).
 ## Usage
 
 ### Preprocess the data
