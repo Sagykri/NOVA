@@ -283,7 +283,7 @@ def get_nuclei_count(masked_tile: np.ndarray) -> int:
     Returns:
         int: The number of nuclei in a tile
     """
-    return np.max(masked_tile)
+    return len(np.unique(masked_tile))-1
 
 def get_image_focus_quality(image: np.ndarray) -> float:
     """
