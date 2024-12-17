@@ -240,8 +240,40 @@ class VisionTransformer(nn.Module):
 
         return self.pos_drop(x)
 
-    def forward(self, x, return_hidden=False):
-        x = self.prepare_tokens(x)
+    def prepare_tokens_for_multiple_channels(self, x):
+        B, nc, w, h = x.shape
+
+        # Expand the CLS token to match the batch size
+        cls_tokens = self.cls_token.expand(B, -1, -1)
+        nucleus_x = x[:,-1,:,:]  # Last channel (nucleus)
+        x_list = [] # Initialize a list to store the processed tokens for each channel pair
+        for c in range(nc-1):
+            
+            # Stack the current channel and the nucleus channel, then generate patch embeddings
+            x_c = self.patch_embed(torch.stack((x[:, c, :, :], nucleus_x), dim=1))
+
+            # add the [CLS] token to the embed patch tokens
+            x_c = torch.cat((cls_tokens, x_c), dim=1)
+
+            # add positional encoding to each token
+            x_c = x_c + self.interpolate_pos_encoding(x_c, w, h)
+            # Append the processed token embeddings to the list
+            if c==0:
+                x_list.append(x_c) # For the first channel, just add the embeddings
+            else:
+                # For subsequent channels, remove the last token (already added CLS token in the previous iteration)
+                x_list.append(x_c[:,:-1,:])
+        
+        # Concatenate all processed channel tokens
+        x = torch.cat(x_list, dim=1)
+        
+        return self.pos_drop(x)
+
+    def forward(self, x, return_hidden=False, multiple_channels=False):
+        if multiple_channels:
+            x = self.prepare_tokens_for_multiple_channels(x)
+        else:
+            x = self.prepare_tokens(x)
         for blk in self.blocks:
             x = blk(x)
         x = self.norm(x)

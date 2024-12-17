@@ -62,7 +62,7 @@ class NOVAModel():
         
         return embeddings_utils.generate_embeddings(self, dataset_config)
     
-    def infer(self, data_loader: DataLoader)->Tuple[np.ndarray[torch.Tensor], np.ndarray[str]]:
+    def infer(self, data_loader: DataLoader, multiple_channels=False)->Tuple[np.ndarray[torch.Tensor], np.ndarray[str]]:
         """Run inference on the data_loader data
 
         Args:
@@ -85,11 +85,10 @@ class NOVAModel():
                 logging.info(f"[Inference] Batch number: {it}/{len(data_loader)}")
                 X, y, path = res
                 X = X.cuda()
-                
                 # convert from indexes to the labels
                 labels = data_loader.dataset.id2label(y)
                 # run the model to get the embeddings
-                outputs = self.model(X).cpu()
+                outputs = self.model(X,multiple_channels=multiple_channels).cpu()
                 
                 all_outputs.append(outputs)
                 all_labels = np.append(all_labels, labels)
