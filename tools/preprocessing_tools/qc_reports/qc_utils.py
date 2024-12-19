@@ -60,7 +60,7 @@ def sample_and_calc_variance(INPUT_DIR, batch, sample_size_per_markers=200, num_
     
     return variance
 
-def validate_files_proc(path, batch_df, bad_files, marker_info, cell_lines_for_disp):
+def validate_files_proc(path, batch_df, bad_files, marker_info, cell_lines_for_disp, validate_antibody= True):
     path_split = path.split('/')
     cur_marker = path_split[-1]
     cur_cond = path_split[-2]
@@ -88,22 +88,23 @@ def validate_files_proc(path, batch_df, bad_files, marker_info, cell_lines_for_d
                 bad_files.append(f'{path}, {file} small size ({size/1000} kB)')
         except:
             bad_files.append(f'{path}, {file} cannot read')
-        good_file = False
-        if cur_marker!='DAPI':
-            for i, antibody in enumerate(cur_antybodies):
-                if f'panel{cur_panels[i]}' in file and antibody in file and cur_cell_line in file:
-                    good_file = True
-                    break
-        else:
-            for antibody in cur_antybodies:
-                if antibody in file and cur_cell_line in file:
-                    good_file = True
-                    break
-        if not good_file:
-                bad_files.append(f'{path}, {file}')
+        if validate_antibody:
+            good_file = False
+            if cur_marker!='DAPI':
+                for i, antibody in enumerate(cur_antybodies):
+                    if f'panel{cur_panels[i]}' in file and antibody in file and cur_cell_line in file:
+                        good_file = True
+                        break
+            else:
+                for antibody in cur_antybodies:
+                    if antibody in file and cur_cell_line in file:
+                        good_file = True
+                        break
+            if not good_file:
+                    bad_files.append(f'{path}, {file}')
     return bad_files, batch_df
 
-def validate_files_raw(path, batch_df, bad_files, marker_info,cell_lines_for_disp):
+def validate_files_raw(path, batch_df, bad_files, marker_info,cell_lines_for_disp, validate_antibody = True):
     path_split = path.split('/')
     cur_marker = path_split[-1]
     cur_cond = path_split[-3]
@@ -133,17 +134,18 @@ def validate_files_raw(path, batch_df, bad_files, marker_info,cell_lines_for_dis
         except:
             bad_files.append(f'{path}, {file} cannot read')
             continue
-        good_file = False
-        for antibody in cur_antybodies:
-            if antibody in file:
-                good_file = True
-                break
-        if not good_file:
-            bad_files.append(f'{path}, {file}')
+        if validate_antibody:
+            good_file = False
+            for antibody in cur_antybodies:
+                if antibody in file:
+                    good_file = True
+                    break
+            if not good_file:
+                bad_files.append(f'{path}, {file}')
     return bad_files, batch_df
                  
 def validate_folder_structure(root_dir, folder_structure, missing_paths, bad_files, batch_df,
-                               marker_info, cell_lines_for_disp, proc=False):
+                               marker_info, cell_lines_for_disp, proc=False, validate_antibody = True):
     for name, content in folder_structure.items():
         path = os.path.join(root_dir, name)
 
@@ -153,12 +155,12 @@ def validate_folder_structure(root_dir, folder_structure, missing_paths, bad_fil
 
         if isinstance(content, dict):
             validate_folder_structure(path, content, missing_paths, bad_files, batch_df, marker_info, cell_lines_for_disp, 
-                                      proc=proc)
-        else: # end of recursion of folders, need to check files
+                                      proc=proc, validate_antibody =validate_antibody)
+        else: # end of recursion of folders, need to check files                
             if proc:
-                bad_files, batch_df = validate_files_proc(path, batch_df, bad_files, marker_info, cell_lines_for_disp)
+                bad_files, batch_df = validate_files_proc(path, batch_df, bad_files, marker_info, cell_lines_for_disp, validate_antibody)
             else:
-                bad_files, batch_df = validate_files_raw(path, batch_df, bad_files, marker_info, cell_lines_for_disp)
+                bad_files, batch_df = validate_files_raw(path, batch_df, bad_files, marker_info, cell_lines_for_disp, validate_antibody)
 
                 
     return missing_paths, bad_files, batch_df   
@@ -342,7 +344,7 @@ def plot_filtering_heatmap(filtered, extra_index, xlabel='', figsize=(5,5), seco
             second_p = second_data.pivot_table(index=['rep', extra_index],
                                     columns='cell_line_cond',
                                     values='index')
-            second_p = second_p.sort_values(by=extra_index)
+            second_p = second_p.sort_values(by=[extra_index,'rep'])
             sns.heatmap(second_p, annot=False,
                          cbar=False, ax=ax2, alpha=0)
             for y, (rep, value) in enumerate(second_p.iterrows()):
@@ -498,7 +500,7 @@ def run_validate_folder_structure(root_dir, proc, panels, markers,plot_path, mar
                                     cell_lines_to_cond, reps, cell_lines_for_disp,
                                     expected_dapi_raw,fig_height=8, fig_width=8,
                                     batches=[f'batch{i}' for i in range(3,10)],
-                                    cell_lines_to_reps = None, expected_count=100):
+                                    cell_lines_to_reps = None, expected_count=100, validate_antibody = True):
     folder_type = 'processed' if proc else 'raw'
     folder_structure = create_folder_structure(folder_type, markers,cell_lines_to_cond, reps, panels, cell_lines_to_reps)
     batch_dfs = []
@@ -516,7 +518,8 @@ def run_validate_folder_structure(root_dir, proc, panels, markers,plot_path, mar
         # Validate the folder structure and track missing paths
         missing_paths, bad_files, batch_df = validate_folder_structure(batch_root_dir, folder_structure, [], [],
                                                                        batch_df,marker_info, 
-                                                                       cell_lines_for_disp, proc=proc)
+                                                                       cell_lines_for_disp, proc=proc,
+                                                                       validate_antibody = validate_antibody)
         if len(missing_paths) == 0:
             print("Folder structure is valid.")
         else:
