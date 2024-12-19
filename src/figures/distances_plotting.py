@@ -299,7 +299,7 @@ def __plot_boxplot(distances:pd.DataFrame, baseline:str, condition:str,
     color_key=config_plot.MAPPINGS_COLOR_KEY
     condition_name_color_dict = config_plot.COLOR_MAPPINGS_CELL_LINE_CONDITION
     condition_to_color = {key: value[color_key] for key, value in condition_name_color_dict.items()}
-    if not yaxis_cut_ranges: # case where we don't split the y axis
+    if all(value is None for value in yaxis_cut_ranges.values()): # case where we don't split the y axis
         fig = plt.figure(figsize=figsize)
         boxplot=sns.boxplot(data=cur_distances, order=dists_order, hue='condition',
                 x='marker', y=metric, fliersize=0, palette=condition_to_color)
@@ -311,7 +311,6 @@ def __plot_boxplot(distances:pd.DataFrame, baseline:str, condition:str,
             marker_pvalue = cur_marker.pvalue.values[0]
             __add_pvalue(marker, i, dists_order, marker_pvalue, show_baseline, ax=boxplot)
             effect_size_formatted = round(cur_marker.effect_size.values[0],2)
-            
             label = marker_name_color_dict[marker][name_key] if marker_name_color_dict else marker
             if show_effect_size:
                 label = f'{label} (effect size={effect_size_formatted})'
