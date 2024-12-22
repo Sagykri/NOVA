@@ -224,6 +224,7 @@ def __plot_umap_embeddings(umap_embeddings: np.ndarray[float],
         indices = np.concatenate(indices)
         shuffled_indices = np.random.permutation(len(indices))
         shuffled_colors = colors[shuffled_indices]
+        shuffled_indices = indices[shuffled_indices]
         ax.scatter(
             umap_embeddings[shuffled_indices, 0],
             umap_embeddings[shuffled_indices, 1],
