@@ -200,7 +200,6 @@ def __filter(labels:np.ndarray[str], embeddings:np.ndarray[float],
                                   get_reps_from_labels, config_data, include=True)
         else:
             logging.warning(f'[embeddings_utils._filter]: Cannot filter by reps because of config_data: ADD_REP_TO_LABEL:{config_data.ADD_REP_TO_LABEL}')
-
     return labels, embeddings
 
 def __filter_by_label_part(labels:np.ndarray[str], embeddings:np.ndarray[float], 
