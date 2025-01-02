@@ -476,3 +476,51 @@ AC_cell_lines_to_reps = {
     'sALSNegativeCytoTDP43': [f'rep{i}' for i in range(1,3)],
     'Controls': [f'rep{i}' for i in range(1,7)]
 }
+
+### NIH data
+NIH_cell_lines = ['WT', 'FUSRevertant', 'FUSHomozygous', 'FUSHeterozygous']
+
+NIH_cell_lines_to_cond = {
+                    'WT':['Untreated', 'stress'], 
+                    'FUSRevertant':['Untreated'], 
+                    'FUSHomozygous':['Untreated'],
+                    'FUSHeterozygous':['Untreated']}
+
+NIH_markers = ['ANAX11', 'DAPI', 'SNCA', 'TUJ1', 'DCP1A', 'NEMO', 'CLTC', 'PSD95', 'CD41', 'P54',
+ 'TDP43', 'GM130', 'Phalloidin', 'TOMM20', 'Calreticulin', 'LAMP1', 'FMRP',
+ 'SQSTM1', 'G3BP1', 'KIF5A', 'PEX14', 'PML', 'PURA', 'TIA1', 'FUS', 'MitoTracker', 'NCL']
+
+NIH_reps = ['rep1', 'rep2', 'rep3', 'rep4', 'rep5', 'rep6', 'rep7', 'rep8']
+
+
+NIH_panels = pd.DataFrame([['DAPI']*11,
+             ['FMRP', 'CLTC', 'DCP1A', 'ANAX11', 'PURA', 'PEX14', 'G3BP1', 'LAMP1', 'Phalloidin', 'P54', 'NCL'],
+             ['SQSTM1', 'PSD95', 'NEMO', 'SNCA', 'TIA1', 'PML', 'KIF5A', 'Calreticulin', 'GM130', 'CD41', 'FUS'],
+             ['TUJ1', 'TUJ1', 'TUJ1', 'TUJ1', 'TUJ1', 'TUJ1', 'TUJ1', 'TUJ1', 'TOMM20', 'TDP43', 'MitoTracker']], 
+             columns=['A','B','C','D','E','F','G','H','I','J','K'],)
+            # index=['Cy5', 'mCherry', 'GFP','DAPI'])
+
+
+NIH_marker_info = pd.DataFrame([[['']]*27,
+             [['D'], ['K'], ['D'], ['H'], ['C'], ['C'], ['B'], ['B'], ['J'], ['J'], ['J'], ['I'], ['I'], 
+             ['I'], ['H'], ['H'], ['A'], ['A'], ['G'], ['G'], ['F'], ['F'], ['E'], ['E'], ['K'], ['K'], ['K']]], 
+             index=['Antibody','panel'],
+             columns = ['ANAX11', 'DAPI', 'SNCA', 'TUJ1', 'DCP1A', 'NEMO', 'CLTC', 'PSD95', 'CD41', 'P54',
+             'TDP43', 'GM130', 'Phalloidin', 'TOMM20', 'Calreticulin', 'LAMP1', 'FMRP',
+             'SQSTM1', 'G3BP1', 'KIF5A', 'PEX14', 'PML', 'PURA', 'TIA1', 'FUS', 'MitoTracker', 'NCL']).T  #order here is important - taken from Lena's sheet 
+
+
+NIH_cell_lines_for_disp =  {f'{cell_line}_{cond}':f'{cell_line}_{cond}' 
+                            for cell_line in NIH_cell_lines for cond in NIH_cell_lines_to_cond[cell_line] }
+
+NIH_colorblind_palette = sns.color_palette('colorblind')
+NIH_line_colors = line_colors = {
+    'FUSHeterozygous': colorblind_palette[0],
+    'FUSHomozygous': colorblind_palette[1],
+    'FUSRevertant': colorblind_palette[2],
+    'WT Untreated': colorblind_palette[9],
+    'WT stress': colorblind_palette[3]
+}
+NIH_lines_order = NIH_line_colors.keys()
+NIH_custom_palette = [NIH_line_colors[line] for line in NIH_lines_order]
+NIH_expected_dapi_raw = 20

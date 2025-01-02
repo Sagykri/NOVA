@@ -87,3 +87,30 @@ class AlyssaCoyneDistanceConfig(DistanceConfig):
         self.RANDOM_SPLIT_BASELINE = False
         self.MARKERS_TO_EXCLUDE = ['MERGED']
         self.REPS = [f'rep{i}' for i in range(1,11)]   
+
+class NIH8DaysDistanceConfig(DistanceConfig):
+    def __init__(self):
+        super().__init__()
+
+        self.INPUT_FOLDERS = ["batch1", "batch2", "batch3"]
+        
+        self.EXPERIMENT_TYPE = 'NIH_d8'   
+        self.MARKERS_TO_EXCLUDE = [] 
+        self.CELL_LINES = ['WT']
+        self.BASELINE_CELL_LINE_CONDITION = "WT_Untreated"
+        self.ADD_BATCH_TO_LABEL = True
+        self.ADD_REP_TO_LABEL = True
+
+class NIH8DaysTBK1DistanceConfig(DistanceConfig):
+    def __init__(self):
+        super().__init__()
+
+        self.INPUT_FOLDERS = ["batch1", "batch2", "batch3"]
+        
+        self.EXPERIMENT_TYPE = 'NIH_d8'   
+        self.CELL_LINES = ['WT', 'FUSHomozygous','FUSHeterozygous','FUSRevertant']
+        self.CONDITIONS = ['Untreated']
+        self.MARKERS_TO_EXCLUDE = []
+        self.ADD_BATCH_TO_LABEL = True
+        self.ADD_REP_TO_LABEL = True   
+        self.BASELINE_CELL_LINE_CONDITION = "WT_Untreated"
