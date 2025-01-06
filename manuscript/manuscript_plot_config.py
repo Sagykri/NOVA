@@ -100,6 +100,7 @@ class UMAP2dNLSPlotConfig(PlotConfig):
         self.COLOR_MAPPINGS = self.COLOR_MAPPINGS_DOX
         # umap type
         self.UMAP_TYPE = 2
+
 class UMAP0NoMappingPlotConfig(PlotConfig):
     def __init__(self):
         super().__init__()
@@ -241,3 +242,40 @@ class DistancesAlyssaCoynePlotConfig(PlotConfig):
         super().__init__()
 
         self.COLOR_MAPPINGS_CELL_LINE_CONDITION = self.COLOR_MAPPINGS_ALYSSA
+
+class UMAP1NIH8DaysPlotConfig(PlotConfig):
+    def __init__(self):
+        super().__init__()
+        
+        self.ORDERED_MARKER_NAMES = ['DAPI', 'FUS', 'PEX14', 'GM130', 'TDP43', 'Calreticulin', 'Phalloidin', 
+                                    'TOMM20', 'MitoTracker', 'CLTC', 'PURA', 'SNCA', 'KIF5A', 'SQSTM1', 
+                                    'CD41', 'G3BP1', 'FMRP', 'NCL', 'LAMP1', 'PML', 'DCP1A', 'PSD95', 
+                                    'NEMO', 'ANAX11', 'TUJ1', 'P54', 'TIA1']
+    
+        # Set the size of the dots
+        self.SIZE = 1
+        self.ALPHA = 1
+        # How labels are shown in legend
+        self.MAP_LABELS_FUNCTION = MapLabelsFunction.MARKERS.name
+        # umap type
+        self.UMAP_TYPE = 1
+        # Colors 
+        self.COLOR_MAPPINGS = self.COLOR_MAPPINGS_NIH
+        self.COLOR_MAPPINGS_MARKERS = self.COLOR_MAPPINGS_NIH
+
+class DistancesNIH8DaysPlotConfig(PlotConfig):
+    ## Bubbleplot
+    def __init__(self):
+        super().__init__()
+
+        self.COLOR_MAPPINGS_CELL_LINE_CONDITION = self.COLOR_MAPPINGS_CONDITION_AND_ALS
+        self.ORDERED_MARKERS = ['GM130','Phalloidin','G3BP1','CLTC','MitoTracker','NCL','KIF5A', 'TOMM20', 'PURA',
+                                'P54','SNCA','ANAX11','FUS','TDP43','PEX14', 'DAPI','PSD95','PML',
+                                'CD41','NEMO','Calreticulin','LAMP1','SQSTM1','DCP1A','FMRP', 'TUJ1', 'TIA1']
+        self.UMAP_TYPE = 2
+        self.COLOR_MAPPINGS_MARKERS = self.COLOR_MAPPINGS_NIH
+
+class NIH8DaysDistanceConfig(DistancesNeuronsStressPlotConfig):
+    def __init__(self):
+        super().__init__()
+        self.COLOR_MAPPINGS_MARKERS = self.COLOR_MAPPINGS_NIH

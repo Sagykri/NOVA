@@ -90,6 +90,8 @@ class NeuronsUMAP1B9WithoutDapiFigureConfig(FigureConfig):
         # Decide if to show ARI metric on the UMAP
         self.SHOW_ARI = True
         self.ADD_REP_TO_LABEL = False
+
+
 ############################################################
 # Figure 2 
 ############################################################
@@ -184,6 +186,7 @@ class U2OSUMAP0StressDatasetConfig(FigureConfig):
         self.EXPERIMENT_TYPE = 'U2OS'
         self.MARKERS = ['G3BP1', 'DCP1A', 'Phalloidin', 'DAPI']
         self.SHOW_ARI = True
+
 
 ############################################################
 # Figure 3
@@ -858,3 +861,156 @@ class NeuronsUMAP0ALS_TDP43_B69FigureConfig(NeuronsUMAP0ALSB6FigureConfig):
         self.ADD_BATCH_TO_LABEL = False
 
         self.CELL_LINES = ['WT','TDP43']
+
+
+
+############################################################
+# NIH
+############################################################
+class NeuronsUMAP1B9NIH8DaysFigureConfig(FigureConfig):
+    def __init__(self):
+        super().__init__()
+        
+        """UMAP1 of WT untreated
+        """
+
+        # Batches used for model development
+        self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "NIH", f) for f in 
+                        ["batch1","batch2","batch3",]]
+        
+        self.EXPERIMENT_TYPE = 'NIH_d8'    
+        self.CELL_LINES = ['WT']
+        self.CONDITIONS = ['Untreated']
+        
+        self.MARKERS_TO_EXCLUDE = ['TUJ1', 'TIA1', 'DAPI']
+        # Decide if to show ARI metric on the UMAP
+        self.SHOW_ARI = False
+        self.ADD_REP_TO_LABEL = False
+
+class NIH8DaysDistancesStressFigureConfig(FigureConfig):
+    def __init__(self):
+        super().__init__()
+        """Boxplot of WT stress vs untreated
+        """
+        self.INPUT_FOLDERS =  [os.path.join(self.PROCESSED_FOLDER_ROOT, "NIH", f) for f in 
+                        ["batch2", "batch3"]]
+        
+        self.EXPERIMENT_TYPE = 'NIH_d8'
+        self.MARKERS_TO_EXCLUDE = []
+        self.BASELINE_CELL_LINE_CONDITION = "WT_Untreated"
+        self.CELL_LINES_CONDITIONS = ['WT_stress']
+        self.CELL_LINES = ['WT']
+        self.ADD_BATCH_TO_LABEL = True
+        self.ADD_REP_TO_LABEL = True
+
+class NeuronsUMAP0StressNIH8DaysFigureConfig(FigureConfig):
+    def __init__(self):
+        super().__init__()
+        """UMAP0 of single markers - WT untreated vs stress
+        """
+        # Batches used for model development
+        self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "NIH", f) for f in 
+                        ["batch3",]]
+        
+        self.EXPERIMENT_TYPE = 'NIH_d8'    
+        
+        self.CELL_LINES = ['WT']
+        self.MARKERS_TO_EXCLUDE = []
+        
+        # Decide if to show ARI metric on the UMAP
+        self.SHOW_ARI = False
+        self.ADD_REP_TO_LABEL=False
+
+class NIH8DaysDistancesALSFigureConfig(FigureConfig):
+    def __init__(self):
+        """Bubbleplot of WT vs other cell lines
+        """
+        super().__init__()
+        self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "NIH", f) for f in 
+                        ["batch1", "batch2","batch3"]]
+        
+        self.EXPERIMENT_TYPE = 'NIH_d8'    
+        self.MARKERS_TO_EXCLUDE = []
+        self.BASELINE_CELL_LINE_CONDITION = "WT_Untreated"
+        self.CONDITIONS = ['Untreated']
+        self.CELL_LINES = ['WT','FUSHomozygous','FUSHeterozygous','FUSRevertant']
+        self.CELL_LINES_CONDITIONS = ['FUSHomozygous_Untreated','FUSHeterozygous_Untreated','FUSRevertant_Untreated']
+        self.ADD_BATCH_TO_LABEL = True
+        self.ADD_REP_TO_LABEL = True
+
+class NIH8DaysUMAP2FigureConfig(FigureConfig):
+    def __init__(self):
+        super().__init__()
+        """UMAP2 multiplex of WT untreated vs stress
+        """
+        # Batches used for model development   
+        self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "NIH", f) for f in 
+                        ["batch3",]]
+        self.EXPERIMENT_TYPE = 'NIH_d8'    
+        self.CELL_LINES = ['WT']
+        self.MARKERS_TO_EXCLUDE = ['TUJ1', 'TIA1']
+        # Decide if to show ARI metric on the UMAP
+        self.SHOW_ARI = True
+        self.ADD_REP_TO_LABEL=False
+
+class NIH8DaysUMAP2ALSD18B2FigureConfig(FigureConfig):
+    def __init__(self):
+        super().__init__()
+        """UMAP2 multiplex of WT untreated vs cell lines
+        """
+        # Batches used for model development   
+        self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "NIH", f) for f in 
+                        ["batch3",]]
+        self.EXPERIMENT_TYPE = 'NIH_d8'   
+        self.MARKERS_TO_EXCLUDE = ['FUS'] 
+        self.CONDITIONS = ['Untreated']
+        # self.CELL_LINES = ['WT','FUSHomozygous','FUSHeterozygous','FUSRevertant']
+        # Decide if to show ARI metric on the UMAP
+        self.SHOW_ARI = True
+        self.ADD_REP_TO_LABEL=False
+
+class NIH8DaysUMAP0ALSFigureConfig(FigureConfig):
+    def __init__(self):
+        super().__init__()
+        self.INPUT_FOLDERS = ["batch1"]
+        self.EXPERIMENT_TYPE = 'NIH_d8'    
+        self.CONDITIONS = ['Untreated']
+        self.MARKERS_TO_EXCLUDE = ['TIA1']
+        # Decide if to show ARI metric on the UMAP
+        self.SHOW_ARI = True
+        self.ADD_REP_TO_LABEL=False
+
+class NIH8DaysUMAP0ALSB9FUSFigureConfig(NIH8DaysUMAP0ALSFigureConfig):
+    def __init__(self):
+        super().__init__()
+        self.INPUT_FOLDERS = ["batch3"]
+        self.CELL_LINES = ['WT','FUSHomozygous','FUSHeterozygous','FUSRevertant']
+        self.MARKERS = ['FUS']
+
+class NIH8DaysUMAP0ALSB9DCP1AFigureConfig(NIH8DaysUMAP0ALSFigureConfig):
+    def __init__(self):
+        super().__init__()
+        self.INPUT_FOLDERS = ["batch1"]
+        self.CELL_LINES = ['WT','FUSHomozygous','FUSHeterozygous','FUSRevertant']
+        self.MARKERS = ['DCP1A']
+
+class NIH8DaysUMAP0ALSB9ANXA11FigureConfig(NIH8DaysUMAP0ALSFigureConfig):
+    def __init__(self):
+        super().__init__()
+        self.INPUT_FOLDERS = ["batch1"]
+        self.CELL_LINES = ['WT','FUSHomozygous','FUSHeterozygous','FUSRevertant']
+        self.MARKERS = ['ANAX11']
+
+class NIH8DaysUMAP0ALSB9CLTCFigureConfig(NIH8DaysUMAP0ALSFigureConfig):
+    def __init__(self):
+        super().__init__()
+        self.INPUT_FOLDERS = ["batch1"]
+        self.CELL_LINES = ['WT','FUSHomozygous','FUSHeterozygous','FUSRevertant']
+        self.MARKERS = ['CLTC']
+
+class NIH8DaysUMAP0ALSB9SQSTM1FigureConfig(NIH8DaysUMAP0ALSFigureConfig):
+    def __init__(self):
+        super().__init__()
+        self.INPUT_FOLDERS = ["batch1"]
+        self.CELL_LINES = ['WT','FUSHomozygous','FUSHeterozygous','FUSRevertant']
+        self.MARKERS = ['SQSTM1']
