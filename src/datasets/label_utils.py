@@ -5,6 +5,7 @@ import sys
 sys.path.insert(1, os.getenv("NOVA_HOME"))
 
 import numpy as np
+import pandas as pd
 import logging
 from functools import partial
 from typing import List, Tuple, Callable, Optional, Union
@@ -62,6 +63,14 @@ def get_markers_from_labels(labels: np.ndarray[str], dataset_config:DatasetConfi
     markers = get_parts_from_labels(labels=labels, indices=(MARKER_IDX, MARKER_IDX+1))
     return markers
 
+def opencell_map(labels: np.ndarray[str], dataset_config:DatasetConfig):
+    markers = get_markers_from_labels(labels, dataset_config)
+    mapping = pd.read_csv(os.path.join(os.getenv("NOVA_DATA_HOME"), 'gt_tables', 'opencell_mappings_41592_2022_1541_MOESM4_ESM.csv'))
+    mapping_dict = dict(zip(mapping['gene_name'], mapping['localization']))
+
+    converted_labels = pd.Series(markers).map(mapping_dict).fillna('Unknown').to_numpy()
+
+    return converted_labels
 
 def get_batches_from_labels(labels: np.ndarray[str], dataset_config:DatasetConfig) -> np.ndarray[str]:
     if not dataset_config.ADD_BATCH_TO_LABEL:
@@ -160,6 +169,7 @@ class MapLabelsFunction(Enum):
     MULTIPLEX_CELL_LINES = (get_cell_lines_from_multiplex_labels,)
     MULTIPLEX_CELL_LINES_CONDITIONS = (get_cell_lines_conditions_from_multiplex_labels,)
     REMOVE_MARKER = (remove_markers,)
+    OPENCELL = (opencell_map,)
 
 def map_labels(labels: np.ndarray[str], config_plot: Union[PlotConfig, DatasetConfig],
                 config_data: DatasetConfig, config_function_name:str = 'MAP_LABELS_FUNCTION') -> np.ndarray[str]:

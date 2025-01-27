@@ -299,7 +299,15 @@ def __plot_boxplot(distances:pd.DataFrame, baseline:str, condition:str,
     color_key=config_plot.MAPPINGS_COLOR_KEY
     condition_name_color_dict = config_plot.COLOR_MAPPINGS_CELL_LINE_CONDITION
     condition_to_color = {key: value[color_key] for key, value in condition_name_color_dict.items()}
-    if not yaxis_cut_ranges: # case where we don't split the y axis
+
+    upper_graph_ylim = get_if_exists(yaxis_cut_ranges, 'UPPER_GRAPH', None)
+    lower_graph_ylim = get_if_exists(yaxis_cut_ranges, 'LOWER_GRAPH', None)
+
+    if (upper_graph_ylim is None) ^ (lower_graph_ylim is None):
+        # One is not None but the other is
+        logging.warning("Both UPPER_GRAPH and LOWER_GRAPH should be either None or not None together -> Ignoring limitations for the y axis")
+                    
+    if not upper_graph_ylim and not lower_graph_ylim: # case where we don't split the y axis
         fig = plt.figure(figsize=figsize)
         boxplot=sns.boxplot(data=cur_distances, order=dists_order, hue='condition',
                 x='marker', y=metric, fliersize=0, palette=condition_to_color)
@@ -341,11 +349,9 @@ def __plot_boxplot(distances:pd.DataFrame, baseline:str, condition:str,
 
         # Remove the box around the legend
         legend.set_frame_on(False)
+        legend.remove()
     
     else: #break the y axis
-
-        upper_graph_ylim = get_if_exists(yaxis_cut_ranges, 'UPPER_GRAPH', None)
-        lower_graph_ylim = get_if_exists(yaxis_cut_ranges, 'LOWER_GRAPH', None)
 
         fig, axs = plt.subplots(figsize=figsize, nrows=2)
         fig.subplots_adjust(hspace=0.0)
