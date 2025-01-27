@@ -72,7 +72,6 @@ def test_cellpose(images, images_paths):
         fig, axs = plt.subplots(ncols=2)
         axs[0].imshow(image,cmap='gray')#, vmin=0, vmax=1)
         axs[0].axis('off')
-        # axs[0].set_title(images_paths[i])
         axs[1].imshow(masks)#, cmap='gray')
         axs[1].axis('off')
         axs[1].set_title(f'Segmented {len(np.unique(masks))-1} objects')
