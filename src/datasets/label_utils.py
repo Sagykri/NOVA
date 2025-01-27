@@ -63,9 +63,9 @@ def get_markers_from_labels(labels: np.ndarray[str], dataset_config:DatasetConfi
     markers = get_parts_from_labels(labels=labels, indices=(MARKER_IDX, MARKER_IDX+1))
     return markers
 
-def opencell_map(labels, dataset_config):
+def opencell_map(labels: np.ndarray[str], dataset_config:DatasetConfig):
     markers = get_markers_from_labels(labels, dataset_config)
-    mapping = pd.read_csv('/home/labs/hornsteinlab/noamru/41592_2022_1541_MOESM4_ESM.csv')
+    mapping = pd.read_csv(os.path.join(os.getenv("NOVA_DATA_HOME"), 'gt_tables', 'opencell_mappings_41592_2022_1541_MOESM4_ESM.csv'))
     mapping_dict = dict(zip(mapping['gene_name'], mapping['localization']))
 
     converted_labels = pd.Series(markers).map(mapping_dict).fillna('Unknown').to_numpy()
