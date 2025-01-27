@@ -302,8 +302,12 @@ def __plot_boxplot(distances:pd.DataFrame, baseline:str, condition:str,
 
     upper_graph_ylim = get_if_exists(yaxis_cut_ranges, 'UPPER_GRAPH', None)
     lower_graph_ylim = get_if_exists(yaxis_cut_ranges, 'LOWER_GRAPH', None)
-    
-    if not upper_graph_ylim: # case where we don't split the y axis
+
+    if (upper_graph_ylim is None) ^ (lower_graph_ylim is None):
+        # One is not None but the other is
+        logging.warning("Both UPPER_GRAPH and LOWER_GRAPH should be either None or not None together -> Ignoring limitations for the y axis")
+                    
+    if not upper_graph_ylim and not lower_graph_ylim: # case where we don't split the y axis
         fig = plt.figure(figsize=figsize)
         boxplot=sns.boxplot(data=cur_distances, order=dists_order, hue='condition',
                 x='marker', y=metric, fliersize=0, palette=condition_to_color)
