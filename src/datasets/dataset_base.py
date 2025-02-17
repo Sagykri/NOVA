@@ -65,7 +65,7 @@ class DatasetBase(torch.utils.data.Dataset):
                 , dim=0)
             
         
-        path = np.full(len(X), current_path)
+        path = np.array([f"{current_path}/{i}" for i in range(len(X))]) #np.full(len(X), current_path)
             
         return X, y, path     
         

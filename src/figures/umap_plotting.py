@@ -1,4 +1,5 @@
 import os
+import pickle
 import sys
 sys.path.insert(1, os.getenv("NOVA_HOME"))
 
@@ -23,9 +24,9 @@ from matplotlib import font_manager as fm
 fm.fontManager.addfont(FONT_PATH)
 matplotlib.rcParams['font.family'] = 'Arial'
 
-def plot_umap(umap_embeddings: np.ndarray[float], labels: np.ndarray[str], config_data: DatasetConfig,
+def plot_umap(umap_embeddings: np.ndarray[float], labels: np.ndarray[str], config_data: DatasetConfig, 
               config_plot: PlotConfig, saveroot: str, umap_idx: int, 
-              ari_scores:Dict[str,float], figsize: Tuple[int,int] = (6,5)) -> None:
+              ari_scores:Dict[str,float], paths: np.ndarray[str]=[None], figsize: Tuple[int,int] = (6,5)) -> None:
     """Unified function to plot 2D UMAP embeddings with different modes.
 
     Args:
@@ -40,7 +41,6 @@ def plot_umap(umap_embeddings: np.ndarray[float], labels: np.ndarray[str], confi
     Raises:
         ValueError: If an invalid `umap_idx` is provided.
     """
-
     if saveroot:
         os.makedirs(saveroot, exist_ok=True)
         save_config(config_data, saveroot)
@@ -66,6 +66,7 @@ def plot_umap(umap_embeddings: np.ndarray[float], labels: np.ndarray[str], confi
 
             marker_umap_embeddings = umap_embeddings[indices]
             marker_labels = labels[indices].reshape(-1,)
+            marker_paths = paths[indices].reshape(-1,)
 
             savepath = os.path.join(saveroot, f'{marker}') if saveroot else None
             label_data = map_labels(marker_labels, config_plot, config_data)
@@ -76,7 +77,7 @@ def plot_umap(umap_embeddings: np.ndarray[float], labels: np.ndarray[str], confi
                 ari_score = None
             
             __plot_umap_embeddings(marker_umap_embeddings, label_data, config_data, config_plot, savepath=savepath, title=marker,
-                                   ari_score=ari_score, figsize=figsize)
+                                   ari_score=ari_score, figsize=figsize, paths=marker_paths)
         return
 
     elif umap_idx == 1:
@@ -92,7 +93,7 @@ def plot_umap(umap_embeddings: np.ndarray[float], labels: np.ndarray[str], confi
     else:
         ari_score = None
     __plot_umap_embeddings(umap_embeddings, label_data, config_data, config_plot, savepath,
-                           ari_score=ari_score, figsize=figsize)
+                           ari_score=ari_score, figsize=figsize, paths=paths)
 
     
 def __get_metrics_figure(score:float, ax:Axes=None)->Axes:
@@ -136,6 +137,7 @@ def __plot_umap_embeddings(umap_embeddings: np.ndarray[float],
                          figsize: Tuple[int,int] = (6,5),
                          cmap:str = 'tab20',
                          ari_score:float = None,
+                         paths: np.ndarray[str] = [None]
                          ) -> None:
     """Plots UMAP embeddings with given labels and configurations.
 
@@ -159,7 +161,6 @@ def __plot_umap_embeddings(umap_embeddings: np.ndarray[float],
     """
     if umap_embeddings.shape[0] != label_data.shape[0]:
         raise ValueError("The number of embeddings and labels must match.")
-
     name_color_dict =  config_plot.COLOR_MAPPINGS
     name_key = config_plot.MAPPINGS_ALIAS_KEY
     color_key = config_plot.MAPPINGS_COLOR_KEY
@@ -236,19 +237,32 @@ def __plot_umap_embeddings(umap_embeddings: np.ndarray[float],
     __format_UMAP_axes(ax, title)
     if not mix_groups:
         __format_UMAP_legend(ax, marker_size)
-        
+      
     if show_metric:
         gs_bottom = fig.add_subplot(gs[1])
         ax = __get_metrics_figure(ari_score, ax=gs_bottom)
     
     fig.tight_layout()
-    
+    save_plot_data(umap_embeddings, label_data, config_data, config_plot, paths, savepath+"_plot_data.pkl")
     if savepath:
         save_plot(fig, savepath, dpi, save_eps=True)
     else:
         plt.show()
         
     return
+
+def save_plot_data(umap_embeddings, label_data, config_data, config_plot, paths, savepath="plot_data.pkl"):
+    data = {
+        "umap_embeddings": umap_embeddings,
+        "label_data": label_data,
+        "paths": paths,
+        "config_data": config_data.__dict__ if hasattr(config_data, "__dict__") else config_data,
+        "config_plot": config_plot.__dict__ if hasattr(config_plot, "__dict__") else config_plot
+    }
+    with open(savepath, "wb") as f:
+        pickle.dump(data, f)
+    logging.info(f"Plot data saved to {savepath}")
+
 
 def __format_UMAP_axes(ax:Axes, title:str)->None:
     ax.spines['top'].set_visible(False)
@@ -266,6 +280,9 @@ def __format_UMAP_axes(ax:Axes, title:str)->None:
 def __format_UMAP_legend(ax:Axes, marker_size: int) -> None:
     """Formats the legend in the plot."""
     handles, labels = ax.get_legend_handles_labels()
+    handle_dict = dict(zip(labels, handles))  # Remove duplicates while maintaining order
+    handles, labels = list(handle_dict.values()), list(handle_dict.keys())  # Extract back into lists
+
     leg = ax.legend(handles, labels, prop={'size': 6},
                     bbox_to_anchor=(1, 1), loc='upper left',
                     ncol=1 + len(labels) // 26, frameon=False)

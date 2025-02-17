@@ -28,8 +28,8 @@ def generate_umaps(output_folder_path:str, config_path_data:str, config_path_plo
     config_data:DatasetConfig = load_config_file(config_path_data, 'data')
     config_data.OUTPUTS_FOLDER = output_folder_path
     config_plot:PlotConfig = load_config_file(config_path_plot, 'plot')
-    embeddings, labels = load_embeddings(output_folder_path, config_data)
 
+    embeddings, labels, paths = load_embeddings(output_folder_path, config_data)
     umap_idx = get_if_exists(config_plot, 'UMAP_TYPE', None)
     if umap_idx not in analyzer_mapping:
         raise ValueError(f"Invalid UMAP index: {umap_idx}. Must be one of {list(analyzer_mapping.keys())}, and defined in plot config.")
@@ -37,7 +37,7 @@ def generate_umaps(output_folder_path:str, config_path_data:str, config_path_plo
     AnalyzerUMAPClass, UMAP_name = analyzer_mapping[umap_idx]
     logging.info(f"[Generate {UMAP_name} UMAP]")
 
-     # Create the analyzer instance
+    # Create the analyzer instance
     analyzer_UMAP:AnalyzerUMAP = AnalyzerUMAPClass(config_data, output_folder_path)
     
     # Define the output folder path
@@ -54,10 +54,9 @@ def generate_umaps(output_folder_path:str, config_path_data:str, config_path_plo
     
     # Calculate the UMAP embeddings
     umap_embeddings, labels, ari_scores = analyzer_UMAP.calculate(embeddings, labels)
-
     # Plot the UMAP
-    plot_umap(umap_embeddings, labels, config_data, config_plot, saveroot, umap_idx, ari_scores)
-        
+    plot_umap(umap_embeddings, labels, config_data, config_plot, saveroot, umap_idx, ari_scores, paths)
+                
 
 if __name__ == "__main__":
     print("Starting generating umaps...")

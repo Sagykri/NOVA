@@ -73,6 +73,7 @@ class NOVAModel():
         """
         all_outputs:List[torch.Tensor] = []
         all_labels:np.ndarray[str] = np.array([])
+        all_paths:np.ndarray[str] = np.array([])
         
         # Move model to cuda
         self.model = self.model.cuda()
@@ -93,10 +94,11 @@ class NOVAModel():
                 
                 all_outputs.append(outputs)
                 all_labels = np.append(all_labels, labels)
+                all_paths = np.append(all_paths, path)
         
         all_outputs:np.ndarray[torch.Tensor] = np.vstack(all_outputs)
         
-        return all_outputs, all_labels
+        return all_outputs, all_labels, all_paths
     
     def is_equal_architecture(self, other_state_dict: Dict)->bool:
         """Check if the given state_dict is equal to self state_dict
