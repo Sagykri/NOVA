@@ -16,7 +16,7 @@ class AnalyzerUMAPMultipleMarkers(AnalyzerUMAP):
         super().__init__(data_config, output_folder_path)
 
 
-    def calculate(self, embeddings:np.ndarray[float], labels:np.ndarray[str])->Tuple[np.ndarray[float],np.ndarray[str], Dict[str,float]]:
+    def calculate(self, embeddings:np.ndarray[float], labels:np.ndarray[str], paths:np.ndarray[str]=None)->Tuple[np.ndarray[float],np.ndarray[str], Dict[str,float]]:
         """Calculate UMAP embeddings from the given embeddings and store the results in the `self.features` attribute. 
 
         Args:
@@ -42,4 +42,4 @@ class AnalyzerUMAPMultipleMarkers(AnalyzerUMAP):
         self.labels = labels
         self.ari_scores = ari_score
 
-        return umap_embeddings, labels, ari_score
+        return umap_embeddings, labels, ari_score, paths
