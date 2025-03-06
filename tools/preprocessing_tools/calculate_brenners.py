@@ -20,14 +20,15 @@ import logging
 sys.path.insert(1, os.getenv("NOVA_HOME"))
 print(f"NOVA_HOME: {os.getenv('NOVA_HOME')}")
 
-from src.preprocessing.preprocessing_utils import fit_image_shape, get_image_focus_quality, rescale_intensity
+from src.preprocessing.preprocessing_utils import crop_image_to_tiles, fit_image_shape, get_image_focus_quality, rescale_intensity
 from src.common.utils import init_logging, flat_list_of_lists
 from tools.preprocessing_tools.image_sampling_utils import sample_images_all_markers_all_lines
 
 
-BASE_DIR = os.path.join('/home','labs','hornsteinlab','Collaboration','MOmaps')
-INPUT_DIR = os.path.join(BASE_DIR, 'input', 'images', 'raw', 'SpinningDisk', 'NOVA_d18_neurons_sorted')
-calc_per_tile = False # I ran _site_ with this being False! (281123)
+BASE_DIR = os.path.join('/home','labs','hornsteinlab','Collaboration','FUNOVA')
+INPUT_DIR = os.path.join(BASE_DIR, 'input', 'images', 'processed')
+calc_per_tile = True # I ran _site_ with this being False! (281123)
+raw = False
 
 def calculate_metrics_for_batch(batch_name, sample_size_per_markers=100, num_markers=36, markers=None):
     
@@ -40,7 +41,7 @@ def calculate_metrics_for_batch(batch_name, sample_size_per_markers=100, num_mar
     images = sample_images_all_markers_all_lines(INPUT_DIR_BATCH, 
                                                  sample_size_per_markers, 
                                                  num_markers,
-                                                 raw=True,
+                                                 raw=raw,
                                                  rep_count=2,
                                                 #  cond_count=2,
                                                  all_conds=True)
@@ -49,7 +50,7 @@ def calculate_metrics_for_batch(batch_name, sample_size_per_markers=100, num_mar
     if markers is not None:
         images = [img for img in images if img.split(os.sep)[-2] in markers]
         logging.info(f"Images after fitlering by markers len: {len(images)} (Markers: {markers})")
-    results = _multiproc_calcualte_metrics_for_batch(images_paths=images)
+    results = _multiproc_calcualte_metrics_for_batch(images_paths=images, raw= raw)
     
     return results
 
@@ -64,14 +65,17 @@ def split_array(input_array, tile_h=100, tile_w=100):
     
     return np.asarray(sub_arrays)
 
-def _multiproc_calcualte_metrics_for_batch(images_paths):
+def _multiproc_calcualte_metrics_for_batch(images_paths, raw = True):
     
     n_images  = len(images_paths)
     logging.info(f"Total of {n_images} images were sampled.")
     
     
-    with Pool() as mp_pool:    
-        results = mp_pool.map(_calc_image_metrics, (images_paths))
+    with Pool() as mp_pool:   
+        if raw: 
+            results = mp_pool.map(_calc_image_metrics, (images_paths))
+        else:
+            results = mp_pool.map(_calc_image_metrics_processed, (images_paths))
         
         mp_pool.close()
         mp_pool.join()
@@ -86,7 +90,7 @@ def _calc_image_metrics(img_path):
     # Load an tiff image (a site image, 1024x1024)
     img = cv2.imread(img_path, cv2.IMREAD_ANYDEPTH) 
     if img is None:
-        path = img_path.replace("/home/labs/hornsteinlab/Collaboration/MOmaps/input/images/raw/SpinningDisk/NOVA_d18_neurons_sorted/","")
+        path = img_path.replace(INPUT_DIR,"")
         logging.info(f"{path} is empty!")
         return None
     
@@ -98,13 +102,29 @@ def _calc_image_metrics(img_path):
     if not calc_per_tile:
         return (img_path, ) + get_metrics(scaled_img)
     
-    tiles = split_array(scaled_img)
+    tiles = crop_image_to_tiles(scaled_img, [100, 100])
     
     ret = []
     for i, t in enumerate(tiles):
         row = (f"{img_path}_{i}", ) + get_metrics(t)
         ret.append(row)
         
+    return ret
+
+def _calc_image_metrics_processed(img_path):
+    logging.info(img_path)
+    # Load the processed valid tiles
+    tiles = np.load(img_path)
+    if tiles is None:
+        path = img_path.replace(INPUT_DIR,"")
+        logging.info(f"{path} is empty!")
+        return None
+        
+    ret = []
+    for i, t in enumerate(tiles):
+        row = (f"{img_path}_{i}", ) + get_metrics(t[:, :, 0])
+        ret.append(row)
+    # logging.info(f"Tile's shape {np.shape(t)}")    
     return ret
 
 def save_to_file(results, savepath):
@@ -133,12 +153,12 @@ def main():
     # cell_lines = ['WT']
     # conditions = ['Untreated']#, 'stress']
     # markers = #['DAPI']#["DAPI"]#['NONO', 'G3BP1']
-    batches = ['batch1', 'batch2']#[os.path.join('240323_day29_neurons_sorted', 'batch1')]#['batch4','batch5','batch6', 'batch9']#['batch7', 'batch8', 'batch3', 'batch4','batch5','batch6', 'batch9']#, 'batch8']#['batch6_16bit_no_downsample']
+    batches = ['Batch3', 'Batch4' ]#[os.path.join('240323_day29_neurons_sorted', 'batch1')]#['batch4','batch5','batch6', 'batch9']#['batch7', 'batch8', 'batch3', 'batch4','batch5','batch6', 'batch9']#, 'batch8']#['batch6_16bit_no_downsample']
     # raw_base_path = '/home/labs/hornsteinlab/Collaboration/MOmaps/input/images/raw/SpinningDisk/'
     
     
-    log_file_path = "/home/labs/hornsteinlab/Collaboration/MOmaps/outputs/preprocessing/spd18days/brenner/log280524_all.txt"
-    savepath =      "/home/labs/hornsteinlab/Collaboration/MOmaps/outputs/preprocessing/spd18days/brenner/raw_metrics280524_all.csv"
+    log_file_path = "/home/labs/hornsteinlab/Collaboration/FUNOVA/outputs/preprocessing/brenner/log260225_exp4_processed.txt"
+    savepath =      "/home/labs/hornsteinlab/Collaboration/FUNOVA/outputs/preprocessing/brenner/raw_metrics260225_exp4_processed.csv"
     
     init_logging(log_file_path)
     
@@ -148,7 +168,7 @@ def main():
     
     for batch_name in batches:
         logging.info(f"Calculating metrics for batch: {batch_name}")
-        results_batch = calculate_metrics_for_batch(batch_name)
+        results_batch = calculate_metrics_for_batch(batch_name, sample_size_per_markers = 10000)
         logging.info(f"Appending metrics from batch {batch_name}")
         results.extend(results_batch)
         save_to_file(results, f"{savepath}_checkpoint_{batch_name.replace(os.sep, '.')}")
