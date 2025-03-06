@@ -89,6 +89,16 @@ def is_image_focused(img:np.ndarray , thresholds:Tuple[float, float]):
     logging.warning(f"Image is blurred. Expected to be in range of ({lower_bound}, {upper_bound}), but got {img_focus_quality}")
     return False
 
+def is_tile_focused(img:np.ndarray , lower_bound:Tuple[float, float]):
+    
+    img_focus_quality = get_image_focus_quality(img)
+    
+    if lower_bound <= img_focus_quality:
+        return True
+    
+    logging.warning(f"Tile is blurred. Expected to be higher than ({lower_bound}), but got {img_focus_quality}")
+    return False
+
 def get_nuclei_segmentations(
     img: np.ndarray, 
     cellpose_model:models.Cellpose=None,
@@ -122,7 +132,7 @@ def get_nuclei_segmentations(
         img, 
         diameter=diameter, 
         cellprob_threshold=cellprob_threshold, 
-        flow_threshold=flow_threshold
+        flow_threshold=flow_threshold,
     )
     
     # If requested, plot the segmentation results
