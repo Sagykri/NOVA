@@ -16,6 +16,8 @@ import matplotlib
 import pathlib
 import re
 import warnings
+from itertools import combinations
+from typing import Dict
 
 def _calc_variance(img_path):
 
@@ -232,7 +234,7 @@ def log_files_qc(LOGS_PATH, batches=None, only_wt_cond = True, filename_split='_
     _subset=['site_num', 'batch', 'cell_line', 'panel', 'condition', 'rep', 'marker', 
             'cells_counts', 'cells_count_mean', 'cells_count_std',
             'whole_cells_counts', 'whole_cells_count_mean', 'whole_cells_count_std',
-            'n_valid_tiles', 'cells_count_in_valid_tiles_mean',
+            'n_valid_tiles', 'n_valid_tiles_after_tiles_brenner', 'cells_count_in_valid_tiles_mean',
             'cells_count_in_valid_tiles_std',
             'whole_cells_count_in_valid_tiles_mean',
             'whole_cells_count_in_valid_tiles_std']
@@ -372,6 +374,9 @@ def plot_filtering_heatmap(filtered, extra_index, xlabel='', figsize=(5,5), seco
             axs[0].set_xlim(marker_total.min().min()-0.5*marker_total.min().min(), marker_total.max().max()+0.1* marker_total.max().max())
             axs[0].tick_params(axis='x', labelsize=10)
             axs[0].set_ylabel(batch)
+#             # Adjust Y-tick positions and corresponding labels
+#             yticks = axs[0].get_yticks()[::8]  # Select every 8th tick
+#             axs[0].set_yticks(yticks)  # Set the reduced tick positions
             sns.barplot(data=cell_line_total, y=cell_line_total.index, x='Total', ax=axs[1], palette='tab10',
                         hue=cell_line_total.index, legend=False)
             axs[1].set_xlim(cell_line_total.min().min()-0.5*cell_line_total.min().min(), cell_line_total.max().max()+0.1*cell_line_total.max().max())
@@ -380,10 +385,10 @@ def plot_filtering_heatmap(filtered, extra_index, xlabel='', figsize=(5,5), seco
 
             for ax in axs:
                 ax.set_xlabel(xlabel)
-                ax.set_yticklabels(ax.get_yticklabels(), fontsize=6)
+                ax.set_yticklabels(ax.get_yticklabels(), fontsize=10)
             with warnings.catch_warnings():
                 warnings.simplefilter("ignore", category=UserWarning)
-                plt.tight_layout()
+            plt.tight_layout()
             plt.show()
 
 def add_empty_lines(df, batches, line_colors, panels, reps):
@@ -450,6 +455,7 @@ def plot_table(df, file_name, plot_path, reps, expected_dapi, fig_height=8, fig_
     df_reset = df_reset.drop(index='DAPI')
     df_reset = pd.concat([df_reset, df_dapi])
     col_labels = [col.replace("_", "\n") for col in df_reset.columns]
+    col_labels = [col.replace("-", "\n") for col in col_labels]
     table = ax.table(cellText=df_reset.apply(lambda x: x.map(str)).values,
              rowLabels=df_reset.index,
              colLabels=col_labels,
@@ -478,6 +484,7 @@ def plot_table_diff(df, plot_path, file_name,fig_height=8, fig_width=8, to_save=
     colored_df['Rep'] = 'white'
     df_reset = df.reset_index(level=1)
     col_labels = [col.replace("_", "\n") for col in df_reset.columns]
+    col_labels = [col.replace("-", "\n") for col in col_labels]
 
     table = ax.table(cellText=df_reset.apply(lambda x: x.map(str)).values,
              rowLabels=df_reset.index,
@@ -577,6 +584,7 @@ def plot_cell_count(df, order, custom_palette, y, title, norm=False, figsize=(15
             min_y_value = (min(-df.groupby(['batch','rep','cell_line_cond'])[y].std()+df.groupby(['batch','rep','cell_line_cond'])[y].mean()))
 
             for i, (batch_name, batch) in enumerate(df.groupby('batch')):
+                batch = batch.sort_values(by='rep')  # Ensure groups are ordered by 'rep'
                 c = sns.barplot(data=batch, x='rep', hue='cell_line_cond', y=y, hue_order = order, 
                                 ax=axs[i], palette=custom_palette, errorbar='sd', err_kws={'linewidth': 1})
                 c.set_xlabel(batch_name, fontsize=12) 
@@ -1031,6 +1039,7 @@ def plot_catplot(df, custom_palette, reps, x, x_title, y='cell_line_cond', y_tit
         g = sns.catplot(kind='box', data=df, y=y, x=x,height=height, aspect=aspect, hue=hue, palette=palette,
                         hue_order=hue_order)
         g.set_axis_labels(x_title, y_title)
+        g.set_xticklabels(rotation=45)  # Rotate x-axis labels 
 
         if hue == 'batch_rep':
             g._legend.remove()
@@ -1201,6 +1210,20 @@ def show_site_survival_dapi_tiling(df_dapi, batches, dapi_filter_by_cellpose, li
                        second=dapi_filter_by_tiling, figsize=figsize)
     return dapi_filter_by_tiling
 
+def show_site_survival_by_brenner_on_dapi_tiles(df_dapi, batches, dapi_filter_by_tiling, line_colors, panels, reps, figsize=(5,5)):
+    dapi_filter_by_brenner_tiles = df_dapi[(df_dapi.site_cell_count!=0) & (df_dapi.n_valid_tiles_after_tiles_brenner!=0)]
+    dapi_filter_by_brenner_tiles = dapi_filter_by_brenner_tiles.groupby(['batch','cell_line_cond','panel','rep']).index.count().reset_index()
+    dapi_filter_by_brenner_tiles=add_empty_lines(dapi_filter_by_brenner_tiles, batches, line_colors, panels, reps)
+    dapi_filter_by_brenner_tiles.sort_values(by=['batch','cell_line_cond','panel','rep'], inplace=True)
+    dapi_filter_by_brenner_tiles.reset_index(inplace=True, drop=True)
+    assert(dapi_filter_by_brenner_tiles.drop(columns='index') == dapi_filter_by_tiling.drop(columns='index')).all().all()
+    dapi_filter_by_brenner_tiles_per = dapi_filter_by_brenner_tiles.copy()
+    dapi_filter_by_brenner_tiles_per['index'] = round(dapi_filter_by_brenner_tiles_per['index']*100 / dapi_filter_by_tiling['index'])
+    dapi_filter_by_brenner_tiles_per.fillna(0, inplace=True)
+    plot_filtering_heatmap(dapi_filter_by_brenner_tiles_per, extra_index='panel', xlabel='% Site survival tiling', 
+                       second=dapi_filter_by_brenner_tiles, figsize=figsize)
+    return dapi_filter_by_brenner_tiles
+
 def show_site_survival_target_brenner(df_dapi, df_target, dapi_filter_by_tiling, markers, figsize=(6,8) ):
     pass_dapi = df_dapi[(df_dapi.site_cell_count!=0) & (df_dapi.n_valid_tiles!=0)] # take only DAPI's that passed so far (Brenner & Cellpose & tiling)
     passs = pd.concat([pass_dapi,df_target])
@@ -1219,6 +1242,34 @@ def show_site_survival_target_brenner(df_dapi, df_target, dapi_filter_by_tiling,
 
     pass_target_per = pass_target.copy() # calc percentages
     merge = pass_target.merge(dapi_filter_by_tiling[['batch','cell_line_cond','rep','index','panel']],
+                    on=['batch', 'cell_line_cond', 'panel', 'rep'], suffixes=('_pass', '_dapi'))
+    pass_target_per = pass_target_per.sort_values(by=['batch','cell_line_cond','rep','panel','marker']).reset_index()
+    merge = merge.sort_values(by=['batch','cell_line_cond','rep','panel','marker']).reset_index()
+
+    pass_target_per['index'] = round(merge['index_pass']*100 / merge['index_dapi'])
+    plot_filtering_heatmap(pass_target_per.drop(columns=['level_0','panel']), extra_index='marker', 
+                        xlabel = '% Site survival by Brenner on target channel', second=pass_target,
+                        figsize=figsize)
+    return
+
+def show_site_survival_target_brenner_tiles(df_dapi, df_target, dapi_filter_by_brenner_tiles, markers, figsize=(6,8) ):
+    pass_dapi = df_dapi[(df_dapi.site_cell_count!=0) & (df_dapi.n_valid_tiles_after_tiles_brenner!=0)] # take only DAPI's that passed so far (Brenner & Cellpose & tiling)
+    passs = pd.concat([pass_dapi,df_target])
+    pass_target = pd.DataFrame(columns=['batch','rep','marker','panel']) # create empty df for results
+
+    for marker in markers:
+        if marker=='DAPI':
+            continue
+        # for each marker, find the DAPI sites that passed
+        pass_target_cur = passs[passs.marker.str.contains(f'{marker}|DAPI', regex=True)] 
+        # groupby all identifiers to group DAPI&marker sites, then count rows, later count only rows with count>1 (to ignore DAPI)
+        site_pass = pass_target_cur.groupby(['site_num','batch','cell_line_cond','rep','panel']).index.count().reset_index() # for each site, count how many passes (includeing dapi)
+        marker_pass = site_pass[site_pass['index']>1].groupby(['batch','cell_line_cond','rep','panel'])['index'].count().reset_index() # find how many targets passed and then add them all
+        marker_pass['marker'] = marker # add marker info
+        pass_target = pass_target.merge(marker_pass, how='outer') # save result
+
+    pass_target_per = pass_target.copy() # calc percentages
+    merge = pass_target.merge(dapi_filter_by_brenner_tiles[['batch','cell_line_cond','rep','index','panel']],
                     on=['batch', 'cell_line_cond', 'panel', 'rep'], suffixes=('_pass', '_dapi'))
     pass_target_per = pass_target_per.sort_values(by=['batch','cell_line_cond','rep','panel','marker']).reset_index()
     merge = merge.sort_values(by=['batch','cell_line_cond','rep','panel','marker']).reset_index()
@@ -1275,3 +1326,136 @@ def show_total_sum_tables(total_sum):
     describe.index.name = 'All batches'
     display(HTML(describe.to_html()))
     return
+
+def plot_marker_data(total_sum, split_by_cell_line=True):
+    """
+    Plot total valid tiles by batch for DAPI, TUJ1, and other markers.
+
+    Parameters:
+        total_sum (DataFrame): Original DataFrame containing marker data.
+        split_by_cell_line (bool): Whether to plot for each cell_line_cond separately or all together.
+    """
+    if total_sum.empty:
+        print("The total_sum DataFrame is empty. Provide valid data for visualization.")
+        return
+
+    # Calculate marker_tile_summary
+    marker_tile_summary = total_sum.groupby(['batch', 'marker', 'cell_line_cond'])['n_valid_tiles'].sum().reset_index()
+
+    # Define subsets and plotting logic
+    def plot_data(data, title_suffix):
+        for markers, figsize in [(['DAPI', 'TUJ1'], (12, 4)), (None, (12, 8))]:
+            subset = data[data['marker'].isin(markers)] if markers else data[~data['marker'].isin(['DAPI', 'TUJ1'])]
+            if not subset.empty:
+                plt.figure(figsize=figsize)
+                sns.barplot(
+                    data=subset,
+                    y='marker',
+                    x='n_valid_tiles',
+                    hue='batch',
+                    ci=None,
+                    orient='h'
+                )
+                marker_names = ", ".join(subset['marker'].unique()) if markers else "Other Markers"
+                plt.title(f"Total Valid Tiles {title_suffix} ({marker_names})", fontsize=16)
+                # plt.title(f"Total Valid Tiles {title_suffix} ({'DAPI & TUJ1' if markers else 'Other Markers'})", fontsize=16)
+                plt.xlabel('Total Valid Tiles', fontsize=14)
+                plt.ylabel('Marker', fontsize=14)
+                plt.legend(title='Batch', bbox_to_anchor=(1.05, 1), loc='upper left')
+                plt.tight_layout()
+                plt.show()
+
+    # Plot all together or split by cell_line_cond
+    if split_by_cell_line:
+        for cell_line in marker_tile_summary['cell_line_cond'].unique():
+            plot_data(marker_tile_summary[marker_tile_summary['cell_line_cond'] == cell_line], f"by Batch ({cell_line})")
+    else:
+        plot_data(marker_tile_summary, "by Batch (All Cell Lines)")
+
+def find_bad_wells(dfb, threshold, percentage_filter, 
+                         columns=['Panel', 'Condition', 'CellLine', 'Rep', 'Batch', 'Marker']):
+    """
+    Analyze all combinations of settings to find technical issues in the experiment.
+
+    Parameters:
+    - dfb (pd.DataFrame): Input DataFrame of Brenners.
+    - columns (list): List of column names to consider for combinations.
+    - threshold (float): Threshold value for filtering `Target_Sharpness_Brenner` - above it the image is probably not valid .
+    - percentage_filter (float): Minimum percentage value to filter results (non valid images out of all images).
+
+    Returns:
+    - pd.DataFrame: Results containing combinations with percentages greater than `percentage_filter`.
+    """
+    results = []
+
+    # Iterate over all subsets of columns
+    for r in range(1, len(columns) + 1):  # From 1 column to all columns
+        for subset in combinations(columns, r):
+            subset = list(subset)  # Convert subset tuple to list
+
+            # Create tables for the current subset
+            table1 = (
+                dfb.loc[dfb['Target_Sharpness_Brenner'] > threshold]
+                .groupby(subset).size().reset_index(name='Count')
+            )
+
+            table2 = (
+                dfb.groupby(subset).size().reset_index(name='Count')
+            )
+
+            # Merge and calculate percentages
+            merged_table = pd.merge(table1, table2, on=subset, how='inner', suffixes=('_table1', '_table2'))
+            merged_table = merged_table.copy()  # Ensure it's not a slice
+            merged_table['Percentage'] = (merged_table['Count_table1'] / merged_table['Count_table2']) * 100
+
+            # Filter for percentages > percentage_filter
+            high_percentage = merged_table[merged_table['Percentage'] > percentage_filter].copy()  # Ensure copy here
+
+            # Append the results with combination info
+            if not high_percentage.empty:
+                high_percentage.loc[:, 'Combination'] = str(subset)  # Add subset info using .loc to avoid warnings
+                results.append(high_percentage)
+
+    # Concatenate all results into a single DataFrame
+    if results:
+        final_results = pd.concat(results, ignore_index=True)
+    else:
+        final_results = pd.DataFrame()  # Return empty DataFrame if no results
+
+    return final_results
+
+def create_marker_info_df(root_path: str) -> pd.DataFrame:
+    """
+    Walks through the directory structure to extract marker and panel information.
+
+    Parameters:
+        root_path (str): The root directory where the images are stored.
+
+    Returns:
+        pd.DataFrame: A DataFrame containing markers and their associated panels.
+    """
+    data: Dict[str, Dict[str, list]] = {}
+
+    # Walk through the directory structure
+    for dirpath, dirnames, filenames in os.walk(root_path):
+        # Check if the current path contains 'repX' and a subfolder for the marker
+        if os.path.basename(os.path.dirname(dirpath)).startswith("rep"):  # Check for 'repX' in parent folder
+            marker = os.path.basename(dirpath)  # The marker is the current folder
+            panel_folder = os.path.basename(os.path.dirname(os.path.dirname(os.path.dirname(dirpath))))  # Three levels up for the panel
+            
+            if panel_folder.lower().startswith("panel"):  # Ensure it's a panel folder
+                panel = panel_folder.replace("panel", "").strip()
+                
+                # Add marker and panel information
+                if marker not in data:
+                    data[marker] = {"Antibody": [], "panel": []}  # Initialize marker entry
+                data[marker]["panel"].append(panel)  # Add panel to the marker
+
+    # Convert the data to a DataFrame
+    final_marker_info = pd.DataFrame.from_dict(data, orient="index")
+
+    # Ensure 'panel' and 'Antibody' are arrays and unique panels
+    final_marker_info["panel"] = final_marker_info["panel"].apply(lambda x: sorted(set(x)))  # Remove duplicates and sort
+    final_marker_info["Antibody"] = [[] for _ in range(len(final_marker_info))]  # Create an empty array for Antibody
+
+    return final_marker_info
