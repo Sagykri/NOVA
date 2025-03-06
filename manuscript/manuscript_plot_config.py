@@ -279,3 +279,118 @@ class NIH8DaysDistanceConfig(DistancesNeuronsStressPlotConfig):
     def __init__(self):
         super().__init__()
         self.COLOR_MAPPINGS_MARKERS = self.COLOR_MAPPINGS_NIH
+
+class UMAP0CellLinesConditionsAsLabelsPlotConfig(PlotConfig):
+    def __init__(self):
+        super().__init__()
+
+        self.MAP_LABELS_FUNCTION =  MapLabelsFunction.CELL_LINES_CONDITIONS.name
+        self.COLOR_MAPPINGS = None
+        # umap type
+        self.UMAP_TYPE = 0
+
+class UMAP1FunovaPlotConfig(PlotConfig):
+    def __init__(self):
+        super().__init__()
+        
+        self.ORDERED_MARKER_NAMES = [
+            'DAPI', 'Stress-initiation', 'mature-Autophagosome', 'Cytoskeleton', 'Ubiquitin-levels',
+            'UPR-IRE1a', 'UPR-ATF4', 'UPR-ATF6', 'impaired-Autophagosome', 'Autophagy',
+            'Aberrant-splicing', 'Parthanatos-late', 'Nuclear-speckles-SC35', 'Splicing-factories',
+            'TDP-43', 'Nuclear-speckles-SON', 'DNA-damage-pH2Ax', 'Parthanatos-early', 'Necrosis',
+            'Necroptosis-HMGB1', 'Neuronal-activity', 'DNA-damage-P53BP1', 'Apoptosis',
+            'Necroptosis-pMLKL', 'Protein-degradation', 'Senescence-signaling'
+        ]
+
+    
+        # Set the size of the dots
+        self.SIZE = 1
+        self.ALPHA = 1
+        # How labels are shown in legend
+        self.MAP_LABELS_FUNCTION = MapLabelsFunction.MARKERS.name
+        # umap type
+        self.UMAP_TYPE = 1
+        # Colors 
+        self.COLOR_MAPPINGS = self.COLOR_MAPPINGS_FUNOVA
+        self.COLOR_MAPPINGS_MARKERS = self.COLOR_MAPPINGS_FUNOVA
+
+class UMAP1FunovaPlotConfigCategories(PlotConfig):
+    def __init__(self):
+        super().__init__()
+        # Set the size of the dots
+        self.SIZE = 1
+        self.ALPHA = 1
+        # umap type
+        self.UMAP_TYPE = 1
+        # How labels are shown in legend
+        self.MAP_LABELS_FUNCTION = MapLabelsFunction.CATEGORIES.name
+        # Colors 
+        self.COLOR_MAPPINGS = self.COLOR_MAPPINGS_FUNOVA_CATEGORIES
+        self.COLOR_MAPPINGS_MARKERS = self.COLOR_MAPPINGS_FUNOVA_CATEGORIES
+
+class UMAP2ALSPlotConfigFunova(PlotConfig):
+    def __init__(self):
+        super().__init__()
+
+        self.MAP_LABELS_FUNCTION =  MapLabelsFunction.MULTIPLEX_CELL_LINES.name
+        self.COLOR_MAPPINGS = self.COLOR_MAPPINGS_ALS_FUNOVA
+        # umap type
+        self.UMAP_TYPE = 2
+
+class UMAP0ALSPlotConfigFunova(PlotConfig):
+    def __init__(self):
+        super().__init__()
+
+        self.MAP_LABELS_FUNCTION =  MapLabelsFunction.CELL_LINES.name
+        self.COLOR_MAPPINGS = self.COLOR_MAPPINGS_ALS_FUNOVA
+        # umap type
+        self.UMAP_TYPE = 0
+
+class UMAP0ALSPlotConfigFunovaMix(PlotConfig):
+    def __init__(self):
+        super().__init__()
+
+        self.MAP_LABELS_FUNCTION =  MapLabelsFunction.CELL_LINES.name
+        self.COLOR_MAPPINGS = self.COLOR_MAPPINGS_ALS_FUNOVA
+        # umap type
+        self.UMAP_TYPE = 0
+        self.MIX_GROUPS = True
+
+class UMAP0ALSConditionsPlotConfigFunova(PlotConfig):
+    def __init__(self):
+        super().__init__()
+
+        self.MAP_LABELS_FUNCTION =  MapLabelsFunction.CELL_LINES_CONDITIONS.name
+        self.COLOR_MAPPINGS = self.COLOR_MAPPINGS_ALS_CONDITIONS_FUNOVA
+        # umap type
+        self.UMAP_TYPE = 0
+        # self.MIX_GROUPS = True
+        self.ALPHA=0.5
+
+class UMAP2ALSConditionsPlotConfigFunova(PlotConfig):
+    def __init__(self):
+        super().__init__()
+
+        self.MAP_LABELS_FUNCTION =  MapLabelsFunction.MULTIPLEX_CELL_LINES_CONDITIONS.name
+        self.COLOR_MAPPINGS = self.COLOR_MAPPINGS_ALS_CONDITIONS_FUNOVA
+        # umap type
+        self.UMAP_TYPE = 2
+        self.ALPHA=0.5
+
+class DistancesFunovaPlotConfig(PlotConfig):
+    ## Bubbleplot
+    def __init__(self):
+        super().__init__()
+
+        self.COLOR_MAPPINGS_CELL_LINE_CONDITION = self.COLOR_MAPPINGS_ALS_CONDITIONS_FUNOVA
+        self.ORDERED_MARKERS =  [
+            'DAPI', 'Stress-initiation', 'mature-Autophagosome', 'Cytoskeleton', 'Ubiquitin-levels',
+            'UPR-IRE1a', 'UPR-ATF4', 'UPR-ATF6', 'impaired-Autophagosome', 'Autophagy',
+            'Aberrant-splicing', 'Parthanatos-late', 'Nuclear-speckles-SC35', 'Splicing-factories',
+            'TDP-43', 'Nuclear-speckles-SON', 'DNA-damage-pH2Ax', 'Parthanatos-early', 'Necrosis',
+            'Necroptosis-HMGB1', 'Neuronal-activity', 'DNA-damage-P53BP1', 'Apoptosis',
+            'Necroptosis-pMLKL', 'Protein-degradation', 'Senescence-signaling'
+        ]
+        self.UMAP_TYPE = 2
+        self.COLOR_MAPPINGS_MARKERS = self.COLOR_MAPPINGS_FUNOVA
+    

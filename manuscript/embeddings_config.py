@@ -239,3 +239,29 @@ class EmbeddingsNIHDay8DatasetConfig(EmbeddingsConfig):
         self.MARKERS_TO_EXCLUDE = None
         self.ADD_BATCH_TO_LABEL = True
         self.ADD_REP_TO_LABEL = True
+
+class EmbeddingsFUNOVADatasetConfig(EmbeddingsConfig):
+    def __init__(self):
+        super().__init__()
+
+        self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, f) for f in 
+                        ["Batch1", "Batch2","Batch3","Batch4", ]]
+        
+        self.SPLIT_DATA = False
+        self.EXPERIMENT_TYPE = 'funova'    
+        self.MARKERS_TO_EXCLUDE = None
+        self.ADD_BATCH_TO_LABEL = True
+        self.ADD_REP_TO_LABEL = True
+
+class EmbeddingsFUNOVADatasetConfigPaths(EmbeddingsConfig):
+    def __init__(self):
+        super().__init__()
+
+        self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, f) for f in 
+                        ["Batch1", "Batch2","Batch3","Batch4",]]
+        
+        self.SPLIT_DATA = False
+        self.EXPERIMENT_TYPE = 'funova_paths'    
+        self.MARKERS_TO_EXCLUDE = None
+        self.ADD_BATCH_TO_LABEL = True
+        self.ADD_REP_TO_LABEL = True

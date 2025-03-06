@@ -114,3 +114,36 @@ class NIH8DaysTBK1DistanceConfig(DistanceConfig):
         self.ADD_BATCH_TO_LABEL = True
         self.ADD_REP_TO_LABEL = True   
         self.BASELINE_CELL_LINE_CONDITION = "WT_Untreated"
+
+class funovaTBK1DistanceConfig(DistanceConfig):
+    ## Bubble plot
+    def __init__(self):
+        super().__init__()
+
+        self.INPUT_FOLDERS = ["Batch1", "Batch2", "Batch3", "Batch4"]
+        
+        self.EXPERIMENT_TYPE = 'funova'   
+        self.CELL_LINES = ["Control-1001733", "Control-1017118", "Control-1025045", "Control-1048087",
+                           'C9orf72-HRE-1008566', 'C9orf72-HRE-981344', 'TDP--43-G348V-1057052', 'TDP--43-N390D-1005373']
+        self.CONDITIONS = ['Untreated']
+        self.MARKERS_TO_EXCLUDE = []
+        # self.MARKERS = []
+        self.ADD_BATCH_TO_LABEL = True
+        self.ADD_REP_TO_LABEL = True   
+        self.BASELINE_CELL_LINE_CONDITION =  "Control-1025045_Untreated"
+        self.COMMON_BASELINE = "Control-1025045"
+
+class funovaDistanceConfig(DistanceConfig):
+    ## Boxplot
+    def __init__(self):
+        super().__init__()
+
+        self.INPUT_FOLDERS = ["Batch1", "Batch2", "Batch3", "Batch4"]
+        
+        self.EXPERIMENT_TYPE = 'funova'   
+        self.MARKERS_TO_EXCLUDE = [] 
+        self.CELL_LINES = ['TDP--43']
+        self.BASELINE_CELL_LINE_CONDITION = "TDP--43_Untreated"
+        self.ADD_BATCH_TO_LABEL = True
+        self.ADD_REP_TO_LABEL = True
+        self.COMMON_BASELINE = "TDP--43"
