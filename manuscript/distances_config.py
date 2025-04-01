@@ -116,7 +116,7 @@ class NIH8DaysTBK1DistanceConfig(DistanceConfig):
         self.BASELINE_CELL_LINE_CONDITION = "WT_Untreated"
 
 class funovaTBK1DistanceConfig(DistanceConfig):
-    ## Bubble plot
+    ## Bubble plot - Compare to one cell line (patient)
     def __init__(self):
         super().__init__()
 
@@ -127,14 +127,65 @@ class funovaTBK1DistanceConfig(DistanceConfig):
                            'C9orf72-HRE-1008566', 'C9orf72-HRE-981344', 'TDP--43-G348V-1057052', 'TDP--43-N390D-1005373']
         self.CONDITIONS = ['Untreated']
         self.MARKERS_TO_EXCLUDE = []
-        # self.MARKERS = []
         self.ADD_BATCH_TO_LABEL = True
         self.ADD_REP_TO_LABEL = True   
         self.BASELINE_CELL_LINE_CONDITION =  "Control-1025045_Untreated"
         self.COMMON_BASELINE = "Control-1025045"
 
+class funovaTBK1DistanceConfigControl(DistanceConfig):
+    ## Bubble plot - Compare to all controls
+    def __init__(self):
+        super().__init__()
+
+        self.INPUT_FOLDERS = ["Batch1", "Batch2", "Batch3", "Batch4"]
+        
+        self.EXPERIMENT_TYPE = 'funova'   
+        self.CELL_LINES = ["Control-1001733", "Control-1017118", "Control-1025045", "Control-1048087",
+                           'C9orf72-HRE-1008566', 'C9orf72-HRE-981344', 'TDP--43-G348V-1057052', 'TDP--43-N390D-1005373']
+        self.CONDITIONS = ['Untreated']
+        self.MARKERS_TO_EXCLUDE = []
+        self.ADD_BATCH_TO_LABEL = True
+        self.ADD_REP_TO_LABEL = True   
+        self.BASELINE_CELL_LINE_CONDITION =  "Control_Untreated"
+        self.COMMON_BASELINE = "Control"
+
+
+class funovaTBK1DistanceConfigControlStress(funovaTBK1DistanceConfigControl):
+    ## Bubble plot - stress
+    def __init__(self):
+        super().__init__()
+        self.CONDITIONS = ['stress']
+        self.BASELINE_CELL_LINE_CONDITION =  "Control_stress"
+
+class funovaTBK1DistanceConfigControlUntreatedStress(funovaTBK1DistanceConfigControl):
+    ## Bubble plot untreated + stress
+    def __init__(self):
+        super().__init__()
+        self.CONDITIONS = ['Untreated', 'stress']
+
+class funovaTBK1DistanceConfigControlNoBatch1(funovaTBK1DistanceConfigControl):
+    ## Bubble plot - without batch 1 - for finetuned model
+    def __init__(self):
+        super().__init__()
+
+        self.INPUT_FOLDERS = ["Batch2", "Batch3", "Batch4"]
+
 class funovaDistanceConfig(DistanceConfig):
     ## Boxplot
+    def __init__(self):
+        super().__init__()
+
+        self.INPUT_FOLDERS = ["Batch1", "Batch2", "Batch3", "Batch4"]
+        
+        self.EXPERIMENT_TYPE = 'funova'   
+        self.MARKERS_TO_EXCLUDE = [] 
+        self.BASELINE_CELL_LINE_CONDITION = "Control_Untreated"
+        self.ADD_BATCH_TO_LABEL = True
+        self.ADD_REP_TO_LABEL = True
+        self.COMMON_BASELINE = "Control"
+
+class funovaDistanceConfigTDP43(DistanceConfig):
+    ## Boxplot - TDP43 cell lines
     def __init__(self):
         super().__init__()
 
@@ -147,3 +198,68 @@ class funovaDistanceConfig(DistanceConfig):
         self.ADD_BATCH_TO_LABEL = True
         self.ADD_REP_TO_LABEL = True
         self.COMMON_BASELINE = "TDP--43"
+
+class funovaDistanceConfigC9(DistanceConfig):
+    ## Boxplot - C9 cell lines
+    def __init__(self):
+        super().__init__()
+
+        self.INPUT_FOLDERS = ["Batch1", "Batch2", "Batch3", "Batch4"]
+        
+        self.EXPERIMENT_TYPE = 'funova'   
+        self.MARKERS_TO_EXCLUDE = [] 
+        self.CELL_LINES = ['C9orf72-HRE']
+        self.BASELINE_CELL_LINE_CONDITION = "C9orf72-HRE_Untreated"
+        self.ADD_BATCH_TO_LABEL = True
+        self.ADD_REP_TO_LABEL = True
+        self.COMMON_BASELINE = "C9orf72-HRE"
+
+### Finetuned
+
+class funovaTBK1DistanceConfigControlFinetuned(DistanceConfig):
+    ## Bubble plot - Batch 1 is out + we compare to each of the controls
+    def __init__(self):
+        super().__init__()
+
+        self.INPUT_FOLDERS = ["Batch2", "Batch3", "Batch4"]
+        
+        self.EXPERIMENT_TYPE = 'funova'   
+        self.CELL_LINES = ["Control-1001733", "Control-1017118", "Control-1025045", "Control-1048087",
+                           'C9orf72-HRE-1008566', 'C9orf72-HRE-981344', 'TDP--43-G348V-1057052', 'TDP--43-N390D-1005373']
+        self.CONDITIONS = ['Untreated', 'stress']
+        self.MARKERS_TO_EXCLUDE = []
+        self.ADD_BATCH_TO_LABEL = True
+        self.ADD_REP_TO_LABEL = True   
+        self.BASELINE_CELL_LINE_CONDITION =  "Control_Untreated"
+        # self.COMMON_BASELINE = "Control"
+
+class funovaTBK1DistanceConfigControl1(funovaTBK1DistanceConfigControlFinetuned):
+    ## Bubble plot
+    def __init__(self):
+        super().__init__()
+        self.BASELINE_CELL_LINE_CONDITION =  "Control-1001733_Untreated"
+
+class funovaTBK1DistanceConfigControl2(funovaTBK1DistanceConfigControlFinetuned):
+    ## Bubble plot
+    def __init__(self):
+        super().__init__()
+        self.BASELINE_CELL_LINE_CONDITION =  "Control-1017118_Untreated"
+
+class funovaTBK1DistanceConfigControl3(funovaTBK1DistanceConfigControlFinetuned):
+    ## Bubble plot
+    def __init__(self):
+        super().__init__()
+        self.BASELINE_CELL_LINE_CONDITION =  "Control-1025045_Untreated"
+
+class funovaTBK1DistanceConfigControl4(funovaTBK1DistanceConfigControlFinetuned):
+    ## Bubble plot
+    def __init__(self):
+        super().__init__()
+        self.BASELINE_CELL_LINE_CONDITION =  "Control-1048087_Untreated"
+
+class funovaTBK1DistanceConfigControlStressFinetuned(funovaTBK1DistanceConfigControlFinetuned):
+    ## Bubble plot stress
+    def __init__(self):
+        super().__init__()
+        self.CONDITIONS = ['stress']
+        self.BASELINE_CELL_LINE_CONDITION =  "Control_stress"
