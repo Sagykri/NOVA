@@ -47,3 +47,35 @@ class OpenCellDatasetConfig(DatasetConfig):
         self.CELL_LINES = ['WT']
         self.CONDITIONS = ['Untreated']
         ######################
+
+
+############################################################
+# funova
+############################################################        
+
+class FunovaDatasetConfig(DatasetConfig):
+    def __init__(self):
+        ## Train on batch 1 Funova ##
+        super().__init__()
+
+        self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, f) for f in 
+                        ["Batch1"]]
+
+        self.SPLIT_DATA = True
+        self.MARKERS_TO_EXCLUDE = ['DAPI']
+        self.ADD_REP_TO_LABEL = False
+        self.COMMON_BASELINE = 'Control'
+
+class FunovaDatasetConfigHalf(DatasetConfig):
+    ## Train on half of the patients, batch 1, Funova ##
+    def __init__(self):
+        super().__init__()
+
+        self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, f) for f in 
+                        ["Batch1"]]
+
+        self.SPLIT_DATA = True
+        self.MARKERS_TO_EXCLUDE = ['DAPI']
+        self.ADD_REP_TO_LABEL = False
+        self.COMMON_BASELINE = 'Control'
+        self.CELL_LINES = ["Control-1001733","Control-1017118","C9orf72-HRE-1008566","TDP--43-G348V-1057052"]
