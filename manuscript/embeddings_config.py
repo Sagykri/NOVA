@@ -253,15 +253,29 @@ class EmbeddingsFUNOVADatasetConfig(EmbeddingsConfig):
         self.ADD_BATCH_TO_LABEL = True
         self.ADD_REP_TO_LABEL = True
 
-class EmbeddingsFUNOVADatasetConfigPaths(EmbeddingsConfig):
+class EmbeddingsFUNOVADatasetConfigMinMax(EmbeddingsConfig):
     def __init__(self):
         super().__init__()
-
+        self.PROCESSED_FOLDER_ROOT = '/home/labs/hornsteinlab/Collaboration/FUNOVA/input/images/processed_minmax/'
         self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, f) for f in 
-                        ["Batch1", "Batch2","Batch3","Batch4",]]
+                        ["Batch1", "Batch2","Batch3","Batch4", ]]
         
         self.SPLIT_DATA = False
-        self.EXPERIMENT_TYPE = 'funova_paths'    
+        self.EXPERIMENT_TYPE = 'funova_minmax'    
+        self.MARKERS_TO_EXCLUDE = None
+        self.ADD_BATCH_TO_LABEL = True
+        self.ADD_REP_TO_LABEL = True
+
+class EmbeddingsFUNOVADatasetConfigFinetuned(EmbeddingsConfig):
+    def __init__(self):
+        ## Run Batch 1 with split_data = True and rest of the batches with split_data = False
+        super().__init__()
+        self.PROCESSED_FOLDER_ROOT = '/home/labs/hornsteinlab/Collaboration/FUNOVA/input/images/processed/'
+        self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, f) for f in 
+                        ["Batch1" ]] #"Batch2","Batch3","Batch4",
+        
+        self.SPLIT_DATA = True
+        self.EXPERIMENT_TYPE = 'funova' 
         self.MARKERS_TO_EXCLUDE = None
         self.ADD_BATCH_TO_LABEL = True
         self.ADD_REP_TO_LABEL = True
