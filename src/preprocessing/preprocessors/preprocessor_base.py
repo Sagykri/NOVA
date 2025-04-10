@@ -251,22 +251,25 @@ class Preprocessor(ABC):
         # Tile the nucleus mask and validate each tile
         nuclei_mask_tiled = crop_image_to_tiles(nuclei_mask, self.preprocessing_config.TILE_INTERMEDIATE_SHAPE)
         
-
+        # Define image outer frame 
         whole_box = box(0,0,self.preprocessing_config.EXPECTED_IMAGE_SHAPE[0],self.preprocessing_config.EXPECTED_IMAGE_SHAPE[1]) 
+        # Fix for non-valid polygons 
         whole_polygons = [make_valid(Polygon(p)) if not Polygon(p).is_valid else Polygon(p) for p in cellpose.utils.outlines_list(nuclei_mask) ]
+        # Filter out shapes which are not polygons (i.e. lines)
         whole_polygons = [pol for pol in whole_polygons if pol.geom_type != 'LineString' and pol.geom_type !='MultiLineString']
+        # Filter out polygons which touch the outer frame
         whole_polygons = [p for p in whole_polygons if not p.intersects(whole_box.exterior.buffer(1))]
-
-        #valid_tiles_indexes = np.where([self.__is_valid_tile(masked_tile) for masked_tile in nuclei_mask_tiled])[0]
-        #if return_masked_tiles:
-        #    return valid_tiles_indexes, nuclei_mask_tiled
         
+        # Select only tiles with passed nuclues
         valid_tiles_indexes = np.where([self.__is_valid_tile_by_percent(masked_tile, whole_polygons = whole_polygons , 
                                                                         ix=ix)[0] 
                                                    for ix, masked_tile in enumerate(nuclei_mask_tiled)])
 
         valid_tiles_indexes = valid_tiles_indexes[0]
-        return valid_tiles_indexes , nuclei_mask_tiled
+
+        if return_masked_tiles:
+            return valid_tiles_indexes , nuclei_mask_tiled
+        return valid_tiles_indexes
     
     def _get_valid_tiles_indexes(self, nucleus_image: np.ndarray, return_masked_tiles:bool = True) -> np.ndarray:
         """
@@ -438,6 +441,7 @@ class Preprocessor(ABC):
         Returns:
             bool: True if the tile contains a whole nucleus and not more than the maximum allowed nucleus, False otherwise.
         """
+        # Extracted polygons are the product of intersection which each tile
         polygons = extract_polygons_from_mask(masked_tile)
 
         EXPECTED_IMAGE_SHAPE  =self.preprocessing_config.EXPECTED_IMAGE_SHAPE[0]
@@ -447,14 +451,20 @@ class Preprocessor(ABC):
 
         n_tiles = EXPECTED_IMAGE_SHAPE//tile_size
 
+        
         filtered_polygons = []
         i = ix
         l_shifted = []
+        # Iterate over each part/polygon (after intersection)
         for p in polygons:
+            # re-locate each part/polygon in their relative location on the whole image
             p1 = affinity.translate(p, xoff=i%n_tiles*tile_size, yoff=i//n_tiles*tile_size)
             p1 = make_valid(p1) if not p1.is_valid else p1
+            # Find inner point in each part-polygon (faster performance)
             pc = p1.representative_point()
             l_shifted.append(p1)
+            # Find the whole-polygon which contains the point. Then check percentage of area of part-polygon in whole-polygon
+            # if ratio > INCLUDED_AREA_RATIO -> add and skip to next part-polygon (since tile became valid - no need to keep checking)
             if p1 is not None and p is not None:
                 for pol_whole in whole_polygons:
                     if pc.intersects(pol_whole) and p1.intersection(pol_whole).area / pol_whole.area > self.preprocessing_config.INCLUDED_AREA_RATIO :
