@@ -1339,9 +1339,6 @@ def plot_marker_data(total_sum, split_by_cell_line=True):
         print("The total_sum DataFrame is empty. Provide valid data for visualization.")
         return
 
-    # Calculate marker_tile_summary
-    marker_tile_summary = total_sum.groupby(['batch', 'marker', 'cell_line_cond'])['n_valid_tiles'].sum().reset_index()
-
     # Define subsets and plotting logic
     def plot_data(data, title_suffix):
         for markers, figsize in [(['DAPI', 'TUJ1'], (12, 4)), (None, (12, 8))]:
@@ -1367,9 +1364,13 @@ def plot_marker_data(total_sum, split_by_cell_line=True):
 
     # Plot all together or split by cell_line_cond
     if split_by_cell_line:
+        # Calculate marker_tile_summary
+        marker_tile_summary = total_sum.groupby(['batch', 'marker', 'cell_line_cond'])['n_valid_tiles'].sum().reset_index()
         for cell_line in marker_tile_summary['cell_line_cond'].unique():
             plot_data(marker_tile_summary[marker_tile_summary['cell_line_cond'] == cell_line], f"by Batch ({cell_line})")
     else:
+        # Calculate marker_tile_summary
+        marker_tile_summary = total_sum.groupby(['batch', 'marker'])['n_valid_tiles'].sum().reset_index()
         plot_data(marker_tile_summary, "by Batch (All Cell Lines)")
 
 def find_bad_wells(dfb, threshold, percentage_filter, 
