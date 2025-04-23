@@ -47,9 +47,9 @@ def load_and_process_data(umaps_dir, path_to_umap, dfb=None):
     df[["Row", "Column", "FOV"]] = df[["Row", "Column", "FOV"]].astype(int)
 
     print('Validations')
+    # print(f'length:  df: {len(df)}, label_data: {len(label_data)}, umap_embeddings: {len(umap_embeddings)}')
     for col in ['Batch', 'Rep', 'Panel', 'Cell_Line']:
         print(col, np.unique(df[col]))
-    print(f'length:  df: {len(df)}, label_data: {len(label_data)}, umap_embeddings: {len(umap_embeddings)}')
     
     return umap_embeddings, label_data, config_data, config_plot, df
 
@@ -250,22 +250,38 @@ def show_processed_tile(df, index=0):
     
     # Load the image
     image = np.load(path)
-    site_image = image[tile]  # Extract the specific tile
+    site_image = image[tile]
+    marker = site_image[:, :, 0]
+    nucleus = site_image[:, :, 1]
 
-    # Plot target and nucleus images
-    fig, ax = plt.subplots(1, 2, figsize=(8, 4))
-    # print(site_image[:, :, 0].min(), site_image[:, :, 0].max(), site_image[:, :, 0].mean())
-    ax[0].set_title(f'{image_name}/{tile} - Target: {round(get_image_focus_quality(site_image[:, :, 0]), 2)}', fontsize=11)
-    ax[0].imshow(site_image[:, :, 0], cmap='gray', vmin=0, vmax=1)
+    # Normalize
+    marker = np.clip(marker, 0, 1)
+    nucleus = np.clip(nucleus, 0, 1)
+
+    # Create RGB overlay: Red for marker, Green for nucleus
+    overlay = np.zeros((*marker.shape, 3))
+    overlay[..., 0] = marker      # Red channel = marker
+    overlay[..., 1] = nucleus     # Green channel = nucleus
+    # Blue remains 0
+
+    # Plot target, nucleus, and overlay
+    fig, ax = plt.subplots(1, 3, figsize=(10, 4))
+
+    ax[0].set_title(f'{image_name}/{tile} - Marker', fontsize=11)
+    ax[0].imshow(marker, cmap='gray', vmin=0, vmax=1)
     ax[0].set_axis_off()
 
-    ax[1].set_title(f'{image_name}/{tile} - Nucleus: {round(get_image_focus_quality(site_image[:, :, 1]), 2)}', fontsize=11)
-    ax[1].imshow(site_image[:, :, 1], cmap='gray', vmin=0, vmax=1)
+    ax[1].set_title(f'{image_name}/{tile} - Nucleus', fontsize=11)
+    ax[1].imshow(nucleus, cmap='gray', vmin=0, vmax=1)
     ax[1].set_axis_off()
 
-    plt.show()
-    return site_image
+    ax[2].set_title(f'{image_name}/{tile} - Overlay', fontsize=11)
+    ax[2].imshow(overlay)
+    ax[2].set_axis_off()
 
+    plt.show()
+
+    return site_image
 
 def extract_umap_data(
     base_dir,
@@ -500,7 +516,7 @@ def plot_fov_heatmaps(df, selected_indices_global, fov_grid):
                     heatmap_percentage[i, j] = (selected_count / all_count) * 100  # Compute percentage
 
     # Plot heatmaps
-    fig, axs = plt.subplots(1, 3, figsize=(8, 6))
+    fig, axs = plt.subplots(1, 3, figsize=(10, 6))
 
     # Heatmap for all data
     im1 = axs[0].imshow(heatmap_all, cmap="Blues", aspect="auto", interpolation="nearest")
