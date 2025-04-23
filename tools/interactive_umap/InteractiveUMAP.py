@@ -10,7 +10,7 @@ import matplotlib.colors as mcolors
 
 from src.figures.umap_plotting import __format_UMAP_axes as format_UMAP_axes
 from src.figures.umap_plotting import __format_UMAP_legend as format_UMAP_legend
-from interactive_umaps_utils import *
+from tools.interactive_umap.interactive_umap_utils import *
 from tools.show_images_utils import show_processed_tif, extract_image_metadata
 
 
@@ -83,8 +83,8 @@ class InteractiveUMAPPipeline:
         self.pickle_status_label = widgets.HTML()
         self.mix_groups_checkbox = widgets.Checkbox(value=True, description='Mix Groups')
         self.recolor_checkbox = widgets.Checkbox(value=False, description='Recolor by Brenner')
-        self.dilute_slider = widgets.IntSlider(value=1, min=1, max=100, step=1, description='Dilute', style={'description_width': '100px'})
-        self.bins_slider = widgets.IntSlider(value=5, min=1, max=20, step=1, description='Bins (Brenner)', style={'description_width': '100px'})
+        self.dilute_slider = widgets.IntSlider(value=1, min=1, max=100, step=1, description='Downsample', style={'description_width': '100px'})
+        self.bins_slider = widgets.IntSlider(value=5, min=1, max=20, step=1, description='Colors (Brenner)', style={'description_width': '100px'})
 
         # --- Layout containers ---
         self.umap_params = widgets.VBox([
@@ -98,8 +98,8 @@ class InteractiveUMAPPipeline:
             self.condition_dropdown,
             self.mix_groups_checkbox,
             self.recolor_checkbox,
-            self.dilute_slider,
             self.bins_slider,
+            self.dilute_slider,
             self.pickle_status_label,
             self.create_umap_button
         ], layout=Layout(display='none', gap='40px'))
@@ -240,7 +240,7 @@ class InteractiveUMAPPipeline:
             self.right_box.children = [
                 widgets.HTML("<b>Filter Settings:</b>")
             ] + [
-                self.create_checkbox_group(col) for col in ['Batch', 'Condition', 'Rep', 'Panel', 'Cell_Line']
+                self.create_checkbox_group(col) for col in ['Batch', 'Condition', 'Rep', 'Cell_Line', 'Panel']
             ] + [self.apply_filter_button]
 
         self.apply_filter_button.layout.display = 'inline-block'
@@ -289,18 +289,18 @@ class InteractiveUMAPPipeline:
                 show_processed_tile(df_to_use, ind)
                 plt.show()
 
-        time.sleep(2)
+        time.sleep(3)
         # Section 3: FOV
         with self.fov_output:
-            batch = df_to_use["Batch"].iloc[0]
-            panel = df_to_use["Panel"].iloc[0].split('panel')[1]
+            batch = self.df_image_stats["Batch"].iloc[0]
+            panel = self.df_image_stats["Panel"].iloc[0].split('panel')[1]
 
             if batch not in self.fov_layouts or panel not in self.fov_layouts[batch]:
                 raise ValueError(f"Unknown Batch/Panel: {batch}, {panel}")
 
             fov_grid = self.fov_layouts[batch][panel]
-            plot_fov_histogram(df_to_use, self.selected_indices_global)
-            plot_fov_heatmaps(df_to_use, self.selected_indices_global, fov_grid)
+            plot_fov_heatmaps(self.df_image_stats, self.selected_indices_global, fov_grid)
+            plot_fov_histogram(self.df_image_stats, self.selected_indices_global)
             
     def clear_outputs(self, selected_points=True, umaps=True): 
         if selected_points:
@@ -318,9 +318,15 @@ class InteractiveUMAPPipeline:
             style={'description_width': '200px'}
         )
 
-    def create_checkbox_group(self, column):
-        values = sorted(self.df_image_stats[column].dropna().unique())
-        checkboxes = [widgets.Checkbox(value=True, description=str(v)) for v in values]
+    def create_checkbox_group(self, column): 
+        value_counts = self.df_image_stats[column].value_counts()
+        values = sorted(value_counts.index.dropna())
+        checkboxes = [
+            widgets.Checkbox(
+                value=True, 
+                description=f"{v} ({value_counts[v]})"
+            ) for v in values
+        ]
         self.filter_checkboxes[column] = checkboxes
         return widgets.VBox([widgets.Label(f"{column} Filter:")] + checkboxes)
 
@@ -377,7 +383,9 @@ class InteractiveUMAPPipeline:
         cmap: str = 'tab20',
         ari_score: float = None,
     ):
-        
+        self.selected_indices_global = []
+        self.rect_selector = None
+
         df_image_stats = self.df_image_stats_filt.copy() if self.df_image_stats_filt is not None else self.df_image_stats.copy()
         umap_embeddings = self.umap_embeddings_filt.copy() if self.umap_embeddings_filt is not None else self.umap_embeddings.copy()
         label_data = self.label_data_filt.copy() if self.label_data_filt is not None else self.label_data.copy()
