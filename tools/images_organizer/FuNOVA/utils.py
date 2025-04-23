@@ -3,8 +3,8 @@ import os
 import shutil
 import shlex
 
-import config_funova as config
-from config_funova import FILE_EXTENSION, LOGGING_PATH, SRC_ROOT_PATH
+import tools.images_organizer.FuNOVA.interactive_umap.config_funova as config
+from tools.images_organizer.FuNOVA.interactive_umap.config_funova import FILE_EXTENSION, LOGGING_PATH, SRC_ROOT_PATH
 
 def __get_batch(plate):
     """
