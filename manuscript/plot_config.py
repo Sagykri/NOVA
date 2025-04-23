@@ -200,12 +200,69 @@ class PlotConfig(PlotConfig):
             'Senescence-signaling': {self.MAPPINGS_ALIAS_KEY: 'Senescence signaling', self.MAPPINGS_COLOR_KEY: '#FF5733'}
         }
 
+        self.COLOR_MAPPINGS_FUNOVA_CONDITIONS = {
+            'DAPI_Untreated': {self.MAPPINGS_ALIAS_KEY: 'Nucleus', self.MAPPINGS_COLOR_KEY: '#000000'},
+            'Stress-initiation_Untreated': {self.MAPPINGS_ALIAS_KEY: 'Stress initiation', self.MAPPINGS_COLOR_KEY: '#000000'},
+            'mature-Autophagosome_Untreated': {self.MAPPINGS_ALIAS_KEY: 'Mature Autophagosome', self.MAPPINGS_COLOR_KEY: '#000000'},
+            'Cytoskeleton_Untreated': {self.MAPPINGS_ALIAS_KEY: 'Cytoskeleton', self.MAPPINGS_COLOR_KEY: '#000000'},
+            'Ubiquitin-levels_Untreated': {self.MAPPINGS_ALIAS_KEY: 'Ubiquitin levels', self.MAPPINGS_COLOR_KEY: '#000000'},
+            'UPR-IRE1a_Untreated': {self.MAPPINGS_ALIAS_KEY: 'UPR IRE1a', self.MAPPINGS_COLOR_KEY: '#000000'},
+            'UPR-ATF4_Untreated': {self.MAPPINGS_ALIAS_KEY: 'UPR ATF4', self.MAPPINGS_COLOR_KEY: '#000000'},
+            'UPR-ATF6_Untreated': {self.MAPPINGS_ALIAS_KEY: 'UPR ATF6', self.MAPPINGS_COLOR_KEY: '#000000'},
+            'impaired-Autophagosome_Untreated': {self.MAPPINGS_ALIAS_KEY: 'Impaired Autophagosome', self.MAPPINGS_COLOR_KEY: '#000000'},
+            'Autophagy_Untreated': {self.MAPPINGS_ALIAS_KEY: 'Autophagy', self.MAPPINGS_COLOR_KEY: '#000000'},
+            'Aberrant-splicing_Untreated': {self.MAPPINGS_ALIAS_KEY: 'Aberrant splicing', self.MAPPINGS_COLOR_KEY: '#000000'},
+            'Parthanatos-late_Untreated': {self.MAPPINGS_ALIAS_KEY: 'Parthanatos late', self.MAPPINGS_COLOR_KEY: '#000000'},
+            'Nuclear-speckles-SC35_Untreated': {self.MAPPINGS_ALIAS_KEY: 'Nuclear speckles SC35', self.MAPPINGS_COLOR_KEY: '#000000'},
+            'Splicing-factories_Untreated': {self.MAPPINGS_ALIAS_KEY: 'Splicing factories', self.MAPPINGS_COLOR_KEY: '#000000'},
+            'TDP-43_Untreated': {self.MAPPINGS_ALIAS_KEY: 'TDP-43', self.MAPPINGS_COLOR_KEY: '#000000'},
+            'Nuclear-speckles-SON_Untreated': {self.MAPPINGS_ALIAS_KEY: 'Nuclear speckles SON', self.MAPPINGS_COLOR_KEY: '#000000'},
+            'DNA-damage-pH2Ax_Untreated': {self.MAPPINGS_ALIAS_KEY: 'DNA damage pH2Ax', self.MAPPINGS_COLOR_KEY: '#000000'},
+            'Parthanatos-early_Untreated': {self.MAPPINGS_ALIAS_KEY: 'Parthanatos early', self.MAPPINGS_COLOR_KEY: '#000000'},
+            'Necrosis_Untreated': {self.MAPPINGS_ALIAS_KEY: 'Necrosis', self.MAPPINGS_COLOR_KEY: '#000000'},
+            'Necroptosis-HMGB1_Untreated': {self.MAPPINGS_ALIAS_KEY: 'Necroptosis HMGB1', self.MAPPINGS_COLOR_KEY: '#000000'},
+            'Neuronal-activity_Untreated': {self.MAPPINGS_ALIAS_KEY: 'Neuronal activity', self.MAPPINGS_COLOR_KEY: '#000000'},
+            'DNA-damage-P53BP1_Untreated': {self.MAPPINGS_ALIAS_KEY: 'DNA damage P53BP1', self.MAPPINGS_COLOR_KEY: '#000000'},
+            'Apoptosis_Untreated': {self.MAPPINGS_ALIAS_KEY: 'Apoptosis', self.MAPPINGS_COLOR_KEY: '#000000'},
+            'Necroptosis-pMLKL_Untreated': {self.MAPPINGS_ALIAS_KEY: 'Necroptosis pMLKL', self.MAPPINGS_COLOR_KEY: '#000000'},
+            'Protein-degradation_Untreated': {self.MAPPINGS_ALIAS_KEY: 'Protein degradation', self.MAPPINGS_COLOR_KEY: '#000000'},
+            'Senescence-signaling_Untreated': {self.MAPPINGS_ALIAS_KEY: 'Senescence signaling', self.MAPPINGS_COLOR_KEY: '#000000'},
+            
+            'DAPI_stress': {self.MAPPINGS_ALIAS_KEY: 'Nucleus', self.MAPPINGS_COLOR_KEY: '#AFBDFF'},
+            'Stress-initiation_stress': {self.MAPPINGS_ALIAS_KEY: 'Stress initiation', self.MAPPINGS_COLOR_KEY: '#4343FE'},
+            'mature-Autophagosome_stress': {self.MAPPINGS_ALIAS_KEY: 'Mature Autophagosome', self.MAPPINGS_COLOR_KEY: '#921010'},
+            'Cytoskeleton_stress': {self.MAPPINGS_ALIAS_KEY: 'Cytoskeleton', self.MAPPINGS_COLOR_KEY: '#12F986'},
+            'Ubiquitin-levels_stress': {self.MAPPINGS_ALIAS_KEY: 'Ubiquitin levels', self.MAPPINGS_COLOR_KEY: '#66CDAA'},
+            'UPR-IRE1a_stress': {self.MAPPINGS_ALIAS_KEY: 'UPR IRE1a', self.MAPPINGS_COLOR_KEY: '#18E4CF'},
+            'UPR-ATF4_stress': {self.MAPPINGS_ALIAS_KEY: 'UPR ATF4', self.MAPPINGS_COLOR_KEY: '#168FB2'},
+            'UPR-ATF6_stress': {self.MAPPINGS_ALIAS_KEY: 'UPR ATF6', self.MAPPINGS_COLOR_KEY: '#A80358'},
+            'impaired-Autophagosome_stress': {self.MAPPINGS_ALIAS_KEY: 'Impaired Autophagosome', self.MAPPINGS_COLOR_KEY: '#9968CB'},
+            'Autophagy_stress': {self.MAPPINGS_ALIAS_KEY: 'Autophagy', self.MAPPINGS_COLOR_KEY: '#D257EA'},
+            'Aberrant-splicing_stress': {self.MAPPINGS_ALIAS_KEY: 'Aberrant splicing', self.MAPPINGS_COLOR_KEY: '#E6A9EA'},
+            'Parthanatos-late_stress': {self.MAPPINGS_ALIAS_KEY: 'Parthanatos late', self.MAPPINGS_COLOR_KEY: '#F04521'},
+            'Nuclear-speckles-SC35_stress': {self.MAPPINGS_ALIAS_KEY: 'Nuclear speckles SC35', self.MAPPINGS_COLOR_KEY: '#F08F21'},
+            'Splicing-factories_stress': {self.MAPPINGS_ALIAS_KEY: 'Splicing factories', self.MAPPINGS_COLOR_KEY: '#F1CBDD'},
+            'TDP-43_stress': {self.MAPPINGS_ALIAS_KEY: 'TDP-43', self.MAPPINGS_COLOR_KEY: '#FFBF0D'},
+            'Nuclear-speckles-SON_stress': {self.MAPPINGS_ALIAS_KEY: 'Nuclear speckles SON', self.MAPPINGS_COLOR_KEY: '#37378D'},
+            'DNA-damage-pH2Ax_stress': {self.MAPPINGS_ALIAS_KEY: 'DNA damage pH2Ax', self.MAPPINGS_COLOR_KEY: 'gray'},
+            'Parthanatos-early_stress': {self.MAPPINGS_ALIAS_KEY: 'Parthanatos early', self.MAPPINGS_COLOR_KEY: '#DEDB23'},
+            'Necrosis_stress': {self.MAPPINGS_ALIAS_KEY: 'Necrosis', self.MAPPINGS_COLOR_KEY: '#AF8215'},
+            'Necroptosis-HMGB1_stress': {self.MAPPINGS_ALIAS_KEY: 'Necroptosis HMGB1', self.MAPPINGS_COLOR_KEY: '#32AC0E'},
+            'Neuronal-activity_stress': {self.MAPPINGS_ALIAS_KEY: 'Neuronal activity', self.MAPPINGS_COLOR_KEY: '#898700'},
+            'DNA-damage-P53BP1_stress': {self.MAPPINGS_ALIAS_KEY: 'DNA damage P53BP1', self.MAPPINGS_COLOR_KEY: '#ACE142'},
+            'Apoptosis_stress': {self.MAPPINGS_ALIAS_KEY: 'Apoptosis', self.MAPPINGS_COLOR_KEY: '#F0A3A3'},
+            'Necroptosis-pMLKL_stress': {self.MAPPINGS_ALIAS_KEY: 'Necroptosis pMLKL', self.MAPPINGS_COLOR_KEY: '#06A0E9'},
+            'Protein-degradation_stress': {self.MAPPINGS_ALIAS_KEY: 'Protein degradation', self.MAPPINGS_COLOR_KEY: '#EF218B'},
+            'Senescence-signaling_stress': {self.MAPPINGS_ALIAS_KEY: 'Senescence signaling', self.MAPPINGS_COLOR_KEY: '#FF5733'}
+        }
+
         self.COLOR_MAPPINGS_ALS_FUNOVA: Dict[str, Dict[str, str]] = { 
         # Controls (shades of blue)
         'Control-1001733_Untreated': {self.MAPPINGS_ALIAS_KEY: 'Control 1001733', self.MAPPINGS_COLOR_KEY: '#1F77B4'}, 
         'Control-1017118_Untreated': {self.MAPPINGS_ALIAS_KEY: 'Control 1017118', self.MAPPINGS_COLOR_KEY: '#2A91D2'}, 
         'Control-1025045_Untreated': {self.MAPPINGS_ALIAS_KEY: 'Control 1025045', self.MAPPINGS_COLOR_KEY: '#4BA3D8'}, 
         'Control-1048087_Untreated': {self.MAPPINGS_ALIAS_KEY: 'Control 1048087', self.MAPPINGS_COLOR_KEY: '#6CB4DE'}, 
+        'Control': {self.MAPPINGS_ALIAS_KEY: 'Control', self.MAPPINGS_COLOR_KEY: '#6CB4DE'}, 
         
         # C9orf72-HRE (shades of green)
         'C9orf72-HRE-1008566_Untreated': {self.MAPPINGS_ALIAS_KEY: 'C9orf72-HRE 1008566', self.MAPPINGS_COLOR_KEY: '#2E8B57'}, 
@@ -224,7 +281,7 @@ class PlotConfig(PlotConfig):
         self.COLOR_MAPPINGS_ALS_FUNOVA['C9orf72-HRE-981344'] = self.COLOR_MAPPINGS_ALS_FUNOVA['C9orf72-HRE-981344_Untreated']
         self.COLOR_MAPPINGS_ALS_FUNOVA['TDP--43-G348V-1057052'] = self.COLOR_MAPPINGS_ALS_FUNOVA['TDP--43-G348V-1057052_Untreated']
         self.COLOR_MAPPINGS_ALS_FUNOVA['TDP--43-N390D-1005373'] = self.COLOR_MAPPINGS_ALS_FUNOVA['TDP--43-N390D-1005373_Untreated']
-
+        
         self.COLOR_MAPPINGS_FUNOVA_CATEGORIES = {
             # Proteostasis (Blue)
             'Stress-initiation': {self.MAPPINGS_ALIAS_KEY: 'Proteostasis', self.MAPPINGS_COLOR_KEY: '#1F77B4'},
@@ -288,13 +345,13 @@ class PlotConfig(PlotConfig):
             'Control_stress': {self.MAPPINGS_ALIAS_KEY: 'Control Stress', self.MAPPINGS_COLOR_KEY: '#D08C60'},
 
             # C9orf72-HRE under stress (soft yellow)
-            'C9orf72-HRE-1008566_stress': {self.MAPPINGS_ALIAS_KEY: 'C9orf72-HRE Stress', self.MAPPINGS_COLOR_KEY: '#E6D96A'},
-            'C9orf72-HRE-981344_stress': {self.MAPPINGS_ALIAS_KEY: 'C9orf72-HRE Stress', self.MAPPINGS_COLOR_KEY: '#E6D96A'},
+            'C9orf72-HRE-1008566_stress': {self.MAPPINGS_ALIAS_KEY: 'C9orf72-HRE-1008566 Stress', self.MAPPINGS_COLOR_KEY: '#E6D96A'},
+            'C9orf72-HRE-981344_stress': {self.MAPPINGS_ALIAS_KEY: 'C9orf72-HRE-981344 Stress', self.MAPPINGS_COLOR_KEY: '#E6D96A'},
             'C9orf72-HRE_stress': {self.MAPPINGS_ALIAS_KEY: 'C9orf72-HRE Stress', self.MAPPINGS_COLOR_KEY: '#E6D96A'},
 
             # TDP-43 variants under stress (muted red)
-            'TDP--43-G348V-1057052_stress': {self.MAPPINGS_ALIAS_KEY: 'TDP-43 G348V Stress', self.MAPPINGS_COLOR_KEY: '#C75D6A'},
-            'TDP--43-N390D-1005373_stress': {self.MAPPINGS_ALIAS_KEY: 'TDP-43 N390D Stress', self.MAPPINGS_COLOR_KEY: '#C75D6A'},
+            'TDP--43-G348V-1057052_stress': {self.MAPPINGS_ALIAS_KEY: 'TDP-43 G348V-1057052 Stress', self.MAPPINGS_COLOR_KEY: '#C75D6A'},
+            'TDP--43-N390D-1005373_stress': {self.MAPPINGS_ALIAS_KEY: 'TDP-43 N390D-1005373 Stress', self.MAPPINGS_COLOR_KEY: '#C75D6A'},
             'TDP--43_stress': {self.MAPPINGS_ALIAS_KEY: 'TDP-43 Stress', self.MAPPINGS_COLOR_KEY: '#C75D6A'}
         }
 

@@ -541,7 +541,8 @@ class FunovaUMAP2FigureConfigDNA_RNA_DEFECTS_MARKERS_stress(FunovaUMAP2FigureCon
         self.MARKERS = DNA_RNA_DEFECTS_MARKERS
 
 ## All batches and cell line combinations:
-config_to_use_cell_lines = UMAP1_FunovaFigureConfig_stress_No_DAPI #NeuronsUMAP0StressFunovaFigureConfig, UMAP1_FunovaFigureConfig, UMAP1_FunovaFigureConfig_No_DAPI, UMAP1_FunovaFigureConfig_stress_No_DAPI
+## Choose the base config from: NeuronsUMAP0StressFunovaFigureConfig, UMAP1_FunovaFigureConfig, UMAP1_FunovaFigureConfig_No_DAPI, UMAP1_FunovaFigureConfig_stress_No_DAPI
+config_to_use_cell_lines = UMAP1_FunovaFigureConfig_No_DAPI 
 class Funova_Batch1_Control_1001733_Config(config_to_use_cell_lines):
     def __init__(self):
         super().__init__()
@@ -733,3 +734,122 @@ class Funova_Batch4_TDP_43_N390D_1005373_Config(config_to_use_cell_lines):
         super().__init__()
         self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "Batch4")]
         self.CELL_LINES = ["TDP--43-N390D-1005373"]
+
+class Funova_Control_1001733_Config(config_to_use_cell_lines):
+    def __init__(self):
+        super().__init__()
+        self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, f) for f in 
+                        ["Batch2", "Batch3", "Batch4"]]
+        self.CELL_LINES = ["Control-1001733"]
+
+class Funova_Control_1017118_Config(config_to_use_cell_lines):
+    def __init__(self):
+        super().__init__()
+        self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, f) for f in 
+                        ["Batch2", "Batch3", "Batch4"]]
+        self.CELL_LINES = ["Control-1017118"]
+
+class Funova_Control_1025045_Config(config_to_use_cell_lines):
+    def __init__(self):
+        super().__init__()
+        self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, f) for f in 
+                        ["Batch2", "Batch3", "Batch4"]]
+        self.CELL_LINES = ["Control-1025045"]
+
+class Funova_Control_1048087_Config(config_to_use_cell_lines):
+    def __init__(self):
+        super().__init__()
+        self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, f) for f in 
+                        ["Batch2", "Batch3", "Batch4"]]
+        self.CELL_LINES = ["Control-1048087"]
+
+class Funova_C9orf72_HRE_1008566_Config(config_to_use_cell_lines):
+    def __init__(self):
+        super().__init__()
+        self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, f) for f in 
+                        ["Batch2", "Batch3", "Batch4"]]
+        self.CELL_LINES = ["C9orf72-HRE-1008566"]
+
+class Funova_C9orf72_HRE_981344_Config(config_to_use_cell_lines):
+    def __init__(self):
+        super().__init__()
+        self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, f) for f in 
+                        ["Batch2", "Batch3", "Batch4"]]
+        self.CELL_LINES = ["C9orf72-HRE-981344"]
+
+class Funova_TDP_43_G348V_1057052_Config(config_to_use_cell_lines):
+    def __init__(self):
+        super().__init__()
+        self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, f) for f in 
+                        ["Batch2", "Batch3", "Batch4"]]
+        self.CELL_LINES = ["TDP--43-G348V-1057052"]
+
+class Funova_TDP_43_N390D_1005373_Config(config_to_use_cell_lines):
+    def __init__(self):
+        super().__init__()
+        self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, f) for f in 
+                        ["Batch2", "Batch3", "Batch4"]]
+        self.CELL_LINES = ["TDP--43-N390D-1005373"]
+
+class Funova_Batch3_Batch4_controls_Config(config_to_use_cell_lines):
+    def __init__(self):
+        super().__init__()
+        self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, f) for f in 
+                        ["Batch3", "Batch4"]]
+        self.CELL_LINES = control_cell_lines
+
+class Funova_Batch4_all_cell_lines_Config(config_to_use_cell_lines):
+    def __init__(self):
+        super().__init__()
+        self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, f) for f in 
+                        ["Batch4"]]
+        self.CELL_LINES = all_cell_lines
+
+class Funova_Batch4_all_cell_lines_Stress_Config(UMAP1_FunovaFigureConfig_stress_No_DAPI):
+    def __init__(self):
+        super().__init__()
+        self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, f) for f in 
+                        ["Batch4"]]
+        self.CELL_LINES = all_cell_lines
+
+class Funova_Batch4_controls_c91_Config(config_to_use_cell_lines):
+    def __init__(self):
+        super().__init__()
+        self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, f) for f in 
+                        ["Batch4"]]
+        self.CELL_LINES = control_cell_lines + [c9orf72_cell_lines[0]]
+
+class Funova_Batch4_controls_c92_Config(config_to_use_cell_lines):
+    def __init__(self):
+        super().__init__()
+        self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, f) for f in 
+                        ["Batch4"]]
+        self.CELL_LINES = control_cell_lines + [c9orf72_cell_lines[1]]
+
+class Funova_Batch4_controls_TDP1_Config(config_to_use_cell_lines):
+    def __init__(self):
+        super().__init__()
+        self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, f) for f in 
+                        ["Batch4"]]
+        self.CELL_LINES = control_cell_lines + [tdp43_cell_lines[0]]
+
+class Funova_Batch4_controls_TDP2_Config(config_to_use_cell_lines):
+    def __init__(self):
+        super().__init__()
+        self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, f) for f in 
+                        ["Batch4"]]
+        self.CELL_LINES = control_cell_lines + [tdp43_cell_lines[1]]
+
+class Funova_Batch4_c9s_Config(config_to_use_cell_lines):
+    def __init__(self):
+        super().__init__()
+        self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, f) for f in 
+                        ["Batch4"]]
+        self.CELL_LINES = c9orf72_cell_lines
+
+class Funova_Batch4_TDPs_Config(config_to_use_cell_lines):
+    def __init__(self):
+        super().__init__()
+        self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, f) for f in 
+                        ["Batch4"]]
+        self.CELL_LINES = tdp43_cell_lines
