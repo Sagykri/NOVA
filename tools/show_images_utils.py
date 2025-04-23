@@ -103,17 +103,20 @@ def show_processed_tif(path, mark_tile = False):
     # read the image stack
     img = process_tif(path)
     
-    # show the image with grid 
-    fig, ax = plt.subplots(figsize=(7,7))
-    plt.imshow(img, cmap='gray')
-    put_tiles_grid(image=img, ax=ax)
-    plt.axis('off')
-    plt.title(show_label(path), color='purple')
-    print(f"Img shape: {img.shape}")
+    fig, ax = plt.subplots(figsize=(5, 5), dpi=100)  # Lock visual size
 
-    if mark_tile!=False:
-        x,y = get_tile_location(mark_tile['tile_index'], mark_tile['img_shape'], mark_tile['tile_shape'])
-        plt.gca().add_patch(plt.Rectangle((x, y), mark_tile['tile_shape'][0], mark_tile['tile_shape'][1], edgecolor='red', linewidth=2, fill=False))
+    ax.imshow(img, cmap='gray')
+    put_tiles_grid(image=img, ax=ax)
+    ax.axis('off')
+    ax.set_title(show_label(path), color='purple')
+
+    if mark_tile:
+        x, y = get_tile_location(mark_tile['tile_index'], mark_tile['img_shape'], mark_tile['tile_shape'])
+        rect = plt.Rectangle((x, y), mark_tile['tile_shape'][0], mark_tile['tile_shape'][1], 
+                             edgecolor='red', linewidth=2, fill=False)
+        ax.add_patch(rect)
+
+    # print(f"Img shape: {img.shape}")
     plt.show()
 
 def get_tile_location(tile_index: int, img_shape:Tuple[int, int], tile_shape:Tuple[int, int]):
@@ -188,14 +191,15 @@ def get_specific_imgs(
     if condition is not None:
         filtered_df = filtered_df[filtered_df['Condition'] == condition]
     if cell_line is not None:
-        filtered_df = filtered_df[filtered_df['CellLine'] == cell_line]
+        filtered_df = filtered_df[filtered_df['CellLine'].str.contains(cell_line, na=False)]
     if panel is not None:
         filtered_df = filtered_df[filtered_df['Panel'] == f'panel{panel}']
     if image_id is not None:
         filtered_df = filtered_df[filtered_df['image_id'] == image_id]
     return filtered_df
 
-def create_img_pdf_report(df, marker, condition, output_file, reps=8, batches=3, samples=3):
+def create_img_pdf_report(df, marker, condition, output_file, reps=8, batches=3, samples=3, WT_KEY = 'Control',
+                          path_key = 'Path', folder_to_save = ''):
     """
     Create a PDF report of images where each page corresponds to a batch, with rows for each rep and images for each condition.
 
@@ -204,24 +208,24 @@ def create_img_pdf_report(df, marker, condition, output_file, reps=8, batches=3,
         condition (str): Condition to filter by ('Untreated' or 'Stress').
         output_file (str): Path to save the PDF file.
     """
-    with PdfPages(f'{marker}_{output_file}') as pdf:
+    with PdfPages(f'{folder_to_save}/{marker}_{output_file}') as pdf:
         for batch in range(1, batches+1):
-            fig, axes = plt.subplots(reps, samples, figsize=(12, 24))  # 8 reps, 3 images each
+            fig, axes = plt.subplots(reps, samples, figsize=(8, 8)) 
             fig.suptitle(f"Batch {batch} - Condition: {condition}", fontsize=16)
 
             for rep in range(1, reps+1):
                 print(marker, batch, rep, condition)
                 images = get_specific_imgs(
-                    df, marker=marker, batch=batch, rep=rep, condition=condition, cell_line=KEY_WT)
+                    df, marker=marker, batch=batch, rep=rep, condition=condition, cell_line=WT_KEY)
                 images = images.sample(n=samples, random_state=1)
 
-                for i, path in enumerate(images['Path'][:3]):
+                for i, path in enumerate(images[path_key]):
                     img = process_tif(path)
 
                     ax = axes[rep - 1, i]
                     ax.imshow(img, cmap='gray')
                     ax.axis('off')
-                    ax.set_title(f"Rep {rep} - Img {i+1}")
+                    ax.set_title(f"Rep {rep} - Img {images.iloc[i]['image_id']} ")
 
             plt.tight_layout(rect=[0, 0.03, 1, 0.95])
             pdf.savefig(fig)
@@ -275,3 +279,59 @@ def extract_image_metadata(base_dir, FILE_EXTENSION='.tiff', KEY_BATCH='Batch'):
     df = pd.DataFrame(data)
     df['image_id'] = df['Path'].apply(lambda path: path.split('/')[-1].split('.')[0])
     return df
+
+
+def extract_processed_image_metadata(base_dir, FILE_EXTENSION='.npy', KEY_BATCH='Batch'):
+    """
+    Traverse through a directory structure and extract metadata for processed images.
+
+    Args:
+        base_dir (str): The base directory containing the processed images.
+
+    Returns:
+        pd.DataFrame: A DataFrame containing metadata with columns 
+                      ['Path', 'RootFolder', 'Marker', 'Condition', 'CellLine', 
+                       'Batch_Rep', 'Rep', 'Batch', 'Panel', 'image_id'].
+    """
+    data = []
+
+    for root, dirs, files in os.walk(base_dir):
+        for file in files:
+            if file.endswith(FILE_EXTENSION):
+                file_path = os.path.join(root, file)
+
+                parts = root.split(os.sep)
+                batch = next((p for p in parts if p.startswith(KEY_BATCH)), None)
+                cell_line = parts[parts.index(batch) + 1] if batch else None
+                condition = parts[parts.index(batch) + 2] if batch else None
+                marker = parts[parts.index(batch) + 3] if batch else None
+
+                rep = None
+                panel = None
+
+                if file.startswith("rep"):
+                    rep_parts = file.split('_')
+                    rep = rep_parts[0]  # e.g., "rep2"
+                    panel_part = [p for p in rep_parts if p.startswith('panel')]
+                    if panel_part:
+                        panel = panel_part[0]  # e.g., "panelK"
+
+                # Extract image_id using regex
+                match = re.search(r'(r\d{2}c\d{2}f\d+[-]ch\d+t\d+)', file)
+                image_id = match.group(1) if match else None
+
+                data.append({
+                    'Path': file_path,
+                    'RootFolder': base_dir,
+                    'Marker': marker,
+                    'Condition': condition,
+                    'CellLine': cell_line,
+                    'Batch_Rep': f'{batch}/{rep}' if batch and rep else None,
+                    'Rep': rep,
+                    'Batch': batch,
+                    'Panel': panel,
+                    'image_id': image_id
+                })
+
+    return pd.DataFrame(data)
+
