@@ -131,6 +131,12 @@ def get_batches_from_input_folders(input_folders:List[str])->List[str]:
     batches = [folder.split(os.sep)[-1].split('_')[0] for folder in input_folders]
     return batches
 
+def get_markers_conditions_from_labels(labels: np.ndarray[str], dataset_config:DatasetConfig=None) -> np.ndarray[str]:
+    markers = get_parts_from_labels(labels=labels, indices=(MARKER_IDX, MARKER_IDX+1))
+    condition_idx = CONDITION_IDX # - int(not dataset_config.ADD_LINE_TO_LABEL)
+    conditions = get_parts_from_labels(labels=labels, indices=(condition_idx, condition_idx+1))
+    logging.info(f'labels: {labels}')
+    return np.array([f'{markers[i]}_{conditions[i]}' for i in range(len(markers))])
 
 def edit_labels_by_config(labels:np.ndarray[str], dataset_config:DatasetConfig)->np.ndarray[str]:
     vectorized_edit = np.vectorize(partial(edit_label_by_config, dataset_config=dataset_config))
@@ -177,6 +183,7 @@ class MapLabelsFunction(Enum):
     REMOVE_MARKER = (remove_markers,)
     COMMON_CELL_LINES = (get_common_cell_lines_from_multiplex_labels,)
     CATEGORIES = (get_categories_from_labels,)
+    MARKERS_CONDITIONS = (get_markers_conditions_from_labels,)
 
 def map_labels(labels: np.ndarray[str], config_plot: Union[PlotConfig, DatasetConfig],
                 config_data: DatasetConfig, config_function_name:str = 'MAP_LABELS_FUNCTION') -> np.ndarray[str]:
