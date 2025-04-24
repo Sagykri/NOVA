@@ -7,10 +7,10 @@ import matplotlib.pyplot as plt
 import mplcursors
 import re
 import matplotlib.colors as mcolors
-from matplotlib.gridspec import GridSpec
 from matplotlib.widgets import RectangleSelector
 import fnmatch
-
+from skimage.measure import shannon_entropy 
+from src.preprocessing.preprocessing_utils import get_image_focus_quality 
 from src.figures.umap_plotting import __format_UMAP_axes, __format_UMAP_legend
 
 
@@ -41,8 +41,6 @@ def load_and_process_data(umaps_dir, path_to_umap, dfb=None):
                       on=["Batch", "Image_Name"], 
                       how="left")
         df["Target_Sharpness_Brenner"] = df["Target_Sharpness_Brenner"].round()
-    # Apply function and expand results into two new columns
-    # df[["Sum_Channel_0", "Sum_Channel_1"]] = df.apply(compute_sums, axis=1, result_type="expand")
     df[["Row", "Column", "FOV"]] = df["Image_Name"].str.extract(r"r(\d+)c(\d+)f(\d+)")
     df[["Row", "Column", "FOV"]] = df[["Row", "Column", "FOV"]].astype(int)
 
@@ -52,15 +50,6 @@ def load_and_process_data(umaps_dir, path_to_umap, dfb=None):
         print(col, np.unique(df[col]))
     
     return umap_embeddings, label_data, config_data, config_plot, df
-
-
-def compute_sums(row):
-    """Computes sum of two channels for the given row."""
-    image = np.load(row["Path"])  # Load image from path
-    tile = int(row["Tile"])  # Extract tile number
-    site_image = image[tile]  # Select tile
-    return np.sum(site_image[:, :, 0]), np.sum(site_image[:, :, 1])  # Compute sums
-
 
 def set_colors_by_brenners(sharpness_values, bins=10):
     # Ensure bins is at least 2 to avoid single-value percentile issue
@@ -206,9 +195,6 @@ def construct_target_path(df, index, df_meta):
         return
     else:
         return temp[0]
-    
-from skimage.measure import shannon_entropy 
-from src.preprocessing.preprocessing_utils import get_image_focus_quality 
 
 def compute_entropy(image: np.ndarray) -> float:
     """
@@ -407,8 +393,6 @@ def extract_umap_data(
     # Create and return a DataFrame
     return pd.DataFrame(data, columns=["folder_path", "image_name", "umap_type", "batch", "rep", "cell_line", "condition", "markers", "coloring"])
 
-import os
-
 def get_umap_pickle_path(df_umaps, batch, umap_type, reps, coloring, marker, cell_line, condition='all_conditions', base_dir="/"):
     """
     Constructs the path to the pickle file based on the provided parameters.
@@ -460,9 +444,6 @@ def get_umap_pickle_path(df_umaps, batch, umap_type, reps, coloring, marker, cel
         return pickle_path
     except:
         return -1
-
-import numpy as np
-import matplotlib.pyplot as plt
 
 def plot_fov_histogram(df, selected_indices_global):
     """
