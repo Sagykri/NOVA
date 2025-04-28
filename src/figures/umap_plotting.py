@@ -26,7 +26,7 @@ matplotlib.rcParams['font.family'] = 'Arial'
 
 def plot_umap(umap_embeddings: np.ndarray[float], labels: np.ndarray[str], config_data: DatasetConfig, 
               config_plot: PlotConfig, saveroot: str, umap_idx: int, 
-              ari_scores:Dict[str,float], paths: np.ndarray[str]=[None], figsize: Tuple[int,int] = (6,5)) -> None:
+              ari_scores:Dict[str,float], paths: np.ndarray[str]=[None], figsize: Tuple[int,int] = (6,5), cmap='tab20') -> None:
     """Unified function to plot 2D UMAP embeddings with different modes.
 
     Args:
@@ -77,7 +77,7 @@ def plot_umap(umap_embeddings: np.ndarray[float], labels: np.ndarray[str], confi
                 ari_score = None
             
             __plot_umap_embeddings(marker_umap_embeddings, label_data, config_data, config_plot, savepath=savepath, title=marker,
-                                   ari_score=ari_score, figsize=figsize, paths=marker_paths)
+                                   ari_score=ari_score, figsize=figsize, paths=marker_paths, cmap=cmap)
         return
 
     elif umap_idx == 1:
@@ -93,7 +93,7 @@ def plot_umap(umap_embeddings: np.ndarray[float], labels: np.ndarray[str], confi
     else:
         ari_score = None
     __plot_umap_embeddings(umap_embeddings, label_data, config_data, config_plot, savepath,
-                           ari_score=ari_score, figsize=figsize, paths=paths)
+                           ari_score=ari_score, figsize=figsize, paths=paths, cmap=cmap)
 
     
 def __get_metrics_figure(score:float, ax:Axes=None)->Axes:
@@ -165,7 +165,6 @@ def __plot_umap_embeddings(umap_embeddings: np.ndarray[float],
     name_key = config_plot.MAPPINGS_ALIAS_KEY
     color_key = config_plot.MAPPINGS_COLOR_KEY
     marker_size = config_plot.SIZE
-    alpha = config_plot.ALPHA
     to_color = get_if_exists(config_plot, 'TO_COLOR', None)
     show_metric = config_data.SHOW_ARI
     mix_groups = get_if_exists(config_plot, 'MIX_GROUPS', False)
@@ -179,13 +178,14 @@ def __plot_umap_embeddings(umap_embeddings: np.ndarray[float],
         # Sort the unique_groups based on the indices
         unique_groups = unique_groups[np.argsort(indices)]
 
-    fig = plt.figure(figsize=figsize)
+    fig = plt.figure(figsize=figsize, dpi=300)
     gs = GridSpec(2,1,height_ratios=[20,1])
 
     ax = fig.add_subplot(gs[0])
     indices = []
     colors = []
     for i, group in enumerate(unique_groups):
+        alpha = config_plot.ALPHA
         logging.info(f'[_plot_umap_embeddings]: adding {group}')
         group_indices = np.where(label_data==group)[0]
         if group == 'DAPI':
@@ -194,7 +194,7 @@ def __plot_umap_embeddings(umap_embeddings: np.ndarray[float],
         # Get hex color and convert to RGBA
         if to_color is not None and group not in to_color:
             base_color = '#bab5b5'
-            alpha = 0.4
+            alpha = 0.2
         else:
             base_color = name_color_dict[group][color_key] if name_color_dict else plt.get_cmap(cmap)(i)
 
@@ -225,6 +225,7 @@ def __plot_umap_embeddings(umap_embeddings: np.ndarray[float],
         indices = np.concatenate(indices)
         shuffled_indices = np.random.permutation(len(indices))
         shuffled_colors = colors[shuffled_indices]
+        shuffled_indices = indices[shuffled_indices]
         ax.scatter(
             umap_embeddings[indices][shuffled_indices, 0],
             umap_embeddings[indices][shuffled_indices, 1],
@@ -249,7 +250,19 @@ def __plot_umap_embeddings(umap_embeddings: np.ndarray[float],
     else:
         plt.show()
         
-    return
+    return fig, ax
+
+def save_plot_data(umap_embeddings, label_data, config_data, config_plot, paths, savepath="plot_data.pkl"):
+    data = {
+        "umap_embeddings": umap_embeddings,
+        "label_data": label_data,
+        "paths": paths,
+        "config_data": config_data.__dict__ if hasattr(config_data, "__dict__") else config_data,
+        "config_plot": config_plot.__dict__ if hasattr(config_plot, "__dict__") else config_plot
+    }
+    with open(savepath, "wb") as f:
+        pickle.dump(data, f)
+    logging.info(f"Plot data saved to {savepath}")
 
 def save_plot_data(umap_embeddings, label_data, config_data, config_plot, paths, savepath="plot_data.pkl"):
     data = {

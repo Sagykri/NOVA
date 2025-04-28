@@ -44,14 +44,9 @@ def plot_processed_images(images, paths, n_samples=3, figsize=(16,8)):
         ax[1].set_axis_off()
         plt.show()
     
-def put_tiles_grid(ax, w, h):
-    # assumes 1000x1000 image
-    import matplotlib.patches as patches
-
-    # Add dashed grid lines for 64 blocks
-    num_blocks = 10
-    block_size = 128
-
+def put_tiles_grid(ax, w, h, block_size=128):
+    # Add dashed grid lines
+    num_blocks = w / block_size
     for i in range(1, num_blocks):
         # Draw horizontal dashed lines
         ax.plot([0, w], [i * block_size, i * block_size], linestyle='--', lw=1, alpha=0.5, color='pink')
@@ -78,7 +73,6 @@ def test_cellpose(images, images_paths, flow_threshold=0.4, cellprob_threshold=0
         fig, axs = plt.subplots(ncols=2)
         axs[0].imshow(image,cmap='gray')#, vmin=0, vmax=1)
         axs[0].axis('off')
-        axs[0].set_title(images_paths[i])
         axs[1].imshow(masks)#, cmap='gray')
         axs[1].axis('off')
         axs[1].set_title(f'Segmented {len(np.unique(masks))-1} objects')
