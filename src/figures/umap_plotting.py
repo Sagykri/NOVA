@@ -264,19 +264,6 @@ def save_plot_data(umap_embeddings, label_data, config_data, config_plot, paths,
         pickle.dump(data, f)
     logging.info(f"Plot data saved to {savepath}")
 
-def save_plot_data(umap_embeddings, label_data, config_data, config_plot, paths, savepath="plot_data.pkl"):
-    data = {
-        "umap_embeddings": umap_embeddings,
-        "label_data": label_data,
-        "paths": paths,
-        "config_data": config_data.__dict__ if hasattr(config_data, "__dict__") else config_data,
-        "config_plot": config_plot.__dict__ if hasattr(config_plot, "__dict__") else config_plot
-    }
-    with open(savepath, "wb") as f:
-        pickle.dump(data, f)
-    logging.info(f"Plot data saved to {savepath}")
-
-
 def __format_UMAP_axes(ax:Axes, title:str)->None:
     ax.spines['top'].set_visible(False)
     ax.spines['right'].set_visible(False)
