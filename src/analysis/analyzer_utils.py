@@ -54,4 +54,3 @@ def calc_ari_with_kmeans(X:np.ndarray[float], true_labels:np.ndarray[str], outli
   logging.info(f"[calc_clustering_validation_metric] ARI: {ari}")
 
   return ari
-

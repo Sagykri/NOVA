@@ -107,5 +107,5 @@ class AnalyzerUMAP(Analyzer):
         """
         clustering_kwargs = {a: kwargs[a] for a in inspect.signature(calc_ari_with_kmeans).parameters if a in kwargs}
         score = calc_ari_with_kmeans(embeddings, labels, **clustering_kwargs)
-        return score#, kmean_labels
+        return score
 
