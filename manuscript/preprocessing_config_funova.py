@@ -6,8 +6,7 @@ from src.preprocessing.preprocessing_config import PreprocessingConfig
 class PreprocessingBaseConfigFUNOVA(PreprocessingConfig):
     def __init__(self):
         super().__init__()
-        # self.RAW_FOLDER_ROOT = os.path.join(self.RAW_FOLDER_ROOT, 'Cory', 'indi-image-pilot-20241128')
-        # self.PROCESSED_FOLDER_ROOT = os.path.join(self.PROCESSED_FOLDER_ROOT, "NIH")
+        self.PROCESSED_FOLDER_ROOT = os.path.join(self.HOME_DATA_FOLDER, "images", "processed23.4")
         self.OUTPUTS_FOLDER = os.path.join("/home/labs/hornsteinlab/Collaboration/FUNOVA/outputs/preprocessing/")
         self.PREPROCESSOR_CLASS_PATH = os.path.join("src", "preprocessing", "preprocessors", "preprocessor_opera", "OperaPreprocessor")        
         self.CELL_LINES = ["C9orf72-HRE-1008566",
@@ -21,11 +20,11 @@ class PreprocessingBaseConfigFUNOVA(PreprocessingConfig):
         
         self.CONDITIONS = ['Untreated', 'stress']
         self.REPS = [f"rep{i}" for i in range(1,3)]
-        # self.CELLPOSE = {
-        #     'NUCLEUS_DIAMETER': 60,
-        #     'CELLPROB_THRESHOLD': 0,
-        #     'FLOW_THRESHOLD': 0.6
-        # }
+        self.CELLPOSE = {
+            'NUCLEUS_DIAMETER': 70,
+            'CELLPROB_THRESHOLD': 0,
+            'FLOW_THRESHOLD': 0.22
+        } ## Adjusted cellpose params to get dead dead cells
 
 class PreprocessingBaseConfigFUNOVAExp3(PreprocessingBaseConfigFUNOVA):
     def __init__(self):
@@ -45,3 +44,17 @@ class PreprocessingBaseConfigFUNOVAExp4(PreprocessingBaseConfigFUNOVA):
         self.INPUT_FOLDERS = [os.path.join(self.RAW_FOLDER_ROOT, f"Batch{i}") for i in range(3,5)]
         self.PROCESSED_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, f"Batch{i}") for i in range(3,5)]
         self.MARKERS_FOCUS_BOUNDRIES_TILES_PATH = os.path.join(os.getenv("NOVA_HOME"), 'manuscript', 'markers_focus_boundries', 'markers_focus_boundries_funova_Exp4_tiles.csv')
+
+class PreprocessingBaseConfigFUNOVAExp3MinMax(PreprocessingBaseConfigFUNOVAExp3):
+    def __init__(self):
+        super().__init__()
+        self.PROCESSED_FOLDER_ROOT = os.path.join(self.HOME_DATA_FOLDER, "images", "processed_minmax")
+        self.PROCESSED_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, f"Batch{i}") for i in range(1,3)]
+        self.MINMAX_TILE_SCALING = True
+
+class PreprocessingBaseConfigFUNOVAExp4MinMax(PreprocessingBaseConfigFUNOVAExp4):
+    def __init__(self):
+        super().__init__()
+        self.PROCESSED_FOLDER_ROOT = os.path.join(self.HOME_DATA_FOLDER, "images", "processed_minmax")
+        self.PROCESSED_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, f"Batch{i}") for i in range(3,5)]
+        self.MINMAX_TILE_SCALING = True
