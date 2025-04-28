@@ -374,9 +374,6 @@ def plot_filtering_heatmap(filtered, extra_index, xlabel='', figsize=(5,5), seco
             axs[0].set_xlim(marker_total.min().min()-0.5*marker_total.min().min(), marker_total.max().max()+0.1* marker_total.max().max())
             axs[0].tick_params(axis='x', labelsize=10)
             axs[0].set_ylabel(batch)
-#             # Adjust Y-tick positions and corresponding labels
-#             yticks = axs[0].get_yticks()[::8]  # Select every 8th tick
-#             axs[0].set_yticks(yticks)  # Set the reduced tick positions
             sns.barplot(data=cell_line_total, y=cell_line_total.index, x='Total', ax=axs[1], palette='tab10',
                         hue=cell_line_total.index, legend=False)
             axs[1].set_xlim(cell_line_total.min().min()-0.5*cell_line_total.min().min(), cell_line_total.max().max()+0.1*cell_line_total.max().max())
