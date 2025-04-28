@@ -27,8 +27,9 @@ from tools.preprocessing_tools.image_sampling_utils import sample_images_all_mar
 
 BASE_DIR = os.path.join('/home','labs','hornsteinlab','Collaboration','FUNOVA')
 INPUT_DIR = os.path.join(BASE_DIR, 'input', 'images', 'processed')
-calc_per_tile = True # I ran _site_ with this being False! (281123)
-raw = False
+calc_per_tile = False # I ran _site_ with this being False! (281123)
+raw = True
+# When calculating tile's Brenner set: calc_per_tile = True, raw = False
 
 def calculate_metrics_for_batch(batch_name, sample_size_per_markers=100, num_markers=36, markers=None):
     
@@ -168,7 +169,7 @@ def main():
     
     for batch_name in batches:
         logging.info(f"Calculating metrics for batch: {batch_name}")
-        results_batch = calculate_metrics_for_batch(batch_name, sample_size_per_markers = 10000)
+        results_batch = calculate_metrics_for_batch(batch_name)#, sample_size_per_markers = 10000)
         logging.info(f"Appending metrics from batch {batch_name}")
         results.extend(results_batch)
         save_to_file(results, f"{savepath}_checkpoint_{batch_name.replace(os.sep, '.')}")
