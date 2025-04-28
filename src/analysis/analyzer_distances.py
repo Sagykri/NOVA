@@ -142,7 +142,7 @@ class AnalyzerDistances(Analyzer):
         # These distances will be compared to the baseline vs condition distances, and they represent the inherent variance in the data (including rep effect).
         # First step is to generate the artifical splits of the two baseline reps:
         baseline_reps, baseline_indices_dict = self._collect_reps_of_baseline(labels, batch, marker, baseline_cell_line_cond, random_split, reps)
-        if (len(baseline_indices_dict)==0) or any(len(part) < 1 for part in baseline_indices_dict.values()):
+        if (len(baseline_indices_dict)==0) or any(len(part) < 1 for part in baseline_indices_dict.values()): ## If any subset group is zero
             logging.warning(f'No data for {batch},{marker}, {baseline_cell_line_cond}: cannot perform distance calculations!')
             return None
         
@@ -315,7 +315,6 @@ class AnalyzerDistances(Analyzer):
             np.ndarray[str]: Conditions excluding the baseline condition.
         """
         conditions = get_unique_parts_from_labels(labels, get_cell_lines_conditions_from_labels, self.data_config)
-        # conditions = np.delete(conditions, np.where(conditions == self.data_config.BASELINE_CELL_LINE_CONDITION)[0]) # Remove the baseline
         conditions = np.delete(conditions, np.where(np.isin(conditions, self.data_config.BASELINE_CELL_LINE_CONDITION))[0]) # Remove the baseline
         return conditions
 
