@@ -56,7 +56,6 @@ class AnalyzerUMAPSingleMarkers(AnalyzerUMAP):
             if self.data_config.SHOW_ARI:
                 labels_for_ari = map_labels(marker_labels, self.data_config, self.data_config, config_function_name='ARI_LABELS_FUNC')
                 ari = self._compute_ari(marker_embeddings, labels_for_ari)
-                # ari = self._compute_ari(marker_umap_embeddings, labels_for_ari)
                 ari_scores[marker] = ari
 
         umap_embeddings = np.concatenate(umap_embeddings)
