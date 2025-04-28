@@ -183,7 +183,7 @@ def plot_bubble_plot(distances:pd.DataFrame, saveroot:str, config_data:DatasetCo
         pvalues_df.sort_values(by=['marker'])
     # Normalize effect sizes and adjust p-values for visualization
     norm_effect_size = mcolors.Normalize(vmin=vmin_effect, vmax=vmax_effect) if vmin_effect is not None else None
-    pvalues_df['log_pvalue'] = -np.log10(__fixed_bin_pvalues(pvalues_df['pvalue']))
+    pvalues_df['log_pvalue'] = -np.log10(__bin_pvalues(pvalues_df['pvalue']))
 
     # Plot
     fig_width = int(len(conditions))
@@ -624,17 +624,9 @@ def __bin_pvalues(pvalues):
     adjusted_pvalues = np.where((0.05 <= adjusted_pvalues) & (adjusted_pvalues < 0.06), 0.05, adjusted_pvalues)
     adjusted_pvalues = np.where((0.01 <= adjusted_pvalues) & (adjusted_pvalues < 0.05), 0.01, adjusted_pvalues)
     adjusted_pvalues = np.where((0.0001 <= adjusted_pvalues) & (adjusted_pvalues < 0.01), 0.0001, adjusted_pvalues)
-    return np.where(adjusted_pvalues < 0.0001, 10**math.floor(np.log10(adjusted_pvalues.min())), adjusted_pvalues)
-
-def __fixed_bin_pvalues(pvalues):
-    """Adjust p-values and bin them to match specific -log(p) values (1.2, 2, 4, 9) for comparison to previous results."""
-    # Define thresholds for p-values corresponding to the desired -log(p) bins
-    adjusted_pvalues = np.where(pvalues > 0.06, 10**-1.2, pvalues)
-    adjusted_pvalues = np.where((10**-2 <= adjusted_pvalues) & (adjusted_pvalues < 10**-1.2), 10**-2, adjusted_pvalues)
-    adjusted_pvalues = np.where((10**-4 <= adjusted_pvalues) & (adjusted_pvalues < 10**-2), 10**-4, adjusted_pvalues)
     adjusted_pvalues = np.where((10**-9 <= adjusted_pvalues) & (adjusted_pvalues < 10**-4), 10**-9, adjusted_pvalues)
-    # Cap p-values below 10^-9 to 10^-9
-    return np.where(adjusted_pvalues < 10**-9, 10**-9, adjusted_pvalues)
+    # Cap p-values below 10^-9 to 10^-9 for uniformity
+    return np.where(adjusted_pvalues < 10**-9, 10**-9, adjusted_pvalues) 
 
 def __get_order_from_linkage(linkage, items):
     """Get the order of items based on hierarchical clustering."""
