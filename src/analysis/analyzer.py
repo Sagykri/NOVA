@@ -80,7 +80,7 @@ class Analyzer():
         if markers is not None and len(markers)<=3:
             title = f"{'_'.join(input_folders)}_{'_'.join(reps)}_{'_'.join(cell_lines)}_{'_'.join(conditions)}_{'_'.join(markers)}"
         else:
-            markers_label = f"all_markers({len(markers)})" if markers else "all_markers"
+            markers_label = f"all_markers({len(markers)})" if markers else "all_markers" ## Indicates that some specific markers were chosen
             excluded_markers = self.data_config.MARKERS_TO_EXCLUDE if self.data_config.MARKERS_TO_EXCLUDE else [markers_label]
             if excluded_markers != [markers_label]:
                 excluded_markers.insert(0,"without")
