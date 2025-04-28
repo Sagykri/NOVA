@@ -66,7 +66,10 @@ def plot_umap(umap_embeddings: np.ndarray[float], labels: np.ndarray[str], confi
 
             marker_umap_embeddings = umap_embeddings[indices]
             marker_labels = labels[indices].reshape(-1,)
-            marker_paths = paths[indices].reshape(-1,)
+            if paths == [None]:
+                marker_paths = [None]
+            else:
+                marker_paths = paths[indices].reshape(-1,)
 
             savepath = os.path.join(saveroot, f'{marker}') if saveroot else None
             label_data = map_labels(marker_labels, config_plot, config_data)
