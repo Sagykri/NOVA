@@ -26,7 +26,7 @@ def generate_embeddings(model:NOVAModel, config_data:DatasetConfig,
     logging.info(f"[generate_embeddings] Is GPU available: {torch.cuda.is_available()}")
     logging.info(f"[generate_embeddings] Num GPUs Available: {torch.cuda.device_count()}")
 
-    all_embeddings, all_labels, all_paths = [], [], []
+    all_embeddings, all_labels, all_paths, all_paths = [], [], [], []
 
     train_paths:np.ndarray[str] = model.trainset_paths
     val_paths:np.ndarray[str] = model.valset_paths
@@ -153,6 +153,7 @@ def __load_multiple_batches(batches:List[str], embeddings_folder:str, config_dat
     Returns:
         embeddings: List of np.arrays of length (# batches). each np.array is in shape (# tiles, 128)
         labels: List of np.arrays of length (# batches). each np.array is in shape (# tiles) and the stored value is full label
+        paths: List of np.arrays of length (# batches). each np.array is in shape (# tiles) and the stored value is the path to the tile's image
     """
     sets_to_load = get_if_exists(config_data, 'SETS', ['testset']) 
     embeddings, labels, paths = [] , [], []

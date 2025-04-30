@@ -30,11 +30,13 @@ class AnalyzerUMAPMultiplexMarkers(AnalyzerUMAP):
         Args:
             embeddings (np.ndarray[float]): The input embeddings with shape (n_samples, n_features).
             labels (np.ndarray[str]): The labels associated with each embedding.
+            paths (np.ndarray[str]): The image paths associated with each embedding.
         Returns:
             Tuple[np.ndarray[float], np.ndarray[str]]: 
                 - The UMAP embeddings after dimensionality reduction with shape (n_mutliplexed_samples, n_components).
                 - The corresponding phenotypes labels preserving the association with the UMAP embeddings.
                 - A dictionary with 'ari' as key and the ari score as value
+                - The corresponding paths preserving the association with the UMAP embeddings.
         """
         
         logging.info(f"[AnalyzerUMAPMultiplexMarkers.calculate] Embeddings shape: {embeddings.shape}, Labels shape: {labels.shape}")

@@ -25,11 +25,13 @@ class AnalyzerUMAPSingleMarkers(AnalyzerUMAP):
             embeddings (np.ndarray[float]): The input embeddings with shape (n_samples, n_features).
             labels (np.ndarray[str]): The labels associated with each embedding. These labels are used 
                 to group embeddings by marker.
+            paths (np.ndarray[str]): The image paths associated with each embedding.
         Returns:
             Tuple[np.ndarray[float], np.ndarray[str], Dict[str,float]]: 
                 - The UMAP embeddings after dimensionality reduction with shape (n_samples, n_components).
                 - The corresponding labels after concatenation, preserving the association with the UMAP embeddings.
                 - Dictionary with marker as keys and ari scores as values
+                - The corresponding paths preserving the association with the UMAP embeddings.
         """
 
         unique_markers = get_unique_parts_from_labels(labels, get_markers_from_labels) 

@@ -35,7 +35,8 @@ def plot_umap(umap_embeddings: np.ndarray[float], labels: np.ndarray[str], confi
         config_data (DatasetConfig): Configuration data containing visualization settings.
         saveroot (str): Root path to save the plot and configuration.
         umap_idx (int): UMAP type index to distinguish between modes (0: individual markers, 1: all markers, 2: concatenated embeddings).
-        ari_scores (Dict): A dictionary with ari values
+        ari_scores (Dict): A dictionary with ari 
+        paths (np.ndarray[str]): Array of paths to images corresponding to the embeddings.
         figsize (Tuple(int,int)): figure size, defaults to (6,5)
 
     Raises:
@@ -155,6 +156,7 @@ def __plot_umap_embeddings(umap_embeddings: np.ndarray[float],
         figsize (Tuple[int, int], optional): Size of the figure. Defaults to (6, 5).
         cmap (str, optional): Colormap to be used. Defaults to 'tab20'.
         ari_score (float, optional): ari score to show on the umap. Defaults to None.
+        paths (np.ndarray[str]): Array of paths corresponding to the embeddings.
 
     Raises:
         ValueError: If the size of `umap_embeddings` and `label_data` are incompatible.
