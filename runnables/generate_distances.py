@@ -15,10 +15,10 @@ def generate_distances(output_folder_path:str, config_path_data:str )->None:
     
     config_data:DatasetConfig = load_config_file(config_path_data, 'data')
     config_data.OUTPUTS_FOLDER = output_folder_path
-    embeddings, labels = load_embeddings(output_folder_path, config_data)
-    
+    embeddings, labels, paths = load_embeddings(output_folder_path, config_data)
     logging.info("[Generate distances]")
     d = AnalyzerDistancesARI(config_data, output_folder_path)
+    
     d.calculate(embeddings, labels)
     d.save()
         

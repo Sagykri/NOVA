@@ -1,4 +1,5 @@
 import os
+import pickle
 import sys
 sys.path.insert(1, os.getenv("NOVA_HOME"))
 
@@ -23,9 +24,9 @@ from matplotlib import font_manager as fm
 fm.fontManager.addfont(FONT_PATH)
 matplotlib.rcParams['font.family'] = 'Arial'
 
-def plot_umap(umap_embeddings: np.ndarray[float], labels: np.ndarray[str], config_data: DatasetConfig,
+def plot_umap(umap_embeddings: np.ndarray[float], labels: np.ndarray[str], config_data: DatasetConfig, 
               config_plot: PlotConfig, saveroot: str, umap_idx: int, 
-              ari_scores:Dict[str,float], figsize: Tuple[int,int] = (6,5), cmap='tab20') -> None:
+              ari_scores:Dict[str,float], paths: np.ndarray[str]=[None], figsize: Tuple[int,int] = (6,5), cmap='tab20') -> None:
     """Unified function to plot 2D UMAP embeddings with different modes.
 
     Args:
@@ -34,7 +35,8 @@ def plot_umap(umap_embeddings: np.ndarray[float], labels: np.ndarray[str], confi
         config_data (DatasetConfig): Configuration data containing visualization settings.
         saveroot (str): Root path to save the plot and configuration.
         umap_idx (int): UMAP type index to distinguish between modes (0: individual markers, 1: all markers, 2: concatenated embeddings).
-        ari_scores (Dict): A dictionary with ari values
+        ari_scores (Dict): A dictionary with ari 
+        paths (np.ndarray[str]): Array of paths to images corresponding to the embeddings.
         figsize (Tuple(int,int)): figure size, defaults to (6,5)
 
     Raises:
@@ -66,6 +68,10 @@ def plot_umap(umap_embeddings: np.ndarray[float], labels: np.ndarray[str], confi
 
             marker_umap_embeddings = umap_embeddings[indices]
             marker_labels = labels[indices].reshape(-1,)
+            if paths is None or len(paths) == 0 or all(p is None for p in paths):
+                marker_paths = [None]
+            else:
+                marker_paths = paths[indices].reshape(-1,)
 
             savepath = os.path.join(saveroot, f'{marker}') if saveroot else None
             label_data = map_labels(marker_labels, config_plot, config_data)
@@ -76,7 +82,7 @@ def plot_umap(umap_embeddings: np.ndarray[float], labels: np.ndarray[str], confi
                 ari_score = None
             
             __plot_umap_embeddings(marker_umap_embeddings, label_data, config_data, config_plot, savepath=savepath, title=marker,
-                                   ari_score=ari_score, figsize=figsize, cmap=cmap)
+                                   ari_score=ari_score, figsize=figsize, paths=marker_paths, cmap=cmap)
         return
 
     elif umap_idx == 1:
@@ -92,7 +98,7 @@ def plot_umap(umap_embeddings: np.ndarray[float], labels: np.ndarray[str], confi
     else:
         ari_score = None
     __plot_umap_embeddings(umap_embeddings, label_data, config_data, config_plot, savepath,
-                           ari_score=ari_score, figsize=figsize, cmap=cmap)
+                           ari_score=ari_score, figsize=figsize, paths=paths, cmap=cmap)
 
     
 def __get_metrics_figure(score:float, ax:Axes=None)->Axes:
@@ -136,6 +142,7 @@ def __plot_umap_embeddings(umap_embeddings: np.ndarray[float],
                          figsize: Tuple[int,int] = (6,5),
                          cmap:str = 'tab20',
                          ari_score:float = None,
+                         paths: np.ndarray[str] = [None]
                          ) -> None:
     """Plots UMAP embeddings with given labels and configurations.
 
@@ -150,6 +157,7 @@ def __plot_umap_embeddings(umap_embeddings: np.ndarray[float],
         figsize (Tuple[int, int], optional): Size of the figure. Defaults to (6, 5).
         cmap (str, optional): Colormap to be used. Defaults to 'tab20'.
         ari_score (float, optional): ari score to show on the umap. Defaults to None.
+        paths (np.ndarray[str]): Array of paths corresponding to the embeddings.
 
     Raises:
         ValueError: If the size of `umap_embeddings` and `label_data` are incompatible.
@@ -243,12 +251,25 @@ def __plot_umap_embeddings(umap_embeddings: np.ndarray[float],
         ax = __get_metrics_figure(ari_score, ax=gs_bottom)
     
     fig.tight_layout()
+    save_plot_data(umap_embeddings, label_data, config_data, config_plot, paths, savepath+"_plot_data.pkl")
     if savepath:
         save_plot(fig, savepath, dpi, save_eps=True)
     else:
         plt.show()
         
     return fig, ax
+
+def save_plot_data(umap_embeddings, label_data, config_data, config_plot, paths, savepath="plot_data.pkl"):
+    data = {
+        "umap_embeddings": umap_embeddings,
+        "label_data": label_data,
+        "paths": paths,
+        "config_data": config_data.__dict__ if hasattr(config_data, "__dict__") else config_data,
+        "config_plot": config_plot.__dict__ if hasattr(config_plot, "__dict__") else config_plot
+    }
+    with open(savepath, "wb") as f:
+        pickle.dump(data, f)
+    logging.info(f"Plot data saved to {savepath}")
 
 def __format_UMAP_axes(ax:Axes, title:str)->None:
     ax.spines['top'].set_visible(False)
