@@ -7,6 +7,7 @@ import time
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.colors as mcolors
+import matplotlib.patches as mpatches
 
 from src.figures.umap_plotting import __format_UMAP_axes as format_UMAP_axes
 from src.figures.umap_plotting import __format_UMAP_legend as format_UMAP_legend
@@ -15,38 +16,58 @@ from tools.show_images_utils import show_processed_tif, extract_image_metadata
 
 
 class InteractiveUMAPPipeline:
-    def __init__(self, fov_layouts={}, default_paths = {}):
-        self.filter_checkboxes = {}
-        self.selected_indices_global = []
-        self.rect_selector = None  # Persistent RectangleSelector
+    def __init__(self,  default_paths={}, fov_layouts={}, hover=False):
+        """
+        Initializes the InteractiveUMAPPipeline.
 
-        self.df_meta = None
-        self.dfb = None ## Brenner scores
-        self.df_umaps = None ## metadata on all umaps in umap folder
-        self.df_image_stats = None ## metadata information related to the images in the displayed umap
-        self.df_image_stats_filt = None ## After applying filters
-        self.umap_embeddings = None ## The embeddings of the displayed umap
-        self.umap_embeddings_filt = None ## After applying filters
-        self.label_data = None ## The labels of the displayed umap
-        self.label_data_filt = None ## After applying filters
-        self.config_data = None ## Saved with the original umap
-        self.config_plot = None ## Saved with the original umap
+        Args:
+            default_paths (dict): Dictionary of default paths for UMAPs, images, and preprocessing files.
+            fov_layouts (dict): Predefined FOV (Field of View) layouts for FOV map visualization.
+            hover (bool): Whether to enable interactive hover annotations on UMAP plots.
+        """
+        # --- General setup ---
+        self.filter_checkboxes = {}  # Stores dynamically generated filter checkboxes
+        self.selected_indices_global = []  # Stores the selected point indices from rectangle selection
+        self.rect_selector = None  # Persistent RectangleSelector object for UMAP plot
+        
+        # --- Data containers (start empty, filled during pipeline) ---
+        self.df_meta = None  # Metadata for original images (e.g., extracted from filenames/paths)
+        self.dfb = None  # Brenner scores table (sharpness/quality scores)
+        self.df_umaps = None  # Metadata describing available UMAPs (e.g., type, batch, coloring)
+        self.df_image_stats = None  # Metadata related to the images used in the displayed UMAP
+        self.df_image_stats_filt = None  # Filtered version after applying checkbox filters
+        self.umap_embeddings = None  # 2D UMAP embeddings for the plot
+        self.umap_embeddings_filt = None  # Filtered version of embeddings
+        self.label_data = None  # Labels associated with each UMAP point (e.g., cell type, condition)
+        self.label_data_filt = None  # Filtered version of labels
+        self.config_data = None  # Raw configuration data saved with the UMAP
+        self.config_plot = None  # Plotting configuration loaded with the UMAP (size, alpha, color maps)
 
-        self._create_widgets(default_paths)
-        self._setup_callbacks()
-        self._display_ui()
-        self.fov_layouts = fov_layouts
-        self.format_UMAP_legend = format_UMAP_legend
-        self.format_UMAP_axes = format_UMAP_axes
+        # --- Settings ---
+        self.hover = hover  # Whether to enable interactive hover-over annotations on points
+
+        # --- UI Setup ---
+        self._create_widgets(default_paths)  # Create all the ipywidgets (sliders, text fields, buttons)
+        self._setup_callbacks()  # Connect buttons and actions to their event handlers
+        self._display_ui()  # Display the complete layout of the app
+
+        # --- Extra Config ---
+        self.fov_layouts = fov_layouts  # Predefined FOV maps for heatmap plotting
+        self.format_UMAP_legend = format_UMAP_legend  # External helper function for formatting legend
+        self.format_UMAP_axes = format_UMAP_axes  # External helper function for formatting axes
+
 
     def _create_widgets(self, default_paths):
         # --- Path configuration widgets ---
-        self.umaps_dir_widget = self.make_text_widget(default_paths['umaps_folder'], 'UMAPs Dir:')
-        self.preprocessing_path_widget = self.make_text_widget(default_paths['preprocessing_path'],'Preprocessing/brenner Path:')
-        self.csv_name1_widget = self.make_text_widget(default_paths['csv_name1'], 'CSV Brenner 1:')
-        self.csv_name2_widget = self.make_text_widget(default_paths['csv_name2'], 'CSV Brenner 2 (if exists):')
-        self.images_dir_widget = self.make_text_widget(default_paths['images_dir'],'Raw images Dir:')
-
+        self.umaps_dir_widget = self.make_text_widget(
+            default_paths.get('umaps_folder', ''), 'UMAPs Dir:'
+        )
+        self.csv_path_widget = self.make_text_widget(
+            default_paths.get('csv_path', ''), 'CSV Brenner Path:'
+        )
+        self.images_dir_widget = self.make_text_widget(
+            default_paths.get('images_dir', ''), 'Raw images Dir:'
+        )
         # --- Output display areas ---
         self.output_area = Output(layout={'height': '50px', 'margin': '0px 0px'})
         self.umap_output = Output(layout={'height': '1800px', 'margin': '10px 0px'})
@@ -59,16 +80,19 @@ class InteractiveUMAPPipeline:
         self.create_umap_button = Button(description="Create UMAP", layout=Layout(width='200px', margin='5px 10px'))
         self.create_umap_button.layout.display = 'none'
         self.show_images_button = Button(description="Show Selected Points", layout=Layout(width='200px', margin='0px 10px'))
-        self.show_images_button.layout.display = 'none'
         self.apply_filter_button = Button(description="Apply Filters", layout=Layout(width='180px', margin='10px 0px 0px 0px'))
         self.apply_filter_button.layout.display = 'none'
 
         self.num_images_slider = widgets.IntSlider(
             value=10, min=1, max=30, step=1,
             description='Num images:',
-            layout=Layout(width='250px', display='none'),
+            layout=Layout(width='250px'),
             style={'description_width': '100px'}
         )
+        self.show_images_controls = widgets.HBox([
+            self.num_images_slider,
+            self.show_images_button
+        ], layout=Layout(display='none'))
 
         # --- UMAP dropdowns ---
         self.batch_dropdown = widgets.Dropdown(description='Batch:')
@@ -138,9 +162,7 @@ class InteractiveUMAPPipeline:
     def _display_ui(self):
         self.ui = widgets.VBox([
             self.umaps_dir_widget,
-            self.preprocessing_path_widget,
-            self.csv_name1_widget,
-            self.csv_name2_widget,
+            self.csv_path_widget,
             self.images_dir_widget,
             self.run_button,
             widgets.HTML("<hr>"),
@@ -148,7 +170,7 @@ class InteractiveUMAPPipeline:
             self.umap_params,
             widgets.HTML("<hr>"),
             widgets.HBox([self.umap_output, self.right_box]),
-            widgets.HBox([self.num_images_slider, self.show_images_button]),
+            self.show_images_controls,
             widgets.HTML("<hr>"),
             self.selected_images_label,
             self.selected_images_output,
@@ -174,30 +196,46 @@ class InteractiveUMAPPipeline:
         with self.output_area:
             clear_output()
             print('Searching for all UMAPs in folder... (~10 seconds)')
-            umaps_dir = self.umaps_dir_widget.value
-            preprocessing_path = self.preprocessing_path_widget.value
-            csv_name1 = self.csv_name1_widget.value
-            csv_name2 = self.csv_name2_widget.value
-            images_dir = self.images_dir_widget.value
 
-            df1 = pd.read_csv(os.path.join(preprocessing_path, csv_name1))
-            if csv_name2.strip():  # check if not empty
-                df2 = pd.read_csv(os.path.join(preprocessing_path, csv_name2))
-                dfb = pd.concat([df1, df2], ignore_index=True)
+            umaps_dir = self.umaps_dir_widget.value.strip()
+            csv_path = self.csv_path_widget.value.strip()
+            images_dir = self.images_dir_widget.value.strip()
+
+            # --- UMAPs dir must exist ---
+            if not umaps_dir or not os.path.isdir(umaps_dir):
+                print("❌ UMAP folder not defined or does not exist.")
+                return
+
+            # --- Brenner CSV: optional, but if defined must exist ---
+            if csv_path:
+                if not os.path.isfile(csv_path):
+                    print(f"❌ Brenner CSV file not found at:\n{csv_path}")
+                    return
+                else:
+                    dfb = pd.read_csv(csv_path)
+                    dfb["Image_Name"] = dfb["Path"].apply(lambda x: os.path.splitext(os.path.basename(x))[0])
+                    self.dfb = dfb
             else:
-                dfb = df1.copy()
-            dfb["Image_Name"] = dfb["Path"].apply(lambda x: os.path.splitext(os.path.basename(x))[0])
-            self.dfb = dfb
+                print("ℹ️ No Brenner CSV provided. Continuing without Brenner scores.")
 
-            self.df_meta = extract_image_metadata(images_dir, FILE_EXTENSION='.tiff', KEY_BATCH='Batch')
+            # --- Images dir: optional, but if defined must exist ---
+            if images_dir:
+                if not os.path.isdir(images_dir):
+                    print(f"❌ Image directory not found at:\n{images_dir}")
+                    return
+                else:
+                    self.df_meta = extract_image_metadata(images_dir, FILE_EXTENSION='.tiff', KEY_BATCH='Batch')
+            else:
+                print("ℹ️ No image directory provided. Continuing without image metadata.")
+
             self.df_umaps = extract_umap_data(base_dir=umaps_dir)
             clear_output()
             print(len(self.df_umaps), 'UMAPs were located')
 
-            # Populate dropdowns from df_umaps
             self.populate_dropdowns_from_umaps()
             self.umap_params.layout.display = 'flex'
             self.create_umap_button.layout.display = 'inline-block'
+
             
     def create_umap(self, btn): 
         self.reset()
@@ -241,13 +279,32 @@ class InteractiveUMAPPipeline:
                 widgets.HTML("<b>Filter Settings:</b>")
             ] + [
                 self.create_checkbox_group(col) for col in ['Batch', 'Condition', 'Rep', 'Cell_Line', 'Panel']
+            ] + [
+                self.create_combination_filter()  # Add the special combination filter
             ] + [self.apply_filter_button]
+
 
         self.apply_filter_button.layout.display = 'inline-block'
         self.right_box.layout.display = 'flex'
-        self.show_images_button.layout.display = 'inline-block'
-        self.num_images_slider.layout.display = 'flex'
+        self.show_images_controls.layout.display = 'flex'
         self.clear_outputs(umaps=False)
+
+    def create_combination_filter(self):
+        """Special filter for CellLine-Condition combinations."""
+
+        unique_combinations = sorted(self.df_image_stats['Cell_Line_Condition'].dropna().unique())
+
+        self.combination_dropdown = widgets.SelectMultiple(
+            options=unique_combinations,
+            description='',
+            layout=Layout(width='300px', height='150px')
+        )
+
+        return widgets.VBox([
+            widgets.HTML("<b>Combination Filter (CellLine + Condition):</b>"),
+            self.combination_dropdown
+        ])
+
         
     def apply_filters_and_update_plot(self, btn): 
         with self.umap_output:
@@ -275,11 +332,15 @@ class InteractiveUMAPPipeline:
 
         # Section 1: Images only
         with self.selected_images_output_inner:
-            for ind in self.selected_indices_global[:self.num_images_slider.value]:
-                print(ind, df_to_use.iloc[ind]['Target_Sharpness_Brenner'])
-                target_path = construct_target_path(df_to_use, ind, self.df_meta)
-                show_processed_tif(target_path)
-                plt.show()
+            if self.df_meta is not None:
+                for ind in self.selected_indices_global[:self.num_images_slider.value]:
+                    # print(ind, df_to_use.iloc[ind]['Target_Sharpness_Brenner'])
+                    target_path = construct_target_path(df_to_use, ind, self.df_meta)
+                    show_processed_tif(target_path)
+                    plt.show()
+                    time.sleep(0.1)
+            else:
+                print("❌ Please specify the image directory to enable image display.")
 
         time.sleep(2)
         # Section 2: Tiles only
@@ -288,20 +349,24 @@ class InteractiveUMAPPipeline:
                 print(ind, df_to_use.Path.iloc[ind])
                 show_processed_tile(df_to_use, ind)
                 plt.show()
+                time.sleep(0.1)
 
         time.sleep(3)
         # Section 3: FOV
         with self.fov_output:
-            batch = self.df_image_stats["Batch"].iloc[0]
-            panel = self.df_image_stats["Panel"].iloc[0].split('panel')[1]
+            if self.fov_layouts:
+                batch = self.df_image_stats["Batch"].iloc[0]
+                panel = self.df_image_stats["Panel"].iloc[0].split('panel')[1]
 
-            if batch not in self.fov_layouts or panel not in self.fov_layouts[batch]:
-                raise ValueError(f"Unknown Batch/Panel: {batch}, {panel}")
+                if batch not in self.fov_layouts or panel not in self.fov_layouts[batch]:
+                    raise ValueError(f"Unknown Batch/Panel: {batch}, {panel}")
 
-            fov_grid = self.fov_layouts[batch][panel]
-            plot_fov_heatmaps(self.df_image_stats, self.selected_indices_global, fov_grid)
-            plot_fov_histogram(self.df_image_stats, self.selected_indices_global)
-            
+                fov_grid = self.fov_layouts[batch][panel]
+                plot_fov_heatmaps(self.df_image_stats, self.selected_indices_global, fov_grid)
+                plot_fov_histogram(self.df_image_stats, self.selected_indices_global)
+            else:
+                print("❌ Please specify the FOV layout to display FOV map.")
+                
     def clear_outputs(self, selected_points=True, umaps=True): 
         if selected_points:
             with self.selected_images_output_inner: clear_output()
@@ -309,6 +374,9 @@ class InteractiveUMAPPipeline:
             with self.fov_output: clear_output()
         if umaps:
             with self.umap_output: clear_output()
+            self.right_box.layout.display = 'none'
+            self.show_images_controls.layout.display = 'none'
+        self.umap_params.layout.display = 'none'
         
     def make_text_widget(self, value, description):
         return Text(
@@ -349,7 +417,13 @@ class InteractiveUMAPPipeline:
             selected = [cb.description for cb in checkboxes if cb.value]
             if selected:
                 filters[col] = selected
+        # Special combination filter
+        if hasattr(self, 'combination_dropdown'):
+            selected_combinations = list(self.combination_dropdown.value)
+            if selected_combinations:
+                filters['Cell_Line_Condition'] = selected_combinations
         return filters
+
     
     def filter_umap_data(self, filters: dict):
         """
@@ -369,12 +443,22 @@ class InteractiveUMAPPipeline:
         # Apply all filters to df_image_stats
         mask = np.ones(len(self.df_image_stats), dtype=bool)  # Start with all True
         for column, values in filters.items():
-            mask &= self.df_image_stats[column].apply(lambda x: any(str(x).startswith(prefix) for prefix in values))
+            # Special handling for 'Combination' column
+            if column == 'Cell_line_Condition':
+                mask &= self.df_image_stats['Cell_line_Condition'].isin(values)
+            else:
+                # Standard checkbox filters    
+                # Strip counts (e.g., 'Batch4 (4384)' -> 'Batch4')
+                cleaned_values = [v.split(' (')[0] for v in values]
+
+                mask &= self.df_image_stats[column].apply(
+                    lambda x: any(str(x).startswith(prefix) for prefix in cleaned_values)
+                )
 
         # Apply mask to all data
         self.umap_embeddings_filt = self.umap_embeddings[mask]
         self.label_data_filt = self.label_data[mask]
-        self.df_image_stats_filt = self.df_image_stats.iloc[list(mask)].copy().reset_index()
+        self.df_image_stats_filt = self.df_image_stats.iloc[list(mask)].copy().reset_index(drop=True)
             
     def plot_interactive_umap(self, 
         title: str = None,
@@ -395,7 +479,12 @@ class InteractiveUMAPPipeline:
 
         """Plots UMAP embeddings with interactive hovering for labels, with optional data dilution."""
         if umap_embeddings.shape[0] != label_data.shape[0]:
-            raise ValueError("The number of embeddings and labels must match.")
+            print("⚠️ The number of embeddings and labels must match.")
+            return
+        
+        if len(df_image_stats) == 0:
+            print("⚠️ No matching data found.              \nTry adjusting your filters.")
+            return
         
         original_indices = np.arange(len(df_image_stats))#[::dilute]
         annotations_dict = {}; colors_dict = {}; scatter_mappings = {}
@@ -409,10 +498,12 @@ class InteractiveUMAPPipeline:
                     for idx in df_image_stats.index
                 }
                 if RECOLOR_BY_BRENNER:
-                    df_image_stats["Color"] = set_colors_by_brenners(df_image_stats["Target_Sharpness_Brenner"].fillna(0), bins=bins)
+                    df_image_stats["Color"], percentiles, cmap = set_colors_by_brenners(df_image_stats["Target_Sharpness_Brenner"].fillna(0), bins=bins)
                     colors_dict = {idx: row.Color for idx, row in df_image_stats.iterrows()}
             else:
                 annotations_dict = {idx: f"{idx}: {image_names_dict.get(idx, 'Unknown')}" for idx in df_image_stats.index}
+                if RECOLOR_BY_BRENNER:
+                    print("❌ Please specify the Brenner csv path to enable recoloring by Brenner score.")
 
         name_key, color_key = self.config_plot['MAPPINGS_ALIAS_KEY'], self.config_plot['MAPPINGS_COLOR_KEY']
         marker_size, alpha = self.config_plot['SIZE'], self.config_plot['ALPHA']
@@ -442,6 +533,7 @@ class InteractiveUMAPPipeline:
                     alpha=alpha,
                     c=rgba_colors,
                     marker='o',
+                    label=name_color_dict[group][name_key]
                 )
                 scatter_objects.append(scatter)
                 legend_labels.append(name_color_dict[group][name_key])
@@ -462,26 +554,24 @@ class InteractiveUMAPPipeline:
                     c=shuffled_colors,
                     marker='o',
                 )    
-            scatter_objects.append(scatter)
-            legend_labels.append(name_color_dict[group][name_key])
+            scatter_objects = [scatter]
+            legend_labels = [name_color_dict[group][name_key] for group in unique_groups]
             scatter_mappings[scatter] = indices[shuffled_indices].tolist()
 
-        # Add legend
-        ax.legend(scatter_objects, legend_labels, loc="upper right", title="Groups")
+        if self.hover:
+            # Enable interactive hovering with precomputed labels
+            cursor = mplcursors.cursor(scatter_objects, hover=True)
 
-        # Enable interactive hovering with precomputed labels
-        # cursor = mplcursors.cursor(scatter_objects, hover=True)
+            @cursor.connect("add")
+            def on_hover(sel):
+                scatter_obj = sel.artist
+                scatter_index = sel.index
 
-        # @cursor.connect("add")
-        # def on_hover(sel):
-        #     scatter_obj = sel.artist
-        #     scatter_index = sel.index
-
-        #     if scatter_obj in scatter_mappings:
-        #         actual_index = original_indices[scatter_mappings[scatter_obj][scatter_index]] # Correct mapping
-        #         sel.annotation.set_text(annotations_dict.get(actual_index, "Unknown"))
-        #     else:
-        #         sel.annotation.set_text("Unknown")
+                if scatter_obj in scatter_mappings:
+                    actual_index = original_indices[scatter_mappings[scatter_obj][scatter_index]] # Correct mapping
+                    sel.annotation.set_text(annotations_dict.get(actual_index, "Unknown"))
+                else:
+                    sel.annotation.set_text("Unknown")
 
         # **Rectangle Selection Functionality**
         def on_select(eclick, erelease):
@@ -505,10 +595,35 @@ class InteractiveUMAPPipeline:
         # Attach Rectangle Selector (global storage prevents garbage collection)
         self.rect_selector = RectangleSelector(ax, on_select, interactive=True, useblit=False)
 
-        ax.set_title(title if title else "UMAP Projection")
-        self.format_UMAP_legend(ax, marker_size)
+        if RECOLOR_BY_BRENNER:
+            if self.dfb:
+                # Create colorbar
+                norm = mcolors.BoundaryNorm(percentiles, cmap.N)
+                sm = plt.cm.ScalarMappable(cmap=cmap, norm=norm)
+                sm.set_array([])
+                cbar = plt.colorbar(sm, ax=ax, ticks=percentiles, fraction=0.046, pad=0.04)
+                cbar.ax.set_yticklabels([
+                    f'{int(p)} ({round(q)}%)' for p, q in zip(percentiles, np.linspace(0, 100, len(percentiles)))
+                ])
+                cbar.ax.tick_params(labelsize=6) 
+                cbar.set_label('Target Sharpness (Brenner Score)', fontsize=8)
+        else:
+            if mix_groups:
+                # Manually create handles and labels
+                handles = []
+                labels = []
+                for group in unique_groups:
+                    color = name_color_dict[group][color_key]
+                    label = name_color_dict[group][name_key]
+                    patch = mpatches.Patch(color=color, label=label)
+                    handles.append(patch)
+                    labels.append(label)
+                self.format_UMAP_legend(ax, marker_size, handles=handles, labels=labels)
+            else:
+                self.format_UMAP_legend(ax, marker_size, scatter_objects, legend_labels)
+
         self.format_UMAP_axes(ax, title)
         fig.tight_layout()
         plt.show()
-        print("UMAP plot ready. Select points and then click the button below to show selected images.")
+        print("UMAP plot ready. \nSelect points and then click the button below to show selected images.")
         return
