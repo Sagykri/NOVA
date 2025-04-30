@@ -82,7 +82,7 @@ def get_dapi_path(path, marker1, marker2='DAPI', funova=False):
 
 def show_label(path):
     path_l = path.split("/")
-    return path_l[-7:]
+    return " ".join(path_l[-7:-4]) + "\n" + " ".join(path_l[-4:])
 
 def process_tif(path):
     """
