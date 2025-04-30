@@ -8,6 +8,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.colors as mcolors
 import matplotlib.patches as mpatches
+import gc
 
 from src.figures.umap_plotting import __format_UMAP_axes as format_UMAP_axes
 from src.figures.umap_plotting import __format_UMAP_legend as format_UMAP_legend
@@ -70,7 +71,7 @@ class InteractiveUMAPPipeline:
         )
         # --- Output display areas ---
         self.output_area = Output(layout={'height': '50px', 'margin': '0px 0px'})
-        self.umap_output = Output(layout={'height': '1800px', 'margin': '10px 0px'})
+        self.umap_output = Output(layout={'height': 'auto', 'margin': '10px 0px'})
         self.selected_images_output, self.selected_images_output_inner = self.create_scrollable_output(height='400px')
         self.selected_tiles_output, self.selected_tiles_output_inner = self.create_scrollable_output(height='350px')
         self.fov_output = Output(layout={'height': '1000px', 'margin': '0 auto', 'display': 'block'})
@@ -128,7 +129,7 @@ class InteractiveUMAPPipeline:
             self.create_umap_button
         ], layout=Layout(display='none', gap='40px'))
 
-        self.right_box = widgets.VBox(layout=Layout(display='none', width='320px'))  # Populated later with filters
+        self.right_box = widgets.VBox(layout=Layout(display='none', width='320px', margin='0 0 0 10px'))  # Populated later with filters
 
         # --- Filter checkboxes (populated dynamically) ---
         self.filter_checkboxes = {}
@@ -185,14 +186,67 @@ class InteractiveUMAPPipeline:
     def show(self):
         display(self.ui)
         
-    def reset(self):
-        self.filter_checkboxes.clear()  # Clear old filters first
-        self.umap_embeddings, self.label_data, self.config_data, self.config_plot, self.df_image_stats = None, None, None, None, None
-        self.umap_embeddings_filt, self.label_data_filt, self.df_image_stats_filt = None, None, None
+    # def reset(self):
+    #     self.filter_checkboxes.clear()  # Clear old filters first
+    #     del self.umap_embeddings; del self.label_data; del self.config_data; del self.config_plot; del self.df_image_stats
+    #     del self.df_umaps, self.dfb, self.df_meta
+    #     self.df_umaps = self.dfb = self.df_meta = None
+    #     self.umap_embeddings, self.label_data, self.config_data, self.config_plot, self.df_image_stats = None, None, None, None, None
+    #     self.umap_embeddings_filt, self.label_data_filt, self.df_image_stats_filt = None, None, None
+    #     self.selected_indices_global = []
+    #     self.rect_selector = None
+
+    #     # Explicitly close all figures to prevent memory buildup
+    #     plt.close('all')
+
+    #     # Force garbage collection to free memory
+    #     gc.collect()
+
+    def reset(self, all = False):
+        # 1. Close all open figures
+        plt.close('all')
+
+        # 2. Clear & (optionally) close outputs
+        for w in (self.output_area,
+                self.umap_output,
+                self.selected_images_output_inner,
+                self.selected_tiles_output_inner,
+                self.fov_output):
+            w.clear_output(wait=True)
+
+        # 3. Disconnect selectors & cursors
+        if getattr(self, 'rect_selector', None):
+            self.rect_selector.set_active(False)
+            try: self.rect_selector.disconnect_events()
+            except: pass
+            self.rect_selector = None
+
+        if getattr(self, 'hover_cursor', None):
+            try: self.hover_cursor.disconnect()
+            except: pass
+            del self.hover_cursor
+
+        if all:
+            # 4. Delete all large data references
+            for attr in ('df_umaps','df_meta','dfb',
+                        'umap_embeddings','label_data','config_data','config_plot',
+                        'df_image_stats','umap_embeddings_filt','label_data_filt','df_image_stats_filt'):
+                setattr(self, attr, None)
+
+        # 5. Clear dynamically generated filters
+        self.filter_checkboxes.clear()
+        self.right_box.children = ()
+
+        # 6. Force garbage collection
+        import gc; gc.collect()
+
+
 
     def run_pipeline(self, btn):
         self.clear_outputs()
-        self.reset()
+        self.reset(all = True)
+        self.umap_params.layout.display = 'none'
+        self.pickle_status_label.value = ''
         with self.output_area:
             clear_output()
             print('Searching for all UMAPs in folder... (~10 seconds)')
@@ -212,11 +266,11 @@ class InteractiveUMAPPipeline:
                     print(f"❌ Brenner CSV file not found at:\n{csv_path}")
                     return
                 else:
-                    dfb = pd.read_csv(csv_path)
-                    dfb["Image_Name"] = dfb["Path"].apply(lambda x: os.path.splitext(os.path.basename(x))[0])
-                    self.dfb = dfb
+                    self.dfb = pd.read_csv(csv_path)
+                    self.dfb["Image_Name"] = self.dfb["Path"].apply(lambda x: os.path.splitext(os.path.basename(x))[0])
             else:
                 print("ℹ️ No Brenner CSV provided. Continuing without Brenner scores.")
+                self.dfb = None
 
             # --- Images dir: optional, but if defined must exist ---
             if images_dir:
@@ -227,6 +281,7 @@ class InteractiveUMAPPipeline:
                     self.df_meta = extract_image_metadata(images_dir, FILE_EXTENSION='.tiff', KEY_BATCH='Batch')
             else:
                 print("ℹ️ No image directory provided. Continuing without image metadata.")
+                self.df_meta = None
 
             self.df_umaps = extract_umap_data(base_dir=umaps_dir)
             clear_output()
@@ -278,9 +333,9 @@ class InteractiveUMAPPipeline:
             self.right_box.children = [
                 widgets.HTML("<b>Filter Settings:</b>")
             ] + [
-                self.create_checkbox_group(col) for col in ['Batch', 'Condition', 'Rep', 'Cell_Line', 'Panel']
+                self.create_checkbox_group(col) for col in ['Batch', 'Condition', 'Rep', 'Cell_Line']
             ] + [
-                self.create_combination_filter()  # Add the special combination filter
+                self.create_more_filters()  # Add the special combination filter
             ] + [self.apply_filter_button]
 
 
@@ -289,22 +344,61 @@ class InteractiveUMAPPipeline:
         self.show_images_controls.layout.display = 'flex'
         self.clear_outputs(umaps=False)
 
-    def create_combination_filter(self):
-        """Special filter for CellLine-Condition combinations."""
+    # def create_combination_filter(self):
+    #     """Special filter for CellLine-Condition combinations."""
 
-        unique_combinations = sorted(self.df_image_stats['Cell_Line_Condition'].dropna().unique())
+    #     unique_combinations = sorted(self.df_image_stats['Cell_Line_Condition'].dropna().unique())
+
+    #     self.combination_dropdown = widgets.SelectMultiple(
+    #         options=unique_combinations,
+    #         description='',
+    #         value=(),  # <-- allow and start with no selection
+    #         layout=Layout(width='300px', height='150px')
+    #     )
+
+    #     return widgets.VBox([
+    #         widgets.HTML("<b>Combination Filter (CellLine + Condition):</b><br><i>Ctrl + click to deselect</i>"),
+    #         self.combination_dropdown
+    #     ])
+    
+    def create_more_filters(self):
+        unique_combinations = self.df_image_stats['Cell_Line_Condition'].dropna()
+        combination_counts = unique_combinations.value_counts()
+        combination_options = [
+            f"{val} ({combination_counts[val]})" for val in sorted(combination_counts.index)
+        ]
+
+        unique_panels = self.df_image_stats['Panel'].dropna()
+        panel_counts = unique_panels.value_counts()
+        panel_options = [
+            f"{val} ({panel_counts[val]})" for val in sorted(panel_counts.index)
+        ]
 
         self.combination_dropdown = widgets.SelectMultiple(
-            options=unique_combinations,
-            description='',
-            layout=Layout(width='300px', height='150px')
+            options=combination_options,
+            layout=Layout(width='100%', height='180px')
         )
 
-        return widgets.VBox([
-            widgets.HTML("<b>Combination Filter (CellLine + Condition):</b>"),
-            self.combination_dropdown
+        self.panel_dropdown = widgets.SelectMultiple(
+            options=panel_options,
+            layout=Layout(width='100%', height='180px')
+        )
+
+        # Inner content
+        inner = widgets.VBox([
+            widgets.HTML("<span style='font-size:11px;'>Hold Ctrl to select/deselect multiple</span>"),
+            widgets.Label("CellLine + Condition"),
+            self.combination_dropdown,
+            widgets.Label("Panel"),
+            self.panel_dropdown
         ])
 
+        # Accordion
+        acc = widgets.Accordion(children=[inner])
+        acc.set_title(0, "More Filters (Advanced)")
+        acc.selected_index = None  # collapsed by default
+
+        return acc
         
     def apply_filters_and_update_plot(self, btn): 
         with self.umap_output:
@@ -338,7 +432,7 @@ class InteractiveUMAPPipeline:
                     target_path = construct_target_path(df_to_use, ind, self.df_meta)
                     show_processed_tif(target_path)
                     plt.show()
-                    time.sleep(0.1)
+                    time.sleep(0.2)
             else:
                 print("❌ Please specify the image directory to enable image display.")
 
@@ -349,7 +443,7 @@ class InteractiveUMAPPipeline:
                 print(ind, df_to_use.Path.iloc[ind])
                 show_processed_tile(df_to_use, ind)
                 plt.show()
-                time.sleep(0.1)
+                time.sleep(0.2)
 
         time.sleep(3)
         # Section 3: FOV
@@ -376,7 +470,6 @@ class InteractiveUMAPPipeline:
             with self.umap_output: clear_output()
             self.right_box.layout.display = 'none'
             self.show_images_controls.layout.display = 'none'
-        self.umap_params.layout.display = 'none'
         
     def make_text_widget(self, value, description):
         return Text(
@@ -422,6 +515,10 @@ class InteractiveUMAPPipeline:
             selected_combinations = list(self.combination_dropdown.value)
             if selected_combinations:
                 filters['Cell_Line_Condition'] = selected_combinations
+        if hasattr(self, 'panel_dropdown'):
+            selected_panels = list(self.panel_dropdown.value)
+            if selected_panels:
+                filters['Panel'] = selected_panels
         return filters
 
     
@@ -596,7 +693,7 @@ class InteractiveUMAPPipeline:
         self.rect_selector = RectangleSelector(ax, on_select, interactive=True, useblit=False)
 
         if RECOLOR_BY_BRENNER:
-            if self.dfb:
+            if self.dfb is not None:
                 # Create colorbar
                 norm = mcolors.BoundaryNorm(percentiles, cmap.N)
                 sm = plt.cm.ScalarMappable(cmap=cmap, norm=norm)
@@ -627,3 +724,10 @@ class InteractiveUMAPPipeline:
         plt.show()
         print("UMAP plot ready. \nSelect points and then click the button below to show selected images.")
         return
+    
+    def dispose(self):
+        self.umap_output.clear_output()
+        self.selected_images_output_inner.clear_output()
+        self.selected_tiles_output_inner.clear_output()
+        self.fov_output.clear_output()
+        plt.close('all')
