@@ -23,18 +23,20 @@ class AnalyzerUMAPMultiplexMarkers(AnalyzerUMAP):
         super().__init__(data_config, output_folder_path)
 
 
-    def calculate(self, embeddings:np.ndarray[float], labels:np.ndarray[str])->Tuple[np.ndarray[float],np.ndarray[str], Dict[str,float]]:
+    def calculate(self, embeddings:np.ndarray[float], labels:np.ndarray[str], paths:np.ndarray[str]=None)->Tuple[np.ndarray[float],np.ndarray[str], Dict[str,float]]:
         """Calculate UMAP embeddings for multiplexed embeddings from the given embeddings and store the results in the `self.features` attribute. 
          This method takes in embeddings and their associated labels, and computes multiplexed embeddings by grouping the data based on shared phenotypes.
 
         Args:
             embeddings (np.ndarray[float]): The input embeddings with shape (n_samples, n_features).
             labels (np.ndarray[str]): The labels associated with each embedding.
+            paths (np.ndarray[str]): The image paths associated with each embedding.
         Returns:
             Tuple[np.ndarray[float], np.ndarray[str]]: 
                 - The UMAP embeddings after dimensionality reduction with shape (n_mutliplexed_samples, n_components).
                 - The corresponding phenotypes labels preserving the association with the UMAP embeddings.
                 - A dictionary with 'ari' as key and the ari score as value
+                - The corresponding paths preserving the association with the UMAP embeddings.
         """
         
         logging.info(f"[AnalyzerUMAPMultiplexMarkers.calculate] Embeddings shape: {embeddings.shape}, Labels shape: {labels.shape}")
@@ -57,7 +59,7 @@ class AnalyzerUMAPMultiplexMarkers(AnalyzerUMAP):
         self.labels = multiplexed_labels
         self.ari_scores = ari_score
 
-        return umap_embeddings, multiplexed_labels, ari_score
+        return umap_embeddings, multiplexed_labels, ari_score, paths
     
 
     def __format_embeddings_to_df(self, embeddings:np.ndarray[float], labels: np.ndarray[str])->pd.DataFrame:

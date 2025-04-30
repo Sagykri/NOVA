@@ -26,7 +26,7 @@ def generate_embeddings(model:NOVAModel, config_data:DatasetConfig,
     logging.info(f"[generate_embeddings] Is GPU available: {torch.cuda.is_available()}")
     logging.info(f"[generate_embeddings] Num GPUs Available: {torch.cuda.device_count()}")
 
-    all_embeddings, all_labels = [], []
+    all_embeddings, all_labels, all_paths = [], [], []
 
     train_paths:np.ndarray[str] = model.trainset_paths
     val_paths:np.ndarray[str] = model.valset_paths
@@ -59,15 +59,17 @@ def generate_embeddings(model:NOVAModel, config_data:DatasetConfig,
         new_set_dataset = deepcopy(full_dataset)
         new_set_dataset.set_Xy(new_set_paths, new_set_labels)
         
-        embeddings, labels = __generate_embeddings_with_dataloader(new_set_dataset, model, batch_size, num_workers)
+        embeddings, labels, paths = __generate_embeddings_with_dataloader(new_set_dataset, model, batch_size, num_workers)
         
         all_embeddings.append(embeddings)
         all_labels.append(labels)
+        all_paths.append(paths)
 
-    return all_embeddings, all_labels
+    return all_embeddings, all_labels, all_paths
 
 def save_embeddings(embeddings:List[np.ndarray[torch.Tensor]], 
-                    labels:List[np.ndarray[str]], data_config:DatasetConfig, output_folder_path)->None:
+                    labels:List[np.ndarray[str]], paths:List[np.ndarray[str]],
+                    data_config:DatasetConfig, output_folder_path)->None:
 
     unique_batches = get_unique_parts_from_labels(labels[0], get_batches_from_labels, data_config)
     logging.info(f'[save_embeddings] unique_batches: {unique_batches}')
@@ -78,7 +80,7 @@ def save_embeddings(embeddings:List[np.ndarray[torch.Tensor]],
         data_set_types = ['testset']
         
     for i, set_type in enumerate(data_set_types):
-        cur_embeddings, cur_labels = embeddings[i], labels[i]
+        cur_embeddings, cur_labels, cur_paths = embeddings[i], labels[i], paths[i]
         batch_of_label = get_batches_from_labels(cur_labels, data_config)
         __dict_temp = {batch: np.where(batch_of_label==batch)[0] for batch in unique_batches}
         for batch, batch_indexes in __dict_temp.items():
@@ -95,6 +97,7 @@ def save_embeddings(embeddings:List[np.ndarray[torch.Tensor]],
             
             np.save(os.path.join(batch_save_path,f'{set_type}_labels.npy'), np.array(cur_labels[batch_indexes]))
             np.save(os.path.join(batch_save_path,f'{set_type}.npy'), cur_embeddings[batch_indexes])
+            np.save(os.path.join(batch_save_path,f'{set_type}_paths.npy'), cur_paths[batch_indexes])
 
             logging.info(f'[save_embeddings] Finished {set_type} set, saved in {batch_save_path}')
 
@@ -115,28 +118,30 @@ def load_embeddings(model_output_folder:str, config_data:DatasetConfig)-> Tuple[
 
     batches = get_batches_from_input_folders(input_folders)
     embeddings_folder = os.path.join(model_output_folder,"embeddings", experiment_type)
-    embeddings, labels = __load_multiple_batches(batches = batches,embeddings_folder = embeddings_folder,
+    embeddings, labels, paths = __load_multiple_batches(batches = batches,embeddings_folder = embeddings_folder,
                                                  config_data=config_data)
     
     embeddings = np.concatenate(embeddings)
     labels = np.concatenate(labels)
     labels = edit_labels_by_config(labels, config_data)
-    filtered_labels, filtered_embeddings = __filter(labels, embeddings, config_data)
+    paths = np.concatenate(paths)
+    filtered_labels, filtered_embeddings, filtered_paths = __filter(labels, embeddings, paths, config_data)
 
     logging.info(f'[load_embeddings] embeddings shape: {filtered_embeddings.shape}')
     logging.info(f'[load_embeddings] labels shape: {filtered_labels.shape}')
     logging.info(f'[load_embeddings] example label: {filtered_labels[0]}')
-    return filtered_embeddings, filtered_labels
+    logging.info(f'[load_embeddings] paths shape: {filtered_paths.shape}')
+    return filtered_embeddings, filtered_labels, filtered_paths
 
 def __generate_embeddings_with_dataloader(dataset:DatasetNOVA, model:NOVAModel, batch_size:int=700, 
                                           num_workers:int=6)->Tuple[np.ndarray[torch.Tensor], np.ndarray[str]]:
     data_loader = get_dataloader(dataset=dataset, batch_size=batch_size, num_workers=num_workers, drop_last=False)
     logging.info(f"[generate_embeddings_with_dataloader] Data loaded: there are {len(dataset)} images.")
     
-    embeddings, labels = model.infer(data_loader)
+    embeddings, labels, paths = model.infer(data_loader)
     logging.info(f'[generate_embeddings_with_dataloader] total embeddings: {embeddings.shape}')
     
-    return embeddings, labels
+    return embeddings, labels, paths
 
 def __load_multiple_batches(batches:List[str], embeddings_folder:str, config_data:DatasetConfig)-> Tuple[List[np.ndarray[float]],List[np.ndarray[np.str_]]]:
     
@@ -148,18 +153,21 @@ def __load_multiple_batches(batches:List[str], embeddings_folder:str, config_dat
     Returns:
         embeddings: List of np.arrays of length (# batches). each np.array is in shape (# tiles, 128)
         labels: List of np.arrays of length (# batches). each np.array is in shape (# tiles) and the stored value is full label
+        paths: List of np.arrays of length (# batches). each np.array is in shape (# tiles) and the stored value is the path to the tile's image
     """
     sets_to_load = get_if_exists(config_data, 'SETS', ['testset']) 
-    embeddings, labels = [] , []
+    embeddings, labels, paths = [] , [], []
     for batch in batches:
         for set_type in sets_to_load:
             cur_embeddings, cur_labels = np.load(os.path.join(embeddings_folder, batch, f"{set_type}.npy")),\
                                          np.load(os.path.join(embeddings_folder, batch, f"{set_type}_labels.npy"))
+            cur_paths = np.load(os.path.join(embeddings_folder, batch, f"{set_type}_paths.npy")) if os.path.exists(os.path.join(embeddings_folder, batch, f"{set_type}_paths.npy")) else None
             embeddings.append(cur_embeddings)
             labels.append(cur_labels)
-    return embeddings, labels
+            paths.append(cur_paths)
+    return embeddings, labels, paths
 
-def __filter(labels:np.ndarray[str], embeddings:np.ndarray[float], 
+def __filter(labels:np.ndarray[str], embeddings:np.ndarray[float], paths:np.ndarray[str],
             config_data:DatasetConfig)->Tuple[np.ndarray[str],np.ndarray[float]]:
     # Extract from config_data the filtering required on the labels
     cell_lines = get_if_exists(config_data, 'CELL_LINES', None)
@@ -171,16 +179,16 @@ def __filter(labels:np.ndarray[str], embeddings:np.ndarray[float],
     # Perform the filtering
     if markers_to_exclude:
         logging.info(f"[embeddings_utils._filter] markers_to_exclude = {markers_to_exclude}")
-        labels, embeddings = __filter_by_label_part(labels, embeddings, markers_to_exclude,
+        labels, embeddings, paths = __filter_by_label_part(labels, embeddings, paths, markers_to_exclude,
                                   get_markers_from_labels, include=False)
     if markers:
         logging.info(f"[embeddings_utils._filter] markers = {markers}")
-        labels, embeddings = __filter_by_label_part(labels, embeddings, markers,
+        labels, embeddings, paths = __filter_by_label_part(labels, embeddings, paths, markers,
                                   get_markers_from_labels, include=True)
     if cell_lines:
         logging.info(f"[embeddings_utils._filter] cell_lines = {cell_lines}")
         if config_data.ADD_LINE_TO_LABEL:
-            labels, embeddings = __filter_by_label_part(labels, embeddings, cell_lines,
+            labels, embeddings, paths = __filter_by_label_part(labels, embeddings, paths, cell_lines,
                                   get_cell_lines_from_labels, config_data, include=True)
         else:
             logging.warning(f'[embeddings_utils._filter]: Cannot filter by cell lines because of config_data: ADD_LINE_TO_LABEL:{config_data.ADD_LINE_TO_LABEL}')
@@ -188,7 +196,7 @@ def __filter(labels:np.ndarray[str], embeddings:np.ndarray[float],
     if conditions:
         logging.info(f"[embeddings_utils._filter] conditions = {conditions}")
         if config_data.ADD_CONDITION_TO_LABEL:
-            labels, embeddings = __filter_by_label_part(labels, embeddings, conditions,
+            labels, embeddings, paths = __filter_by_label_part(labels, embeddings, paths, conditions,
                                   get_conditions_from_labels, config_data, include=True)
         else:
             logging.warning(f'[embeddings_utils._filter]: Cannot filter by condition because of config_data: ADD_CONDITION_TO_LABEL: {config_data.ADD_CONDITION_TO_LABEL}')
@@ -196,14 +204,13 @@ def __filter(labels:np.ndarray[str], embeddings:np.ndarray[float],
     if reps:
         logging.info(f"[embeddings_utils._filter] reps = {reps}") 
         if config_data.ADD_REP_TO_LABEL:
-            labels, embeddings = __filter_by_label_part(labels, embeddings, reps,
+            labels, embeddings, paths = __filter_by_label_part(labels, embeddings, paths, reps,
                                   get_reps_from_labels, config_data, include=True)
         else:
             logging.warning(f'[embeddings_utils._filter]: Cannot filter by reps because of config_data: ADD_REP_TO_LABEL:{config_data.ADD_REP_TO_LABEL}')
+    return labels, embeddings, paths
 
-    return labels, embeddings
-
-def __filter_by_label_part(labels:np.ndarray[str], embeddings:np.ndarray[float], 
+def __filter_by_label_part(labels:np.ndarray[str], embeddings:np.ndarray[float], paths:np.ndarray[str],
                           filter_on:List[str], get_parts_from_labels:Callable, config_data:Optional[DatasetConfig]=None, 
                           include:bool=True,) -> Tuple[np.ndarray[str],np.ndarray[float]]:
     
@@ -217,7 +224,8 @@ def __filter_by_label_part(labels:np.ndarray[str], embeddings:np.ndarray[float],
         indices_to_keep = np.where(~np.isin(parts_of_labels, filter_on))[0]
     labels = labels[indices_to_keep]
     embeddings = embeddings[indices_to_keep]
-    return labels, embeddings
+    paths = paths[indices_to_keep]
+    return labels, embeddings, paths
 
 
 

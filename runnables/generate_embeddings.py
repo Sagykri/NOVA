@@ -20,8 +20,8 @@ def generate_embeddings_with_model(outputs_folder_path:str, config_path_data:str
     chkp_path = os.path.join(outputs_folder_path, CHECKPOINTS_FOLDERNAME, CHECKPOINT_BEST_FILENAME)
     model = NOVAModel.load_from_checkpoint(chkp_path)
 
-    embeddings, labels = generate_embeddings(model, config_data, batch_size=batch_size)
-    save_embeddings(embeddings, labels, config_data, outputs_folder_path)
+    embeddings, labels, paths = generate_embeddings(model, config_data, batch_size=batch_size)
+    save_embeddings(embeddings, labels, paths, config_data, outputs_folder_path)
 
 if __name__ == "__main__":
     print("Starting generate embeddings...")
