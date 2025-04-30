@@ -53,7 +53,7 @@ def generate_umaps(output_folder_path:str, config_path_data:str, config_path_plo
     logging.info(f'saveroot: {saveroot}')
     
     # Calculate the UMAP embeddings
-    umap_embeddings, labels, ari_scores, paths = analyzer_UMAP.calculate(embeddings, labels, paths)
+    umap_embeddings, labels, paths, ari_scores = analyzer_UMAP.calculate(embeddings, labels, paths)
     # Plot the UMAP
     plot_umap(umap_embeddings, labels, config_data, config_plot, saveroot, umap_idx, ari_scores, paths)
                 

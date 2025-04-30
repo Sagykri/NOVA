@@ -32,7 +32,8 @@ class AnalyzerUMAP(Analyzer):
 
 
     @abstractmethod
-    def calculate(self, embeddings:np.ndarray[float], labels:np.ndarray[str])->Tuple[np.ndarray[float],np.ndarray[str], Dict[str,float]]:
+    def calculate(self, embeddings:np.ndarray[float], labels:np.ndarray[str], paths:np.ndarray[str])->Tuple[np.ndarray[float],np.ndarray[str], 
+                                                                                                            np.ndarray[str], Dict[str,float]]:
         """Calculate UMAP embeddings from given embeddings, save in the self.features attribute, and return.
         Also save in self.labels the labels of the embeddings, and return them.
 
@@ -42,6 +43,7 @@ class AnalyzerUMAP(Analyzer):
         Returns:
             np.ndarray[float]: the UMAP embeddings
             np.ndarray[str]: the labels
+            np.ndarray[str]: the paths
             Dict[str,float] : ari scores if needed
         """
         pass

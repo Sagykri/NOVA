@@ -59,7 +59,7 @@ class AnalyzerUMAPMultiplexMarkers(AnalyzerUMAP):
         self.labels = multiplexed_labels
         self.ari_scores = ari_score
 
-        return umap_embeddings, multiplexed_labels, ari_score, paths
+        return umap_embeddings, multiplexed_labels, paths, ari_score
     
 
     def __format_embeddings_to_df(self, embeddings:np.ndarray[float], labels: np.ndarray[str])->pd.DataFrame:
