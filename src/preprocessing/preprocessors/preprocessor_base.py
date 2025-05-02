@@ -230,7 +230,7 @@ class Preprocessor(ABC):
         """
         pass
 
-    def _get_valid_tiles_indexes_by_percent(self, nucleus_image: np.ndarray, return_masked_tiles:bool = True) -> np.ndarray:
+    def _get_valid_tiles_indexes(self, nucleus_image: np.ndarray, return_masked_tiles:bool = True) -> np.ndarray:
         """
         Get the indexes of valid tiles 
         
@@ -261,7 +261,7 @@ class Preprocessor(ABC):
         whole_polygons = [p for p in whole_polygons if not p.intersects(whole_box.exterior.buffer(1))]
         
         # Select only tiles with passed nuclues
-        valid_tiles_indexes = np.where([self.__is_valid_tile_by_percent(masked_tile, whole_polygons = whole_polygons , 
+        valid_tiles_indexes = np.where([self.__is_valid_tile(masked_tile, whole_polygons = whole_polygons , 
                                                                         ix=ix)[0] 
                                                    for ix, masked_tile in enumerate(nuclei_mask_tiled)])
 
@@ -269,31 +269,6 @@ class Preprocessor(ABC):
 
         if return_masked_tiles:
             return valid_tiles_indexes , nuclei_mask_tiled
-        return valid_tiles_indexes
-    
-    def _get_valid_tiles_indexes(self, nucleus_image: np.ndarray, return_masked_tiles:bool = True) -> np.ndarray:
-        """
-        Get the indexes of valid tiles 
-        
-        Args:
-            nucleus_image (np.ndarray): The nucleus image
-
-        Returns:
-            np.ndarray: Array of valid tile indexes.
-        """
-        nuclei_mask = get_nuclei_segmentations(
-            img=nucleus_image,
-            cellpose_model=self.cellpose_model,
-            diameter=self.preprocessing_config.CELLPOSE['NUCLEUS_DIAMETER'],
-            cellprob_threshold=self.preprocessing_config.CELLPOSE['CELLPROB_THRESHOLD'],
-            flow_threshold=self.preprocessing_config.CELLPOSE['FLOW_THRESHOLD'],
-            show_plot=False
-        )
-        # Tile the nucleus mask and validate each tile
-        nuclei_mask_tiled = crop_image_to_tiles(nuclei_mask, self.preprocessing_config.TILE_INTERMEDIATE_SHAPE)
-        valid_tiles_indexes = np.where([self.__is_valid_tile(masked_tile) for masked_tile in nuclei_mask_tiled])[0]
-        if return_masked_tiles:
-            return valid_tiles_indexes, nuclei_mask_tiled
         return valid_tiles_indexes
 
     def _get_image(self, path: str) -> Union[np.ndarray , None]:
@@ -379,7 +354,7 @@ class Preprocessor(ABC):
         if processed_nucleus is None: return 
         
         # Get valid tile indexes for the nucleus image
-        valid_tiles_indexes, nuclei_mask_tiled  = self._get_valid_tiles_indexes_by_percent(processed_nucleus) ### CHANGE HERE
+        valid_tiles_indexes, nuclei_mask_tiled  = self._get_valid_tiles_indexes(processed_nucleus) ### CHANGE HERE
 
         self.logging_df.log_nucleus(nuclei_mask_tiled, valid_tiles_indexes, nucleus_path)
         if len(valid_tiles_indexes) == 0: 
@@ -415,23 +390,9 @@ class Preprocessor(ABC):
         logging.info(f"[{group_id}] Shape of processed images: {__shapes}")
             
         return processed_images
-            
-    def __is_valid_tile(self, masked_tile: np.ndarray) -> bool:
-        """
-        Check if the tile has at least one whole nucleus but not more than the maximum allowed nucleus 
-
-        Args:
-            masked_tile (np.ndarray): Segmented tile for nuclei within
-        
-        Returns:
-            bool: True if the tile contains a whole nucleus and not more than the maximum allowed nucleus, False otherwise.
-        """
-        polygons = extract_polygons_from_mask(masked_tile)
-        return is_contains_whole_nucleus(polygons, self.preprocessing_config.TILE_INTERMEDIATE_SHAPE) and get_nuclei_count(masked_tile) <= self.preprocessing_config.MAX_NUM_NUCLEI
-
     
     
-    def __is_valid_tile_by_percent(self, masked_tile: np.ndarray, whole_polygons = None  , ix = None ) -> bool:
+    def __is_valid_tile(self, masked_tile: np.ndarray, whole_polygons = None  , ix = None ) -> bool:
         """
         Check if the tile has at least one whole nucleus but not more than the maximum allowed nucleus 
 
@@ -471,11 +432,9 @@ class Preprocessor(ABC):
                         filtered_polygons.append(p)
                         break
 
-        
+        tile_intermid_shape = self.preprocessing_config.TILE_INTERMEDIATE_SHAPE ## not being used - consider removing
 
-        tile_intemid_shape = self.preprocessing_config.TILE_INTERMEDIATE_SHAPE
-
-        cond1 = len(filtered_polygons) > 0 #is_contains_whole_nucleus(filtered_polygons, tile_intemid_shape, min_edge_distance = min_edge_distance) 
+        cond1 = len(filtered_polygons) > 0 #is_contains_whole_nucleus(filtered_polygons, tile_intermid_shape, min_edge_distance = min_edge_distance) 
         cond2 = get_nuclei_count(masked_tile) <= max_num_nuc
          
         return cond1 and cond2 , l_shifted
