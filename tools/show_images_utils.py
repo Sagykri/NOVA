@@ -237,47 +237,54 @@ def extract_image_metadata(base_dir, FILE_EXTENSION='.tiff', KEY_BATCH='Batch'):
 
     Args:
         base_dir (str): The base directory containing the images.
+        FILE_EXTENSION (str): Expected extension (e.g., '.tiff'), will also allow short version like '.tif'.
+        KEY_BATCH (str): Name of batch prefix (case-insensitive, e.g., 'Batch').
 
     Returns:
-        pd.DataFrame: A DataFrame containing metadata with columns 
-                      ['Path', 'RootFolder', 'Marker', 'Condition', 'CellLine', 
-                       'Batch_Rep', 'Rep', 'Batch', 'Panel'].
+        pd.DataFrame: DataFrame with extracted image metadata.
     """
-    # Prepare a list to store extracted data
+    # Normalize file extensions
+    ext_main = FILE_EXTENSION.lower()
+    ext_alt = ext_main.replace('ff', 'f') if ext_main.endswith('ff') else ext_main + 'f'
+    allowed_exts = {ext_main, ext_alt}
+
     data = []
-
-    # Traverse through all directories and files in the base directory
-    for root, dirs, files in os.walk(base_dir):
+    for root, _, files in os.walk(base_dir):
         for file in files:
-            if file.endswith(FILE_EXTENSION):  # Filter only .tif files
-                # Construct the full file path
-                file_path = os.path.join(root, file)
+            if os.path.splitext(file)[1].lower() not in allowed_exts:
+                continue
+            
+            file_path = os.path.join(root, file)
+            parts = root.split(os.sep)
 
-                # Extract components from the file path
-                parts = root.split(os.sep)
-                batch = next((p for p in parts if p.startswith(KEY_BATCH)), None)
-                panel = next((p for p in parts if p.startswith('panel')), None)
-                condition = parts[parts.index(batch) + 3] if batch else None  # "Condition" is 3 levels after "Batch"
-                cell_line = parts[parts.index(batch) + 1] if batch else None  # "CellLine" is the first level after "Batch"
-                rep = next((p for p in parts if p.startswith('rep')), None)
-                marker = parts[-1]  # "Marker" is the last folder
+            # Match batch in a case-insensitive way
+            batch = next((p for p in parts if p.lower().startswith(KEY_BATCH.lower())), None)
+            panel = next((p for p in parts if p.startswith('panel')), None)
+            rep = next((p for p in parts if p.startswith('rep')), None)
 
-                # Store the data
-                data.append({
-                    'Path': file_path,
-                    'RootFolder': base_dir,
-                    'Marker': marker,
-                    'Condition': condition,
-                    'CellLine': cell_line,
-                    'Batch_Rep': f'{batch}/{rep}' if batch and rep else None,
-                    'Rep': rep,
-                    'Batch': batch,
-                    'Panel': panel
-                })
+            try:
+                batch_idx = parts.index(batch)
+                cell_line = parts[batch_idx + 1]
+                condition = parts[batch_idx + 3]
+            except (ValueError, IndexError, TypeError):
+                cell_line = condition = None
 
-    # Create a DataFrame from the data
+            marker = parts[-1]
+
+            data.append({
+                'Path': file_path,
+                'RootFolder': base_dir,
+                'Marker': marker,
+                'Condition': condition,
+                'CellLine': cell_line,
+                'Batch_Rep': f'{batch}/{rep}' if batch and rep else None,
+                'Rep': rep,
+                'Batch': batch,
+                'Panel': panel
+            })
+
     df = pd.DataFrame(data)
-    df['image_id'] = df['Path'].apply(lambda path: path.split('/')[-1].split('.')[0])
+    df['image_id'] = df['Path'].apply(lambda p: os.path.splitext(os.path.basename(p))[0])
     return df
 
 
