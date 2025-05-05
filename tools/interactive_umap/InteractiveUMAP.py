@@ -428,6 +428,7 @@ class InteractiveUMAPPipeline:
                 for ind in self.selected_indices_global[:self.num_images_slider.value]:
                     # print(ind, df_to_use.iloc[ind]['Target_Sharpness_Brenner'])
                     target_path = construct_target_path(df_to_use, ind, self.df_meta)
+                    print('target_path', target_path)
                     show_processed_tif(target_path)
                     plt.show()
                     time.sleep(0.2)
@@ -448,7 +449,7 @@ class InteractiveUMAPPipeline:
         with self.fov_output:
             if self.fov_layouts:
                 batch = self.df_image_stats["Batch"].iloc[0]
-                panel = self.df_image_stats["Panel"].iloc[0].split('panel')[1]
+                panel = self.df_image_stats["Panel"].iloc[0]
 
                 if batch not in self.fov_layouts or panel not in self.fov_layouts[batch]:
                     raise ValueError(f"Unknown Batch/Panel: {batch}, {panel}")
@@ -495,7 +496,7 @@ class InteractiveUMAPPipeline:
             dropdown.value = default if default in dropdown.options else dropdown.options[0]
 
         safe_set(self.batch_dropdown, self.df_umaps['batch'].unique(), '4')
-        safe_set(self.umap_type_dropdown, self.df_umaps['umap_type'].unique(), 0)
+        safe_set(self.umap_type_dropdown, self.df_umaps['umap_type'].unique(), 'SINGLE_MARKERS')
         safe_set(self.reps_dropdown, self.df_umaps['rep'].unique(), 'all_reps')
         safe_set(self.coloring_dropdown, self.df_umaps['coloring'].unique(), 'CONDITIONS')
         safe_set(self.marker_dropdown, self.df_umaps['markers'].unique(), 'TDP-43')
