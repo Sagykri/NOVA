@@ -26,14 +26,24 @@ def load_and_process_data(umaps_dir, path_to_umap, dfb=None, print_validations=F
     config_plot = data["config_plot"]
     
     # Regex pattern to extract Batch, Condition, Rep, Raw Image Name, Panel, Cell Line, and Tile
-    pattern = re.compile(r".*/(Batch\d+)/.*/(Untreated|stress)/.*/(rep\d+)_(r\d+c\d+f\d+-ch\d+t\d+)_(panel\w+)_(.+)_processed\.npy/(\d+)")
-    
+    pattern = re.compile(
+    r".*/([Bb]atch\d+)/([^/]+)/([^/]+)/([^/]+)/"                # Batch / Cell_Line / Condition / Marker
+        r"(rep\d+)_([^/]*_panel(\w+)_.*)_processed\.npy/(\d+)"      # Rep / Image_Name, Panel, Tile
+    )
+
     # Parsing the paths
     parsed_data = [pattern.match(path).groups() for path in paths if pattern.match(path)]
     
     # Convert to DataFrame
-    df = pd.DataFrame(parsed_data, columns=["Batch", "Condition", "Rep", "Image_Name", "Panel", "Cell_Line", "Tile"])
+    df = pd.DataFrame(parsed_data, columns=[
+        "Batch", "Cell_Line", "Condition", "Marker", "Rep", "Image_Name", "Panel", "Tile"
+    ])
+
+    # df = pd.DataFrame(parsed_data, columns=["Batch", "Condition", "Rep", "Image_Name", "Panel", "Cell_Line", "Tile"])
     df['Path'] = [path.split('.npy')[0]+'.npy' for path in paths]
+    # print('0 - df["Image_Name"].iloc[0]', df["Image_Name"].iloc[0])
+    df["Image_Name"] = df["Image_Name"].str.extract(r"^(.*?)_panel")
+    # print('1 - df["Image_Name"].iloc[0]', df["Image_Name"].iloc[0])
     
     if dfb is not None:
         # Merge df with dfb to get Target_Sharpness_Brenner
@@ -41,14 +51,18 @@ def load_and_process_data(umaps_dir, path_to_umap, dfb=None, print_validations=F
                       on=["Batch", "Image_Name"], 
                       how="left")
         df["Target_Sharpness_Brenner"] = df["Target_Sharpness_Brenner"].round()
-    df[["Row", "Column", "FOV"]] = df["Image_Name"].str.extract(r"r(\d+)c(\d+)f(\d+)")
-    df[["Row", "Column", "FOV"]] = df[["Row", "Column", "FOV"]].astype(int)
+    try:
+        df[["Row", "Column", "FOV"]] = df["Image_Name"].str.extract(r"r(\d+)c(\d+)f(\d+)")
+        df[["Row", "Column", "FOV"]] = df[["Row", "Column", "FOV"]].astype(int)
+    except:
+        print('No row, column, FOV info')
+
     df["Cell_Line_Condition"] = df["Cell_Line"] + "__" + df["Condition"]
 
     if print_validations:
         print('Validations')
         print(f'length:  df: {len(df)}, label_data: {len(label_data)}, umap_embeddings: {len(umap_embeddings)}')
-        for col in ['Batch', 'Rep', 'Panel', 'Cell_Line']:
+        for col in ['Batch', 'Rep', 'Panel', 'Condition', 'Cell_Line']:
             print(col, np.unique(df[col]))
     
     return umap_embeddings, label_data, config_data, config_plot, df
@@ -271,129 +285,187 @@ def show_processed_tile(df, index=0):
 
     return site_image
 
-def extract_umap_data(
-    base_dir,
-    folder_mapping=None,
-    valid_cell_lines=None,
-    valid_conditions=None,
-    valid_markers=None,
-    batches=None
-):
+def extract_umap_data(base_dir):
     """
-    Extracts image metadata from folder structures using regex parsing.
+    Extracts umap metadata from folder structures using regex parsing.
 
     Parameters:
     - base_dir (str): Base directory where folders are located.
-    - folder_mapping (dict): Dictionary mapping folder names to umap_type values.
-    - valid_cell_lines (set): Set of valid cell lines.
-    - valid_conditions (set): Set of valid conditions.
-    - valid_markers (list): List of valid markers.
-    - batches (list): List of batch numbers.
 
     Returns:
     - pd.DataFrame: DataFrame containing extracted metadata.
     """
-    
-    # Default folder mappings if not provided
-    if folder_mapping is None:
-        folder_mapping = {
-            "SINGLE_MARKERS": 0,
-            "MULTIPLE_MARKERS": 1,
-            "MULTIPLEX_MARKERS": 2
-        }
 
-    # Default valid cell lines
-    if valid_cell_lines is None:
-        valid_cell_lines = {
-            "Control-1001733", "Control-1017118", "Control-1025045", "Control-1048087",
-            "C9orf72-HRE-1008566", "C9orf72-HRE-981344", "TDP--43-G348V-1057052", "TDP--43-N390D-1005373",
-            "all_cell_lines"
-        }
-
-    # Default valid conditions
-    if valid_conditions is None:
-        valid_conditions = {"Untreated", "stress", "all_conditions"}
-
-    # Default valid markers
-    if valid_markers is None:
-        valid_markers = [
-            "all_markers", 'DNA_RNA_DEFECTS_MARKERS', 'PROTEOSTASIS_MARKERS', 'NEURONAL_CELL_DEATH_SENESCENCE_MARKERS',
-            'SYNAPTIC_NEURONAL_FUNCTION_MARKERS', "DAPI", "Stress-initiation", "mature-Autophagosome",
-            "Cytoskeleton", "Ubiquitin-levels", "UPR-IRE1a", "UPR-ATF4", "UPR-ATF6", "impaired-Autophagosome",
-            "Autophagy", "Aberrant-splicing", "Parthanatos-late", "Nuclear-speckles-SC35", "Splicing-factories",
-            "TDP-43", "Nuclear-speckles-SON", "DNA-damage-pH2Ax", "Parthanatos-early", "Necrosis",
-            "Necroptosis-HMGB1", "Neuronal-activity", "DNA-damage-P53BP1", "Apoptosis",
-            "Necroptosis-pMLKL", "Protein-degradation", "Senescence-signaling"
-        ]
-
-    # Default batch numbers
-    if batches is None:
-        batches = ['1', '2', '3', '4']
-
-    # Regex pattern to extract details from parent folder names
+    # Regex to extract metadata from folder names
     folder_pattern = re.compile(
-        r"Batch(?P<batch>\d+)_.*?(?P<rep>all_reps|rep\d+)_"
-        r"(?P<cell_line>[A-Za-z0-9-_,]+|all_cell_lines)_"
+        r"(?i)batch(?P<batch>\d+)_.*?(?P<rep>all_reps|rep\d+)_"
+        r"(?P<cell_line>.+?)_"  # non-greedy
         r"(?P<condition>Untreated|stress|all_conditions)_"
-        r"(?P<markers>[A-Za-z0-9-_,]+|all_markers|all_markers\(\d+\)|without_[A-Za-z0-9-]+)_colored_by_(?P<coloring>.+)"
+        r"(?P<markers>.+?)_colored_by_(?P<coloring>.+)"
     )
 
-    # Prepare a list to store image data
+    image_extensions = [".png", ".jpg", ".jpeg", ".bmp", ".tiff", ".tif"]
     data = []
 
-    # Iterate over the folders
-    for folder, umap_type in folder_mapping.items():
-        folder_path = os.path.join(base_dir, folder)
+    for umap_type in ("SINGLE_MARKERS", "MULTIPLE_MARKERS", "MULTIPLEX_MARKERS"):
+        folder_path = os.path.join(base_dir, umap_type)
+        if not os.path.exists(folder_path):
+            continue
+
+        for root, _, files in os.walk(folder_path):
+            parent_folder = os.path.basename(root)
+            match = folder_pattern.search(parent_folder)
+
+            if match:
+                batch = match.group("batch")
+                rep = match.group("rep")
+                cell_line_raw = match.group("cell_line")
+                cell_line = cell_line_raw.replace("_", ",") if cell_line_raw != "all_cell_lines" else "all_cell_lines"
+                condition = match.group("condition")
+                markers = match.group("markers")
+                coloring = match.group("coloring")
+            else:
+                batch, rep, cell_line, condition, markers, coloring = "Unknown", "all_reps", "Unknown", "Unknown", "Unknown", "Unknown"
+
+            for file in files:
+                if any(file.lower().endswith(ext) for ext in image_extensions):
+                    folder_path_relative = os.path.relpath(root, base_dir)
+                    image_name = os.path.splitext(file)[0]
+                    marker = image_name if umap_type == "SINGLE_MARKERS" else markers
+                    data.append([
+                        folder_path_relative, image_name, umap_type,
+                        batch, rep, cell_line, condition, marker, coloring
+                    ])
+
+    return pd.DataFrame(data, columns=[
+        "folder_path", "image_name", "umap_type", "batch", "rep",
+        "cell_line", "condition", "markers", "coloring"
+    ])
+
+
+# def extract_umap_data(
+#     base_dir,
+#     folder_mapping=None,
+#     valid_cell_lines=None,
+#     valid_conditions=None,
+#     valid_markers=None,
+#     batches=None
+# ):
+#     """
+#     Extracts image metadata from folder structures using regex parsing.
+
+#     Parameters:
+#     - base_dir (str): Base directory where folders are located.
+#     - folder_mapping (dict): Dictionary mapping folder names to umap_type values.
+#     - valid_cell_lines (set): Set of valid cell lines.
+#     - valid_conditions (set): Set of valid conditions.
+#     - valid_markers (list): List of valid markers.
+#     - batches (list): List of batch numbers.
+
+#     Returns:
+#     - pd.DataFrame: DataFrame containing extracted metadata.
+#     """
+    
+#     # Default folder mappings if not provided
+#     if folder_mapping is None:
+#         folder_mapping = {
+#             "SINGLE_MARKERS": 0,
+#             "MULTIPLE_MARKERS": 1,
+#             "MULTIPLEX_MARKERS": 2
+#         }
+
+#     # Default valid cell lines
+#     if valid_cell_lines is None:
+#         valid_cell_lines = {
+#             "Control-1001733", "Control-1017118", "Control-1025045", "Control-1048087",
+#             "C9orf72-HRE-1008566", "C9orf72-HRE-981344", "TDP--43-G348V-1057052", "TDP--43-N390D-1005373",
+#             "all_cell_lines"
+#         }
+
+#     # Default valid conditions
+#     if valid_conditions is None:
+#         valid_conditions = {"Untreated", "stress", "all_conditions"}
+
+#     # Default valid markers
+#     if valid_markers is None:
+#         valid_markers = [
+#             "all_markers", 'DNA_RNA_DEFECTS_MARKERS', 'PROTEOSTASIS_MARKERS', 'NEURONAL_CELL_DEATH_SENESCENCE_MARKERS',
+#             'SYNAPTIC_NEURONAL_FUNCTION_MARKERS', "DAPI", "Stress-initiation", "mature-Autophagosome",
+#             "Cytoskeleton", "Ubiquitin-levels", "UPR-IRE1a", "UPR-ATF4", "UPR-ATF6", "impaired-Autophagosome",
+#             "Autophagy", "Aberrant-splicing", "Parthanatos-late", "Nuclear-speckles-SC35", "Splicing-factories",
+#             "TDP-43", "Nuclear-speckles-SON", "DNA-damage-pH2Ax", "Parthanatos-early", "Necrosis",
+#             "Necroptosis-HMGB1", "Neuronal-activity", "DNA-damage-P53BP1", "Apoptosis",
+#             "Necroptosis-pMLKL", "Protein-degradation", "Senescence-signaling"
+#         ]
+
+#     # Default batch numbers
+#     if batches is None:
+#         batches = ['1', '2', '3', '4']
+
+#     # Regex pattern to extract details from parent folder names
+#     folder_pattern = re.compile(
+#         r"Batch(?P<batch>\d+)_.*?(?P<rep>all_reps|rep\d+)_"
+#         r"(?P<cell_line>[A-Za-z0-9-_,]+|all_cell_lines)_"
+#         r"(?P<condition>Untreated|stress|all_conditions)_"
+#         r"(?P<markers>[A-Za-z0-9-_,]+|all_markers|all_markers\(\d+\)|without_[A-Za-z0-9-]+)_colored_by_(?P<coloring>.+)"
+#     )
+
+#     # Prepare a list to store image data
+#     data = []
+
+#     # Iterate over the folders
+#     for folder, umap_type in folder_mapping.items():
+#         folder_path = os.path.join(base_dir, folder)
         
-        # Ensure the folder exists
-        if os.path.exists(folder_path):
-            # Walk through all subdirectories
-            for root, _, files in os.walk(folder_path):
-                parent_folder = os.path.basename(root)  # Extract parent folder name
-                match = folder_pattern.search(parent_folder)
+#         # Ensure the folder exists
+#         if os.path.exists(folder_path):
+#             # Walk through all subdirectories
+#             for root, _, files in os.walk(folder_path):
+#                 parent_folder = os.path.basename(root)  # Extract parent folder name
+#                 match = folder_pattern.search(parent_folder)
 
-                if match:
-                    batch = match.group("batch")
-                    rep = match.group("rep")
+#                 if match:
+#                     batch = match.group("batch")
+#                     rep = match.group("rep")
 
-                    # Extract cell lines (handles multiple cell lines separated by '_')
-                    cell_line_raw = match.group("cell_line")
-                    if cell_line_raw == "all_cell_lines":
-                        cell_line = "all_cell_lines"
-                    else:
-                        cell_lines = cell_line_raw.split("_")
-                        cell_line = ",".join([cl for cl in cell_lines if cl in valid_cell_lines])
-                        if not cell_line:
-                            cell_line = "Unknown"
+#                     # Extract cell lines (handles multiple cell lines separated by '_')
+#                     cell_line_raw = match.group("cell_line")
+#                     if cell_line_raw == "all_cell_lines":
+#                         cell_line = "all_cell_lines"
+#                     else:
+#                         cell_lines = cell_line_raw.split("_")
+#                         cell_line = ",".join([cl for cl in cell_lines if cl in valid_cell_lines])
+#                         if not cell_line:
+#                             cell_line = "Unknown"
 
-                    # Extract condition
-                    condition = match.group("condition")
+#                     # Extract condition
+#                     condition = match.group("condition")
 
-                    # Extract markers, including handling 'all_markers(digit)' and 'without_markerX'
-                    markers_raw = match.group("markers")
-                    if markers_raw.startswith("without_"):
-                        markers = markers_raw.replace("without_", "without ")
-                    elif markers_raw.startswith("all_markers(") and markers_raw.endswith(")"):
-                        markers = markers_raw  # Keep all_markers(digit) format
-                    else:
-                        markers = markers_raw if markers_raw in valid_markers else "Unknown"
+#                     # Extract markers, including handling 'all_markers(digit)' and 'without_markerX'
+#                     markers_raw = match.group("markers")
+#                     if markers_raw.startswith("without_"):
+#                         markers = markers_raw.replace("without_", "without ")
+#                     elif markers_raw.startswith("all_markers(") and markers_raw.endswith(")"):
+#                         markers = markers_raw  # Keep all_markers(digit) format
+#                     else:
+#                         markers = markers_raw if markers_raw in valid_markers else "Unknown"
                         
-                    # Extract coloring (everything after 'colored_by_')
-                    coloring = match.group("coloring")
-                else:
-                    batch, rep, cell_line, condition, markers, coloring = "Unknown", "all_reps", "Unknown", "Unknown", "Unknown", "Unknown"
+#                     # Extract coloring (everything after 'colored_by_')
+#                     coloring = match.group("coloring")
+#                 else:
+#                     batch, rep, cell_line, condition, markers, coloring = "Unknown", "all_reps", "Unknown", "Unknown", "Unknown", "Unknown"
 
-                # Filter only image files
-                image_files = fnmatch.filter(files, "*.png") + fnmatch.filter(files, "*.jpg") + fnmatch.filter(files, "*.jpeg") + fnmatch.filter(files, "*.tiff") + fnmatch.filter(files, "*.bmp")
+#                 # Filter only image files
+#                 image_files = fnmatch.filter(files, "*.png") + fnmatch.filter(files, "*.jpg") + fnmatch.filter(files, "*.jpeg") + fnmatch.filter(files, "*.tiff") + fnmatch.filter(files, "*.bmp")
                 
-                for image in image_files:
-                    folder_path_relative = os.path.relpath(root, base_dir)  # Store only the folder path
-                    image_name = os.path.splitext(image)[0]  # Remove file extension
-                    marker = image_name if umap_type == 0 else markers  # Use image_name as marker for SINGLE_MARKERS
-                    data.append([folder_path_relative, image_name, umap_type, batch, rep, cell_line, condition, marker, coloring])
+#                 for image in image_files:
+#                     folder_path_relative = os.path.relpath(root, base_dir)  # Store only the folder path
+#                     image_name = os.path.splitext(image)[0]  # Remove file extension
+#                     marker = image_name if umap_type == 0 else markers  # Use image_name as marker for SINGLE_MARKERS
+#                     data.append([folder_path_relative, image_name, umap_type, batch, rep, cell_line, condition, marker, coloring])
 
-    # Create and return a DataFrame
-    return pd.DataFrame(data, columns=["folder_path", "image_name", "umap_type", "batch", "rep", "cell_line", "condition", "markers", "coloring"])
+#     # Create and return a DataFrame
+#     return pd.DataFrame(data, columns=["folder_path", "image_name", "umap_type", "batch", "rep", "cell_line", "condition", "markers", "coloring"])
 
 def get_umap_pickle_path(df_umaps, batch, umap_type, reps, coloring, marker, cell_line, condition='all_conditions', base_dir="/"):
     """
@@ -430,6 +502,9 @@ def get_umap_pickle_path(df_umaps, batch, umap_type, reps, coloring, marker, cel
 
         if len(folder_path_values) == 0:
             raise ValueError("No matching folder path found for the given parameters.")
+
+        if len(folder_path_values) > 1:
+            print('More than one pickle file matched, taking the first')
 
         folder_path = folder_path_values[0]  # Assuming one match
 
