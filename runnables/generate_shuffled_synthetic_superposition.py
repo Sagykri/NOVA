@@ -24,7 +24,7 @@ def generate_shuffled_synthetic_superposition_umap(output_folder_path:str, confi
     config_plot:PlotConfig = load_config_file(config_path_plot, 'plot')
     umap_idx = get_if_exists(config_plot, 'UMAP_TYPE', None)
     
-    embeddings, labels = load_embeddings(output_folder_path, config_data)
+    embeddings, labels, paths = load_embeddings(output_folder_path, config_data)
     
     # Shuffle phenotypes within the labels while keeping the markers identity
     labels = __get_shuffled_labels_by_phenotype(labels, match_threshold=0.05, seed=config_data.SEED)
