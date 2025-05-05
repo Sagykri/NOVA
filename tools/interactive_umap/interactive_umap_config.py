@@ -79,9 +79,13 @@ funova_fov_layouts = {
 }
 
 default_paths_funova = {
-    'umaps_folder' : '/home/labs/hornsteinlab/Collaboration/MOmaps/outputs/vit_models/funova_finetuned_model/figures/funova/UMAPs',
-    'preprocessing_path' : '/home/labs/hornsteinlab/Collaboration/FUNOVA/outputs/preprocessing/brenner',
-    'csv_name1' : 'raw_metrics280125_exp3.csv',
-    'csv_name2' : 'raw_metrics110225_exp4.csv',
-    'images_dir' : '/home/labs/hornsteinlab/Collaboration/FUNOVA/input/images/raw'
+    'umaps_folder' : '/home/projects/hornsteinlab/Collaboration/MOmaps/outputs/vit_models/funova_finetuned_model/figures/funova/UMAPs',
+    'csv_path' : "/home/projects/hornsteinlab/Collaboration/FUNOVA/outputs/preprocessing/brenner/raw_metrics_exp3_exp4.csv",
+    'images_dir' : '/home/projects/hornsteinlab/Collaboration/FUNOVA/input/images/raw',
+    }
+
+default_paths_b9 = {
+    'umaps_folder' : '/home/projects/hornsteinlab/Collaboration/MOmaps/outputs/vit_models/finetuned_model/figures/neurons_iu/UMAPs/',
+    'csv_path' : "/home/projects/hornsteinlab/Collaboration/MOmaps/outputs/preprocessing/spd/brenner/raw_metrics_all_batches_all_metrics_site_fix.csv",
+    'images_dir' : '/home/projects/hornsteinlab/Collaboration/MOmaps/input/images/raw/SpinningDisk/batch9/'
     }
