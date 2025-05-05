@@ -185,36 +185,24 @@ class InteractiveUMAPPipeline:
 
     def show(self):
         display(self.ui)
-        
-    # def reset(self):
-    #     self.filter_checkboxes.clear()  # Clear old filters first
-    #     del self.umap_embeddings; del self.label_data; del self.config_data; del self.config_plot; del self.df_image_stats
-    #     del self.df_umaps, self.dfb, self.df_meta
-    #     self.df_umaps = self.dfb = self.df_meta = None
-    #     self.umap_embeddings, self.label_data, self.config_data, self.config_plot, self.df_image_stats = None, None, None, None, None
-    #     self.umap_embeddings_filt, self.label_data_filt, self.df_image_stats_filt = None, None, None
-    #     self.selected_indices_global = []
-    #     self.rect_selector = None
 
-    #     # Explicitly close all figures to prevent memory buildup
-    #     plt.close('all')
+    def reset(self, reset_metadata=False):
+        """Reset the pipeline state. If reset_metadata=True, also clear UMAP metadata, image folders, and Brenner info."""
 
-    #     # Force garbage collection to free memory
-    #     gc.collect()
-
-    def reset(self, all = False):
-        # 1. Close all open figures
+        # 1. Close all figures
         plt.close('all')
 
-        # 2. Clear & (optionally) close outputs
-        for w in (self.output_area,
-                self.umap_output,
-                self.selected_images_output_inner,
-                self.selected_tiles_output_inner,
-                self.fov_output):
-            w.clear_output(wait=True)
+        # 2. Clear output widgets
+        for out in (
+            self.output_area,
+            self.umap_output,
+            self.selected_images_output_inner,
+            self.selected_tiles_output_inner,
+            self.fov_output,
+        ):
+            out.clear_output(wait=True)
 
-        # 3. Disconnect selectors & cursors
+        # 3. Disconnect interactive elements
         if getattr(self, 'rect_selector', None):
             self.rect_selector.set_active(False)
             try: self.rect_selector.disconnect_events()
@@ -226,25 +214,35 @@ class InteractiveUMAPPipeline:
             except: pass
             del self.hover_cursor
 
-        if all:
-            # 4. Delete all large data references
-            for attr in ('df_umaps','df_meta','dfb',
-                        'umap_embeddings','label_data','config_data','config_plot',
-                        'df_image_stats','umap_embeddings_filt','label_data_filt','df_image_stats_filt'):
+        # 4. Clear special filter dropdowns (if exist)
+        for attr in ('combination_dropdown', 'panel_dropdown'):
+            if hasattr(self, attr):
+                delattr(self, attr)
+
+        # 5. Clear current UMAP data
+        for attr in (
+            'umap_embeddings', 'label_data', 'df_image_stats',
+            'config_data', 'config_plot',
+            'umap_embeddings_filt', 'label_data_filt', 'df_image_stats_filt'
+        ):
+            setattr(self, attr, None)
+
+        # 6. Optionally clear metadata and Brenner info
+        if reset_metadata:
+            for attr in ('df_umaps', 'df_meta', 'dfb'):
                 setattr(self, attr, None)
 
-        # 5. Clear dynamically generated filters
+        # 7. Clear dynamic filters
         self.filter_checkboxes.clear()
         self.right_box.children = ()
 
-        # 6. Force garbage collection
-        import gc; gc.collect()
-
+        # 8. Force garbage collection
+        gc.collect()
 
 
     def run_pipeline(self, btn):
         self.clear_outputs()
-        self.reset(all = True)
+        self.reset(reset_metadata = True)
         self.umap_params.layout.display = 'none'
         self.pickle_status_label.value = ''
         with self.output_area:
