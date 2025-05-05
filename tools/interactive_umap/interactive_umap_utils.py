@@ -14,7 +14,7 @@ from src.preprocessing.preprocessing_utils import get_image_focus_quality
 from src.figures.umap_plotting import __format_UMAP_axes, __format_UMAP_legend
 
 
-def load_and_process_data(umaps_dir, path_to_umap, dfb=None):
+def load_and_process_data(umaps_dir, path_to_umap, dfb=None, print_validations=False):
     # Load data
     with open(umaps_dir + path_to_umap, "rb") as f:
         data = pickle.load(f)
@@ -43,11 +43,13 @@ def load_and_process_data(umaps_dir, path_to_umap, dfb=None):
         df["Target_Sharpness_Brenner"] = df["Target_Sharpness_Brenner"].round()
     df[["Row", "Column", "FOV"]] = df["Image_Name"].str.extract(r"r(\d+)c(\d+)f(\d+)")
     df[["Row", "Column", "FOV"]] = df[["Row", "Column", "FOV"]].astype(int)
+    df["Cell_Line_Condition"] = df["Cell_Line"] + "__" + df["Condition"]
 
-    print('Validations')
-    # print(f'length:  df: {len(df)}, label_data: {len(label_data)}, umap_embeddings: {len(umap_embeddings)}')
-    for col in ['Batch', 'Rep', 'Panel', 'Cell_Line']:
-        print(col, np.unique(df[col]))
+    if print_validations:
+        print('Validations')
+        print(f'length:  df: {len(df)}, label_data: {len(label_data)}, umap_embeddings: {len(umap_embeddings)}')
+        for col in ['Batch', 'Rep', 'Panel', 'Cell_Line']:
+            print(col, np.unique(df[col]))
     
     return umap_embeddings, label_data, config_data, config_plot, df
 
@@ -61,7 +63,7 @@ def set_colors_by_brenners(sharpness_values, bins=10):
         bin_idx = min(max(bin_idx, 0), bins - 1)  # Ensure valid bin index
         return plt.cm.Blues(0.2 + 0.8 * (bin_idx / (bins - 1)))  # Avoid very light colors
     
-    return [get_blue_shade(val) for val in sharpness_values]
+    return [get_blue_shade(val) for val in sharpness_values], percentiles, plt.cm.Blues
 
 # Global storage for selected indices (needed for external access)
 selected_indices_global = []
