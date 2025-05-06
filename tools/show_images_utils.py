@@ -195,7 +195,7 @@ def get_specific_imgs(
     if panel is not None:
         filtered_df = filtered_df[filtered_df['Panel'] == f'panel{panel}']
     if image_id is not None:
-        filtered_df = filtered_df[filtered_df['image_id'] == image_id]
+        filtered_df = filtered_df[filtered_df['Image_Name'] == image_id]
     return filtered_df
 
 def create_img_pdf_report(df, marker, condition, output_file, reps=8, batches=3, samples=3, WT_KEY = 'Control',
@@ -225,7 +225,7 @@ def create_img_pdf_report(df, marker, condition, output_file, reps=8, batches=3,
                     ax = axes[rep - 1, i]
                     ax.imshow(img, cmap='gray')
                     ax.axis('off')
-                    ax.set_title(f"Rep {rep} - Img {images.iloc[i]['image_id']} ")
+                    ax.set_title(f"Rep {rep} - Img {images.iloc[i]['Image_Name']} ")
 
             plt.tight_layout(rect=[0, 0.03, 1, 0.95])
             pdf.savefig(fig)
@@ -284,7 +284,7 @@ def extract_image_metadata(base_dir, FILE_EXTENSION='.tiff', KEY_BATCH='Batch'):
             })
 
     df = pd.DataFrame(data)
-    df['image_id'] = df['Path'].apply(lambda p: os.path.splitext(os.path.basename(p))[0])
+    df['Image_Name'] = df['Path'].apply(lambda p: os.path.splitext(os.path.basename(p))[0])
     return df
 
 
@@ -298,7 +298,7 @@ def extract_processed_image_metadata(base_dir, FILE_EXTENSION='.npy', KEY_BATCH=
     Returns:
         pd.DataFrame: A DataFrame containing metadata with columns 
                       ['Path', 'RootFolder', 'Marker', 'Condition', 'CellLine', 
-                       'Batch_Rep', 'Rep', 'Batch', 'Panel', 'image_id'].
+                       'Batch_Rep', 'Rep', 'Batch', 'Panel', 'Image_Name'].
     """
     data = []
 
@@ -323,9 +323,9 @@ def extract_processed_image_metadata(base_dir, FILE_EXTENSION='.npy', KEY_BATCH=
                     if panel_part:
                         panel = panel_part[0]  # e.g., "panelK"
 
-                # Extract image_id using regex
+                # Extract Image_Name using regex
                 match = re.search(r'(r\d{2}c\d{2}f\d+[-]ch\d+t\d+)', file)
-                image_id = match.group(1) if match else None
+                Image_Name = match.group(1) if match else None
 
                 data.append({
                     'Path': file_path,
@@ -337,7 +337,7 @@ def extract_processed_image_metadata(base_dir, FILE_EXTENSION='.npy', KEY_BATCH=
                     'Rep': rep,
                     'Batch': batch,
                     'Panel': panel,
-                    'image_id': image_id
+                    'Image_Name': Image_Name
                 })
 
     return pd.DataFrame(data)
