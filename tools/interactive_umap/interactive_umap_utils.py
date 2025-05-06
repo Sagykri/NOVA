@@ -52,8 +52,13 @@ def load_and_process_data(umaps_dir, path_to_umap, df_brenner=None, print_valida
         df_umap_tiles[["Row", "Column", "FOV"]] = df_umap_tiles["Image_Name"].str.extract(r"r(\d+)c(\d+)f(\d+)")
         df_umap_tiles[["Row", "Column", "FOV"]] = df_umap_tiles[["Row", "Column", "FOV"]].astype(int)
     except:
-        print('No row, column, FOV info')
-
+        try:
+            ## TODO: need to verify this
+            df_umap_tiles["FOV"] = df_umap_tiles["Image_Name"].str.extract(r"s(\d+)").astype(int)
+            df_umap_tiles["FOV"] = df_umap_tiles["FOV"].apply(lambda x: x % 100)
+            df_umap_tiles[["Row", "Column"]] = np.nan
+        except:
+            print('No FOV information in image name')
     df_umap_tiles["Cell_Line_Condition"] = df_umap_tiles["CellLine"] + "__" + df_umap_tiles["Condition"]
 
     if print_validations:
