@@ -239,7 +239,6 @@ class InteractiveUMAPPipeline:
         # 8. Force garbage collection
         gc.collect()
 
-
     def run_pipeline(self, btn):
         self.clear_outputs()
         self.reset(reset_metadata = True)
@@ -291,8 +290,7 @@ class InteractiveUMAPPipeline:
             self.populate_dropdowns_from_umaps()
             self.umap_params.layout.display = 'flex'
             self.create_umap_button.layout.display = 'inline-block'
-
-            
+         
     def create_umap(self, btn): 
         self.reset()
         with self.umap_output:
@@ -345,23 +343,6 @@ class InteractiveUMAPPipeline:
         self.show_images_controls.layout.display = 'flex'
         self.clear_outputs(umaps=False)
 
-    # def create_combination_filter(self):
-    #     """Special filter for CellLine-Condition combinations."""
-
-    #     unique_combinations = sorted(self.df_umap_tiles['Cell_Line_Condition'].dropna().unique())
-
-    #     self.combination_dropdown = widgets.SelectMultiple(
-    #         options=unique_combinations,
-    #         description='',
-    #         value=(),  # <-- allow and start with no selection
-    #         layout=Layout(width='300px', height='150px')
-    #     )
-
-    #     return widgets.VBox([
-    #         widgets.HTML("<b>Combination Filter (CellLine + Condition):</b><br><i>Ctrl + click to deselect</i>"),
-    #         self.combination_dropdown
-    #     ])
-    
     def create_more_filters(self):
         unique_combinations = self.df_umap_tiles['Cell_Line_Condition'].dropna()
         combination_counts = unique_combinations.value_counts()
@@ -521,7 +502,6 @@ class InteractiveUMAPPipeline:
             if selected_panels:
                 filters['Panel'] = selected_panels
         return filters
-
     
     def filter_umap_data(self, filters: dict):
         """

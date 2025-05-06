@@ -1,7 +1,5 @@
 import os
-import sys
 from typing import Tuple
-import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
 import cv2
@@ -287,7 +285,6 @@ def extract_image_metadata(base_dir, FILE_EXTENSION='.tiff', KEY_BATCH='Batch'):
     df['Image_Name'] = df['Path'].apply(lambda p: os.path.splitext(os.path.basename(p))[0])
     return df
 
-
 def extract_processed_image_metadata(base_dir, FILE_EXTENSION='.npy', KEY_BATCH='Batch'):
     """
     Traverse through a directory structure and extract metadata for processed images.
@@ -341,4 +338,3 @@ def extract_processed_image_metadata(base_dir, FILE_EXTENSION='.npy', KEY_BATCH=
                 })
 
     return pd.DataFrame(data)
-
