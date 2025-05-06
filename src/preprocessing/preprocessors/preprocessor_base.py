@@ -391,52 +391,69 @@ class Preprocessor(ABC):
             
         return processed_images
     
-    
-    def __is_valid_tile(self, masked_tile: np.ndarray, whole_polygons = None  , ix = None ) -> bool:
-        """
-        Check if the tile has at least one whole nucleus but not more than the maximum allowed nucleus 
 
+    def __is_valid_tile(self, masked_tile: np.ndarray, whole_polygons=None, ix=None) -> bool:
+        """
+        Check if the tile has at least one whole nucleus but not more than the maximum allowed nuclei.
+        
         Args:
-            masked_tile (np.ndarray): Segmented tile for nuclei within
+            masked_tile (np.ndarray): Segmented tile image (mask of nuclei within the tile)
+            whole_polygons (List[Polygon]): List of all complete nucleus polygons across the entire image
+            ix (int): Index of the tile (used to compute its position in the global image)
         
         Returns:
-            bool: True if the tile contains a whole nucleus and not more than the maximum allowed nucleus, False otherwise.
+            bool: True if the tile contains a valid nucleus and not more than the allowed number, else False.
         """
-        # Extracted polygons are the product of intersection which each tile
+
+        # --------------------------------------
+        # Step 1: Extract partial polygons from tile mask
+        # These are the intersected nuclei parts within the tile
+        # --------------------------------------
         polygons = extract_polygons_from_mask(masked_tile)
 
-        EXPECTED_IMAGE_SHAPE  =self.preprocessing_config.EXPECTED_IMAGE_SHAPE[0]
+        # Image and tile size setup
+        EXPECTED_IMAGE_SHAPE = self.preprocessing_config.EXPECTED_IMAGE_SHAPE[0]
         tile_size = self.preprocessing_config.TILE_INTERMEDIATE_SHAPE[0]
-
         max_num_nuc = self.preprocessing_config.MAX_NUM_NUCLEI
+        n_tiles = EXPECTED_IMAGE_SHAPE // tile_size
 
-        n_tiles = EXPECTED_IMAGE_SHAPE//tile_size
-
-        
         filtered_polygons = []
-        i = ix
-        l_shifted = []
-        # Iterate over each part/polygon (after intersection)
+        i = ix  # tile index
+        l_shifted = []  # shifted polygons for debugging or future use
+
+        # --------------------------------------
+        # Step 2: Iterate through each extracted (partial) polygon
+        # --------------------------------------
         for p in polygons:
-            # re-locate each part/polygon in their relative location on the whole image
-            p1 = affinity.translate(p, xoff=i%n_tiles*tile_size, yoff=i//n_tiles*tile_size)
+            # Translate polygon to global image coordinates based on tile index
+            p1 = affinity.translate(p, xoff=i % n_tiles * tile_size, yoff=i // n_tiles * tile_size)
             p1 = make_valid(p1) if not p1.is_valid else p1
-            # Find inner point in each part-polygon (faster performance)
-            pc = p1.representative_point()
+            pc = p1.representative_point()  # Find a point guaranteed to be inside the polygon
+
             l_shifted.append(p1)
-            # Find the whole-polygon which contains the point. Then check percentage of area of part-polygon in whole-polygon
-            # if ratio > INCLUDED_AREA_RATIO -> add and skip to next part-polygon (since tile became valid - no need to keep checking)
-            if p1 is not None and p is not None:
+
+            # --------------------------------------
+            # Step 3: Check if this polygon corresponds to a known whole polygon
+            # by verifying:
+            #   - the point lies inside a full polygon
+            #   - the area ratio exceeds a set threshold
+            # --------------------------------------
+            if p1 is not None and p is not None: 
                 for pol_whole in whole_polygons:
-                    if pc.intersects(pol_whole) and p1.intersection(pol_whole).area / pol_whole.area > self.preprocessing_config.INCLUDED_AREA_RATIO :
+                    if pc.intersects(pol_whole) and \
+                    (p1.intersection(pol_whole).area / pol_whole.area >
+                        self.preprocessing_config.INCLUDED_AREA_RATIO):
                         filtered_polygons.append(p)
-                        break
+                        break  # One match is enough — continue to next polygon
 
-        tile_intermid_shape = self.preprocessing_config.TILE_INTERMEDIATE_SHAPE ## not being used - consider removing
-
-        cond1 = len(filtered_polygons) > 0 #is_contains_whole_nucleus(filtered_polygons, tile_intermid_shape, min_edge_distance = min_edge_distance) 
+        # --------------------------------------
+        # Step 4: Evaluate tile conditions
+        #   cond1: contains at least one sufficiently complete nucleus
+        #   cond2: does not exceed the maximum allowed nuclei count
+        # --------------------------------------
+        cond1 = len(filtered_polygons) > 0
         cond2 = get_nuclei_count(masked_tile) <= max_num_nuc
-         
+
         return cond1 and cond2 , l_shifted
    
     def __get_grouped_images_for_folder(self, folder_path:str)->Dict[str, Dict[str, str]]:
