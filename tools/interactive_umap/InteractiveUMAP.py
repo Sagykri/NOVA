@@ -81,7 +81,7 @@ class InteractiveUMAPPipeline:
         self.create_umap_button = Button(description="Create UMAP", layout=Layout(width='200px', margin='5px 10px'))
         self.create_umap_button.layout.display = 'none'
         self.show_images_button = Button(description="Show Selected Points", layout=Layout(width='200px', margin='0px 10px'))
-        self.apply_filter_button = Button(description="Apply Filters", layout=Layout(width='180px', margin='10px 0px 0px 0px'))
+        self.apply_filter_button = Button(description="Apply Filters", layout=Layout(width='180px', margin='10px 0px 10px 5px'))
         self.apply_filter_button.layout.display = 'none'
 
         self.num_images_slider = widgets.IntSlider(
@@ -108,7 +108,14 @@ class InteractiveUMAPPipeline:
         self.pickle_status_label = widgets.HTML()
         self.mix_groups_checkbox = widgets.Checkbox(value=True, description='Mix Groups')
         self.recolor_checkbox = widgets.Checkbox(value=False, description='Recolor by Brenner')
-        self.dilute_slider = widgets.IntSlider(value=1, min=1, max=100, step=1, description='Downsample', style={'description_width': '100px'})
+        self.dilute_slider = widgets.SelectionSlider(
+            options=[1, 2, 3, 4, 5, 10, 15, 20, 25, 50, 75, 100],
+            value=1,
+            description='Downsample',
+            style={'description_width': '100px'},
+            layout=Layout(width='300px'),
+            continuous_update=False
+        )
         self.bins_slider = widgets.IntSlider(value=5, min=1, max=20, step=1, description='Colors (Brenner)', style={'description_width': '100px'})
 
         # --- Layout containers ---
@@ -344,42 +351,31 @@ class InteractiveUMAPPipeline:
         self.clear_outputs(umaps=False)
 
     def create_more_filters(self):
-        unique_combinations = self.df_umap_tiles['Cell_Line_Condition'].dropna()
-        combination_counts = unique_combinations.value_counts()
-        combination_options = [
-            f"{val} ({combination_counts[val]})" for val in sorted(combination_counts.index)
-        ]
+        def make_dropdown(series, label_text, attr_name):
+            counts = series.dropna().value_counts()
+            options = [f"{val} ({counts[val]})" for val in sorted(counts.index)]
+            height = f"{min(30 * len(options), 180)}px"
+            dropdown = widgets.SelectMultiple(
+                options=options,
+                layout=Layout(width='95%', height=height)
+            )
+            setattr(self, attr_name, dropdown)
+            return widgets.Label(label_text), dropdown
 
-        unique_panels = self.df_umap_tiles['Panel'].dropna()
-        panel_counts = unique_panels.value_counts()
-        panel_options = [
-            f"{val} ({panel_counts[val]})" for val in sorted(panel_counts.index)
-        ]
+        label1, _ = make_dropdown(self.df_umap_tiles['Cell_Line_Condition'], "CellLine + Condition", "combination_filter_dropdown")
+        label2, _ = make_dropdown(self.df_umap_tiles['Panel'], "Panel", "panel_filter_dropdown")
+        label3, _ = make_dropdown(self.df_umap_tiles['Marker'], "Marker", "marker_filter_dropdown")
 
-        self.combination_dropdown = widgets.SelectMultiple(
-            options=combination_options,
-            layout=Layout(width='100%', height='180px')
-        )
-
-        self.panel_dropdown = widgets.SelectMultiple(
-            options=panel_options,
-            layout=Layout(width='100%', height='180px')
-        )
-
-        # Inner content
         inner = widgets.VBox([
             widgets.HTML("<span style='font-size:11px;'>Hold Ctrl to select/deselect multiple</span>"),
-            widgets.Label("CellLine + Condition"),
-            self.combination_dropdown,
-            widgets.Label("Panel"),
-            self.panel_dropdown
+            label1, self.combination_filter_dropdown,
+            label2, self.panel_filter_dropdown,
+            label3, self.marker_filter_dropdown
         ])
 
-        # Accordion
         acc = widgets.Accordion(children=[inner])
         acc.set_title(0, "More Filters (Advanced)")
-        acc.selected_index = None  # collapsed by default
-
+        acc.selected_index = None
         return acc
         
     def apply_filters_and_update_plot(self, btn): 
@@ -492,16 +488,20 @@ class InteractiveUMAPPipeline:
             selected = [cb.description for cb in checkboxes if cb.value]
             if selected:
                 filters[col] = selected
-        # Special combination filter
-        if hasattr(self, 'combination_dropdown'):
-            selected_combinations = list(self.combination_dropdown.value)
-            if selected_combinations:
-                filters['Cell_Line_Condition'] = selected_combinations
-        if hasattr(self, 'panel_dropdown'):
-            selected_panels = list(self.panel_dropdown.value)
-            if selected_panels:
-                filters['Panel'] = selected_panels
+
+        for name, attr in {
+            'Cell_Line_Condition': 'combination_filter_dropdown',
+            'Panel': 'panel_filter_dropdown',
+            'Marker': 'marker_filter_dropdown'
+        }.items():
+            if hasattr(self, attr):
+                selected = list(getattr(self, attr).value)
+                if selected:
+                    filters[name] = selected
+
+
         return filters
+
     
     def filter_umap_data(self, filters: dict):
         """
