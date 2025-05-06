@@ -14,7 +14,7 @@ from src.preprocessing.preprocessing_utils import get_image_focus_quality
 from src.figures.umap_plotting import __format_UMAP_axes, __format_UMAP_legend
 
 
-def load_and_process_data(umaps_dir, path_to_umap, dfb=None, print_validations=False):
+def load_and_process_data(umaps_dir, path_to_umap, df_brenner=None, print_validations=False):
     # Load data
     with open(umaps_dir + path_to_umap, "rb") as f:
         data = pickle.load(f)
@@ -35,37 +35,39 @@ def load_and_process_data(umaps_dir, path_to_umap, dfb=None, print_validations=F
     parsed_data = [pattern.match(path).groups() for path in paths if pattern.match(path)]
     
     # Convert to DataFrame
-    df = pd.DataFrame(parsed_data, columns=[
-        "Batch", "Cell_Line", "Condition", "Marker", "Rep", "Image_Name", "Panel", "Tile"
+    df_umap_tiles = pd.DataFrame(parsed_data, columns=[
+        "Batch", "CellLine", "Condition", "Marker", "Rep", "Image_Name", "Panel", "Tile"
     ])
 
     # df = pd.DataFrame(parsed_data, columns=["Batch", "Condition", "Rep", "Image_Name", "Panel", "Cell_Line", "Tile"])
-    df['Path'] = [path.split('.npy')[0]+'.npy' for path in paths]
+    df_umap_tiles['Path'] = [path.split('.npy')[0]+'.npy' for path in paths]
     # print('0 - df["Image_Name"].iloc[0]', df["Image_Name"].iloc[0])
-    df["Image_Name"] = df["Image_Name"].str.extract(r"^(.*?)_panel")
+    df_umap_tiles["Image_Name"] = df_umap_tiles["Image_Name"].str.extract(r"^(.*?)_panel")
     # print('1 - df["Image_Name"].iloc[0]', df["Image_Name"].iloc[0])
     
-    if dfb is not None:
-        # Merge df with dfb to get Target_Sharpness_Brenner
-        df = df.merge(dfb[["Batch", "Image_Name", "Target_Sharpness_Brenner"]], 
-                      on=["Batch", "Image_Name"], 
-                      how="left")
-        df["Target_Sharpness_Brenner"] = df["Target_Sharpness_Brenner"].round()
+    if df_brenner is not None:      
+        # Merge df with df_brenner to get Target_Sharpness_Brenner
+        df_umap_tiles = df_umap_tiles.merge(
+            df_brenner[["Batch", "Rep", "Image_Name", "Condition", "Marker", "CellLine", "Panel", "Target_Sharpness_Brenner"]],
+            on=["Batch", "Rep", "Image_Name", "Condition", "Marker", "CellLine", "Panel"],
+            how="left"
+        )
+        df_umap_tiles["Target_Sharpness_Brenner"] = df_umap_tiles["Target_Sharpness_Brenner"].round()
     try:
-        df[["Row", "Column", "FOV"]] = df["Image_Name"].str.extract(r"r(\d+)c(\d+)f(\d+)")
-        df[["Row", "Column", "FOV"]] = df[["Row", "Column", "FOV"]].astype(int)
+        df_umap_tiles[["Row", "Column", "FOV"]] = df_umap_tiles["Image_Name"].str.extract(r"r(\d+)c(\d+)f(\d+)")
+        df_umap_tiles[["Row", "Column", "FOV"]] = df_umap_tiles[["Row", "Column", "FOV"]].astype(int)
     except:
         print('No row, column, FOV info')
 
-    df["Cell_Line_Condition"] = df["Cell_Line"] + "__" + df["Condition"]
+    df_umap_tiles["Cell_Line_Condition"] = df_umap_tiles["CellLine"] + "__" + df_umap_tiles["Condition"]
 
     if print_validations:
         print('Validations')
-        print(f'length:  df: {len(df)}, label_data: {len(label_data)}, umap_embeddings: {len(umap_embeddings)}')
-        for col in ['Batch', 'Rep', 'Panel', 'Condition', 'Cell_Line']:
-            print(col, np.unique(df[col]))
+        print(f'length:  df_umap_tiles: {len(df_umap_tiles)}, label_data: {len(label_data)}, umap_embeddings: {len(umap_embeddings)}')
+        for col in ['Batch', 'Rep', 'Panel', 'Condition', 'CellLine']:
+            print(col, np.unique(df_umap_tiles[col]))
     
-    return umap_embeddings, label_data, config_data, config_plot, df
+    return umap_embeddings, label_data, config_data, config_plot, df_umap_tiles
 
 def set_colors_by_brenners(sharpness_values, bins=10):
     # Ensure bins is at least 2 to avoid single-value percentile issue
@@ -198,14 +200,21 @@ def plot_umap_embeddings(
     plt.show()
     return selected_indices_global
 
-def construct_target_path(df, index, df_meta):
+def construct_target_path(df, index, df_site_meta):
     row = df.iloc[index]
     
     # Extract relevant information
     batch = row["Batch"]
     image_name = row["Image_Name"]
+    condition = row['Condition']
+    marker = row['Marker']
+    cell_line = row['CellLine']
+    rep = row['Rep']
+    panel = row['Panel']
     
-    temp = df_meta.loc[(df_meta.Batch == batch) & (df_meta.image_id == image_name)].Path.values
+    temp = df_site_meta.loc[(df_site_meta.Batch == batch) & (df_site_meta.Image_Name == image_name) &
+                       (df_site_meta.Condition == condition) & (df_site_meta.Marker == marker) &
+                       (df_site_meta.CellLine == cell_line) & (df_site_meta.Rep == rep) & (df_site_meta.Panel == f'panel{panel}')].Path.values
     if len(temp)>1:
         print('There is more then one file matching the batch and image name')
         return
@@ -596,29 +605,29 @@ def plot_fov_heatmaps(df, selected_indices_global, fov_grid):
 
     plt.show()
 
-def filter_umap_data(umap_embeddings: np.ndarray, label_data: np.ndarray, df_image_stats: pd.DataFrame, filters: dict):
+def filter_umap_data(umap_embeddings: np.ndarray, label_data: np.ndarray, df_umap_tiles: pd.DataFrame, filters: dict):
     """
-    Filters umap_embeddings, label_data, and df_image_stats based on values in filters.
+    Filters umap_embeddings, label_data, and df_umap_tiles based on values in filters.
 
     Args:
         umap_embeddings (np.ndarray): 2D array of shape (N, 2) containing UMAP embeddings.
         label_data (np.ndarray): 1D array of shape (N,) containing labels for each embedding.
-        df_image_stats (pd.DataFrame): DataFrame containing image statistics.
-        filters (dict): Dictionary where keys are column names in df_image_stats and values are lists of allowed values.
+        df_umap_tiles (pd.DataFrame): DataFrame containing image statistics.
+        filters (dict): Dictionary where keys are column names in df_umap_tiles and values are lists of allowed values.
 
     Returns:
         np.ndarray: Filtered umap_embeddings.
         np.ndarray: Filtered label_data.
-        pd.DataFrame: Filtered df_image_stats.
+        pd.DataFrame: Filtered df_umap_tiles.
     """
-    # Apply all filters to df_image_stats
-    mask = np.ones(len(df_image_stats), dtype=bool)  # Start with all True
+    # Apply all filters to df_umap_tiles
+    mask = np.ones(len(df_umap_tiles), dtype=bool)  # Start with all True
     for column, values in filters.items():
-        mask &= df_image_stats[column].apply(lambda x: any(str(x).startswith(prefix) for prefix in values))
+        mask &= df_umap_tiles[column].apply(lambda x: any(str(x).startswith(prefix) for prefix in values))
 
     # Apply mask to all data
     filtered_umap = umap_embeddings[mask]
     filtered_labels = label_data[mask]
-    filtered_df = df_image_stats.iloc[list(mask)].copy().reset_index()
+    filtered_df = df_umap_tiles.iloc[list(mask)].copy().reset_index()
 
     return filtered_umap, filtered_labels, filtered_df
