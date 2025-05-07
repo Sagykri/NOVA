@@ -33,11 +33,11 @@ def generate_shuffled_synthetic_superposition_umap(output_folder_path:str, confi
     
     assert umap_idx == analyzer_UMAP.UMAPType['MULTIPLEX_MARKERS'].value, "plot configuration is not set for MULTIPLEX_MARKERS umap"
     
-    umap_embeddings, labels, ari_scores = analyzer_UMAP.calculate(embeddings, labels)
+    umap_embeddings, labels, path, ari_scores = analyzer_UMAP.calculate(embeddings, labels)
 
     # Define the output folder path and plot the UMAP
     saveroot = analyzer_UMAP.get_saving_folder(feature_type = os.path.join('UMAPs', f'{analyzer_UMAP.UMAPType(umap_idx).name}_shuffled'))  
-    plot_umap(umap_embeddings, labels, config_data, config_plot, saveroot, umap_idx, ari_scores)
+    plot_umap(umap_embeddings, labels, config_data, config_plot, saveroot, umap_idx, ari_scores, paths=paths)
         
 def __get_shuffled_labels_by_phenotype(labels:np.ndarray[str], match_threshold:float=0.05, seed:int=1)->np.ndarray[str]:
     """Get the phenotypes of the labels shuffled with each other while keeping the markers identity at place

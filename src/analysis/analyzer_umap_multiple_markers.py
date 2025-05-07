@@ -44,4 +44,4 @@ class AnalyzerUMAPMultipleMarkers(AnalyzerUMAP):
         self.labels = labels
         self.ari_scores = ari_score
 
-        return umap_embeddings, labels, ari_score, paths
+        return umap_embeddings, labels, paths, ari_score
