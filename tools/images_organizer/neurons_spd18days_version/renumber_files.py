@@ -50,8 +50,8 @@ def copy_and_rename_files(source_dir, dest_dir, value_to_add):
 
 def main():
     # Example usage
-    # source_dir = '/home/labs/hornsteinlab/Collaboration/MOmaps/input/images/raw/SpinningDisk/NOVA_d18_neurons/batch2/PanelB/well D11/'
-    # dest_dir = '/home/labs/hornsteinlab/Collaboration/MOmaps/input/images/raw/SpinningDisk/NOVA_d18_neurons/batch2/PanelB/well D11/renumbered/'
+    # source_dir = '/home/projects/hornsteinlab/Collaboration/MOmaps/input/images/raw/SpinningDisk/NOVA_d18_neurons/batch2/PanelB/well D11/'
+    # dest_dir = '/home/projects/hornsteinlab/Collaboration/MOmaps/input/images/raw/SpinningDisk/NOVA_d18_neurons/batch2/PanelB/well D11/renumbered/'
     # value_to_add = 1900
     source_dir = sys.argv[1] # main folder
     dest_dir = sys.argv[2] # reimaged folder
@@ -59,7 +59,7 @@ def main():
     
     date_str = datetime.datetime.now().strftime("%d%m%y_%H%M%S_%f")
     
-    log_file = f"/home/labs/hornsteinlab/Collaboration/MOmaps/tools/images_organizer/neurons_spd18days_version/renumbering_{date_str}.log"
+    log_file = f"/home/projects/hornsteinlab/Collaboration/MOmaps/tools/images_organizer/neurons_spd18days_version/renumbering_{date_str}.log"
 
     init_logging(log_file)
     

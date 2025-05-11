@@ -4,7 +4,7 @@ sys.path.insert(1, os.getenv("MOMAPS_HOME"))
 
 import numpy as np
 
-PROCESSED_FOLDER_ROOT = os.path.join('/home','labs','hornsteinlab','Collaboration','MOmaps','input','images','processed')
+PROCESSED_FOLDER_ROOT = os.path.join('/home','projects','hornsteinlab','Collaboration','MOmaps','input','images','processed')
 batch2_folders = ["220814_neurons",
                 "220818_neurons",
                 "220831_neurons",

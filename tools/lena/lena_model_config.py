@@ -12,8 +12,8 @@ class NeuroselfLenaConfig(NeuroselfConfig):
         ################### *EDITABLE - SAFE TO EDIT* ####################
         
         # Please specify the path to the model
-        self.MODEL_PATH = "/home/labs/hornsteinlab/Collaboration/MOmaps/outputs/models_outputs_batch78_nods_tl_ep23/model_31.pt"
-        # self.MODEL_PATH = "/home/labs/hornsteinlab/Collaboration/MOmaps/outputs/models_outputs_cytoself_qsplit9/model_33.pt"
+        self.MODEL_PATH = "/home/projects/hornsteinlab/Collaboration/MOmaps/outputs/models_outputs_batch78_nods_tl_ep23/model_31.pt"
+        # self.MODEL_PATH = "/home/projects/hornsteinlab/Collaboration/MOmaps/outputs/models_outputs_cytoself_qsplit9/model_33.pt"
         
         ###############################################
         

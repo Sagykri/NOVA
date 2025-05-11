@@ -1,7 +1,6 @@
 import logging
 import os
 
-FONT_PATH = '/home/labs/hornsteinlab/sagyk/anaconda3/envs/nova/fonts/arial.ttf'
 FONT_SIZE = 7
 TITLE_SIZE = 8
 AXES_LABEL_SIZE = 8

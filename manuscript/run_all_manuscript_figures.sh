@@ -1,9 +1,9 @@
 echo "NOVA_HOME:" $NOVA_HOME
 
-pretrain_model=/home/labs/hornsteinlab/Collaboration/MOmaps/outputs/vit_models/pretrained_model
-finetune_model=/home/labs/hornsteinlab/Collaboration/MOmaps/outputs/vit_models/finetuned_model
-cytoself_model=/home/labs/hornsteinlab/Collaboration/MOmaps/outputs/vit_models/cytoself_vqvae2_vit_format
-cellprofiler=/home/labs/hornsteinlab/Collaboration/MOmaps/outputs/vit_models/cell_profiler
+pretrain_model=/home/projects/hornsteinlab/Collaboration/MOmaps/outputs/vit_models/pretrained_model
+finetune_model=/home/projects/hornsteinlab/Collaboration/MOmaps/outputs/vit_models/finetuned_model
+cytoself_model=/home/projects/hornsteinlab/Collaboration/MOmaps/outputs/vit_models/cytoself_vqvae2_vit_format
+cellprofiler=/home/projects/hornsteinlab/Collaboration/MOmaps/outputs/vit_models/cell_profiler
 data_configs=./manuscript/manuscript_figures_data_config
 plot_configs=./manuscript/manuscript_plot_config
 

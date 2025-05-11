@@ -17,7 +17,7 @@ from functools import partial
 BATCH_TO_RUN = 'deltaNLS_sort/batch2' 
 #LINE_TO_RUN = 'WT'
 
-BASE_DIR = os.path.join('/home','labs','hornsteinlab','Collaboration','MOmaps')
+BASE_DIR = os.path.join('/home','projects','hornsteinlab','Collaboration','MOmaps')
 INPUT_DIR = os.path.join(BASE_DIR, 'input','images','raw','SpinningDisk')
 INPUT_DIR_BATCH = os.path.join(INPUT_DIR, BATCH_TO_RUN)
 #INPUT_DIR_LINE = os.path.join(INPUT_DIR_BATCH, LINE_TO_RUN)
@@ -92,7 +92,7 @@ def collect_image_names_per_marker(input_data_dir):
     ###########################################################
     #         ### For microglia test: ###
     #         Noam_dict = {'panelD/Untreated/rep1/CLTC': ['R11_w3confmCherry_s42.tif', 'R11_w3confmCherry_s79.tif', 'R11_w3confmCherry_s31.tif', 'R11_w3confmCherry_s94.tif'],'panelD/Untreated/rep1/PSD95': ['R11_w2confCy5_s82.tif', 'R11_w2confCy5_s46.tif', 'R11_w2confCy5_s56.tif'],'panelC/LPS/rep1/FMRP': ['R11_w3confmCherry_s1079.tif'],'panelJ/LPS/rep2/pNFKB': ['R11_w3confmCherry_s1108.tif', 'R11_w3confmCherry_s1187.tif', 'R11_w3confmCherry_s1152.tif', 'R11_w3confmCherry_s1124.tif']}
-    #         corrupted = [f'/home/labs/hornsteinlab/Collaboration/MOmaps/input/images/raw/SpinningDisk/microglia_LPS_sort/batch1/WT/{marker_folder}/{image_name}' for marker_folder in Noam_dict.keys() for image_name in Noam_dict[marker_folder]]
+    #         corrupted = [f'/home/projects/hornsteinlab/Collaboration/MOmaps/input/images/raw/SpinningDisk/microglia_LPS_sort/batch1/WT/{marker_folder}/{image_name}' for marker_folder in Noam_dict.keys() for image_name in Noam_dict[marker_folder]]
             
     #         if pathlib.Path(image_filename) in corrupted:
     #             logging.info(f'image {pathlib.Path(image_filename)} skipped!')

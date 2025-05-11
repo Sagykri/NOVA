@@ -10,7 +10,7 @@ import logging
 # Global paths
 BATCH_TO_RUN = 'deltaNLS_sort/batch2' 
 
-BASE_DIR = os.path.join('/home','labs','hornsteinlab','Collaboration','MOmaps')
+BASE_DIR = os.path.join('/home','projects','hornsteinlab','Collaboration','MOmaps')
 INPUT_DIR = os.path.join(BASE_DIR, 'outputs','cell_profiler')
 INPUT_DIR_BATCH = os.path.join(INPUT_DIR, BATCH_TO_RUN)
 OUTPUT_DIR = os.path.join(INPUT_DIR_BATCH, 'combined')

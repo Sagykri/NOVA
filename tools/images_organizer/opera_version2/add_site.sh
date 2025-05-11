@@ -33,4 +33,4 @@ done
 
 
 # example:
-# '/home/labs/hornsteinlab/Collaboration/MOmaps/tools/images_organizer/opera_version/add_site.sh' /home/labs/hornsteinlab/Collaboration/MOmaps/input/images/raw/Opera_sorted/batch1/
+# '/home/projects/hornsteinlab/Collaboration/MOmaps/tools/images_organizer/opera_version/add_site.sh' /home/projects/hornsteinlab/Collaboration/MOmaps/input/images/raw/Opera_sorted/batch1/

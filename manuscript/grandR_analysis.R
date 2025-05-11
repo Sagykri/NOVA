@@ -12,7 +12,7 @@ library(tidyr)
 
 # Read grand-slam main output table and rename columns for compatibility with grandR design
 dNLS <- read.delim('TDP43dNLS_trim20b.tsv', header = TRUE, check.names = FALSE)
-colnames(dNLS) <- gsub('/home/labs/hornsteinlab/welmoed/slamseq/241006_data/dedup_bams/', '', colnames(dNLS))
+colnames(dNLS) <- gsub('/home/projects/hornsteinlab/welmoed/slamseq/241006_data/dedup_bams/', '', colnames(dNLS))
 colnames(dNLS) <- gsub('_', '.', colnames(dNLS))
 colnames(dNLS) <- gsub('hr', 'h', colnames(dNLS))
 write.table(dNLS, 'TDP43dNLS_trim20b_edited.tsv', quote=FALSE, sep='\t')

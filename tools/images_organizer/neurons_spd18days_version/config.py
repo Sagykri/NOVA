@@ -28,10 +28,10 @@ class Config():
         #####################################
 
         # Path to source folder (root)
-        self.SRC_ROOT_PATH = "/home/labs/hornsteinlab/Collaboration/MOmaps/input/images/raw/SpinningDisk/NOVA_d18_neurons"
+        self.SRC_ROOT_PATH = "/home/projects/hornsteinlab/Collaboration/MOmaps/input/images/raw/SpinningDisk/NOVA_d18_neurons"
 
         # Path to destination folder (root)
-        self.DST_ROOT_PATH = "/home/labs/hornsteinlab/Collaboration/MOmaps/input/images/raw/SpinningDisk/NOVA_d18_neurons_sorted"
+        self.DST_ROOT_PATH = "/home/projects/hornsteinlab/Collaboration/MOmaps/input/images/raw/SpinningDisk/NOVA_d18_neurons_sorted"
 
         # Names of folders to handle
         # - For selecting all folders in SRC_ROOT_PATH - set FOLDERS to None or delete the assignment 

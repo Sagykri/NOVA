@@ -26,10 +26,10 @@ KEY_ROW_WELLS = "wells_rows"
 #####################################
 
 # Path to source folder (root)
-SRC_ROOT_PATH = "/home/labs/hornsteinlab/Collaboration/MOmaps/input/images/raw/SpinningDisk/microglia"
+SRC_ROOT_PATH = "/home/projects/hornsteinlab/Collaboration/MOmaps/input/images/raw/SpinningDisk/microglia"
 
 # Path to destination folder (root)
-DST_ROOT_PATH = "/home/labs/hornsteinlab/Collaboration/MOmaps/input/images/raw/SpinningDisk/microglia_sort"
+DST_ROOT_PATH = "/home/projects/hornsteinlab/Collaboration/MOmaps/input/images/raw/SpinningDisk/microglia_sort"
 
 # Names of folders to handle
 # - For selecting all folders in SRC_ROOT_PATH - set FOLDERS to None or delete the assignment 

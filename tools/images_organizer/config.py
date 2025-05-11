@@ -24,10 +24,10 @@ FILE_EXTENSION = ".tif"
 #####################################
 
 # Path to source folder (root)
-SRC_ROOT_PATH = "/home/labs/hornsteinlab/Collaboration/MOmaps/input/images/raw/SpinningDisk/batches6_9"
+SRC_ROOT_PATH = "/home/projects/hornsteinlab/Collaboration/MOmaps/input/images/raw/SpinningDisk/batches6_9"
 
 # Path to destination folder (root)
-DST_ROOT_PATH = "/home/labs/hornsteinlab/Collaboration/MOmaps/input/images/raw/SpinningDisk"
+DST_ROOT_PATH = "/home/projects/hornsteinlab/Collaboration/MOmaps/input/images/raw/SpinningDisk"
 
 # Names of folders to handle
 # - For selecting all folders in SRC_ROOT_PATH - set FOLDERS to None or delete the assignment 

@@ -1,7 +1,7 @@
 echo "NOVA_HOME:" $NOVA_HOME
 
-pretrained_model=/home/labs/hornsteinlab/Collaboration/MOmaps/outputs/vit_models/pretrained_model
-finetuned_model=/home/labs/hornsteinlab/Collaboration/MOmaps/outputs/vit_models/finetuned_model
+pretrained_model=/home/projects/hornsteinlab/Collaboration/MOmaps/outputs/vit_models/pretrained_model
+finetuned_model=/home/projects/hornsteinlab/Collaboration/MOmaps/outputs/vit_models/finetuned_model
 
 embeddings_configs=./manuscript/embeddings_config
 
