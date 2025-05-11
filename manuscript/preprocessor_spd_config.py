@@ -84,12 +84,3 @@ class dNLS_Batch5(dNLSPreprocessingConfig):
         self.INPUT_FOLDERS = [os.path.join(self.RAW_FOLDER_ROOT, "deltaNLS_sort", "batch5")]
         self.PROCESSED_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "deltaNLS","batch5")]
         self.OUTPUTS_FOLDER = os.path.join(self.OUTPUTS_FOLDER, "batch5")
-
-    
-class Batch7_test(Batch7):
-    def __init__(self):
-        super().__init__()
-        
-        self.INPUT_FOLDERS = [os.path.join(self.RAW_FOLDER_ROOT, "batch7")]
-        self.PROCESSED_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "batch7_test")]
-        self.OUTPUTS_FOLDER = os.path.join(self.OUTPUTS_FOLDER, "batch7")
