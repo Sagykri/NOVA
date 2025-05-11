@@ -252,17 +252,17 @@ class Preprocessor(ABC):
         nuclei_mask_tiled = crop_image_to_tiles(nuclei_mask, self.preprocessing_config.TILE_INTERMEDIATE_SHAPE)
         
         # Define image outer frame 
-        whole_box = box(0,0,self.preprocessing_config.EXPECTED_IMAGE_SHAPE[0],self.preprocessing_config.EXPECTED_IMAGE_SHAPE[1]) 
+        image_border = box(0,0,self.preprocessing_config.EXPECTED_IMAGE_SHAPE[0],self.preprocessing_config.EXPECTED_IMAGE_SHAPE[1]) 
         # Fix for non-valid polygons 
-        whole_polygons = [make_valid(Polygon(p)) if not Polygon(p).is_valid else Polygon(p) for p in cellpose.utils.outlines_list(nuclei_mask) ]
-        # Filter out shapes which are not polygons (i.e. lines)
+        whole_polygons = extract_polygons_from_mask(nuclei_mask) 
+        # Filter out shapes which are not polygons (i.e. lines) ## Add to extract polygons from mask?
         whole_polygons = [pol for pol in whole_polygons if pol.geom_type != 'LineString' and pol.geom_type !='MultiLineString']
-        # Filter out polygons which touch the outer frame
-        whole_polygons = [p for p in whole_polygons if not p.intersects(whole_box.exterior.buffer(1))]
+        # Filter out polygons which touch the outer frame ## Add private function
+        whole_polygons = [p for p in whole_polygons if not p.intersects(image_border.exterior.buffer(1))]
         
-        # Select only tiles with passed nuclues
+        # Select only tiles with passed nuclues ### return single bool
         valid_tiles_indexes = np.where([self.__is_valid_tile(masked_tile, whole_polygons = whole_polygons , 
-                                                                        ix=ix)[0] 
+                                                                        ix=ix)
                                                    for ix, masked_tile in enumerate(nuclei_mask_tiled)])
 
         valid_tiles_indexes = valid_tiles_indexes[0]
@@ -346,7 +346,7 @@ class Preprocessor(ABC):
         logging.error(f"Processing the group: {group_id}: {images_group}")
         
         processed_images: Dict[str, np.ndarray ] = {}
-        logging.error(f" groups : {images_group}")
+        #logging.error(f" groups : {images_group}") # For debug
         nucleus_path = images_group[self.__NUCLEUS_MARKER_NAME]
         logging.info(f"[{group_id}] Processing {self.__NUCLEUS_MARKER_NAME}: {nucleus_path}")
         
@@ -412,10 +412,11 @@ class Preprocessor(ABC):
         polygons = extract_polygons_from_mask(masked_tile)
 
         # Image and tile size setup
-        EXPECTED_IMAGE_SHAPE = self.preprocessing_config.EXPECTED_IMAGE_SHAPE[0]
+        ### change to lower case
+        expected_image_shape = self.preprocessing_config.EXPECTED_IMAGE_SHAPE[0]
         tile_size = self.preprocessing_config.TILE_INTERMEDIATE_SHAPE[0]
-        max_num_nuc = self.preprocessing_config.MAX_NUM_NUCLEI
-        n_tiles = EXPECTED_IMAGE_SHAPE // tile_size
+        max_num_nuclei = self.preprocessing_config.MAX_NUM_NUCLEI
+        n_tiles = expected_image_shape // tile_size
 
         filtered_polygons = []
         i = ix  # tile index
@@ -427,7 +428,6 @@ class Preprocessor(ABC):
         for p in polygons:
             # Translate polygon to global image coordinates based on tile index
             p1 = affinity.translate(p, xoff=i % n_tiles * tile_size, yoff=i // n_tiles * tile_size)
-            p1 = make_valid(p1) if not p1.is_valid else p1
             pc = p1.representative_point()  # Find a point guaranteed to be inside the polygon
 
             l_shifted.append(p1)
@@ -438,7 +438,7 @@ class Preprocessor(ABC):
             #   - the point lies inside a full polygon
             #   - the area ratio exceeds a set threshold
             # --------------------------------------
-            if p1 is not None and p is not None: 
+            if p is not None: 
                 for pol_whole in whole_polygons:
                     if pc.intersects(pol_whole) and \
                     (p1.intersection(pol_whole).area / pol_whole.area >
@@ -452,9 +452,9 @@ class Preprocessor(ABC):
         #   cond2: does not exceed the maximum allowed nuclei count
         # --------------------------------------
         cond1 = len(filtered_polygons) > 0
-        cond2 = get_nuclei_count(masked_tile) <= max_num_nuc
+        cond2 = get_nuclei_count(masked_tile) <= max_num_nuclei
 
-        return cond1 and cond2 , l_shifted
+        return cond1 and cond2 #, l_shifted #-> decide later if to add this for debugging
    
     def __get_grouped_images_for_folder(self, folder_path:str)->Dict[str, Dict[str, str]]:
         """Get groups of images for the given folder, filtered based on the configuration settings
