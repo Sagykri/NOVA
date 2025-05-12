@@ -5,7 +5,7 @@ import numpy as np
 import re
 
 
-BASE_DIR = os.path.join('/home','labs','hornsteinlab','Collaboration','MOmaps')
+BASE_DIR = os.path.join('/home','projects','hornsteinlab','Collaboration','MOmaps')
 INPUT_DIR = os.path.join(BASE_DIR,'input','images','processed','spd2','SpinningDisk')
 
 

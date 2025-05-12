@@ -17,7 +17,7 @@ from scikit_posthocs import posthoc_tukey
 from statannotations.Annotator import Annotator
 
 
-BASE_DIR = os.path.join('/home','labs','hornsteinlab','Collaboration','MOmaps')
+BASE_DIR = os.path.join('/home','projects','hornsteinlab','Collaboration','MOmaps')
 sys.path.insert(1, BASE_DIR)
 
 # If importing all from a script, it will also import global variables

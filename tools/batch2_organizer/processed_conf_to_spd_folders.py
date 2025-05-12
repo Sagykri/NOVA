@@ -6,14 +6,14 @@ sys.path.insert(1, os.getenv("MOMAPS_HOME"))
 
 import numpy as np
 
-# PROCESSED_FOLDER_ROOT = os.path.join('/home','labs','hornsteinlab','Collaboration','MOmaps','input','images','processed')
+# PROCESSED_FOLDER_ROOT = os.path.join('/home','projects','hornsteinlab','Collaboration','MOmaps','input','images','processed')
 # batch2_folders = ["220814_neurons",
 #                 "220818_neurons",
 #                 "220831_neurons",
 #                 "220908", "220914"]
 # batch2_5_folder = ["batch_2_5"]
 
-PROCESSED_FOLDER_ROOT = os.path.join('/home','labs','hornsteinlab','Collaboration','MOmaps','input','images','processed', 'Confocal')
+PROCESSED_FOLDER_ROOT = os.path.join('/home','projects','hornsteinlab','Collaboration','MOmaps','input','images','processed', 'Confocal')
 pertrubations_folder = ["Perturbations"]
 
 # BATCH2_SPD_PROCESSED_FOLDER = os.path.join(PROCESSED_FOLDER_ROOT, 'spd2','SpinningDisk','batch2')

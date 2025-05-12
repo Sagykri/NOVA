@@ -8,7 +8,7 @@ from skimage import io
 import multiprocessing
 
 # SOURCE 
-RAW_FOLDER_ROOT = os.path.join('/home','labs','hornsteinlab','Collaboration','MOmaps','input','images','raw')
+RAW_FOLDER_ROOT = os.path.join('/home','projects','hornsteinlab','Collaboration','MOmaps','input','images','raw')
 batch2_folders = ["220814_neurons",
                 "220818_neurons",
                 "220831_neurons",

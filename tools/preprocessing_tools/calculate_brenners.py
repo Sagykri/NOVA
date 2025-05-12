@@ -25,8 +25,8 @@ from src.common.utils import init_logging, flat_list_of_lists
 from tools.preprocessing_tools.image_sampling_utils import sample_images_all_markers_all_lines
 
 
-BASE_DIR = os.path.join('/home','labs','hornsteinlab','Collaboration','FUNOVA')
-INPUT_DIR = os.path.join(BASE_DIR, 'input', 'images', 'processed')
+BASE_DIR = os.path.join('/home','projects','hornsteinlab','Collaboration','MOmaps')
+INPUT_DIR = os.path.join(BASE_DIR, 'input', 'images', 'raw', 'SpinningDisk', 'NOVA_d18_neurons_sorted')
 calc_per_tile = False # I ran _site_ with this being False! (281123)
 raw = True
 # When calculating tile's Brenner set: calc_per_tile = True, raw = False
@@ -158,6 +158,8 @@ def main():
     # raw_base_path = '/home/labs/hornsteinlab/Collaboration/MOmaps/input/images/raw/SpinningDisk/'
     
     
+    log_file_path = "/home/projects/hornsteinlab/Collaboration/MOmaps/outputs/preprocessing/spd18days/brenner/log280524_all.txt"
+    savepath =      "/home/projects/hornsteinlab/Collaboration/MOmaps/outputs/preprocessing/spd18days/brenner/raw_metrics280524_all.csv"
     log_file_path = "/home/labs/hornsteinlab/Collaboration/FUNOVA/outputs/preprocessing/brenner/log260225_exp4_processed.txt"
     savepath =      "/home/labs/hornsteinlab/Collaboration/FUNOVA/outputs/preprocessing/brenner/raw_metrics260225_exp4_processed.csv"
     

@@ -1,7 +1,7 @@
 echo "NOVA_HOME:" $NOVA_HOME
 
-output_folder=/home/labs/hornsteinlab/Collaboration/MOmaps/outputs/vit_models/finetuned_model
-output_folder_cp=/home/labs/hornsteinlab/Collaboration/MOmaps/outputs/vit_models/cell_profiler
+output_folder=/home/projects/hornsteinlab/Collaboration/MOmaps/outputs/vit_models/finetuned_model
+output_folder_cp=/home/projects/hornsteinlab/Collaboration/MOmaps/outputs/vit_models/cell_profiler
 
 distances_configs=./manuscript/distances_config
 

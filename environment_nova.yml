@@ -287,4 +287,4 @@ dependencies:
     - umap-learn==0.5.6
     - urllib3==1.26.19
     - xxhash==3.4.1
-prefix: /home/labs/hornsteinlab/sagyk/anaconda3/envs/nova
+prefix: /home/projects/hornsteinlab/sagyk/anaconda3/envs/nova

@@ -12,7 +12,7 @@ from multiprocessing import Pool
 from src.common.base_config import BaseConfig
 
 # Paths
-SOURCE_DATA = os.path.join('/home','labs','hornsteinlab','Collaboration','MOmaps', 'OpenCell', 'downloaded_files')
+SOURCE_DATA = os.path.join('/home','projects','hornsteinlab','Collaboration','MOmaps', 'OpenCell', 'downloaded_files')
 DESTINATION_DATA = os.path.join(BaseConfig().PROCESSED_FOLDER_ROOT, 'spd2','SpinningDisk','OpenCell','WT','Untreated')
 
 def load_opencell_npy_data(i):
