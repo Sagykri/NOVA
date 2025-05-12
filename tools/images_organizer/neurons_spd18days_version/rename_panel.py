@@ -39,7 +39,7 @@ def main():
     
     date_str = datetime.datetime.now().strftime("%d%m%y_%H%M%S_%f")
     
-    log_file = f"/home/labs/hornsteinlab/Collaboration/MOmaps/tools/images_organizer/neurons_spd18days_version/rename_panel_{date_str}.log"
+    log_file = f"/home/projects/hornsteinlab/Collaboration/MOmaps/tools/images_organizer/neurons_spd18days_version/rename_panel_{date_str}.log"
 
     init_logging(log_file)
     

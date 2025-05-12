@@ -8,7 +8,7 @@ sys.path.insert(1, os.getenv("MOMAPS_HOME"))
 from distutils.dir_util import copy_tree
 from tools.preprocessing_tools.image_sampling_utils import find_marker_folders
 
-BASE_DIR = os.path.join('/home','labs','hornsteinlab','Collaboration','MOmaps')
+BASE_DIR = os.path.join('/home','projects','hornsteinlab','Collaboration','MOmaps')
 SOURCE_DIR = os.path.join(BASE_DIR,'input','images','raw','SpinningDisk','MOmaps_batch_6_9_images_retaken')
 
 # Get folders under MOmaps_batch_6_9_images_retaken

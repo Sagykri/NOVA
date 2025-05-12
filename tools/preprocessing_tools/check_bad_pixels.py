@@ -11,7 +11,7 @@ sys.path.insert(1, os.getenv("MOMAPS_HOME"))
 import cv2
 from tools.preprocessing_tools.image_sampling_utils import sample_images_all_markers_all_lines, sample_images_all_markers
 
-BASE_DIR = os.path.join('/home','labs','hornsteinlab','Collaboration','MOmaps')
+BASE_DIR = os.path.join('/home','projects','hornsteinlab','Collaboration','MOmaps')
 INPUT_DIR = os.path.join(BASE_DIR, 'input', 'images', 'raw', 'SpinningDisk')
 
 def check_batch(batch_name, sample_size_per_markers=200, num_markers=36):
@@ -90,7 +90,7 @@ def _check_image(img_path):
             (zeros_locs!=[(1023, 1021), (1023, 1022), (1023, 1023)]) or \
                 (n_ones!=1) or \
                     (ones_locs!=[(1023, 1020)]):
-            img_path = img_path.replace("/home/labs/hornsteinlab/Collaboration/MOmaps/input/images/raw/SpinningDisk/","")
+            img_path = img_path.replace("/home/projects/hornsteinlab/Collaboration/MOmaps/input/images/raw/SpinningDisk/","")
             res = (img_path.split("/")[-2], img_path.split("/")[-3], img_path.split("/")[-4], img_path.split("/")[-5], img_path.split("/")[-6])
             return res
     

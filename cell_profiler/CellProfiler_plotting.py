@@ -24,7 +24,7 @@ import sklearn.cluster as cluster
 # Global paths
 BATCH_TO_RUN = 'batch3' 
 
-BASE_DIR = os.path.join('/home','labs','hornsteinlab','Collaboration','MOmaps')
+BASE_DIR = os.path.join('/home','projects','hornsteinlab','Collaboration','MOmaps')
 sys.path.insert(1, BASE_DIR)
 
 INPUT_DIR = os.path.join(BASE_DIR, 'outputs','cell_profiler', 'deltaNLS_sort')

@@ -131,8 +131,8 @@ class ImageAnnotator:
         self.root.mainloop()
 
 if __name__ == "__main__":
-    images_folder = "/home/labs/hornsteinlab/Collaboration/MOmaps/input/images/processed/spd2/SpinningDisk/batch6_16bit_no_downsample/WT/Untreated/G3BP1"
-    savepath = "/home/labs/hornsteinlab/Collaboration/MOmaps_Sagy/MOmaps/tools/annotator/annotations.csv"
+    images_folder = "/home/projects/hornsteinlab/Collaboration/MOmaps/input/images/processed/spd2/SpinningDisk/batch6_16bit_no_downsample/WT/Untreated/G3BP1"
+    savepath = "/home/projects/hornsteinlab/Collaboration/MOmaps_Sagy/MOmaps/tools/annotator/annotations.csv"
     
     annotator = ImageAnnotator(images_folder, savepath)
     try:
