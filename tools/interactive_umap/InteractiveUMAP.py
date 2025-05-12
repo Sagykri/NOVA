@@ -17,14 +17,18 @@ from tools.show_images_utils import show_processed_tif, extract_image_metadata
 
 
 class InteractiveUMAPPipeline:
-    def __init__(self,  default_paths={}, fov_layouts={}, hover=False):
+    def __init__(self,  config={}, hover=False):
         """
         Initializes the InteractiveUMAPPipeline.
 
         Args:
-            default_paths (dict): Dictionary of default paths for UMAPs, images, and preprocessing files.
-            fov_layouts (dict): Predefined FOV (Field of View) layouts for FOV map visualization.
-            hover (bool): Whether to enable interactive hover annotations on UMAP plots.
+            config (dict): Configuration dictionary containing:
+                - 'paths': dict with keys:
+                    - 'umaps_folder' (str): Path to the UMAPs folder.
+                    - 'csv_path' (str): Path to the Brenner CSV file.
+                    - 'images_dir' (list of str): List of directories containing raw images.
+                - 'layouts': dict containing predefined FOV layouts for heatmap visualization.
+            hover (bool): Whether to enable interactive hover annotations on UMAP plots (can slow performance).
         """
         # --- General setup ---
         self.filter_checkboxes = {}  # Stores dynamically generated filter checkboxes
@@ -48,12 +52,14 @@ class InteractiveUMAPPipeline:
         self.hover = hover  # Whether to enable interactive hover-over annotations on points
 
         # --- UI Setup ---
-        self._create_widgets(default_paths)  # Create all the ipywidgets (sliders, text fields, buttons)
+        paths = config.get('paths', {})
+        layouts = config.get('layouts', {})
+        self._create_widgets(paths)  # Create all the ipywidgets (sliders, text fields, buttons)
         self._setup_callbacks()  # Connect buttons and actions to their event handlers
         self._display_ui()  # Display the complete layout of the app
 
         # --- Extra Config ---
-        self.fov_layouts = fov_layouts  # Predefined FOV maps for heatmap plotting
+        self.fov_layouts = layouts  # Predefined FOV maps for heatmap plotting
         self.format_UMAP_legend = format_UMAP_legend  # External helper function for formatting legend
         self.format_UMAP_axes = format_UMAP_axes  # External helper function for formatting axes
 
@@ -66,9 +72,14 @@ class InteractiveUMAPPipeline:
         self.csv_path_widget = self.make_text_widget(
             default_paths.get('csv_path', ''), 'CSV Brenner Path:'
         )
+        images_dirs = default_paths.get('images_dir', '')
+        if isinstance(images_dirs, list):
+            images_dirs = ', '.join(images_dirs)
+
         self.images_dir_widget = self.make_text_widget(
-            default_paths.get('images_dir', ''), 'Raw images Dir:'
+            images_dirs, 'Raw Images Dirs:'
         )
+
         # --- Output display areas ---
         self.output_area = Output(layout={'height': '50px', 'margin': '0px 0px'})
         self.umap_output = Output(layout={'height': 'auto', 'margin': '10px 0px'})
@@ -96,13 +107,31 @@ class InteractiveUMAPPipeline:
         ], layout=Layout(display='none'))
 
         # --- UMAP dropdowns ---
-        self.batch_dropdown = widgets.Dropdown(description='Batch:')
-        self.umap_type_dropdown = widgets.Dropdown(description='UMAP Type:')
-        self.reps_dropdown = widgets.Dropdown(description='Reps:')
-        self.coloring_dropdown = widgets.Dropdown(description='Coloring:')
-        self.marker_dropdown = widgets.Dropdown(description='Marker:')
-        self.cell_line_dropdown = widgets.Dropdown(description='Cell Line:')
-        self.condition_dropdown = widgets.Dropdown(description='Condition:')
+        dropdown_style = {'description_width': '150px'}
+        dropdown_width = '400px'
+
+        # Create dropdowns with consistent layout and style
+        self.umap_type_dropdown = widgets.Dropdown(description='1. UMAP Type:', layout=Layout(width=dropdown_width), style=dropdown_style)
+        self.batch_dropdown = widgets.Dropdown(description='2. Batch:', layout=Layout(width=dropdown_width), style=dropdown_style)
+        self.reps_dropdown = widgets.Dropdown(description='Reps:', layout=Layout(width=dropdown_width), style=dropdown_style)
+        self.coloring_dropdown = widgets.Dropdown(description='Coloring:', layout=Layout(width=dropdown_width), style=dropdown_style)
+        self.marker_dropdown = widgets.Dropdown(description='Marker:', layout=Layout(width=dropdown_width), style=dropdown_style)
+        self.cell_line_dropdown = widgets.Dropdown(description='Cell Line:', layout=Layout(width=dropdown_width), style=dropdown_style)
+        self.condition_dropdown = widgets.Dropdown(description='Condition:', layout=Layout(width=dropdown_width), style=dropdown_style)
+
+        # Arrange in two columns
+        dropdown_col1 = widgets.VBox([
+            self.umap_type_dropdown,
+            self.batch_dropdown,
+            
+        ])
+        dropdown_col2 = widgets.VBox([
+            self.marker_dropdown,
+            self.cell_line_dropdown,
+            self.coloring_dropdown,
+            self.condition_dropdown,
+            self.reps_dropdown,
+        ])
 
         # --- Additional plot controls ---
         self.pickle_status_label = widgets.HTML()
@@ -121,13 +150,7 @@ class InteractiveUMAPPipeline:
         # --- Layout containers ---
         self.umap_params = widgets.VBox([
             widgets.HTML("<b>Select UMAP Parameters (not all combinations are available):</b>"),
-            self.batch_dropdown,
-            self.umap_type_dropdown,
-            self.reps_dropdown,
-            self.coloring_dropdown,
-            self.marker_dropdown,
-            self.cell_line_dropdown,
-            self.condition_dropdown,
+            widgets.HBox([dropdown_col1, dropdown_col2], layout=Layout(gap='20px')),
             self.mix_groups_checkbox,
             self.recolor_checkbox,
             self.bins_slider,
@@ -257,7 +280,7 @@ class InteractiveUMAPPipeline:
 
             umaps_dir = self.umaps_dir_widget.value.strip()
             csv_path = self.csv_path_widget.value.strip()
-            images_dir = self.images_dir_widget.value.strip()
+            image_dirs_raw = self.images_dir_widget.value.strip()
 
             # --- UMAPs dir must exist ---
             if not umaps_dir or not os.path.isdir(umaps_dir):
@@ -280,14 +303,23 @@ class InteractiveUMAPPipeline:
                 self.df_brenner = None
 
             # --- Images dir: optional, but if defined must exist ---
-            if images_dir:
-                if not os.path.isdir(images_dir):
-                    print(f"❌ Image directory not found at:\n{images_dir}")
+            if image_dirs_raw:
+                image_dirs = [d.strip() for d in image_dirs_raw.split(",") if d.strip()]
+                valid_dirs = [d for d in image_dirs if os.path.isdir(d)]
+                if not valid_dirs:
+                    print("❌ No valid image directories found.")
                     return
-                else:
-                    self.df_site_meta = extract_image_metadata(images_dir, FILE_EXTENSION='.tiff', KEY_BATCH='Batch')
+
+                # Concatenate metadata from all valid dirs
+                metadata_list = []
+                for d in valid_dirs:
+                    meta = extract_image_metadata(d, FILE_EXTENSION='.tiff', KEY_BATCH='Batch')
+                    meta["__source_dir__"] = d
+                    metadata_list.append(meta)
+
+                self.df_site_meta = pd.concat(metadata_list, ignore_index=True)
             else:
-                print("ℹ️ No image directory provided. Continuing without image metadata.")
+                print("ℹ️ No image directories provided. Continuing without image metadata.")
                 self.df_site_meta = None
 
             self.df_umap_meta = extract_umap_data(base_dir=umaps_dir)
@@ -354,7 +386,7 @@ class InteractiveUMAPPipeline:
         def make_dropdown(series, label_text, attr_name):
             counts = series.dropna().value_counts()
             options = [f"{val} ({counts[val]})" for val in sorted(counts.index)]
-            height = f"{min(30 * len(options), 180)}px"
+            height = f"{max(min(30 * len(options), 180), 50)}px"
             dropdown = widgets.SelectMultiple(
                 options=options,
                 layout=Layout(width='95%', height=height)
@@ -408,9 +440,12 @@ class InteractiveUMAPPipeline:
                 for ind in self.selected_indices_global[:self.num_images_slider.value]:
                     # print(ind, df_to_use.iloc[ind]['Target_Sharpness_Brenner'])
                     target_path = construct_target_path(df_to_use, ind, self.df_site_meta)
-                    show_processed_tif(target_path)
-                    plt.show()
-                    time.sleep(0.2)
+                    if target_path != -1:
+                        show_processed_tif(target_path)
+                        plt.show()
+                        time.sleep(0.2)
+                    else:
+                        break
             else:
                 print("❌ Please specify the image directory to enable image display.")
 
@@ -470,17 +505,63 @@ class InteractiveUMAPPipeline:
         return widgets.VBox([widgets.Label(f"{column} Filter:")] + checkboxes)
 
     def populate_dropdowns_from_umaps(self):
-        def safe_set(dropdown, options, default):
-            dropdown.options = sorted(options)
-            dropdown.value = default if default in dropdown.options else dropdown.options[0]
+        def safe_set(dropdown, options, default=None):
+            options = sorted(list(options))
+            dropdown.options = options
+            if options:
+                dropdown.value = default if default in options else options[0]
 
-        safe_set(self.batch_dropdown, self.df_umap_meta['batch'].unique(), '4')
-        safe_set(self.umap_type_dropdown, self.df_umap_meta['umap_type'].unique(), 'SINGLE_MARKERS')
-        safe_set(self.reps_dropdown, self.df_umap_meta['rep'].unique(), 'all_reps')
-        safe_set(self.coloring_dropdown, self.df_umap_meta['coloring'].unique(), 'CONDITIONS')
-        safe_set(self.marker_dropdown, self.df_umap_meta['markers'].unique(), 'TDP-43')
-        safe_set(self.cell_line_dropdown, self.df_umap_meta['cell_line'].unique(), 'all_cell_lines')
-        safe_set(self.condition_dropdown, self.df_umap_meta['condition'].unique(), 'all_conditions')
+        def clear_dropdown(dropdown):
+            dropdown.options = []
+            dropdown.value = None
+
+        # Step 0: clear all but umap_type
+        for d in [
+            self.batch_dropdown, self.reps_dropdown, self.coloring_dropdown,
+            self.marker_dropdown, self.cell_line_dropdown, self.condition_dropdown
+        ]:
+            clear_dropdown(d)
+
+        # Step 1: populate UMAP Type only
+        umap_types = self.df_umap_meta['umap_type'].dropna().unique()
+        safe_set(self.umap_type_dropdown, umap_types, 'SINGLE_MARKERS')
+
+        # Step 2: when UMAP Type is selected → populate Batch and hook Batch callback
+        def on_umap_type_change(change):
+            if change['type'] == 'change' and change['name'] == 'value':
+                filtered = self.df_umap_meta[self.df_umap_meta['umap_type'] == change['new']]
+                batch_options = filtered['batch'].dropna().unique()
+                safe_set(self.batch_dropdown, batch_options, '4')
+
+                # Inner function: populate rest based on batch + umap_type
+                def populate_rest(batch_value):
+                    subset = filtered[filtered['batch'] == batch_value]
+                    if subset.empty:
+                        return
+
+                    first_row = subset.iloc[0]
+                    safe_set(self.reps_dropdown, subset['rep'].dropna().unique(), first_row['rep'])
+                    safe_set(self.coloring_dropdown, subset['coloring'].dropna().unique(), first_row['coloring'])
+                    safe_set(self.marker_dropdown, subset['markers'].dropna().unique(), first_row['markers'])
+                    safe_set(self.cell_line_dropdown, subset['cell_line'].dropna().unique(), first_row['cell_line'])
+                    safe_set(self.condition_dropdown, subset['condition'].dropna().unique(), first_row['condition'])
+
+                # Step 3: hook Batch change → update rest
+                def on_batch_change(bchange):
+                    if bchange['type'] == 'change' and bchange['name'] == 'value':
+                        populate_rest(bchange['new'])
+
+                self.batch_dropdown.observe(on_batch_change, names='value')
+
+                # Trigger batch logic once immediately using selected default
+                populate_rest(self.batch_dropdown.value)
+
+        self.umap_type_dropdown.observe(on_umap_type_change, names='value')
+
+        # Trigger UMAP type callback once to start the flow
+        self.umap_type_dropdown.value = self.umap_type_dropdown.value
+        # Manually trigger once at startup
+        on_umap_type_change({'type': 'change', 'name': 'value', 'new': self.umap_type_dropdown.value})
 
     def build_filters_from_checkboxes(self):
         filters = {}
@@ -498,10 +579,7 @@ class InteractiveUMAPPipeline:
                 selected = list(getattr(self, attr).value)
                 if selected:
                     filters[name] = selected
-
-
         return filters
-
     
     def filter_umap_data(self, filters: dict):
         """
@@ -568,19 +646,22 @@ class InteractiveUMAPPipeline:
 
         if df_umap_tiles is not None:
             image_names_dict = {idx: row.Image_Name for idx, row in df_umap_tiles.iterrows()}
-            if "Target_Sharpness_Brenner" in df_umap_tiles.columns:
+            if ("Target_Sharpness_Brenner" in df_umap_tiles.columns) and not (df_umap_tiles["Target_Sharpness_Brenner"].isna().all()):
                 brenner_scores_dict = {idx: row.Target_Sharpness_Brenner for idx, row in df_umap_tiles.iterrows()}
                 annotations_dict = {
                     idx: f"{idx}: {image_names_dict.get(idx, 'Unknown')}\nBrenner Score: {brenner_scores_dict.get(idx, 'N/A')}"
                     for idx in df_umap_tiles.index
                 }
-                if RECOLOR_BY_BRENNER:
-                    df_umap_tiles["Color"], percentiles, cmap = set_colors_by_brenners(df_umap_tiles["Target_Sharpness_Brenner"].fillna(0), bins=bins)
-                    colors_dict = {idx: row.Color for idx, row in df_umap_tiles.iterrows()}
             else:
                 annotations_dict = {idx: f"{idx}: {image_names_dict.get(idx, 'Unknown')}" for idx in df_umap_tiles.index}
-                if RECOLOR_BY_BRENNER:
-                    print("❌ Please specify the Brenner csv path to enable recoloring by Brenner score.")
+            if RECOLOR_BY_BRENNER:
+                if ('Path_List' not in df_umap_tiles) and ("Target_Sharpness_Brenner" in df_umap_tiles.columns) and not (df_umap_tiles["Target_Sharpness_Brenner"].isna().all()):
+                    df_umap_tiles["Color"], percentiles, cmap = set_colors_by_brenners(df_umap_tiles["Target_Sharpness_Brenner"].fillna(0), bins=bins)
+                    colors_dict = {idx: row.Color for idx, row in df_umap_tiles.iterrows()}
+                elif ('Path_List' in df_umap_tiles):
+                    print("❌ Recoloring by Brenner score is not possible for Multiplexed Embeddings.")
+                else:
+                    print("❌ Please specify the correct Brenner csv path to enable recoloring by Brenner score.")
 
         name_key, color_key = self.config_plot['MAPPINGS_ALIAS_KEY'], self.config_plot['MAPPINGS_COLOR_KEY']
         marker_size, alpha = self.config_plot['SIZE'], self.config_plot['ALPHA']
@@ -597,7 +678,7 @@ class InteractiveUMAPPipeline:
         colors = []
         for group in unique_groups:
             group_indices = np.where(label_data == group)[0]
-            if RECOLOR_BY_BRENNER and df_umap_tiles is not None and "Target_Sharpness_Brenner" in df_umap_tiles.columns:
+            if RECOLOR_BY_BRENNER and (df_umap_tiles is not None) and ("Target_Sharpness_Brenner" in df_umap_tiles.columns) and not (df_umap_tiles["Target_Sharpness_Brenner"].isna().all()):
                 rgba_colors = [colors_dict.get(idx, "#000000") for idx in original_indices[group_indices]]
             else:
                 base_color = name_color_dict[group][color_key]
@@ -673,7 +754,7 @@ class InteractiveUMAPPipeline:
         self.rect_selector = RectangleSelector(ax, on_select, interactive=True, useblit=False)
 
         if RECOLOR_BY_BRENNER:
-            if self.df_brenner is not None:
+            if (self.df_brenner is not None) and ("Target_Sharpness_Brenner" in df_umap_tiles.columns) and not (df_umap_tiles["Target_Sharpness_Brenner"].isna().all()):
                 # Create colorbar
                 norm = mcolors.BoundaryNorm(percentiles, cmap.N)
                 sm = plt.cm.ScalarMappable(cmap=cmap, norm=norm)
