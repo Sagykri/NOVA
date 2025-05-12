@@ -7,6 +7,7 @@ import mplcursors
 import re
 import matplotlib.colors as mcolors
 from matplotlib.widgets import RectangleSelector
+import random
 from skimage.measure import shannon_entropy 
 from src.preprocessing.preprocessing_utils import get_image_focus_quality 
 from src.figures.umap_plotting import __format_UMAP_axes, __format_UMAP_legend
@@ -29,18 +30,37 @@ def load_and_process_data(umaps_dir, path_to_umap, df_brenner=None, print_valida
         r"(rep\d+)_([^/]*_panel(\w+)_.*)_processed\.npy/(\d+)"      # Rep / Image_Name, Panel, Tile
     )
 
-    # Parsing the paths
-    parsed_data = [pattern.match(path).groups() for path in paths if pattern.match(path)]
-    
-    # Convert to DataFrame
-    df_umap_tiles = pd.DataFrame(parsed_data, columns=[
-        "Batch", "CellLine", "Condition", "Marker", "Rep", "Image_Name", "Panel", "Tile"
-    ])
+    colnames = ["Batch", "CellLine", "Condition", "Marker", "Rep", "Image_Name", "Panel", "Tile"]
 
-    df_umap_tiles['Path'] = [path.split('.npy')[0]+'.npy' for path in paths]
+    # Determine case by path dimensionality
+    if paths.ndim == 1:
+        parsed_data = [pattern.match(path).groups() for path in paths if pattern.match(path)]
+        df_umap_tiles = pd.DataFrame(parsed_data, columns=colnames)
+        df_umap_tiles['Path'] = paths
+
+    elif paths.ndim == 2:
+        df_umap_tiles = pd.DataFrame({"Path_List": paths.tolist()})
+        random_path_data = []
+
+        for path_list in df_umap_tiles["Path_List"]:
+            random_path = random.choice(path_list)
+            match = pattern.match(random_path)
+            groups = list(match.groups()) if match else [None] * len(colnames)
+            groups.append(random_path)
+            random_path_data.append(groups)
+
+        df_info = pd.DataFrame(random_path_data, columns=colnames + ['Path'])
+
+        # Merge
+        df_umap_tiles = pd.concat([df_umap_tiles, df_info], axis=1)
+
+    else:
+        raise ValueError(f"Unsupported path shape: {paths.shape}")
+    
+    df_umap_tiles['Path'] = [path.split('.npy')[0]+'.npy' for path in df_umap_tiles['Path']]
     df_umap_tiles["Image_Name"] = df_umap_tiles["Image_Name"].str.extract(r"^(.*?)_panel")
     
-    if df_brenner is not None:      
+    if (df_brenner is not None) and (paths.ndim == 1):      
         # Merge df with df_brenner to get Target_Sharpness_Brenner
         df_umap_tiles = df_umap_tiles.merge(
             df_brenner[["Batch", "Rep", "Image_Name", "Condition", "Marker", "CellLine", "Panel", "Target_Sharpness_Brenner"]],
@@ -53,7 +73,6 @@ def load_and_process_data(umaps_dir, path_to_umap, df_brenner=None, print_valida
         df_umap_tiles[["Row", "Column", "FOV"]] = df_umap_tiles[["Row", "Column", "FOV"]].astype(int)
     except:
         try:
-            ## TODO: need to verify this
             df_umap_tiles["FOV"] = df_umap_tiles["Image_Name"].str.extract(r"s(\d+)").astype(int)
             df_umap_tiles["FOV"] = df_umap_tiles["FOV"].apply(lambda x: x % 100)
             df_umap_tiles[["Row", "Column"]] = np.nan
@@ -64,7 +83,7 @@ def load_and_process_data(umaps_dir, path_to_umap, df_brenner=None, print_valida
     if print_validations:
         print('Validations')
         print(f'length:  df_umap_tiles: {len(df_umap_tiles)}, label_data: {len(label_data)}, umap_embeddings: {len(umap_embeddings)}')
-        for col in ['Batch', 'Rep', 'Panel', 'Condition', 'CellLine']:
+        for col in ['Batch', 'Rep', 'Panel', 'Condition', 'CellLine', 'Marker']:
             print(col, np.unique(df_umap_tiles[col]))
     
     return umap_embeddings, label_data, config_data, config_plot, df_umap_tiles
@@ -216,8 +235,11 @@ def construct_target_path(df, index, df_site_meta):
                        (df_site_meta.Condition == condition) & (df_site_meta.Marker == marker) &
                        (df_site_meta.CellLine == cell_line) & (df_site_meta.Rep == rep) & (df_site_meta.Panel == f'panel{panel}')].Path.values
     if len(temp)>1:
-        print('There is more then one file matching the batch and image name')
-        return
+        print('❌ There is more then one file matching the batch and image name.')
+        return -1
+    elif len(temp)==0:
+        print('❌ No matching images found, try adjusting the images dir.')
+        return -1
     else:
         return temp[0]
 
@@ -310,7 +332,7 @@ def extract_umap_data(base_dir):
         r"(?i)batch(?P<batch>\d+)_.*?(?P<rep>all_reps|rep\d+)_"
         r"(?P<cell_line>.+?)_"  # non-greedy
         r"(?P<condition>Untreated|stress|all_conditions)_"
-        r"(?P<markers>.+?)_colored_by_(?P<coloring>.+)"
+        r"(?P<markers>.+?)_(?:colored_by|coloring)_(?P<coloring>.+)"
     )
 
     image_extensions = [".png", ".jpg", ".jpeg", ".bmp", ".tiff", ".tif"]
@@ -369,6 +391,8 @@ def get_umap_pickle_path(df_umaps, batch, umap_type, reps, coloring, marker, cel
     Returns:
     - str: Full path to the pickle file.
     """
+    # print(f"Batch: {batch}, UMAP Type: {umap_type}, Reps: {reps}, Coloring: {coloring}, Marker: {marker}, Cell Line: {cell_line}, Condition: {condition}")
+
     try:
         # Filter the DataFrame to find the matching folder path
         filtered_df = df_umaps[
