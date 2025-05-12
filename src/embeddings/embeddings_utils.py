@@ -161,7 +161,11 @@ def __load_multiple_batches(batches:List[str], embeddings_folder:str, config_dat
         for set_type in sets_to_load:
             cur_embeddings, cur_labels = np.load(os.path.join(embeddings_folder, batch, f"{set_type}.npy")),\
                                          np.load(os.path.join(embeddings_folder, batch, f"{set_type}_labels.npy"))
-            cur_paths = np.load(os.path.join(embeddings_folder, batch, f"{set_type}_paths.npy")) if os.path.exists(os.path.join(embeddings_folder, batch, f"{set_type}_paths.npy")) else None
+            paths_path  = os.path.join(embeddings_folder, batch, f"{set_type}_paths.npy")
+            if os.path.isfile(paths_path):
+                cur_paths = np.load(paths_path)
+            else:
+                cur_paths = np.full(cur_labels.shape, None, dtype=object)            
             embeddings.append(cur_embeddings)
             labels.append(cur_labels)
             paths.append(cur_paths)

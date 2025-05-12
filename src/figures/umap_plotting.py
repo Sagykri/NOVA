@@ -284,12 +284,17 @@ def __format_UMAP_axes(ax:Axes, title:str)->None:
     ax.set_yticks([]) 
     return
 
-def __format_UMAP_legend(ax:Axes, marker_size: int) -> None:
+def __format_UMAP_legend(ax:Axes, marker_size: int, handles=None, labels=None) -> None:
     """Formats the legend in the plot."""
-    handles, labels = ax.get_legend_handles_labels()
+    if handles is None or labels is None:
+        handles, labels = ax.get_legend_handles_labels()
+    handle_dict = dict(zip(labels, handles))  # Remove duplicates while maintaining order
+    handles, labels = list(handle_dict.values()), list(handle_dict.keys())  # Extract back into lists
+
     leg = ax.legend(handles, labels, prop={'size': 6},
                     bbox_to_anchor=(1, 1), loc='upper left',
                     ncol=1 + len(labels) // 26, frameon=False)
     for handle in leg.legendHandles:
         handle.set_alpha(1)
-        handle.set_sizes([max(6, marker_size)])
+        if hasattr(handle, "set_sizes"):  # Only scatter handles
+            handle.set_sizes([max(6, marker_size)])
