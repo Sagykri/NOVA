@@ -211,9 +211,12 @@ def extract_polygons_from_mask(mask:np.ndarray )->List[Polygon]:
     
     ## Validate polygons
     polygons = [make_valid(p1) if not p1.is_valid else p1 for p1 in polygons]
+    # Filter out shapes which are not polygons (i.e. lines) ## Add to extract polygons from mask?
+    polygons = [pol for pol in polygons if pol.geom_type != 'LineString' and pol.geom_type !='MultiLineString']
     
     ### Filter n validate polygons also 
     return polygons
+
 def is_contains_whole_nucleus(
     nuclei_polygons: List[Polygon], 
     tile_shape: Tuple[int, int], 
