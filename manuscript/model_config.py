@@ -13,7 +13,7 @@ class ClassificationModelConfig(ModelConfig):
         
         self.OUTPUT_DIM = 1311
         
-class ContrastivenModelConfig(ModelConfig):
+class ContrastiveModelConfig(ModelConfig):
     """Configuration for the contrastive learning model
     """
     def __init__(self):

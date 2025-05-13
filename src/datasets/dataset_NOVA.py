@@ -3,6 +3,7 @@ import logging
 import os
 from typing import Dict, List, Tuple
 import numpy as np
+import pandas as pd
 import sys
 
 sys.path.insert(1, os.getenv("NOVA_HOME"))
@@ -61,6 +62,7 @@ class DatasetNOVA(DatasetBase):
         labels = np.asarray(labels).reshape(-1, 1)
 
         logging.info(f"{len(image_paths)} files processed, {labels.shape[0]} labels generated")
+        logging.info(f"Value count in labels: {pd.Series(labels.squeeze()).value_counts()}")
 
         return image_paths, labels
 
@@ -279,6 +281,10 @@ class DatasetNOVA(DatasetBase):
         cell_line = self.__extract_cell_line(marker_folder)
         condition = self.__extract_condition(marker_folder)
         batch = self.__extract_batch(marker_folder)
+
+        if hasattr(self.dataset_config, 'COMMON_BASELINE'):
+            if self.dataset_config.COMMON_BASELINE in cell_line:
+                cell_line = self.dataset_config.COMMON_BASELINE
 
         label = marker_name
         if flags['cellline']:

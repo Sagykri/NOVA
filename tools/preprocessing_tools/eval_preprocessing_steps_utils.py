@@ -54,7 +54,7 @@ def put_tiles_grid(ax, w, h, block_size=128):
         # Draw vertical dashed lines
         ax.plot([i * block_size, i * block_size], [0, h], linestyle='--', lw=1, alpha=0.5, color='pink')
 
-def test_cellpose(images, images_paths):
+def test_cellpose(images, images_paths, flow_threshold=0.4, cellprob_threshold=0, diameter=60):
     from cellpose import models
     import cellpose
     from shapely.geometry import Polygon
@@ -62,7 +62,8 @@ def test_cellpose(images, images_paths):
     cp_model = models.Cellpose(gpu=True, model_type='nuclei')
     for i, image in enumerate(images):
         img = np.stack([image, image], axis=-1)
-        masks = get_nuclei_segmentations(img=img, cellpose_model=cp_model,show_plot=True) #channel_axis=-1,
+        masks = get_nuclei_segmentations(img=img, cellpose_model=cp_model,show_plot=True, flow_threshold=flow_threshold,
+                                         cellprob_threshold=cellprob_threshold, diameter=diameter) #channel_axis=-1,
         # flow_threshold - The default is flow_threshold=0.4. Increase this threshold if cellpose is not returning as many ROIs as you’d expect. 
         #                   Similarly, decrease this threshold if cellpose is returning too many ill-shaped ROIs.
         # cellprob_threshold - The default is cellprob_threshold=0.0. Decrease this threshold if cellpose is not returning as many ROIs as you’d expect. 

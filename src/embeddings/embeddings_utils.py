@@ -26,7 +26,7 @@ def generate_embeddings(model:NOVAModel, config_data:DatasetConfig,
     logging.info(f"[generate_embeddings] Is GPU available: {torch.cuda.is_available()}")
     logging.info(f"[generate_embeddings] Num GPUs Available: {torch.cuda.device_count()}")
 
-    all_embeddings, all_labels, all_paths = [], [], []
+    all_embeddings, all_labels, all_paths, all_paths = [], [], [], []
 
     train_paths:np.ndarray[str] = model.trainset_paths
     val_paths:np.ndarray[str] = model.valset_paths
@@ -161,7 +161,11 @@ def __load_multiple_batches(batches:List[str], embeddings_folder:str, config_dat
         for set_type in sets_to_load:
             cur_embeddings, cur_labels = np.load(os.path.join(embeddings_folder, batch, f"{set_type}.npy")),\
                                          np.load(os.path.join(embeddings_folder, batch, f"{set_type}_labels.npy"))
-            cur_paths = np.load(os.path.join(embeddings_folder, batch, f"{set_type}_paths.npy")) if os.path.exists(os.path.join(embeddings_folder, batch, f"{set_type}_paths.npy")) else None
+            paths_path  = os.path.join(embeddings_folder, batch, f"{set_type}_paths.npy")
+            if os.path.isfile(paths_path):
+                cur_paths = np.load(paths_path)
+            else:
+                cur_paths = np.full(cur_labels.shape, None, dtype=object)            
             embeddings.append(cur_embeddings)
             labels.append(cur_labels)
             paths.append(cur_paths)
@@ -188,6 +192,10 @@ def __filter(labels:np.ndarray[str], embeddings:np.ndarray[float], paths:np.ndar
     if cell_lines:
         logging.info(f"[embeddings_utils._filter] cell_lines = {cell_lines}")
         if config_data.ADD_LINE_TO_LABEL:
+            if get_if_exists(config_data, 'COMMON_BASELINE', None):
+                common_cell_line = config_data.COMMON_BASELINE
+                cell_lines = np.array(cell_lines, dtype=str)  # Ensure it's an array  
+                cell_lines[np.char.find(cell_lines, common_cell_line) >= 0] = common_cell_line  
             labels, embeddings, paths = __filter_by_label_part(labels, embeddings, paths, cell_lines,
                                   get_cell_lines_from_labels, config_data, include=True)
         else:

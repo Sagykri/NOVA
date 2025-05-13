@@ -47,6 +47,9 @@ def get_cell_lines_from_labels(labels: np.ndarray[str], dataset_config:DatasetCo
         logging.warning(f'DatasetConfig.ADD_LINE_TO_LABEL is FALSE, cannot extract cell lines from labels!')
         return None
     cell_lines = get_parts_from_labels(labels=labels, indices=(CELL_LINE_IDX, CELL_LINE_IDX+1))
+    if get_if_exists(dataset_config, 'COMMON_BASELINE', None):
+        common_cell_line = dataset_config.COMMON_BASELINE
+        cell_lines[np.char.find(cell_lines, common_cell_line) >= 0] = common_cell_line
     return cell_lines
 
 
@@ -60,6 +63,10 @@ def get_conditions_from_labels(labels: np.ndarray[str], dataset_config:DatasetCo
 
 
 def get_markers_from_labels(labels: np.ndarray[str], dataset_config:DatasetConfig=None) -> np.ndarray[str]:
+    markers = get_parts_from_labels(labels=labels, indices=(MARKER_IDX, MARKER_IDX+1))
+    return markers
+
+def get_categories_from_labels(labels: np.ndarray[str], dataset_config:DatasetConfig=None) -> np.ndarray[str]:
     markers = get_parts_from_labels(labels=labels, indices=(MARKER_IDX, MARKER_IDX+1))
     return markers
 
@@ -117,6 +124,11 @@ def get_cell_lines_conditions_from_multiplex_labels(labels: np.ndarray[str], dat
     cell_line_conditions = get_parts_from_labels(labels=labels, indices=(cell_line_idx,condition_idx+1))
     return cell_line_conditions
 
+def get_common_cell_lines_from_multiplex_labels(labels: np.ndarray[str], dataset_config:DatasetConfig) -> np.ndarray[str]:
+    cell_lines = get_cell_lines_from_multiplex_labels(labels, dataset_config)
+    common_cell_line = dataset_config.BASELINE_CELL_LINE_CONDITION
+    cell_lines[np.char.find(cell_lines, common_cell_line) >= 0] = common_cell_line
+    return cell_lines
 
 def get_unique_parts_from_labels(labels:np.ndarray[str], get_part_function:Callable[[np.ndarray[str]], np.ndarray[str]], dataset_config:Optional[DatasetConfig]=None)->np.ndarray[str]:
     if dataset_config is None:
@@ -129,6 +141,12 @@ def get_batches_from_input_folders(input_folders:List[str])->List[str]:
     batches = [folder.split(os.sep)[-1].split('_')[0] for folder in input_folders]
     return batches
 
+def get_markers_conditions_from_labels(labels: np.ndarray[str], dataset_config:DatasetConfig=None) -> np.ndarray[str]:
+    markers = get_parts_from_labels(labels=labels, indices=(MARKER_IDX, MARKER_IDX+1))
+    condition_idx = CONDITION_IDX # - int(not dataset_config.ADD_LINE_TO_LABEL)
+    conditions = get_parts_from_labels(labels=labels, indices=(condition_idx, condition_idx+1))
+    logging.info(f'labels: {labels}')
+    return np.array([f'{markers[i]}_{conditions[i]}' for i in range(len(markers))])
 
 def edit_labels_by_config(labels:np.ndarray[str], dataset_config:DatasetConfig)->np.ndarray[str]:
     vectorized_edit = np.vectorize(partial(edit_label_by_config, dataset_config=dataset_config))
@@ -140,7 +158,11 @@ def edit_label_by_config(label:str, dataset_config:DatasetConfig)->str:
     label_parts = label.split('_')
     label_parts_new = [label_parts[0]]
     if dataset_config.ADD_LINE_TO_LABEL:
-        label_parts_new.append(label_parts[CELL_LINE_IDX])
+        cell_line = label_parts[CELL_LINE_IDX]
+        if get_if_exists(dataset_config, 'COMMON_BASELINE', None):
+            base_line = dataset_config.COMMON_BASELINE
+            cell_line = base_line if base_line in cell_line else cell_line
+        label_parts_new.append(cell_line)
     if dataset_config.ADD_CONDITION_TO_LABEL:
         label_parts_new.append(label_parts[CONDITION_IDX])
     if dataset_config.ADD_BATCH_TO_LABEL:
@@ -169,6 +191,9 @@ class MapLabelsFunction(Enum):
     MULTIPLEX_CELL_LINES = (get_cell_lines_from_multiplex_labels,)
     MULTIPLEX_CELL_LINES_CONDITIONS = (get_cell_lines_conditions_from_multiplex_labels,)
     REMOVE_MARKER = (remove_markers,)
+    COMMON_CELL_LINES = (get_common_cell_lines_from_multiplex_labels,)
+    CATEGORIES = (get_categories_from_labels,)
+    MARKERS_CONDITIONS = (get_markers_conditions_from_labels,)
     OPENCELL = (opencell_map,)
 
 def map_labels(labels: np.ndarray[str], config_plot: Union[PlotConfig, DatasetConfig],

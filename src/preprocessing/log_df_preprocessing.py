@@ -20,10 +20,12 @@ class LogDFPreprocessing(LogDF):
                                 'valid_tiles_indexes',
                                 "n_valid_tiles", 
                                 "cells_count_in_valid_tiles_mean", "cells_count_in_valid_tiles_std",
-                                "whole_cells_count_in_valid_tiles_mean", "whole_cells_count_in_valid_tiles_std"],
+                                "whole_cells_count_in_valid_tiles_mean", "whole_cells_count_in_valid_tiles_std", 
+                                "n_valid_tiles_after_tiles_brenner"],
                         filename_prefix="cell_count_stats")
 
-    def log_nucleus(self, nuclei_mask_tiled:List[np.ndarray], valid_tiles_indexes:List[int], nucleus_path:str)->None:
+    def log_nucleus(self, nuclei_mask_tiled:List[np.ndarray], valid_tiles_indexes:List[int], nucleus_path:str, 
+                    valid_tiles_after_tiles_brenner:List[int] = None)->None:
         """Log the nucleus site preprocessing information
 
         Args:
@@ -38,6 +40,7 @@ class LogDFPreprocessing(LogDF):
 
         # logging counts
         n_valid_tiles = len(valid_tiles_indexes)
+        n_valid_tiles_after_tiles_brenner = len(valid_tiles_after_tiles_brenner) if valid_tiles_after_tiles_brenner is not None else n_valid_tiles
         n_cells_per_tile = np.asarray([get_nuclei_count(masked_tile) for masked_tile in nuclei_mask_tiled])
         n_whole_cells_per_tile = np.asarray([get_whole_nuclei_count(masked_tile=masked_tile) for masked_tile in nuclei_mask_tiled])
         
@@ -53,10 +56,11 @@ class LogDFPreprocessing(LogDF):
                         round(np.std(n_whole_cells_per_tile[valid_tiles_indexes]), 2)]
         else:
             nucleus_to_log += [None]*4
-        
+        nucleus_to_log += [n_valid_tiles_after_tiles_brenner]
+
         self.write(nucleus_to_log)
 
-    def log_marker(self, valid_tiles_indexes:List[int], marker_path:str):
+    def log_marker(self, valid_tiles_indexes:List[int], marker_path:str, valid_tiles_indexes_marker:List[int]=None):
         """Log the nucleus site preprocessing information
 
         Args:
@@ -70,4 +74,6 @@ class LogDFPreprocessing(LogDF):
                 valid_tiles_indexes, 
                 len(valid_tiles_indexes),
                 None, None, None, None]
+        n_valid_tiles_indexes_marker = len(valid_tiles_indexes_marker) if valid_tiles_indexes_marker else None
+        marker_to_log += [n_valid_tiles_indexes_marker]
         self.write(marker_to_log)

@@ -19,6 +19,11 @@ def cluster_without_outliers(X:np.ndarray[float], n_clusters:int, outliers_fract
   
   size_min = int(len(X)*outliers_fraction)
   logging.info(f"[K Means Constrained clustering] size_min = {size_min}")
+
+  if size_min*n_clusters > len(X):
+      size_min = np.floor((len(X)/n_clusters)*0.5)
+      logging.info(f"[K Means Constrained clustering] size_min was changed to  = {size_min} to support the number of clusters")
+  
   clf = KMeansConstrained(
           n_clusters=n_clusters,
           size_min=size_min,
@@ -49,4 +54,3 @@ def calc_ari_with_kmeans(X:np.ndarray[float], true_labels:np.ndarray[str], outli
   logging.info(f"[calc_clustering_validation_metric] ARI: {ari}")
 
   return ari
-

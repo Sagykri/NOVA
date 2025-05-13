@@ -42,7 +42,6 @@ def plot_umap(umap_embeddings: np.ndarray[float], labels: np.ndarray[str], confi
     Raises:
         ValueError: If an invalid `umap_idx` is provided.
     """
-
     if saveroot:
         os.makedirs(saveroot, exist_ok=True)
         save_config(config_data, saveroot)
@@ -167,7 +166,6 @@ def __plot_umap_embeddings(umap_embeddings: np.ndarray[float],
     """
     if umap_embeddings.shape[0] != label_data.shape[0]:
         raise ValueError("The number of embeddings and labels must match.")
-
     name_color_dict =  config_plot.COLOR_MAPPINGS
     name_key = config_plot.MAPPINGS_ALIAS_KEY
     color_key = config_plot.MAPPINGS_COLOR_KEY
@@ -234,8 +232,8 @@ def __plot_umap_embeddings(umap_embeddings: np.ndarray[float],
         shuffled_colors = colors[shuffled_indices]
         shuffled_indices = indices[shuffled_indices]
         ax.scatter(
-            umap_embeddings[shuffled_indices, 0],
-            umap_embeddings[shuffled_indices, 1],
+            umap_embeddings[indices][shuffled_indices, 0],
+            umap_embeddings[indices][shuffled_indices, 1],
             s=marker_size,
             alpha=alpha,
             c=shuffled_colors,
@@ -245,7 +243,7 @@ def __plot_umap_embeddings(umap_embeddings: np.ndarray[float],
     __format_UMAP_axes(ax, title)
     if not mix_groups:
         __format_UMAP_legend(ax, marker_size)
-        
+      
     if show_metric:
         gs_bottom = fig.add_subplot(gs[1])
         ax = __get_metrics_figure(ari_score, ax=gs_bottom)
@@ -284,12 +282,17 @@ def __format_UMAP_axes(ax:Axes, title:str)->None:
     ax.set_yticks([]) 
     return
 
-def __format_UMAP_legend(ax:Axes, marker_size: int) -> None:
+def __format_UMAP_legend(ax:Axes, marker_size: int, handles=None, labels=None) -> None:
     """Formats the legend in the plot."""
-    handles, labels = ax.get_legend_handles_labels()
+    if handles is None or labels is None:
+        handles, labels = ax.get_legend_handles_labels()
+    handle_dict = dict(zip(labels, handles))  # Remove duplicates while maintaining order
+    handles, labels = list(handle_dict.values()), list(handle_dict.keys())  # Extract back into lists
+
     leg = ax.legend(handles, labels, prop={'size': 6},
                     bbox_to_anchor=(1, 1), loc='upper left',
                     ncol=1 + len(labels) // 26, frameon=False)
     for handle in leg.legendHandles:
         handle.set_alpha(1)
-        handle.set_sizes([max(6, marker_size)])
+        if hasattr(handle, "set_sizes"):  # Only scatter handles
+            handle.set_sizes([max(6, marker_size)])

@@ -107,7 +107,7 @@ def plot_clustermap(distances:pd.DataFrame, saveroot:str, config_data:DatasetCon
     conditions:List[str] = config_data.CELL_LINES_CONDITIONS
 
     # Calculate marker p-values and process the dataframe
-    pvalues_df = __calculate_marker_pvalue_per_condition(distances, baseline, conditions, metric, __cliffs_delta)  
+    pvalues_df = __calculate_marker_pvalue_per_condition(distances, baseline, conditions, metric, __cliffs_delta)
     # we want our data organzied as marker in the rows and condition in the columns (values are the pvalues)
     marker_pvalue_per_condition = pvalues_df.pivot(index='marker', columns='condition', values='pvalue')
     
@@ -171,7 +171,7 @@ def plot_bubble_plot(distances:pd.DataFrame, saveroot:str, config_data:DatasetCo
     conditions:List[str] = config_data.CELL_LINES_CONDITIONS
 
     # Calculate marker p-values and process the dataframe
-    pvalues_df = __calculate_marker_pvalue_per_condition(distances, baseline, conditions, metric, __cliffs_delta)  
+    pvalues_df = __calculate_marker_pvalue_per_condition(distances, baseline, conditions, metric, __cliffs_delta)
     conditions_order = get_if_exists(config_plot, 'ORDERED_CELL_LINES',None)
     if conditions_order is not None:
         pvalues_df['condition'] = pd.Categorical(pvalues_df['condition'], categories=conditions_order, ordered=True)
@@ -181,7 +181,6 @@ def plot_bubble_plot(distances:pd.DataFrame, saveroot:str, config_data:DatasetCo
     if marker_order is not None:
         pvalues_df['marker'] = pd.Categorical(pvalues_df['marker'], categories=marker_order, ordered=True)
         pvalues_df.sort_values(by=['marker'])
-
     # Normalize effect sizes and adjust p-values for visualization
     norm_effect_size = mcolors.Normalize(vmin=vmin_effect, vmax=vmax_effect) if vmin_effect is not None else None
     pvalues_df['log_pvalue'] = -np.log10(__bin_pvalues(pvalues_df['pvalue']))
@@ -212,7 +211,10 @@ def plot_bubble_plot(distances:pd.DataFrame, saveroot:str, config_data:DatasetCo
 
     savepath = None
     if saveroot:
-        savepath = os.path.join(saveroot, f'{"_".join(conditions)}_vs_{baseline}_bubbleplot')
+        conditions_string = "_".join(conditions)
+        if len(conditions_string)> 100:
+            conditions_string = f'{len(conditions)}Conditions'
+        savepath = os.path.join(saveroot, f'{conditions_string}_vs_{baseline}_bubbleplot')
     if savepath:
         save_plot(fig, savepath, dpi=100, save_eps=True)
     else:
@@ -289,7 +291,6 @@ def __plot_boxplot(distances:pd.DataFrame, baseline:str, condition:str,
     pvalues_df['significant'] = np.where(pvalues_df.pvalue<=0.05,1,0)
     median_variance = median_variance.merge(pvalues_df[pvalues_df.condition==condition][['marker','significant']], left_index=True, right_on='marker')
     median_variance = median_variance.sort_values(by=['significant','median', 'var'], ascending=[False, False,True]).reset_index(drop=True)
-    
     dists_order = median_variance.marker.values # do the ordering
     if show_baseline:
         cur_distances=distances[distances.condition.isin([baseline,condition])] # after sorting, we can include also the baseline distances
@@ -319,12 +320,10 @@ def __plot_boxplot(distances:pd.DataFrame, baseline:str, condition:str,
             marker_pvalue = cur_marker.pvalue.values[0]
             __add_pvalue(marker, i, dists_order, marker_pvalue, show_baseline, ax=boxplot)
             effect_size_formatted = round(cur_marker.effect_size.values[0],2)
-            
             label = marker_name_color_dict[marker][name_key] if marker_name_color_dict else marker
             if show_effect_size:
                 label = f'{label} (effect size={effect_size_formatted})'
             labels.append(label)
-
         boxplot.set_xticklabels(labels,rotation=90)
         
         # add dashed line between significants
@@ -558,6 +557,26 @@ def __cliffs_delta(x, y)->float:
     delta = comparisons / (n_x * n_y)
     return delta
 
+def __scaled_cliffs_delta(x, y):
+    """
+    Calculate a magnitude-sensitive effect size measure for two independent samples.
+
+    Args:
+        x (array-like): First sample data.
+        y (array-like): Second sample data.
+
+    Returns:
+        float: Modified effect size value.
+    """
+    n_x = len(x)
+    n_y = len(y)
+    total_pairs = n_x * n_y
+
+    # Compute all pairwise differences normalized by the range of ARI (-1 to 1, so range is 2)
+    diffs = [(a - b) / 2 for a in x for b in y]
+    delta = np.sum(diffs) / total_pairs
+    return delta
+
 def __add_pvalue(marker:str, marker_index:int, dists_order:List[str], pvalue:float, show_baseline:bool=True, upper_graph_ylim:Tuple[float,float]=None,
                  ax_upper=None, ax_lower=None, ax=None)->None:
     # find the highest bar between the baseline and condition for the given marker
@@ -605,7 +624,9 @@ def __bin_pvalues(pvalues):
     adjusted_pvalues = np.where((0.05 <= adjusted_pvalues) & (adjusted_pvalues < 0.06), 0.05, adjusted_pvalues)
     adjusted_pvalues = np.where((0.01 <= adjusted_pvalues) & (adjusted_pvalues < 0.05), 0.01, adjusted_pvalues)
     adjusted_pvalues = np.where((0.0001 <= adjusted_pvalues) & (adjusted_pvalues < 0.01), 0.0001, adjusted_pvalues)
-    return np.where(adjusted_pvalues < 0.0001, 10**math.floor(np.log10(adjusted_pvalues.min())), adjusted_pvalues)
+    adjusted_pvalues = np.where((10**-9 <= adjusted_pvalues) & (adjusted_pvalues < 10**-4), 10**-9, adjusted_pvalues)
+    # Cap p-values below 10^-9 to 10^-9 for uniformity
+    return np.where(adjusted_pvalues < 10**-9, 10**-9, adjusted_pvalues) 
 
 def __get_order_from_linkage(linkage, items):
     """Get the order of items based on hierarchical clustering."""
