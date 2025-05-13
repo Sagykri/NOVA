@@ -60,6 +60,8 @@ def load_and_process_data(umaps_dir, path_to_umap, df_brenner=None, print_valida
     df_umap_tiles['Path'] = [path.split('.npy')[0]+'.npy' for path in df_umap_tiles['Path']]
     df_umap_tiles["Image_Name"] = df_umap_tiles["Image_Name"].str.extract(r"^(.*?)_panel")
     
+    df_umap_tiles = fix_deltaNLS_metadata(df_umap_tiles)
+
     if (df_brenner is not None) and (paths.ndim == 1):      
         # Merge df with df_brenner to get Target_Sharpness_Brenner
         df_umap_tiles = df_umap_tiles.merge(
@@ -68,6 +70,7 @@ def load_and_process_data(umaps_dir, path_to_umap, df_brenner=None, print_valida
             how="left"
         )
         df_umap_tiles["Target_Sharpness_Brenner"] = df_umap_tiles["Target_Sharpness_Brenner"].round()
+    
     try:
         df_umap_tiles[["Row", "Column", "FOV"]] = df_umap_tiles["Image_Name"].str.extract(r"r(\d+)c(\d+)f(\d+)")
         df_umap_tiles[["Row", "Column", "FOV"]] = df_umap_tiles[["Row", "Column", "FOV"]].astype(int)
@@ -368,10 +371,28 @@ def extract_umap_data(base_dir):
                         batch, rep, cell_line, condition, marker, coloring
                     ])
 
-    return pd.DataFrame(data, columns=[
-        "folder_path", "image_name", "umap_type", "batch", "rep",
-        "cell_line", "condition", "markers", "coloring"
+    df = pd.DataFrame(data, columns=[
+        "Path", "Image_Name", "Umap_Type", "Batch", "Rep",
+        "CellLine", "Condition", "Marker", "Coloring"
     ])
+    
+    df = fix_deltaNLS_metadata(df)
+
+    return df
+
+def fix_deltaNLS_metadata(df):
+    """
+    Fixes the deltaNLS marker names in the DataFrame.
+
+    Parameters:
+    - df (pd.DataFrame): DataFrame containing UMAP data.
+    """
+    ## Fix for deltaNLS 
+    df["Marker"] = df["Marker"].replace({
+        "TDP43B": "TDP43"
+    })
+    return df
+
 
 def get_umap_pickle_path(df_umaps, batch, umap_type, reps, coloring, marker, cell_line, condition='all_conditions', base_dir="/"):
     """
@@ -396,17 +417,17 @@ def get_umap_pickle_path(df_umaps, batch, umap_type, reps, coloring, marker, cel
     try:
         # Filter the DataFrame to find the matching folder path
         filtered_df = df_umaps[
-            (df_umaps["batch"] == str(batch)) &
-            (df_umaps["umap_type"] == umap_type) &
-            (df_umaps["rep"] == reps) &
-            (df_umaps["coloring"] == coloring) &
-            (df_umaps["markers"] == marker) &
-            (df_umaps["cell_line"] == cell_line) &
-            (df_umaps["condition"] == condition)
+            (df_umaps["Batch"] == str(batch)) &
+            (df_umaps["Umap_Type"] == umap_type) &
+            (df_umaps["Rep"] == reps) &
+            (df_umaps["Coloring"] == coloring) &
+            (df_umaps["Marker"] == marker) &
+            (df_umaps["CellLine"] == cell_line) &
+            (df_umaps["Condition"] == condition)
         ]
 
         # Extract the folder path
-        folder_path_values = filtered_df["folder_path"].values
+        folder_path_values = filtered_df["Path"].values
 
         if len(folder_path_values) == 0:
             raise ValueError("No matching folder path found for the given parameters.")
@@ -417,7 +438,7 @@ def get_umap_pickle_path(df_umaps, batch, umap_type, reps, coloring, marker, cel
         folder_path = folder_path_values[0]  # Assuming one match
 
         # Extract the image name
-        image_name_values = filtered_df["image_name"].values
+        image_name_values = filtered_df["Image_Name"].values
         if len(image_name_values) == 0:
             raise ValueError("No matching image name found for the given parameters.")
 
