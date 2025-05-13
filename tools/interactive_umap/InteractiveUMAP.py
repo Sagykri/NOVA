@@ -523,28 +523,28 @@ class InteractiveUMAPPipeline:
             clear_dropdown(d)
 
         # Step 1: populate UMAP Type only
-        umap_types = self.df_umap_meta['umap_type'].dropna().unique()
+        umap_types = self.df_umap_meta['Umap_Type'].dropna().unique()
         safe_set(self.umap_type_dropdown, umap_types, 'SINGLE_MARKERS')
 
         # Step 2: when UMAP Type is selected → populate Batch and hook Batch callback
         def on_umap_type_change(change):
             if change['type'] == 'change' and change['name'] == 'value':
-                filtered = self.df_umap_meta[self.df_umap_meta['umap_type'] == change['new']]
-                batch_options = filtered['batch'].dropna().unique()
+                filtered = self.df_umap_meta[self.df_umap_meta['Umap_Type'] == change['new']]
+                batch_options = filtered['Batch'].dropna().unique()
                 safe_set(self.batch_dropdown, batch_options, '4')
 
                 # Inner function: populate rest based on batch + umap_type
                 def populate_rest(batch_value):
-                    subset = filtered[filtered['batch'] == batch_value]
+                    subset = filtered[filtered['Batch'] == batch_value]
                     if subset.empty:
                         return
 
                     first_row = subset.iloc[0]
-                    safe_set(self.reps_dropdown, subset['rep'].dropna().unique(), first_row['rep'])
-                    safe_set(self.coloring_dropdown, subset['coloring'].dropna().unique(), first_row['coloring'])
-                    safe_set(self.marker_dropdown, subset['markers'].dropna().unique(), first_row['markers'])
-                    safe_set(self.cell_line_dropdown, subset['cell_line'].dropna().unique(), first_row['cell_line'])
-                    safe_set(self.condition_dropdown, subset['condition'].dropna().unique(), first_row['condition'])
+                    safe_set(self.reps_dropdown, subset['Rep'].dropna().unique(), first_row['Rep'])
+                    safe_set(self.coloring_dropdown, subset['Coloring'].dropna().unique(), first_row['Coloring'])
+                    safe_set(self.marker_dropdown, subset['Marker'].dropna().unique(), first_row['Marker'])
+                    safe_set(self.cell_line_dropdown, subset['CellLine'].dropna().unique(), first_row['CellLine'])
+                    safe_set(self.condition_dropdown, subset['Condition'].dropna().unique(), first_row['Condition'])
 
                 # Step 3: hook Batch change → update rest
                 def on_batch_change(bchange):
