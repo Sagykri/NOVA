@@ -420,12 +420,44 @@ class InteractiveUMAPPipeline:
     
             # Build filters dictionary
             filters = self.build_filters_from_checkboxes()
-            self.umap_embeddings_filt, self.label_data_filt, self.df_umap_tiles_filt = filter_umap_data(
-                self.umap_embeddings, self.label_data, self.df_umap_tiles, filters
-            )
+            self.filter_umap_data(filters=filters)
 
             self.plot_interactive_umap()
             self.clear_outputs(umaps=False)
+
+    def filter_umap_data(self, filters: dict):
+        """
+        Filters umap_embeddings, label_data, and df_umap_tiles based on values in filters.
+
+        Args:
+            umap_embeddings (np.ndarray): 2D array of shape (N, 2) containing UMAP embeddings.
+            label_data (np.ndarray): 1D array of shape (N,) containing labels for each embedding.
+            df_umap_tiles (pd.DataFrame): DataFrame containing image statistics.
+            filters (dict): Dictionary where keys are column names in df_umap_tiles and values are lists of allowed values.
+
+        Returns:
+            np.ndarray: Filtered umap_embeddings.
+            np.ndarray: Filtered label_data.
+            pd.DataFrame: Filtered df_umap_tiles.
+        """
+        # Apply all filters to df_umap_tiles
+        mask = np.ones(len(self.df_umap_tiles), dtype=bool)  # Start with all True
+        for column, values in filters.items():
+            # Special handling for 'Combination' column
+            if column == 'Cell_line_Condition':
+                mask &= self.df_umap_tiles['Cell_line_Condition'].isin(values)
+            else:
+                # Standard checkbox filters    
+                # Strip counts (e.g., 'Batch4 (4384)' -> 'Batch4')
+                cleaned_values = [v.split(' (')[0] for v in values]
+
+                mask &= self.df_umap_tiles[column].apply(
+                    lambda x: any(str(x).startswith(prefix) for prefix in cleaned_values)
+                )
+        # Apply mask to all data
+        self.umap_embeddings_filt = self.umap_embeddings[mask]
+        self.label_data_filt = self.label_data[mask]
+        self.df_umap_tiles_filt = self.df_umap_tiles.iloc[list(mask)].copy().reset_index(drop=True)
 
     def show_selected_images(self, btn):
         self.clear_outputs(umaps=False)
