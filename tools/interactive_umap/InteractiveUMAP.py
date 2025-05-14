@@ -1,4 +1,7 @@
+import ctypes
 import os
+import psutil
+
 import pandas as pd
 import ipywidgets as widgets
 from IPython.display import display, clear_output
@@ -30,6 +33,8 @@ class InteractiveUMAPPipeline:
                 - 'layouts': dict containing predefined FOV layouts for heatmap visualization.
             hover (bool): Whether to enable interactive hover annotations on UMAP plots (can slow performance).
         """
+        # --- Memory management ---
+        self.dispose()
         # --- General setup ---
         self.filter_checkboxes = {}  # Stores dynamically generated filter checkboxes
         self.selected_indices_global = []  # Stores the selected point indices from rectangle selection
@@ -787,8 +792,38 @@ class InteractiveUMAPPipeline:
         return
     
     def dispose(self):
-        self.umap_output.clear_output()
-        self.selected_images_output_inner.clear_output()
-        self.selected_tiles_output_inner.clear_output()
-        self.fov_output.clear_output()
+        # Clear widgets, outputs, and figures
+        for attr in ['umap_output', 'selected_images_output_inner', 'selected_tiles_output_inner', 'fov_output']:
+            if hasattr(self, attr):
+                getattr(self, attr).clear_output()
+        clear_output(wait=True)
         plt.close('all')
+        gc.collect()  # Force garbage collection
+        self.trim_malloc()
+
+    def get_ram_usage_mb(self):
+        process = psutil.Process(os.getpid())
+        mem_bytes = process.memory_info().rss  # Resident Set Size
+        mem_mb = mem_bytes / (1024 * 1024)
+        print(f"Current RAM usage: {mem_mb:.2f} MB")
+        return mem_mb
+    
+    def trim_malloc(self):
+        """Ask glibc to return free heap pages to the OS."""
+        libc = ctypes.CDLL("libc.so.6")
+        libc.malloc_trim(0)
+
+def launch_interactive_umap(config, hover=False):
+    global iu
+    # Clean up previous instance if exists
+    if 'iu' in globals():
+        try:
+            iu.dispose()
+        except Exception:
+            pass
+        del globals()['iu']
+        gc.collect()
+
+    # Launch new instance
+    iu = InteractiveUMAPPipeline(config=config, hover=hover)
+    iu.show()
