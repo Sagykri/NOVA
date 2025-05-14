@@ -123,8 +123,8 @@ def load_embeddings(model_output_folder:str, config_data:DatasetConfig)-> Tuple[
     
     embeddings = np.concatenate(embeddings)
     labels = np.concatenate(labels)
-    labels = edit_labels_by_config(labels, config_data)
     paths = np.concatenate(paths)
+    labels = edit_labels_by_config(labels, config_data)
     filtered_labels, filtered_embeddings, filtered_paths = __filter(labels, embeddings, paths, config_data)
 
     logging.info(f'[load_embeddings] embeddings shape: {filtered_embeddings.shape}')
