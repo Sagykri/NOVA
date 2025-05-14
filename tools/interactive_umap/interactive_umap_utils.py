@@ -9,6 +9,8 @@ import matplotlib.colors as mcolors
 from matplotlib.widgets import RectangleSelector
 import random
 from skimage.measure import shannon_entropy 
+import psutil
+
 from src.preprocessing.preprocessing_utils import get_image_focus_quality 
 from src.figures.umap_plotting import __format_UMAP_axes, __format_UMAP_legend
 
@@ -551,3 +553,25 @@ def filter_umap_data(umap_embeddings: np.ndarray, label_data: np.ndarray, df_uma
     filtered_df = df_umap_tiles.iloc[list(mask)].copy().reset_index()
 
     return filtered_umap, filtered_labels, filtered_df
+
+def get_lsf_mem_limit_gb():
+    res_req = os.environ.get("LSB_EFFECTIVE_RSRCREQ") or ""
+    match = re.search(r"mem=(\d+(?:\.\d+)?)", res_req)
+    if match:
+        return round(float(match.group(1)) / 1024, 2)  # Convert MB to GB
+    return None
+
+def get_ram_usage_gb():
+    process = psutil.Process(os.getpid())
+    mem_bytes = process.memory_info().rss
+    mem_gb = mem_bytes / (1024 ** 3)
+    return mem_gb
+
+def check_memory_status():
+    limit = get_lsf_mem_limit_gb()
+    usage = get_ram_usage_gb()
+
+    if limit is not None:
+        print(f"Memory Usage is: {usage:.2f} GB, LSF Memory Limit: {limit:.2f} GB")
+        if usage > 0.9 * limit:
+            print("🚨 Memory usage is above 90% of allocated LSF limit! Please restart kernel or allocate more memory.")
