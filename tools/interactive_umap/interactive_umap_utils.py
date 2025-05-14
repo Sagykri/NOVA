@@ -527,33 +527,6 @@ def plot_fov_heatmaps(df, selected_indices_global, fov_grid):
 
     plt.show()
 
-def filter_umap_data(umap_embeddings: np.ndarray, label_data: np.ndarray, df_umap_tiles: pd.DataFrame, filters: dict):
-    """
-    Filters umap_embeddings, label_data, and df_umap_tiles based on values in filters.
-
-    Args:
-        umap_embeddings (np.ndarray): 2D array of shape (N, 2) containing UMAP embeddings.
-        label_data (np.ndarray): 1D array of shape (N,) containing labels for each embedding.
-        df_umap_tiles (pd.DataFrame): DataFrame containing image statistics.
-        filters (dict): Dictionary where keys are column names in df_umap_tiles and values are lists of allowed values.
-
-    Returns:
-        np.ndarray: Filtered umap_embeddings.
-        np.ndarray: Filtered label_data.
-        pd.DataFrame: Filtered df_umap_tiles.
-    """
-    # Apply all filters to df_umap_tiles
-    mask = np.ones(len(df_umap_tiles), dtype=bool)  # Start with all True
-    for column, values in filters.items():
-        mask &= df_umap_tiles[column].apply(lambda x: any(str(x).startswith(prefix) for prefix in values))
-
-    # Apply mask to all data
-    filtered_umap = umap_embeddings[mask]
-    filtered_labels = label_data[mask]
-    filtered_df = df_umap_tiles.iloc[list(mask)].copy().reset_index()
-
-    return filtered_umap, filtered_labels, filtered_df
-
 def get_lsf_mem_limit_gb():
     res_req = os.environ.get("LSB_EFFECTIVE_RSRCREQ") or ""
     match = re.search(r"mem=(\d+(?:\.\d+)?)", res_req)
