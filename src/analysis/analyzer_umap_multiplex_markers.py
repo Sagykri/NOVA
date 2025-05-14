@@ -66,7 +66,7 @@ class AnalyzerUMAPMultiplexMarkers(AnalyzerUMAP):
     
 
     def __format_embeddings_to_df(self, embeddings:np.ndarray[float], labels: np.ndarray[str], paths: np.ndarray[str] = None)->pd.DataFrame:
-        """Format the embeddings into a Dataframe holding three columns:\n
+        """Format the embeddings into a Dataframe holding four columns:\n
         self.__COLUMN_MARKER:str\n
         self.__COLUMN_PHENO:str\n
         self.__COLUMN_EMBEDDINGS:np.ndarray[float]
@@ -196,8 +196,8 @@ class AnalyzerUMAPMultiplexMarkers(AnalyzerUMAP):
             for _ in tqdm(range(n_subgroups))
         ])
 
-        multiplexed_embeddings = np.array(multiplexed_embeddings, dtype=object)
-        multiplexed_paths = np.array(multiplexed_paths, dtype=object)
+        multiplexed_embeddings = np.asarray(multiplexed_embeddings)
+        multiplexed_paths = np.asarray(multiplexed_paths)
                 
         # Repeat the phenotype to match the len of multiplexed_embeddings
         phenotype_repeated = np.full(len(multiplexed_embeddings), phenotype)
