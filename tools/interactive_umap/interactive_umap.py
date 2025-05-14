@@ -71,17 +71,20 @@ class InteractiveUMAPPipeline:
     def _create_widgets(self, default_paths):
         # --- Path configuration widgets ---
         self.umaps_dir_widget = self.make_text_widget(
-            default_paths.get('umaps_folder', ''), 'UMAPs Dir:'
+            default_paths.get('umaps_folder', ''), 'UMAPs Dir:',
+            tooltip='Path to the folder containing UMAPs'
         )
         self.csv_path_widget = self.make_text_widget(
-            default_paths.get('csv_path', ''), 'CSV Brenner Path:'
+            default_paths.get('csv_path', ''), 'CSV Brenner Path:',
+            tooltip='Path to a CSV file with image sharpness scores (Brenner)'
         )
         images_dirs = default_paths.get('images_dir', '')
         if isinstance(images_dirs, list):
             images_dirs = ', '.join(images_dirs)
 
         self.images_dir_widget = self.make_text_widget(
-            images_dirs, 'Raw Images Dirs:'
+            images_dirs, 'Raw Images Dirs:',
+            tooltip='Comma-separated list of directories containing raw images'
         )
 
         # --- Output display areas ---
@@ -92,12 +95,11 @@ class InteractiveUMAPPipeline:
         self.fov_output = Output(layout={'height': '1000px', 'margin': '0 auto', 'display': 'block'})
 
         # --- Control buttons ---
-        self.run_button = Button(description="Run", layout=Layout(width='200px', margin='5px 250px', ))
-        self.create_umap_button = Button(description="Create UMAP", layout=Layout(width='200px', margin='5px 10px'))
-        self.create_umap_button.layout.display = 'none'
-        self.show_images_button = Button(description="Show Selected Points", layout=Layout(width='200px', margin='0px 10px'))
-        self.apply_filter_button = Button(description="Apply Filters", layout=Layout(width='180px', margin='10px 0px 10px 5px'))
-        self.apply_filter_button.layout.display = 'none'
+        self.run_button = Button(description="Run", layout=Layout(width='200px', margin='5px 250px', ), tooltip="Search for UMAPs and load available options",)
+        self.create_umap_button = Button(description="Create UMAP", layout=Layout(width='200px', margin='5px 10px', display = 'none'),
+                                         tooltip="Create UMAP with selected parameters")
+        self.show_images_button = Button(description="Show Selected Points", layout=Layout(width='200px', margin='0px 10px'), tooltip="Show sites and tiles images corresponding to selected points")
+        self.apply_filter_button = Button(description="Apply Filters", layout=Layout(width='180px', margin='10px 0px 10px 5px', display = 'none'))
 
         self.num_images_slider = widgets.IntSlider(
             value=10, min=1, max=30, step=1,
@@ -137,26 +139,38 @@ class InteractiveUMAPPipeline:
             self.reps_dropdown,
         ])
 
+        def labeled_checkbox(description, tooltip, value=False):
+            checkbox = widgets.Checkbox(value=value, layout=Layout(width='auto'))
+            checkbox.layout.flex = '0 0 auto'  # don’t shrink
+
+            label = widgets.HTML(
+                f"<span title='{tooltip}' style='font-size:13px;'>{description}</span>",
+                layout=Layout(margin='0 0 0 8px')
+            )
+            return widgets.HBox([checkbox, label], layout=Layout(align_items='center', display='flex')), checkbox
+
         # --- Additional plot controls ---
         self.pickle_status_label = widgets.HTML()
-        self.mix_groups_checkbox = widgets.Checkbox(value=True, description='Mix Groups')
-        self.recolor_checkbox = widgets.Checkbox(value=False, description='Recolor by Brenner')
+        self.mix_groups_box, self.mix_groups_checkbox = labeled_checkbox('Mix Groups', 'Shuffle and plot instead of plotting each group on top of each other', value=True)
+        self.recolor_box, self.recolor_checkbox = labeled_checkbox('Recolor by Brenner','Recolor points based on Brenner scores (if available)', value=False)
         self.dilute_slider = widgets.SelectionSlider(
             options=[1, 2, 3, 4, 5, 10, 15, 20, 25, 50, 75, 100],
             value=1,
             description='Downsample',
             style={'description_width': '100px'},
             layout=Layout(width='300px'),
-            continuous_update=False
+            continuous_update=False,
+            tooltip='Dilute the number of points plotted (1 = no dilution, 2 = every second point, etc.)'
         )
-        self.bins_slider = widgets.IntSlider(value=5, min=1, max=20, step=1, description='Colors (Brenner)', style={'description_width': '100px'})
+        self.bins_slider = widgets.IntSlider(value=5, min=1, max=20, step=1, description='Colors (Brenner)', style={'description_width': '100px'},
+                                             tooltip='Number of colors for Brenner score recoloring')
 
         # --- Layout containers ---
         self.umap_params = widgets.VBox([
             widgets.HTML("<b>Select UMAP Parameters (not all combinations are available):</b>"),
             widgets.HBox([dropdown_col1, dropdown_col2], layout=Layout(gap='20px')),
-            self.mix_groups_checkbox,
-            self.recolor_checkbox,
+            self.mix_groups_box,
+            self.recolor_box,
             self.bins_slider,
             self.dilute_slider,
             self.pickle_status_label,
@@ -282,9 +296,9 @@ class InteractiveUMAPPipeline:
             clear_output()
             print('Searching for all UMAPs in folder... (~10 seconds)')
 
-            umaps_dir = self.umaps_dir_widget.value.strip()
-            csv_path = self.csv_path_widget.value.strip()
-            image_dirs_raw = self.images_dir_widget.value.strip()
+            umaps_dir = self.umaps_dir_widget.text_input.value.strip()
+            csv_path = self.csv_path_widget.text_input.value.strip()
+            image_dirs_raw = self.images_dir_widget.text_input.value.strip()
 
             # --- UMAPs dir must exist ---
             if not umaps_dir or not os.path.isdir(umaps_dir):
@@ -358,7 +372,7 @@ class InteractiveUMAPPipeline:
                 return  # Stop execution if file doesn't exist
 
             self.umap_embeddings, self.label_data, self.config_data, self.config_plot, self.df_umap_tiles = load_and_process_data(
-                self.umaps_dir_widget.value, pickle_file_path, self.df_brenner)
+                self.umaps_dir_widget.text_input.value, pickle_file_path, self.df_brenner)
             
             # Apply dilution
             dilute=self.dilute_slider.value
@@ -521,14 +535,19 @@ class InteractiveUMAPPipeline:
             with self.umap_output: clear_output()
             self.right_box.layout.display = 'none'
             self.show_images_controls.layout.display = 'none'
-        
-    def make_text_widget(self, value, description):
-        return Text(
-            value=value,
-            description=description,
-            layout=Layout(width='900px'),
-            style={'description_width': '200px'}
+
+    def make_text_widget(self, value, description, tooltip=''):
+        label = widgets.HTML(
+            f"""
+            <label style="display:inline-block; width:200px;" title="{tooltip}">
+                {description}
+            </label>
+            """
         )
+        text = Text(value=value, layout=Layout(width='700px'))
+        container = widgets.HBox([label, text])
+        container.text_input = text  # attach text widget for later access
+        return container
 
     def create_checkbox_group(self, column): 
         value_counts = self.df_umap_tiles[column].value_counts()
