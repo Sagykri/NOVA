@@ -159,7 +159,6 @@ class Preprocessor(ABC):
         paths = nuclues_paths + markers_paths
         
         images_groups = self.__get_grouped_images_for_paths(paths)
-        logging.info(f"main_group : {images_groups}")
         processed_images = {}
         for group_id, images_group in images_groups.items():
             processed_image = self._process_images_group(group_id, images_group)
@@ -251,17 +250,14 @@ class Preprocessor(ABC):
         # Tile the nucleus mask and validate each tile
         nuclei_mask_tiled = crop_image_to_tiles(nuclei_mask, self.preprocessing_config.TILE_INTERMEDIATE_SHAPE)
         
-        # Define image outer frame 
-        image_border = box(0,0,self.preprocessing_config.EXPECTED_IMAGE_SHAPE[0],self.preprocessing_config.EXPECTED_IMAGE_SHAPE[1]) 
         # Fix for non-valid polygons 
         whole_polygons = extract_polygons_from_mask(nuclei_mask) 
-        # Filter out polygons which touch the outer frame ## Add private function
-        whole_polygons = [p for p in whole_polygons if not p.intersects(image_border.exterior.buffer(1))]
-        
+        # Filter out polygons which touch the outer frame         
+        whole_polygons = self.__filter_intersecting_with_outer_frame(whole_polygons=whole_polygons, image_shape=self.preprocessing_config.EXPECTED_IMAGE_SHAPE)
         # In each tile - match the contained polygons with the whole ones.
         # output will look like: {tile_index: [whole_polygons_indexes]}
         dict_matches = self.__match_part_with_whole_pols(nuclei_mask_tiled , whole_polygons)
-        # Select only tiles with passed nuclues ### return single bool
+        # Select only tiles with passed nuclues 
         valid_tiles_indexes = np.where([self.__is_valid_tile(masked_tile,dict_matches, whole_polygons = whole_polygons , 
                                                                         ix=ix)
                                                    for ix, masked_tile in enumerate(nuclei_mask_tiled)])
@@ -297,7 +293,6 @@ class Preprocessor(ABC):
         if self.markers_focus_boundries is not None:
             # Filter out-of-focus images
             marker = path_utils.get_raw_marker(path)
-            #logging.error(f"focus_boundaries {self.markers_focus_boundries}")
             thresholds = tuple(self.markers_focus_boundries.loc[marker].values)
             if not is_image_focused(image, thresholds): 
                 logging.warning(f"out-of-focus for {marker}: {path}")
@@ -344,10 +339,8 @@ class Preprocessor(ABC):
                 Key: The path to the raw file
                 Value: The processed valid tiles
         """        
-        logging.error(f"Processing the group: {group_id}: {images_group}")
         
         processed_images: Dict[str, np.ndarray ] = {}
-        #logging.error(f" groups : {images_group}") # For debug
         nucleus_path = images_group[self.__NUCLEUS_MARKER_NAME]
         logging.info(f"[{group_id}] Processing {self.__NUCLEUS_MARKER_NAME}: {nucleus_path}")
         
@@ -355,18 +348,15 @@ class Preprocessor(ABC):
         if processed_nucleus is None: return 
         
         # Get valid tile indexes for the nucleus image
-        valid_tiles_indexes, nuclei_mask_tiled  = self._get_valid_tiles_indexes(processed_nucleus) ### CHANGE HERE
+        valid_tiles_indexes, nuclei_mask_tiled  = self._get_valid_tiles_indexes(processed_nucleus) 
 
         self.logging_df.log_nucleus(nuclei_mask_tiled, valid_tiles_indexes, nucleus_path)
         if len(valid_tiles_indexes) == 0: 
             logging.warning(f"[{group_id}] No valid tiles were found for nucleus image: {nucleus_path}")
             return
-        
-        logging.info(f"[{group_id}] {len(valid_tiles_indexes)} valid tiles were found")
-        
+                
         # Process each marker image in the same plate as the current nucleus
         for marker_name, marker_path in images_group.items():
-            logging.info(f"[{group_id}] Processing {marker_name}: {marker_path}")
 
             processed_marker = self._get_image(marker_path)
 
@@ -391,6 +381,24 @@ class Preprocessor(ABC):
         logging.info(f"[{group_id}] Shape of processed images: {__shapes}")
             
         return processed_images
+    
+    def __filter_intersecting_with_outer_frame(self, whole_polygons: List[Polygon], image_shape: tuple) -> List[Polygon]:
+        """
+        Filter out polygons that intersect with the outer frame of the image.
+
+        Args:
+            polygons (List[Polygon]): List of polygons to filter.
+            image_shape (tuple): Shape of the image (height, width).
+
+        Returns:
+            List[Polygon]: Filtered list of polygons.
+        """
+        # Define image outer frame 
+        image_border = box(0,0,image_shape[0],image_shape[1]) 
+        # Filter out polygons which touch the outer frame 
+        whole_polygons = [p for p in whole_polygons if not p.intersects(image_border.exterior.buffer(1))]
+        
+        return whole_polygons
     
     def __match_part_with_whole_pols(self ,nuclei_mask_tiled , whole_polygons) -> Dict :
 
