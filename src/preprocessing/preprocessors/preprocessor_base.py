@@ -451,7 +451,7 @@ class Preprocessor(ABC):
         """
 
         # --------------------------------------
-        # Step 1: Extract partial polygons from tile mask
+        # Extract partial polygons from tile mask
         # These are the intersected nuclei parts within the tile
         # --------------------------------------
 
@@ -460,27 +460,24 @@ class Preprocessor(ABC):
         matched_polygons_ixs = dict_matches[ix]
 
         passed_tile = False
-        #logging.error(f"matched_polygons_ixs {matched_polygons_ixs}")
-        for pol_ix, pol_part in zip(matched_polygons_ixs, polygons):
 
+        for pol_ix, pol_part in zip(matched_polygons_ixs, polygons):
             if pol_ix is not None and pol_part is not None:
-                #logging.error(f"pol_ix {pol_ix} , pol_part_type {pol_part.geom_type} , area_ratios = {pol_part.area/ whole_polygons[pol_ix].area }")
                 if pol_part.area/ whole_polygons[pol_ix].area > self.preprocessing_config.INCLUDED_AREA_RATIO:
                     passed_tile = True
 
         # Image and tile size setup
-        ### change to lower case
         max_num_nuclei = self.preprocessing_config.MAX_NUM_NUCLEI
 
         # --------------------------------------
-        # Step 4: Evaluate tile conditions
+        # Evaluate tile conditions
         #   cond1: contains at least one sufficiently complete nucleus
         #   cond2: does not exceed the maximum allowed nuclei count
         # --------------------------------------
         cond1 = passed_tile
         cond2 = get_nuclei_count(masked_tile) <= max_num_nuclei
 
-        return cond1 and cond2 #, l_shifted #-> decide later if to add this for debugging
+        return cond1 and cond2 
    
     def __get_grouped_images_for_folder(self, folder_path:str)->Dict[str, Dict[str, str]]:
         """Get groups of images for the given folder, filtered based on the configuration settings
