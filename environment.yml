@@ -240,6 +240,9 @@ dependencies:
   - zlib=1.2.13=h5eee18b_0
   - zstandard=0.22.0=py39h2c38b39_0
   - zstd=1.5.5=hc292b87_0
+  - ipywidgets=8.1.7
+  - widgetsnbextension=4.0.14
+  - mplcursors=0.6
   - pip:
     - aws-requests-auth==0.4.3
     - boto3==1.34.144
@@ -278,7 +281,7 @@ dependencies:
     - safetensors==0.4.3
     - scikit-image==0.19.3
     - seaborn==0.13.2
-    - shapely==1.8.4
+    - shapely==2.0.5
     - tenacity==8.5.0
     - tifffile==2024.8.30
     - tokenizers==0.19.1
@@ -287,4 +290,4 @@ dependencies:
     - umap-learn==0.5.6
     - urllib3==1.26.19
     - xxhash==3.4.1
-prefix: /home/projects/hornsteinlab/sagyk/anaconda3/envs/nova
+prefix: /home/projects/hornsteinlab/Collaboration/NOVA/envs/nova
