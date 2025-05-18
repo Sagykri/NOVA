@@ -396,6 +396,22 @@ class AlyssaCoyneUMAP2FigureConfig(FigureConfig):
         self.ADD_BATCH_TO_LABEL = False
         self.ADD_CONDITION_TO_LABEL = False
 
+class AlyssaCoyne080525FullOrgUMAP2FigureConfig(FigureConfig):
+    def __init__(self):
+        super().__init__()
+
+        # Batches used for model development
+        self.INPUT_FOLDERS = ["batch1"]
+        
+        self.EXPERIMENT_TYPE = 'AlyssaCoyne080525'    
+        
+        # Decide if to show ARI metric on the UMAP
+        self.SHOW_ARI = True
+        self.ARI_LABELS_FUNC = MapLabelsFunction.MULTIPLEX_CELL_LINES.name
+        self.ADD_REP_TO_LABEL=True
+        self.ADD_BATCH_TO_LABEL = False
+        self.ADD_CONDITION_TO_LABEL = False
+
 
 ############################################################
 # Figure 5 - supp

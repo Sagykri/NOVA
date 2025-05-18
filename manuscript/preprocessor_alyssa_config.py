@@ -7,8 +7,8 @@ class AlyssaPreprocessingConfig(PreprocessingConfig):
     def __init__(self):
         super().__init__()
         
-        self.INPUT_FOLDERS = os.path.join(self.RAW_FOLDER_ROOT, 'AlyssaCoyne', 'batch1')
-        self.PROCESSED_FOLDERS = os.path.join(self.PROCESSED_FOLDER_ROOT, "AlyssaCoyne",'batch1')
+        self.INPUT_FOLDERS = [os.path.join(self.RAW_FOLDER_ROOT, 'AlyssaCoyne', 'batch1')]
+        self.PROCESSED_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "AlyssaCoyne",'batch1')]
         self.OUTPUTS_FOLDER = os.path.join(self.OUTPUTS_FOLDER, "preprocessing", "AlyssaCoyne","batch1")
         self.PREPROCESSOR_CLASS_PATH = os.path.join("src", "preprocessing", "preprocessors", "preprocessor_spd", "SPDPreprocessor")
         self.RESCALE_INTENSITY = {
@@ -19,3 +19,14 @@ class AlyssaPreprocessingConfig(PreprocessingConfig):
         self.TILE_INTERMEDIATE_SHAPE = (146,146)
         self.EXPECTED_IMAGE_SHAPE = (1022,1022)
         
+
+class Alyssa080525PreprocessingConfig(AlyssaPreprocessingConfig):
+  def __init__(self):
+      super().__init__()
+      
+      self.INPUT_FOLDERS = [os.path.join(self.RAW_FOLDER_ROOT, 'AlyssaCoyne', 'Coyne_080525_sorted', 'batch1')]
+      self.PROCESSED_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "AlyssaCoyne", 'Coyne_080525_processed', 'batch1')]
+      self.OUTPUTS_FOLDER = os.path.join(self.OUTPUTS_FOLDER, "preprocessing", "AlyssaCoyne", 'Coyne_080525_sorted', "batch1")
+
+      self.MARKERS_FOCUS_BOUNDRIES_PATH = os.path.join(os.getenv("NOVA_HOME"), 'manuscript', 'markers_focus_boundries', "markers_focus_boundries_Coyne110525.csv")
+

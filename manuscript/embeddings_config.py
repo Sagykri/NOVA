@@ -226,3 +226,16 @@ class EmbeddingsAlyssaCoyneDatasetConfig(EmbeddingsConfig):
         self.MARKERS_TO_EXCLUDE = ['MERGED']
         self.ADD_BATCH_TO_LABEL = True
         self.ADD_REP_TO_LABEL = True
+
+
+class EmbeddingsAlyssaCoyne080525DatasetConfig(EmbeddingsConfig):
+    def __init__(self):
+        super().__init__()
+
+        self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "AlyssaCoyne", "Coyne_080525_processed", f) for f in 
+                        ["batch1"]]
+        
+        self.SPLIT_DATA = False
+        self.EXPERIMENT_TYPE = 'AlyssaCoyne080525'
+        self.ADD_BATCH_TO_LABEL = True
+        self.ADD_REP_TO_LABEL = True

@@ -12,6 +12,13 @@ import numpy as np
 from cellpose import models
 import pandas as pd
 
+###############
+# NOTE: NEW
+from shapely import affinity , make_valid
+from shapely.geometry import box ,Polygon
+import cellpose
+################
+
 from skimage import transform
 
 sys.path.insert(1, os.getenv("NOVA_HOME"))
@@ -245,9 +252,32 @@ class Preprocessor(ABC):
         )
         # Tile the nucleus mask and validate each tile
         nuclei_mask_tiled = crop_image_to_tiles(nuclei_mask, self.preprocessing_config.TILE_INTERMEDIATE_SHAPE)
-        valid_tiles_indexes = np.where([self.__is_valid_tile(masked_tile) for masked_tile in nuclei_mask_tiled])[0]
+
+        #########################
+        # NOTE: NEW
+        # Define image outer frame 
+        image_border = box(0,0,self.preprocessing_config.EXPECTED_IMAGE_SHAPE[0],self.preprocessing_config.EXPECTED_IMAGE_SHAPE[1]) 
+        # Fix for non-valid polygons 
+        whole_polygons = extract_polygons_from_mask(nuclei_mask) 
+        # Filter out polygons which touch the outer frame ## Add private function
+        whole_polygons = [p for p in whole_polygons if not p.intersects(image_border.exterior.buffer(1))]
+        
+        # Select only tiles with passed nuclues ### return single bool
+        valid_tiles_indexes = np.where([self.__is_valid_tile(masked_tile, whole_polygons = whole_polygons , 
+                                                                        ix=ix)
+                                                   for ix, masked_tile in enumerate(nuclei_mask_tiled)])
+
+        valid_tiles_indexes = valid_tiles_indexes[0]
+        ####################
+
+        #########################
+        # NOTE: OLD
+        # valid_tiles_indexes = np.where([self.__is_valid_tile(masked_tile) for masked_tile in nuclei_mask_tiled])[0]
+        # 
+        #########################
+
         if return_masked_tiles:
-            return valid_tiles_indexes, nuclei_mask_tiled
+            return valid_tiles_indexes , nuclei_mask_tiled
         return valid_tiles_indexes
 
     def _get_image(self, path: str) -> Union[np.ndarray , None]:
@@ -369,19 +399,92 @@ class Preprocessor(ABC):
             
         return processed_images
             
-    def __is_valid_tile(self, masked_tile: np.ndarray) -> bool:
+    ####################################
+    # NOTE: NEW
+    def __is_valid_tile(self, masked_tile: np.ndarray, whole_polygons=None, ix=None) -> bool:
         """
-        Check if the tile has at least one whole nucleus but not more than the maximum allowed nucleus 
-
+        Check if the tile has at least one whole nucleus but not more than the maximum allowed nuclei.
+        
         Args:
-            masked_tile (np.ndarray): Segmented tile for nuclei within
+            masked_tile (np.ndarray): Segmented tile image (mask of nuclei within the tile)
+            whole_polygons (List[Polygon]): List of all complete nucleus polygons across the entire image
+            ix (int): Index of the tile (used to compute its position in the global image)
         
         Returns:
-            bool: True if the tile contains a whole nucleus and not more than the maximum allowed nucleus, False otherwise.
+            bool: True if the tile contains a valid nucleus and not more than the allowed number, else False.
         """
+
+        # --------------------------------------
+        # Step 1: Extract partial polygons from tile mask
+        # These are the intersected nuclei parts within the tile
+        # --------------------------------------
         polygons = extract_polygons_from_mask(masked_tile)
-        return is_contains_whole_nucleus(polygons, self.preprocessing_config.TILE_INTERMEDIATE_SHAPE) and get_nuclei_count(masked_tile) <= self.preprocessing_config.MAX_NUM_NUCLEI
+        polygons = [p for p in polygons]
+
+        # Image and tile size setup
+        ### change to lower case
+        expected_image_shape = self.preprocessing_config.EXPECTED_IMAGE_SHAPE[0]
+        tile_size = self.preprocessing_config.TILE_INTERMEDIATE_SHAPE[0]
+        max_num_nuclei = self.preprocessing_config.MAX_NUM_NUCLEI
+        n_tiles = expected_image_shape // tile_size
+
+        filtered_polygons = []
+        i = ix  # tile index
+        l_shifted = []  # shifted polygons for debugging or future use
+
+        # --------------------------------------
+        # Step 2: Iterate through each extracted (partial) polygon
+        # --------------------------------------
+        for p in polygons:
+            # Translate polygon to global image coordinates based on tile index
+            p1 = affinity.translate(p, xoff=i % n_tiles * tile_size, yoff=i // n_tiles * tile_size)
+            pc = p1.representative_point()  # Find a point guaranteed to be inside the polygon
+
+            l_shifted.append(p1)
+
+            # --------------------------------------
+            # Step 3: Check if this polygon corresponds to a known whole polygon
+            # by verifying:
+            #   - the point lies inside a full polygon
+            #   - the area ratio exceeds a set threshold
+            # --------------------------------------
+            if p is not None: 
+                for pol_whole in whole_polygons:
+                    if pc.intersects(pol_whole) and \
+                    (p1.intersection(pol_whole).area / pol_whole.area >
+                        self.preprocessing_config.INCLUDED_AREA_RATIO):
+                        filtered_polygons.append(p)
+                        break  # One match is enough — continue to next polygon
+
+        # --------------------------------------
+        # Step 4: Evaluate tile conditions
+        #   cond1: contains at least one sufficiently complete nucleus
+        #   cond2: does not exceed the maximum allowed nuclei count
+        # --------------------------------------
+        cond1 = len(filtered_polygons) > 0
+        cond2 = get_nuclei_count(masked_tile) <= max_num_nuclei
+
+        return cond1 and cond2 #, l_shifted #-> decide later if to add this for debugging
+
+    ####################################
+
+    # NOTE: OLD
+
+    # def __is_valid_tile(self, masked_tile: np.ndarray) -> bool:
+    #     """
+    #     Check if the tile has at least one whole nucleus but not more than the maximum allowed nucleus 
+
+    #     Args:
+    #         masked_tile (np.ndarray): Segmented tile for nuclei within
+        
+    #     Returns:
+    #         bool: True if the tile contains a whole nucleus and not more than the maximum allowed nucleus, False otherwise.
+    #     """
+    #     polygons = extract_polygons_from_mask(masked_tile)
+    #     return is_contains_whole_nucleus(polygons, self.preprocessing_config.TILE_INTERMEDIATE_SHAPE) and get_nuclei_count(masked_tile) <= self.preprocessing_config.MAX_NUM_NUCLEI
     
+    ####################################
+
     def __get_grouped_images_for_folder(self, folder_path:str)->Dict[str, Dict[str, str]]:
         """Get groups of images for the given folder, filtered based on the configuration settings
 

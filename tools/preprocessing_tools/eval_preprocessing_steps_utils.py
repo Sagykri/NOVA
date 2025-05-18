@@ -13,14 +13,14 @@ print(f"NOVA_HOME: {os.getenv('NOVA_HOME')}")
 from src.preprocessing.preprocessing_utils import get_image_focus_quality, rescale_intensity, fit_image_shape, get_nuclei_segmentations
 from tools.preprocessing_tools.image_sampling_utils import sample_raw_images, sample_processed_images
 
-def plot_images(images, paths, n_samples=3, expected_site_width=1024, expected_site_height=1024, figsize=(16,8), suptitle=None):
+def plot_images(images, paths, n_samples=3, expected_site_width=1024, expected_site_height=1024, block_size=128, figsize=(16,8), suptitle=None):
     fig, ax = plt.subplots(1, n_samples, figsize=figsize)
     if suptitle is not None:
         fig.suptitle(suptitle)
     
     def __plot(ax, image, path):
         ax.set_title(f'{os.path.basename(path)}')
-        put_tiles_grid(ax, expected_site_width, expected_site_height)
+        put_tiles_grid(ax, expected_site_width, expected_site_height, block_size)
         ax.imshow(image, cmap='gray')
         ax.set_axis_off()
     
@@ -46,7 +46,7 @@ def plot_processed_images(images, paths, n_samples=3, figsize=(16,8)):
     
 def put_tiles_grid(ax, w, h, block_size=128):
     # Add dashed grid lines
-    num_blocks = w / block_size
+    num_blocks = int(w / block_size)
     for i in range(1, num_blocks):
         # Draw horizontal dashed lines
         ax.plot([0, w], [i * block_size, i * block_size], linestyle='--', lw=1, alpha=0.5, color='pink')

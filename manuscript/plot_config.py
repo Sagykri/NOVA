@@ -126,10 +126,37 @@ class PlotConfig(PlotConfig):
             'c9orf72ALSPatients_rep2':{self.MAPPINGS_ALIAS_KEY:'2', self.MAPPINGS_COLOR_KEY:'#bc2a33'},
             'c9orf72ALSPatients_rep3':{self.MAPPINGS_ALIAS_KEY:'3', self.MAPPINGS_COLOR_KEY:'#8d1f26'},
 
+
+            'Ctrl_Untreated':{self.MAPPINGS_ALIAS_KEY: 'Controls',self.MAPPINGS_COLOR_KEY: '#58cfdf'},
+            'SALSPositive_Untreated':{self.MAPPINGS_ALIAS_KEY:'sALS Positive TDP-43', self.MAPPINGS_COLOR_KEY:'#f6ce55'},
+            'SALSNegative_Untreated':{self.MAPPINGS_ALIAS_KEY:'sALS Negative TDP-43', self.MAPPINGS_COLOR_KEY:'#3ce23c'},
+            'C9_Untreated':{self.MAPPINGS_ALIAS_KEY:'c9orf72', self.MAPPINGS_COLOR_KEY:'#eb3440'},
+
+            'Ctrl_rep1':{self.MAPPINGS_ALIAS_KEY: 'Ctrl_rep1',self.MAPPINGS_COLOR_KEY: '#58cfdf'},
+            'Ctrl_rep2':{self.MAPPINGS_ALIAS_KEY: 'Ctrl_rep2',self.MAPPINGS_COLOR_KEY: '#4db6c4'},
+            'Ctrl_rep3':{self.MAPPINGS_ALIAS_KEY: 'Ctrl_rep3',self.MAPPINGS_COLOR_KEY: '#439da9'},
+            
+            'SALSPositive_rep1':{self.MAPPINGS_ALIAS_KEY:'SALSPositive_rep1', self.MAPPINGS_COLOR_KEY:'#f6ce55'},
+            'SALSPositive_rep2':{self.MAPPINGS_ALIAS_KEY:'SALSPositive_rep2', self.MAPPINGS_COLOR_KEY:'#dbb74c'},
+            'SALSPositive_rep3':{self.MAPPINGS_ALIAS_KEY:'SALSPositive_rep3', self.MAPPINGS_COLOR_KEY:'#cdac47'},
+
+            'SALSNegative_rep1':{self.MAPPINGS_ALIAS_KEY:'SALSNegative_rep1', self.MAPPINGS_COLOR_KEY:'#3ce23c'},
+            'SALSNegative_rep2':{self.MAPPINGS_ALIAS_KEY:'SALSNegative_rep2', self.MAPPINGS_COLOR_KEY:'#1e711e'},
+            'SALSNegative_rep3':{self.MAPPINGS_ALIAS_KEY:'SALSNegative_rep3', self.MAPPINGS_COLOR_KEY:'#2ca82c'},
+
+            'C9_rep1':{self.MAPPINGS_ALIAS_KEY:'C9_rep1', self.MAPPINGS_COLOR_KEY:'#eb3440'},
+            'C9_rep2':{self.MAPPINGS_ALIAS_KEY:'C9_rep2', self.MAPPINGS_COLOR_KEY:'#bc2a33'},
+            'C9_rep3':{self.MAPPINGS_ALIAS_KEY:'C9_rep3', self.MAPPINGS_COLOR_KEY:'#8d1f26'},
+
         }
         self.COLOR_MAPPINGS_ALYSSA['Controls'] = self.COLOR_MAPPINGS_ALYSSA['Controls_Untreated']
         self.COLOR_MAPPINGS_ALYSSA['sALSPositiveCytoTDP43'] = self.COLOR_MAPPINGS_ALYSSA['sALSPositiveCytoTDP43_Untreated']
         self.COLOR_MAPPINGS_ALYSSA['sALSNegativeCytoTDP43'] = self.COLOR_MAPPINGS_ALYSSA['sALSNegativeCytoTDP43_Untreated']
         self.COLOR_MAPPINGS_ALYSSA['c9orf72ALSPatients'] = self.COLOR_MAPPINGS_ALYSSA['c9orf72ALSPatients_Untreated']
+
+        self.COLOR_MAPPINGS_ALYSSA['Ctrl'] = self.COLOR_MAPPINGS_ALYSSA['Controls_Untreated']
+        self.COLOR_MAPPINGS_ALYSSA['SALSPositive'] = self.COLOR_MAPPINGS_ALYSSA['sALSPositiveCytoTDP43_Untreated']
+        self.COLOR_MAPPINGS_ALYSSA['SALSNegative'] = self.COLOR_MAPPINGS_ALYSSA['sALSNegativeCytoTDP43_Untreated']
+        self.COLOR_MAPPINGS_ALYSSA['C9'] = self.COLOR_MAPPINGS_ALYSSA['c9orf72ALSPatients_Untreated']
 
         self.COLOR_MAPPINGS = self.COLOR_MAPPINGS_ALS

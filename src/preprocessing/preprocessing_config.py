@@ -34,6 +34,13 @@ class PreprocessingConfig(BaseConfig):
         # Maximum allowed nuclei in a tile
         self.MAX_NUM_NUCLEI:int = 5
         
+        ##################
+        # NOTE: NEW
+        # Percentage of area of nuclue in tile will be defined as valid. range 0-1
+        self.INCLUDED_AREA_RATIO:float = 0.8
+        ##################
+        
+        
         # Num of workers to use when running the preprocessing in parallel
         self.NUM_WORKERS:int = 6
         

@@ -8,6 +8,7 @@ import cv2
 import cellpose
 from cellpose import models
 from shapely.geometry import Polygon
+from shapely import make_valid
 import skimage.exposure
 
 sys.path.insert(1, os.getenv("NOVA_HOME"))
@@ -207,6 +208,12 @@ def extract_polygons_from_mask(mask:np.ndarray )->List[Polygon]:
         List[Polygon]: The list of object within the given mask as polygons
     """
     polygons = [Polygon(xy_to_tuple(o)) for o in cellpose.utils.outlines_list(mask)]
+
+    ## Validate polygons
+    polygons = [make_valid(p1) if not p1.is_valid else p1 for p1 in polygons]
+
+    # Filter out shapes which are not polygons (i.e. lines) ## Add to extract polygons from mask?
+    polygons = [pol for pol in polygons if pol.geom_type != 'LineString' and pol.geom_type !='MultiLineString']
     
     return polygons
 def is_contains_whole_nucleus(
