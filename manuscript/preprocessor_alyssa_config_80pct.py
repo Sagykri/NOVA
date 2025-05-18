@@ -8,7 +8,7 @@ class AlyssaPreprocessingConfig(PreprocessingConfig):
         super().__init__()
         
         self.INPUT_FOLDERS = os.path.join(self.RAW_FOLDER_ROOT, 'AlyssaCoyne', 'batch1')
-        self.PROCESSED_FOLDERS = os.path.join(self.PROCESSED_FOLDER_ROOT, "AlyssaCoyne80pct",'batch1')
+        self.PROCESSED_FOLDERS = os.path.join(self.PROCESSED_FOLDER_ROOT, "AlyssaCoyne80pct",'MOmaps_iPSC_patients_TDP43_PB_CoyneLab_7tiles','batch1')
         self.OUTPUTS_FOLDER = os.path.join(self.OUTPUTS_FOLDER, "preprocessing", "AlyssaCoyne80pct","batch1")
         self.PREPROCESSOR_CLASS_PATH = os.path.join("src", "preprocessing", "preprocessors", "preprocessor_spd", "SPDPreprocessor")
         self.RESCALE_INTENSITY = {
