@@ -469,17 +469,13 @@ class InteractiveUMAPPipeline:
         # Apply all filters to df_umap_tiles
         mask = np.ones(len(self.df_umap_tiles), dtype=bool)  # Start with all True
         for column, values in filters.items():
-            # Special handling for 'Combination' column
-            if column == 'Cell_line_Condition':
-                mask &= self.df_umap_tiles['Cell_line_Condition'].isin(values)
-            else:
-                # Standard checkbox filters    
-                # Strip counts (e.g., 'Batch4 (4384)' -> 'Batch4')
-                cleaned_values = [v.split(' (')[0] for v in values]
+            # Checkbox filters    
+            # Strip counts (e.g., 'Batch4 (4384)' -> 'Batch4')
+            cleaned_values = [v.split(' (')[0] for v in values]
 
-                mask &= self.df_umap_tiles[column].apply(
-                    lambda x: any(str(x).startswith(prefix) for prefix in cleaned_values)
-                )
+            mask &= self.df_umap_tiles[column].apply(
+                lambda x: any(str(x).startswith(prefix) for prefix in cleaned_values)
+            )
         # Apply mask to all data
         self.umap_embeddings_filt = self.umap_embeddings[mask]
         self.label_data_filt = self.label_data[mask]
