@@ -384,32 +384,38 @@ class InteractiveUMAPPipeline:
             self.umap_embeddings, self.label_data, self.config_data, self.config_plot, self.df_umap_tiles = load_and_process_data(
                 self.umaps_dir_widget.text_input.value, pickle_file_path, self.df_brenner)
             
-            # Apply dilution
-            dilute=self.dilute_slider.value
-            self.umap_embeddings = self.umap_embeddings[::dilute]
-            self.label_data = self.label_data[::dilute]
-            self.df_umap_tiles = self.df_umap_tiles.iloc[::dilute].copy()
-            self.df_umap_tiles.index = list(range(len(self.df_umap_tiles)))            
-
+            self.apply_dilution() 
+     
             self.config_plot['MIX_GROUPS'] = self.mix_groups_checkbox.value
 
             self.plot_interactive_umap()
 
             # Dynamically populate checkbox filters
-            self.right_box.children = [
-                widgets.HTML("<b>Filter Settings:</b>")
-            ] + [
-                self.create_checkbox_group(col) for col in ['Batch', 'Condition', 'Rep', 'CellLine']
-            ] + [
-                self.create_more_filters()  # Add the special combination filter
-            ] + [self.apply_filter_button]
-
+            self.update_filter_widgets()
 
         self.apply_filter_button.layout.display = 'inline-block'
         self.right_box.layout.display = 'flex'
         self.image_display_controls.layout.display = 'flex'
         self.clear_outputs(umaps=False)
         check_memory_status()
+
+    def apply_dilution(self):
+        """Apply downsampling to embeddings, labels, and tiles."""
+        dilute = self.dilute_slider.value
+        self.umap_embeddings = self.umap_embeddings[::dilute]
+        self.label_data = self.label_data[::dilute]
+        self.df_umap_tiles = self.df_umap_tiles.iloc[::dilute].copy()
+        self.df_umap_tiles.index = list(range(len(self.df_umap_tiles)))
+
+    def update_filter_widgets(self):
+        """Update and display dynamic filter checkboxes and dropdowns."""
+        self.right_box.children = [
+            widgets.HTML("<b>Filter Settings:</b>")
+        ] + [
+            self.create_checkbox_group(col) for col in ['Batch', 'Condition', 'Rep', 'CellLine']
+        ] + [
+            self.create_more_filters()
+        ] + [self.apply_filter_button]
 
     def create_more_filters(self):
         def make_dropdown(series, label_text, attr_name):
