@@ -404,7 +404,7 @@ class InteractiveUMAPPipeline:
         dilute = self.dilute_slider.value
         self.umap_embeddings = self.umap_embeddings[::dilute]
         self.label_data = self.label_data[::dilute]
-        self.df_umap_tiles = self.df_umap_tiles.iloc[::dilute].copy()
+        self.df_umap_tiles = self.df_umap_tiles.iloc[::dilute]
         self.df_umap_tiles.index = list(range(len(self.df_umap_tiles)))
 
     def update_filter_widgets(self):
