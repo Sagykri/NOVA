@@ -431,6 +431,9 @@ def get_umap_pickle_path(df_umaps, batch, umap_type, reps, coloring, marker, cel
         # Extract the folder path
         folder_path_values = filtered_df["Path"].values
 
+        # Extract the image name
+        image_name_values = filtered_df["Image_Name"].values
+
         if len(folder_path_values) == 0:
             raise ValueError("No matching folder path found for the given parameters.")
 
@@ -438,12 +441,6 @@ def get_umap_pickle_path(df_umaps, batch, umap_type, reps, coloring, marker, cel
             print('More than one pickle file matched, taking the first')
 
         folder_path = folder_path_values[0]  # Assuming one match
-
-        # Extract the image name
-        image_name_values = filtered_df["Image_Name"].values
-        if len(image_name_values) == 0:
-            raise ValueError("No matching image name found for the given parameters.")
-
         image_name = image_name_values[0]  # Assuming one match
 
         # Construct the full path to the pickle file
