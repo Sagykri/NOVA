@@ -1,7 +1,5 @@
 import ctypes
 import os
-import psutil
-
 import pandas as pd
 import ipywidgets as widgets
 from IPython.display import display, clear_output
@@ -12,7 +10,6 @@ import matplotlib.pyplot as plt
 import matplotlib.colors as mcolors
 import matplotlib.patches as mpatches
 import gc
-
 from src.figures.umap_plotting import __format_UMAP_axes as format_UMAP_axes
 from src.figures.umap_plotting import __format_UMAP_legend as format_UMAP_legend
 from tools.interactive_umap.interactive_umap_utils import *
@@ -52,6 +49,7 @@ class InteractiveUMAPPipeline:
         self.df_umap_tiles_filt = None  # Filtered version after applying checkbox filters
         self.umap_embeddings_filt = None  # Filtered version of embeddings
         self.label_data_filt = None  # Filtered version of labels
+        self.current_umap_figure = None  # Currently displayed UMAP figure
 
         # --- Settings ---
         self.hover = hover  # Whether to enable interactive hover-over annotations on points
@@ -67,6 +65,7 @@ class InteractiveUMAPPipeline:
         self.fov_layouts = layouts  # Predefined FOV maps for heatmap plotting
         self.format_UMAP_legend = format_UMAP_legend  # External helper function for formatting legend
         self.format_UMAP_axes = format_UMAP_axes  # External helper function for formatting axes
+        check_memory_status()  # Initial memory check
 
     def _create_widgets(self, default_paths):
         # --- Path configuration widgets ---
@@ -100,6 +99,9 @@ class InteractiveUMAPPipeline:
                                          tooltip="Create UMAP with selected parameters")
         self.show_images_button = Button(description="Show Selected Points", layout=Layout(width='200px', margin='0px 10px'), tooltip="Show sites and tiles images corresponding to selected points")
         self.apply_filter_button = Button(description="Apply Filters", layout=Layout(width='180px', margin='10px 0px 10px 5px', display = 'none'))
+        self.save_umap_button = Button(description="💾 Save UMAP", layout=Layout(width='150px', margin='0px 10px'), tooltip="Save displayed umap to folder saved_umaps")
+        
+        self.save_status_emoji = widgets.Label(value="", layout=Layout(margin="0 0 0 10px"))
 
         self.num_images_slider = widgets.IntSlider(
             value=10, min=1, max=30, step=1,
@@ -107,9 +109,11 @@ class InteractiveUMAPPipeline:
             layout=Layout(width='250px'),
             style={'description_width': '100px'}
         )
-        self.show_images_controls = widgets.HBox([
+        self.image_display_controls = widgets.HBox([
             self.num_images_slider,
-            self.show_images_button
+            self.show_images_button,
+            self.save_umap_button,
+            self.save_status_emoji,
         ], layout=Layout(display='none'))
 
         # --- UMAP dropdowns ---
@@ -207,6 +211,7 @@ class InteractiveUMAPPipeline:
         self.show_images_button.on_click(self.show_selected_images)
         self.create_umap_button.on_click(self.create_umap)
         self.apply_filter_button.on_click(self.apply_filters_and_update_plot)
+        self.save_umap_button.on_click(self.save_umap_figure)
 
     def _display_ui(self):
         self.ui = widgets.VBox([
@@ -219,7 +224,7 @@ class InteractiveUMAPPipeline:
             self.umap_params,
             widgets.HTML("<hr>"),
             widgets.HBox([self.umap_output, self.right_box]),
-            self.show_images_controls,
+            self.image_display_controls,
             widgets.HTML("<hr>"),
             self.selected_images_label,
             self.selected_images_output,
@@ -275,16 +280,20 @@ class InteractiveUMAPPipeline:
         ):
             setattr(self, attr, None)
 
-        # 6. Optionally clear metadata and Brenner info
+        # 6. Clear saving status
+        self.save_status_emoji.value = ''
+
+        # 7. Optionally clear metadata and Brenner info
         if reset_metadata:
             for attr in ('df_umap_meta', 'df_site_meta', 'df_brenner'):
                 setattr(self, attr, None)
 
-        # 7. Clear dynamic filters
+        # 8. Clear dynamic filters
         self.filter_checkboxes.clear()
         self.right_box.children = ()
+        self.applied_filters = {} 
 
-        # 8. Force garbage collection
+        # 9. Force garbage collection
         gc.collect()
 
     def run_pipeline(self, btn):
@@ -347,6 +356,7 @@ class InteractiveUMAPPipeline:
             self.populate_dropdowns_from_umaps()
             self.umap_params.layout.display = 'flex'
             self.create_umap_button.layout.display = 'inline-block'
+            check_memory_status()
          
     def create_umap(self, btn): 
         self.reset()
@@ -397,8 +407,9 @@ class InteractiveUMAPPipeline:
 
         self.apply_filter_button.layout.display = 'inline-block'
         self.right_box.layout.display = 'flex'
-        self.show_images_controls.layout.display = 'flex'
+        self.image_display_controls.layout.display = 'flex'
         self.clear_outputs(umaps=False)
+        check_memory_status()
 
     def create_more_filters(self):
         def make_dropdown(series, label_text, attr_name):
@@ -434,6 +445,7 @@ class InteractiveUMAPPipeline:
     
             # Build filters dictionary
             filters = self.build_filters_from_checkboxes()
+            self.applied_filters = filters 
             self.filter_umap_data(filters=filters)
 
             self.plot_interactive_umap()
@@ -472,6 +484,73 @@ class InteractiveUMAPPipeline:
         self.umap_embeddings_filt = self.umap_embeddings[mask]
         self.label_data_filt = self.label_data[mask]
         self.df_umap_tiles_filt = self.df_umap_tiles.iloc[list(mask)].copy().reset_index(drop=True)
+
+    def get_active_restrictive_filters(self):
+        """
+        Returns a list of lists of selected filter values (grouped by filter type)
+        that reduce the data compared to the full available options.
+        """
+        grouped_active = []
+        filters = getattr(self, "applied_filters", {})
+        all_opts = {
+            col: [cb.description for cb in cbs]
+            for col, cbs in self.filter_checkboxes.items()
+        }
+
+        for col, selected in filters.items():
+            selected_clean = sorted([v.split(" (")[0] for v in selected])
+            full_clean = sorted([v.split(" (")[0] for v in all_opts.get(col, [])])
+            if selected_clean != full_clean:
+                grouped_active.append(selected_clean)
+
+        return grouped_active
+
+    def save_umap_figure(self, btn=None, folder="saved_umaps", dpi=300):
+        """Save the current UMAP figure to the specified folder."""
+        if hasattr(self, "save_status_emoji"):
+            self.save_status_emoji.value = "⏳"
+        if not hasattr(self, "current_umap_figure") or self.current_umap_figure is None:
+            print("⚠️ No UMAP figure found to save.")
+            return
+
+        os.makedirs(folder, exist_ok=True)
+
+        # Base name from dropdowns
+        dropdown_parts = [
+            self.umap_type_dropdown.value,
+            f'batch{self.batch_dropdown.value}',
+            self.reps_dropdown.value,
+            self.coloring_dropdown.value,
+            self.marker_dropdown.value,
+            self.cell_line_dropdown.value,
+            self.condition_dropdown.value,
+        ]
+        parts = [str(p).replace(" ", "").replace("(", "").replace(")", "") for p in dropdown_parts if p]
+
+        # Active filters
+        active_filters = self.get_active_restrictive_filters()
+        if active_filters:
+            grouped = [",".join(vals) for vals in active_filters if vals]
+            parts.append("FILTERS(remaining):" + "_".join(grouped))
+
+        # Optional flags
+        if self.recolor_checkbox.value:
+            parts.append(f"BRENNER{self.bins_slider.value}")
+        if self.dilute_slider.value != 1:
+            parts.append(f"DILUTE{self.dilute_slider.value}")
+
+        filename = "_".join(parts).rstrip("_") + ".png"
+        filepath = os.path.join(folder, filename)
+
+        try:
+            self.current_umap_figure.savefig(filepath, dpi=dpi, bbox_inches='tight')
+            print(f"✅ UMAP figure saved to: {filepath}")
+            if hasattr(self, "save_status_emoji"):
+                self.save_status_emoji.value = "✅"
+        except Exception as e:
+            print(f"❌ Failed to save figure: {e}")
+            if hasattr(self, "save_status_emoji"):
+                self.save_status_emoji.value = "❌"
 
     def show_selected_images(self, btn):
         self.clear_outputs(umaps=False)
@@ -525,6 +604,7 @@ class InteractiveUMAPPipeline:
                 plot_fov_histogram(self.df_umap_tiles, self.selected_indices_global)
             else:
                 print("❌ Please specify the FOV layout to display FOV map.")
+        check_memory_status()
                 
     def clear_outputs(self, selected_points=True, umaps=True): 
         if selected_points:
@@ -534,7 +614,7 @@ class InteractiveUMAPPipeline:
         if umaps:
             with self.umap_output: clear_output()
             self.right_box.layout.display = 'none'
-            self.show_images_controls.layout.display = 'none'
+            self.image_display_controls.layout.display = 'none'
 
     def make_text_widget(self, value, description, tooltip=''):
         label = widgets.HTML(
@@ -695,6 +775,7 @@ class InteractiveUMAPPipeline:
             group: {color_key: cmap(i / (len(unique_groups) - 1)), name_key: group} for i, group in enumerate(unique_groups)}
 
         fig, ax = plt.subplots(figsize=figsize)
+        self.current_umap_figure = fig
         scatter_objects = []
         legend_labels = []
         indices = []
@@ -818,30 +899,8 @@ class InteractiveUMAPPipeline:
         plt.close('all')
         gc.collect()  # Force garbage collection
         self.trim_malloc()
-
-    def get_ram_usage_mb(self):
-        process = psutil.Process(os.getpid())
-        mem_bytes = process.memory_info().rss  # Resident Set Size
-        mem_mb = mem_bytes / (1024 * 1024)
-        print(f"Current RAM usage: {mem_mb:.2f} MB")
-        return mem_mb
     
     def trim_malloc(self):
         """Ask glibc to return free heap pages to the OS."""
         libc = ctypes.CDLL("libc.so.6")
         libc.malloc_trim(0)
-
-def launch_interactive_umap(config, hover=False):
-    global iu
-    # Clean up previous instance if exists
-    if 'iu' in globals():
-        try:
-            iu.dispose()
-        except Exception:
-            pass
-        del globals()['iu']
-        gc.collect()
-
-    # Launch new instance
-    iu = InteractiveUMAPPipeline(config=config, hover=hover)
-    iu.show()
