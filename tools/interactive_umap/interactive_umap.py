@@ -485,25 +485,33 @@ class InteractiveUMAPPipeline:
         self.label_data_filt = self.label_data[mask]
         self.df_umap_tiles_filt = self.df_umap_tiles.iloc[list(mask)].copy().reset_index(drop=True)
 
-    def get_active_restrictive_filters(self):
+    def get_active_filter_values(self):
         """
-        Returns a list of lists of selected filter values (grouped by filter type)
-        that reduce the data compared to the full available options.
+        Returns a list of all applied UMAP filters.
+
+        Each item in the list is a list of selected values for a specific filter group (e.g., Cell Line, Condition).
+        The returned values reflect the user's current selections and are used to annotate saved UMAPs.
         """
-        grouped_active = []
+        active_filter_groups = []
+
         filters = getattr(self, "applied_filters", {})
-        all_opts = {
+
+        # Get all checkbox options per filter column
+        all_options = {
             col: [cb.description for cb in cbs]
             for col, cbs in self.filter_checkboxes.items()
         }
 
-        for col, selected in filters.items():
-            selected_clean = sorted([v.split(" (")[0] for v in selected])
-            full_clean = sorted([v.split(" (")[0] for v in all_opts.get(col, [])])
-            if selected_clean != full_clean:
-                grouped_active.append(selected_clean)
+        for col, selected_values in filters.items():
+            # Clean both selected and full options to ignore counts like "WT (42)"
+            selected_clean = sorted([v.split(" (")[0] for v in selected_values])
+            full_clean = sorted([v.split(" (")[0] for v in all_options.get(col, [])])
 
-        return grouped_active
+            # Only keep the filter if the user selected a subset
+            if selected_clean != full_clean:
+                active_filter_groups.append(selected_clean)
+
+        return active_filter_groups
 
     def save_umap_figure(self, btn=None, folder="saved_umaps", dpi=300):
         """Save the current UMAP figure to the specified folder."""
@@ -528,7 +536,7 @@ class InteractiveUMAPPipeline:
         parts = [str(p).replace(" ", "").replace("(", "").replace(")", "") for p in dropdown_parts if p]
 
         # Active filters
-        active_filters = self.get_active_restrictive_filters()
+        active_filters = self.get_active_filter_values()
         if active_filters:
             grouped = [",".join(vals) for vals in active_filters if vals]
             parts.append("FILTERS(remaining):" + "_".join(grouped))
