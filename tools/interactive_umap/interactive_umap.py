@@ -1,15 +1,17 @@
-import ctypes
 import os
-import pandas as pd
-import ipywidgets as widgets
-from IPython.display import display, clear_output
-from ipywidgets import Button, Output, Text, Layout
 import time
+import ctypes
+import gc
+
+import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.colors as mcolors
 import matplotlib.patches as mpatches
-import gc
+import ipywidgets as widgets
+from ipywidgets import Button, Output, Text, Layout
+from IPython.display import display, clear_output
+
 from src.figures.umap_plotting import __format_UMAP_axes as format_UMAP_axes
 from src.figures.umap_plotting import __format_UMAP_legend as format_UMAP_legend
 from tools.interactive_umap.interactive_umap_utils import *
@@ -187,7 +189,7 @@ class InteractiveUMAPPipeline:
         self.filter_checkboxes = {}
 
         # --- Section labels ---
-        self.selected_images_label = widgets.HTML(value="<b>1. Selected Image Previews:</b>", layout=widgets.Layout(display='none'))
+        self.selected_images_label = widgets.HTML(value="<b>1. Selected Images:</b>", layout=widgets.Layout(display='none'))
         self.selected_tiles_label = widgets.HTML(value="<b>2. Corresponding Tiles:</b>", layout=widgets.Layout(display='none'))
         self.fov_label = widgets.HTML(value="<b>3. FOV Map:</b>", layout=widgets.Layout(display='none'))
         
