@@ -24,12 +24,12 @@ FILE_EXTENSION = ".tiff"
 #####################################
 
 # Path to source folder (root)
-SRC_ROOT_PATH = "/home/labs/hornsteinlab/Collaboration/FUNOVA"
+SRC_ROOT_PATH = "/home/projects/hornsteinlab/Collaboration/FUNOVA"
 
 # Path to destination folder (root)
-DST_ROOT_PATH = "/home/labs/hornsteinlab/Collaboration/FUNOVA/input/images/raw"
+DST_ROOT_PATH = "/home/projects/hornsteinlab/Collaboration/FUNOVA/input/images/raw"
 
-METADATA_PATH = '/home/labs/hornsteinlab/Collaboration/NOVA_GAL/NOVA/tools/images_organizer/FuNOVA/funova_metadata_Exp3-4.csv'
+METADATA_PATH = '/home/projects/hornsteinlab/Collaboration/NOVA_GAL/NOVA/tools/images_organizer/FuNOVA/funova_metadata_Exp3-4.csv'
 
 # Names of folders to handle
 # - For selecting all folders in SRC_ROOT_PATH - set FOLDERS to None or delete the assignment 
