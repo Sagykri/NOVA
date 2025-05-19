@@ -1,4 +1,79 @@
+"""
+This file defines UMAP configuration dictionaries used for loading embeddings, images, and layout metadata.
+
+To add a new config:
+1. Create a new dictionary following the structure of the existing `config_*` variables.
+   The dictionary should include the following keys:
+   - 'paths': a dictionary containing:
+       - 'umaps_folder' (str): path to the folder containing all UMAPs
+       - 'csv_path' (str or None): path to a CSV with Brenner metrics
+       - 'images_dir' (list): list of image directories containing the raw images ('sites')
+   - 'layouts': a dictionary defining panel-wise tile FOV layouts, or None
+
+Example:
+config_example = {
+    'paths': {
+        'umaps_folder': '/path/to/umaps',
+        'csv_path': '/path/to/brenner.csv',
+        'images_dir': ['/path/to/images/']
+    },
+    'layouts': None
+}
+
+2. Name the variable starting with `config_`.  
+   It will automatically be added to the `configs` dictionary and accessible by name
+   Example usage:
+   from interactive_umap_config import configs  
+   config = configs["config_example"]
+"""
+
 import numpy as np
+
+momaps_home = "/home/projects/hornsteinlab/Collaboration/MOmaps"
+momaps_input = f"{momaps_home}/input/images/raw"
+momaps_figures = f"{momaps_home}/outputs/vit_models/finetuned_model/figures"
+momaps_preprocessing = f"{momaps_home}/outputs/preprocessing"
+
+## Day 8 Neurons ##
+config_d8 = {
+    'paths':{
+    'umaps_folder' : f'{momaps_figures}/neurons_iu/UMAPs/',
+    'csv_path' : f'{momaps_preprocessing}/spd/brenner/raw_metrics_all_batches_all_metrics_site_fix.csv',
+    'images_dir' : [f'{momaps_input}/SpinningDisk/batch9/',
+                    f'{momaps_input}/SpinningDisk/batch6/',]
+    },
+    'layouts': None
+}
+
+## Alyssa  ##
+config_alyssa = {
+    'paths':{
+    'umaps_folder' : f'{momaps_figures}/AlyssaCoyne_7tiles_iu/UMAPs/',
+    'csv_path' : None,
+    'images_dir' : [f'{momaps_input}/AlyssaCoyne/MOmaps_iPSC_patients_TDP43_PB_CoyneLab/',]
+    },
+    'layouts': None
+}
+
+## deltaNLS ##
+config_deltaNLS = {
+    'paths':{
+    'umaps_folder' : f'{momaps_figures}/deltaNLS_iu/UMAPs/',
+    'csv_path' : f'{momaps_preprocessing}/spd/brenner/raw_metrics_all_batches_brenner_site_dNLS.csv',
+    'images_dir' : [f'{momaps_input}/SpinningDisk/deltaNLS_sort/' ]
+    },
+    'layouts': None
+}
+
+## Day 18 Neurons ##
+config_d18 = {
+    'paths':{
+    'umaps_folder' : f'{momaps_figures}/neurons_d18_iu/UMAPs/',
+    'csv_path' : f'{momaps_preprocessing}/Opera18Days_Reimaged/brenner/raw_metrics_230724.csv',
+    'images_dir' : [f'{momaps_input}/Opera18DaysReimaged_sorted/',]
+    },
+    'layouts': None
+}
 
 ## Funova ##
 # --- Define FOV Layouts Based on Batch and Panel ---
@@ -79,6 +154,15 @@ funova_fov_layouts = {
 
 config_funova = {
     'paths':{
+        'umaps_folder' : f'{momaps_figures}/funova/UMAPs',
+        'csv_path' : "/home/projects/hornsteinlab/Collaboration/FUNOVA/outputs/preprocessing/brenner/raw_metrics_exp3_exp4.csv",
+        'images_dir' : ['/home/projects/hornsteinlab/Collaboration/FUNOVA/input/images/raw',] 
+    },
+    'layouts': funova_fov_layouts
+}
+
+config_funova_finetuned = {
+    'paths':{
         'umaps_folder' : '/home/projects/hornsteinlab/Collaboration/MOmaps/outputs/vit_models/funova_finetuned_model/figures/funova/UMAPs',
         'csv_path' : "/home/projects/hornsteinlab/Collaboration/FUNOVA/outputs/preprocessing/brenner/raw_metrics_exp3_exp4.csv",
         'images_dir' : ['/home/projects/hornsteinlab/Collaboration/FUNOVA/input/images/raw',]
@@ -86,31 +170,9 @@ config_funova = {
     'layouts': funova_fov_layouts
 }
 
-config_d8 = {
-    'paths':{
-    'umaps_folder' : '/home/projects/hornsteinlab/Collaboration/MOmaps/outputs/vit_models/finetuned_model/figures/neurons_iu/UMAPs/',
-    'csv_path' : "/home/projects/hornsteinlab/Collaboration/MOmaps/outputs/preprocessing/spd/brenner/raw_metrics_all_batches_all_metrics_site_fix.csv",
-    'images_dir' : ['/home/projects/hornsteinlab/Collaboration/MOmaps/input/images/raw/SpinningDisk/batch9/',
-                    '/home/projects/hornsteinlab/Collaboration/MOmaps/input/images/raw/SpinningDisk/batch6/',]
-    },
-    'layouts': None
-}
-
-config_alyssa = {
-    'paths':{
-    'umaps_folder' : '/home/projects/hornsteinlab/Collaboration/MOmaps/outputs/vit_models/finetuned_model/figures/AlyssaCoyne_7tiles_iu/UMAPs/',
-    'csv_path' : None,
-    'images_dir' : ['/home/projects/hornsteinlab/Collaboration/MOmaps/input/images/raw/AlyssaCoyne/MOmaps_iPSC_patients_TDP43_PB_CoyneLab/',]
-    },
-    'layouts': None
-}
-
-config_deltaNLS = {
-    'paths':{
-    'umaps_folder' : '/home/projects/hornsteinlab/Collaboration/MOmaps/outputs/vit_models/finetuned_model/figures/deltaNLS_iu/UMAPs/',
-    'csv_path' : "/home/projects/hornsteinlab/Collaboration/MOmaps/outputs/preprocessing/spd/brenner/raw_metrics_all_batches_brenner_site_dNLS.csv",
-    'images_dir' : ['/home/projects/hornsteinlab/Collaboration/MOmaps/input/images/raw/SpinningDisk/deltaNLS_sort/',
-                   ]
-    },
-    'layouts': None
+# Collect all variables starting with "config" into a dictionary called `configs`.
+# This allows easy access to all config objects via: configs['config_name']
+configs = {
+    k: v for k, v in globals().items()
+    if k.startswith("config") and not callable(v)
 }

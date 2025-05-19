@@ -540,11 +540,17 @@ def get_ram_usage_gb():
     mem_gb = mem_bytes / (1024 ** 3)
     return mem_gb
 
-def check_memory_status():
+def check_memory_status(print_status=False, lim_percent=0.9):
+    """
+    Check the memory usage of the current process and compare it to the LSF memory limit.
+    If the usage exceeds 90% of the limit, a warning is printed.
+    """
     limit = get_lsf_mem_limit_gb()
     usage = get_ram_usage_gb()
 
     if limit is not None:
-        print(f"Memory Usage is: {usage:.2f} GB, LSF Memory Limit: {limit:.2f} GB")
-        if usage > 0.9 * limit:
-            print("🚨 Memory usage is above 90% of allocated LSF limit! Please restart kernel or allocate more memory.")
+        if print_status:
+            print(f"Memory Usage is: {usage:.2f} GB, LSF Memory Limit: {limit:.2f} GB")
+        if usage > lim_percent * limit:
+            print(f"🚨 Memory usage is above {100*lim_percent}% of allocated LSF limit ({usage:.2f} GB out of {limit:.2f} GB)! \n \
+                  Please restart kernel or allocate more memory.")
