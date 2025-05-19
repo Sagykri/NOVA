@@ -1,3 +1,32 @@
+"""
+This file defines UMAP configuration dictionaries used for loading embeddings, images, and layout metadata.
+
+To add a new config:
+1. Create a new dictionary following the structure of the existing `config_*` variables.
+   The dictionary should include the following keys:
+   - 'paths': a dictionary containing:
+       - 'umaps_folder' (str): path to the folder containing all UMAPs
+       - 'csv_path' (str or None): path to a CSV with Brenner metrics
+       - 'images_dir' (list): list of image directories containing the raw images ('sites')
+   - 'layouts': a dictionary defining panel-wise tile FOV layouts, or None
+
+Example:
+config_example = {
+    'paths': {
+        'umaps_folder': '/path/to/umaps',
+        'csv_path': '/path/to/brenner.csv',
+        'images_dir': ['/path/to/images/']
+    },
+    'layouts': None
+}
+
+2. Name the variable starting with `config_`.  
+   It will automatically be added to the `configs` dictionary and accessible by name
+   Example usage:
+   from interactive_umap_config import configs  
+   config = configs["config_example"]
+"""
+
 import numpy as np
 
 ## Day 8 Neurons ##
