@@ -312,7 +312,7 @@ class NeuronsUMAP0ALSB9FUSFigureConfig(NeuronsUMAP0ALSFigureConfig):
     def __init__(self):
         super().__init__()
 
-        self.INPUT_FOLDERS = ["batch9"]
+        self.INPUT_FOLDERS = ["batch980pct"]
         self.CELL_LINES = ['WT','FUSHomozygous']
         self.MARKERS = ['FUS']
 
@@ -320,7 +320,7 @@ class NeuronsUMAP0ALSB9DCP1AFigureConfig(NeuronsUMAP0ALSFigureConfig):
     def __init__(self):
         super().__init__()
 
-        self.INPUT_FOLDERS = ["batch9"]
+        self.INPUT_FOLDERS = ["batch980pct"]
         self.CELL_LINES = ['WT','TBK1','TDP43','FUSHomozygous']
         self.MARKERS = ['DCP1A']
 
@@ -329,7 +329,7 @@ class NeuronsUMAP0ALSB9ANXA11FigureConfig(NeuronsUMAP0ALSFigureConfig):
     def __init__(self):
         super().__init__()
 
-        self.INPUT_FOLDERS = ["batch9"]
+        self.INPUT_FOLDERS = ["batch980pct"]
         self.CELL_LINES = ['WT','OPTN','TBK1']
         self.MARKERS = ['ANXA11']
 
@@ -337,7 +337,7 @@ class NeuronsUMAP0ALSB9CLTCFigureConfig(NeuronsUMAP0ALSFigureConfig):
     def __init__(self):
         super().__init__()
 
-        self.INPUT_FOLDERS = ["batch9"]
+        self.INPUT_FOLDERS = ["batch980pct"]
         self.CELL_LINES = ['WT','OPTN','TBK1']
         self.MARKERS = ['CLTC']
 
@@ -345,7 +345,7 @@ class NeuronsUMAP0ALSB9SQSTM1FigureConfig(NeuronsUMAP0ALSFigureConfig):
     def __init__(self):
         super().__init__()
 
-        self.INPUT_FOLDERS = ["batch9"]
+        self.INPUT_FOLDERS = ["batch980pct"]
         self.CELL_LINES = ['WT','OPTN']
         self.MARKERS = ['SQSTM1']
 class AlyssaCoyneDistancesFigureConfig(FigureConfig):

@@ -13,7 +13,7 @@ class Opera18DaysReimagedPreprocessingBaseConfig(PreprocessingConfig):
         self.PREPROCESSOR_CLASS_PATH = os.path.join("src", "preprocessing", "preprocessors", "preprocessor_opera", "OperaPreprocessor")
         self.MARKERS_FOCUS_BOUNDRIES_PATH =  os.path.join(os.getenv("NOVA_HOME"), 'manuscript', 'markers_focus_boundries', 'markers_focus_boundries_opera18days_reimaged.csv')
 
-class d18_Batch1(Opera18DaysReimagedPreprocessingBaseConfig):
+class NeuronsD18_Batch1(Opera18DaysReimagedPreprocessingBaseConfig):
     def __init__(self):
         super().__init__()
         
@@ -22,7 +22,7 @@ class d18_Batch1(Opera18DaysReimagedPreprocessingBaseConfig):
         self.OUTPUTS_FOLDER = os.path.join(self.OUTPUTS_FOLDER, "batch180pct")
         
         
-class d18_Batch2(Opera18DaysReimagedPreprocessingBaseConfig):
+class NeuronsD18_Batch2(Opera18DaysReimagedPreprocessingBaseConfig):
     def __init__(self):
         super().__init__()
         

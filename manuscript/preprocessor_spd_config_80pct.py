@@ -54,13 +54,13 @@ class Batch980pct(NeuronsPreprocessingConfig):
 #       dNLS      #
 ###################
 
-class dNLSPreprocessingConfig(SPDPreprocessingBaseConfig):
+class DNLSPreprocessingConfig(SPDPreprocessingBaseConfig):
     def __init__(self):
         super().__init__()
         self.MARKERS_FOCUS_BOUNDRIES_PATH =  os.path.join(os.getenv("NOVA_HOME"), 'manuscript', 'markers_focus_boundries', 'markers_focus_boundries_dNLS.csv')
         self.OUTPUTS_FOLDER = os.path.join(self.OUTPUTS_FOLDER, "deltaNLS")
 
-class dNLS_Batch380pct(dNLSPreprocessingConfig):
+class DNLS_Batch380pct(DNLSPreprocessingConfig):
     def __init__(self):
         super().__init__()
         
@@ -68,7 +68,7 @@ class dNLS_Batch380pct(dNLSPreprocessingConfig):
         self.PROCESSED_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "deltaNLS","batch380pct")]
         self.OUTPUTS_FOLDER = os.path.join(self.OUTPUTS_FOLDER, "batch380pct")
 
-class dNLS_Batch480pct(dNLSPreprocessingConfig):
+class DNLS_Batch480pct(DNLSPreprocessingConfig):
     def __init__(self):
         super().__init__()
         
@@ -76,7 +76,7 @@ class dNLS_Batch480pct(dNLSPreprocessingConfig):
         self.PROCESSED_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "deltaNLS","batch480pct")]
         self.OUTPUTS_FOLDER = os.path.join(self.OUTPUTS_FOLDER, "batch480pct")
        
-class dNLS_Batch580pct(dNLSPreprocessingConfig):
+class DNLS_Batch580pct(DNLSPreprocessingConfig):
     def __init__(self):
         super().__init__()
         

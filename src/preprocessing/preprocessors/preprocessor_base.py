@@ -234,7 +234,8 @@ class Preprocessor(ABC):
         Get the indexes of valid tiles 
         
         Args:
-            nucleus_image (np.ndarray): The nucleus image
+            nucleus_image (np.ndarray): The nucleus imageת
+            return_masked_tiles (bool): Whether to return the masked tiles or not
 
         Returns:
             np.ndarray: Array of valid tile indexes.

@@ -4,47 +4,6 @@ sys.path.insert(1, os.getenv("NOVA_HOME"))
 
 from src.embeddings.embeddings_config import EmbeddingsConfig
 
-
-class EmbeddingsOpenCellDatasetConfig(EmbeddingsConfig):
-    def __init__(self):
-        super().__init__()
-
-        self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "spd2", "SpinningDisk", f) for f in 
-                        ["OpenCell"]]
-        self.SPLIT_DATA = True
-        self.ADD_BATCH_TO_LABEL = True
-        self.ADD_REP_TO_LABEL = True
-        self.CELL_LINES = ['WT']
-        self.CONDITIONS = ['Untreated']
-        self.EXPERIMENT_TYPE = 'Opencell80pct'
-
-class EmbeddingsOpenCellFineTuneDatasetConfig(EmbeddingsConfig):
-    def __init__(self):
-        super().__init__()
-
-        self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "spd2", "SpinningDisk", f) for f in 
-                        ["OpenCell"]]
-        self.SPLIT_DATA = False
-        self.ADD_BATCH_TO_LABEL = True
-        self.ADD_REP_TO_LABEL = True
-        self.CELL_LINES = ['WT']
-        self.CONDITIONS = ['Untreated']
-        self.EXPERIMENT_TYPE = 'Opencell'
-
-class EmbeddingsU2OSDatasetConfig(EmbeddingsConfig):
-    def __init__(self):
-        super().__init__()
-
-        self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "Confocal", f) for f in 
-                        ["U2OS_spd_format"]]
-        
-        self.SPLIT_DATA = False        
-        self.CELL_LINES = ['U2OS']
-        self.EXPERIMENT_TYPE = 'U2OS'
-        self.MARKERS = ['G3BP1', 'DCP1A', 'Phalloidin', 'DAPI']
-        self.ADD_BATCH_TO_LABEL = True
-        self.ADD_REP_TO_LABEL = True
-
 class EmbeddingsB78DatasetConfig(EmbeddingsConfig):
     def __init__(self):
         super().__init__()
