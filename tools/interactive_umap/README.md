@@ -40,7 +40,7 @@ You can also leave `config = {}` and type the data paths directly into the field
 2. **Run the first cell.**  
    This will display all available data sources as defined in the configuration file.
 
-   ![Available data sources](screenshots/available_data.png)
+   ![Available data](screenshots/available_data.png)
 
 3. **Choose a data source:**  
    Select one of the available configurations, or leave the selection empty if you wish to manually enter paths.
