@@ -404,7 +404,6 @@ class Preprocessor(ABC):
     def __match_part_with_whole_pols(self ,nuclei_mask_tiled , whole_polygons) -> Dict :
 
         dict_matches = defaultdict(list)
-        l_shifted = [] # for debug poprpuses 
 
         # get parameters of tiles, for determiming the tile location on the complete image
         expected_image_shape = self.preprocessing_config.EXPECTED_IMAGE_SHAPE[0]
@@ -424,8 +423,6 @@ class Preprocessor(ABC):
                 # 2. Find a point guaranteed to be inside the polygon
                 p1 = affinity.translate(p, xoff=ix % n_tiles * tile_size, yoff=ix // n_tiles * tile_size)
                 pc = p1.representative_point()  
-
-                l_shifted.append(p1) # made for debug
 
                 # --------------------------------------
                 # Check if this polygon corresponds to a known whole polygon
