@@ -41,7 +41,7 @@ To use the Interactive UMAP Viewer, you must first launch a Jupyter Notebook ses
 1. **Select the Jupyter Notebook App:**  
    - From your Interactive Apps menu, choose **Jupyter Notebook** (see example below).
 
-   ![Jupyter Notebook app](screenshots/jupyter.png)
+    <img src="screenshots/jupyter.png" alt="Jupyter Notebook app" width="200"/>
 
 2. **Recommended settings:**
    - **Extra Jupyter Args:**  
