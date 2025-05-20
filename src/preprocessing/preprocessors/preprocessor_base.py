@@ -396,6 +396,8 @@ class Preprocessor(ABC):
         """
         # Define image outer frame 
         image_border = box(0,0,image_shape[0],image_shape[1]) 
+        # Create a buffered version of the image border
+        # This is to ensure that polygons touching the border are also filtered out
         image_border_buffered = image_border.buffer(self.preprocessing_config.FRAME_WIDTH_BUFFER)
         # Filter out polygons which touch the outer frame 
         whole_polygons = [p for p in whole_polygons if not p.intersects(image_border_buffered)]
