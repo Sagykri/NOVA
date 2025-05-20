@@ -385,10 +385,10 @@ class Preprocessor(ABC):
     
     def __filter_intersecting_with_outer_frame(self, whole_polygons: List[Polygon], image_shape: tuple) -> List[Polygon]:
         """
-        Filter out polygons that intersect with the outer frame of the image.
+        Filter out whole_polygons that intersect with the outer frame of the image.
 
         Args:
-            polygons (List[Polygon]): List of polygons to filter.
+            whole_polygons (List[Polygon]): List of polygons to filter.
             image_shape (tuple): Shape of the image (height, width).
 
         Returns:
@@ -396,8 +396,9 @@ class Preprocessor(ABC):
         """
         # Define image outer frame 
         image_border = box(0,0,image_shape[0],image_shape[1]) 
+        image_border_buffered = image_border.buffer(self.preprocessing_config.FRAME_WIDTH_BUFFER)
         # Filter out polygons which touch the outer frame 
-        whole_polygons = [p for p in whole_polygons if not p.intersects(image_border.exterior.buffer(1))]
+        whole_polygons = [p for p in whole_polygons if not p.intersects(image_border_buffered)]
         
         return whole_polygons
     
@@ -458,8 +459,8 @@ class Preprocessor(ABC):
                     for ix_whole , pol_whole in enumerate(whole_polygons):
                         if pc.intersects(pol_whole):
                             dict_matches[ix].append(ix_whole)
-                            found_match = 1
-                            break 
+                            found_match = 1 
+
                 if found_match == 0:
                     dict_matches[ix].append(None)
 
