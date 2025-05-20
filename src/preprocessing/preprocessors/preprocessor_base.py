@@ -402,7 +402,27 @@ class Preprocessor(ABC):
         return whole_polygons
     
     def __match_part_with_whole_pols(self ,nuclei_mask_tiled , whole_polygons) -> Dict :
+        """
+    Matches nuclei polygons extracted from tiled masks to corresponding whole-image polygons.
 
+    Each tile in the image , which contains one/few nuclei, and the goal is to match these
+    partial tile-based polygons to their corresponding complete polygon in the whole image.
+
+    The function does the following:
+    - Iterates over each tile and extracts part-polygons from it.
+    - Translates each part-polygon to the global coordinate space based on its tile location.
+    - For each part-polygon, checks if its representative point lies inside any full polygon.
+    - If a match is found - it appends the match index. If no match is found, it appends `None`.
+
+    Args:
+        nuclei_mask_tiled (List[np.ndarray]): List of binary mask tiles containing nuclei segmentations.
+        whole_polygons (List[shapely.geometry.Polygon]): List of full polygons in the complete image space.
+
+    Returns:
+        dict_matches (Dict[int, List[int | None]]): A dictionary mapping each tile index to a list of matched
+                                                    whole polygon indices, or None if no match was found.
+    """
+        
         dict_matches = defaultdict(list)
 
         # get parameters of tiles, for determiming the tile location on the complete image
@@ -449,6 +469,7 @@ class Preprocessor(ABC):
         
         Args:
             masked_tile (np.ndarray): Segmented tile image (mask of nuclei within the tile)
+            dict_matches (Dict): Dictionary mapping tile index to matched whole polygon indices
             whole_polygons (List[Polygon]): List of all complete nucleus polygons across the entire image
             ix (int): Index of the tile (used to compute its position in the global image)
         
@@ -471,6 +492,7 @@ class Preprocessor(ABC):
             if pol_ix is not None and pol_part is not None:
                 if pol_part.area/ whole_polygons[pol_ix].area > self.preprocessing_config.INCLUDED_AREA_RATIO:
                     passed_tile = True
+                    break
 
         # Image and tile size setup
         max_num_nuclei = self.preprocessing_config.MAX_NUM_NUCLEI
