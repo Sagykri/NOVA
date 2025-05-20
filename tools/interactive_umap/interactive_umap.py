@@ -1,15 +1,17 @@
-import ctypes
 import os
-import pandas as pd
-import ipywidgets as widgets
-from IPython.display import display, clear_output
-from ipywidgets import Button, Output, Text, Layout
 import time
+import ctypes
+import gc
+
+import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.colors as mcolors
 import matplotlib.patches as mpatches
-import gc
+import ipywidgets as widgets
+from ipywidgets import Button, Output, Text, Layout
+from IPython.display import display, clear_output
+
 from src.figures.umap_plotting import __format_UMAP_axes as format_UMAP_axes
 from src.figures.umap_plotting import __format_UMAP_legend as format_UMAP_legend
 from tools.interactive_umap.interactive_umap_utils import *
@@ -187,7 +189,7 @@ class InteractiveUMAPPipeline:
         self.filter_checkboxes = {}
 
         # --- Section labels ---
-        self.selected_images_label = widgets.HTML(value="<b>1. Selected Image Previews:</b>", layout=widgets.Layout(display='none'))
+        self.selected_images_label = widgets.HTML(value="<b>1. Selected Images:</b>", layout=widgets.Layout(display='none'))
         self.selected_tiles_label = widgets.HTML(value="<b>2. Corresponding Tiles:</b>", layout=widgets.Layout(display='none'))
         self.fov_label = widgets.HTML(value="<b>3. FOV Map:</b>", layout=widgets.Layout(display='none'))
         
@@ -384,32 +386,38 @@ class InteractiveUMAPPipeline:
             self.umap_embeddings, self.label_data, self.config_data, self.config_plot, self.df_umap_tiles = load_and_process_data(
                 self.umaps_dir_widget.text_input.value, pickle_file_path, self.df_brenner)
             
-            # Apply dilution
-            dilute=self.dilute_slider.value
-            self.umap_embeddings = self.umap_embeddings[::dilute]
-            self.label_data = self.label_data[::dilute]
-            self.df_umap_tiles = self.df_umap_tiles.iloc[::dilute].copy()
-            self.df_umap_tiles.index = list(range(len(self.df_umap_tiles)))            
-
+            self.apply_dilution() 
+     
             self.config_plot['MIX_GROUPS'] = self.mix_groups_checkbox.value
 
             self.plot_interactive_umap()
 
             # Dynamically populate checkbox filters
-            self.right_box.children = [
-                widgets.HTML("<b>Filter Settings:</b>")
-            ] + [
-                self.create_checkbox_group(col) for col in ['Batch', 'Condition', 'Rep', 'CellLine']
-            ] + [
-                self.create_more_filters()  # Add the special combination filter
-            ] + [self.apply_filter_button]
-
+            self.update_filter_widgets()
 
         self.apply_filter_button.layout.display = 'inline-block'
         self.right_box.layout.display = 'flex'
         self.image_display_controls.layout.display = 'flex'
         self.clear_outputs(umaps=False)
         check_memory_status()
+
+    def apply_dilution(self):
+        """Apply downsampling to embeddings, labels, and tiles."""
+        dilute = self.dilute_slider.value
+        self.umap_embeddings = self.umap_embeddings[::dilute]
+        self.label_data = self.label_data[::dilute]
+        self.df_umap_tiles = self.df_umap_tiles.iloc[::dilute]
+        self.df_umap_tiles.index = list(range(len(self.df_umap_tiles)))
+
+    def update_filter_widgets(self):
+        """Update and display dynamic filter checkboxes and dropdowns."""
+        self.right_box.children = [
+            widgets.HTML("<b>Filter Settings:</b>")
+        ] + [
+            self.create_checkbox_group(col) for col in ['Batch', 'Condition', 'Rep', 'CellLine']
+        ] + [
+            self.create_more_filters()
+        ] + [self.apply_filter_button]
 
     def create_more_filters(self):
         def make_dropdown(series, label_text, attr_name):
@@ -469,17 +477,13 @@ class InteractiveUMAPPipeline:
         # Apply all filters to df_umap_tiles
         mask = np.ones(len(self.df_umap_tiles), dtype=bool)  # Start with all True
         for column, values in filters.items():
-            # Special handling for 'Combination' column
-            if column == 'Cell_line_Condition':
-                mask &= self.df_umap_tiles['Cell_line_Condition'].isin(values)
-            else:
-                # Standard checkbox filters    
-                # Strip counts (e.g., 'Batch4 (4384)' -> 'Batch4')
-                cleaned_values = [v.split(' (')[0] for v in values]
+            # Checkbox filters    
+            # Strip counts (e.g., 'Batch4 (4384)' -> 'Batch4')
+            cleaned_values = [v.split(' (')[0] for v in values]
 
-                mask &= self.df_umap_tiles[column].apply(
-                    lambda x: any(str(x).startswith(prefix) for prefix in cleaned_values)
-                )
+            mask &= self.df_umap_tiles[column].apply(
+                lambda x: any(str(x).startswith(prefix) for prefix in cleaned_values)
+            )
         # Apply mask to all data
         self.umap_embeddings_filt = self.umap_embeddings[mask]
         self.label_data_filt = self.label_data[mask]
