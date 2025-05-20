@@ -305,7 +305,7 @@ class InteractiveUMAPPipeline:
         self.pickle_status_label.value = ''
         with self.output_area:
             clear_output()
-            print('Searching for all UMAPs in folder... (~10 seconds)')
+            print('Searching for all UMAPs in folder... (up to 30 seconds)')
 
             umaps_dir = self.umaps_dir_widget.text_input.value.strip()
             csv_path = self.csv_path_widget.text_input.value.strip()
