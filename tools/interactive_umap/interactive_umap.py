@@ -36,6 +36,7 @@ class InteractiveUMAPPipeline:
         self.dispose()
         # --- General setup ---
         self.filter_checkboxes = {}  # Stores dynamically generated filter checkboxes
+        self.advanced_filter_dropdowns = {}  # Stores advanced filter dropdowns, e.g. 'Cell_Line_Condition', 'Panel', 'Marker'
         self.selected_indices_global = []  # Stores the selected point indices from rectangle selection
         self.rect_selector = None  # Persistent RectangleSelector object for UMAP plot
         
@@ -420,7 +421,7 @@ class InteractiveUMAPPipeline:
         ] + [self.apply_filter_button]
 
     def create_more_filters(self):
-        def make_dropdown(series, label_text, attr_name):
+        def make_dropdown(series, label_text, key):
             counts = series.dropna().value_counts()
             options = [f"{val} ({counts[val]})" for val in sorted(counts.index)]
             height = f"{max(min(30 * len(options), 180), 50)}px"
@@ -428,18 +429,18 @@ class InteractiveUMAPPipeline:
                 options=options,
                 layout=Layout(width='95%', height=height)
             )
-            setattr(self, attr_name, dropdown)
+            self.advanced_filter_dropdowns[key] = dropdown
             return widgets.Label(label_text), dropdown
 
-        label1, _ = make_dropdown(self.df_umap_tiles['Cell_Line_Condition'], "CellLine + Condition", "combination_filter_dropdown")
-        label2, _ = make_dropdown(self.df_umap_tiles['Panel'], "Panel", "panel_filter_dropdown")
-        label3, _ = make_dropdown(self.df_umap_tiles['Marker'], "Marker", "marker_filter_dropdown")
+        label1, _ = make_dropdown(self.df_umap_tiles['Cell_Line_Condition'], "CellLine + Condition", "Cell_Line_Condition")
+        label2, _ = make_dropdown(self.df_umap_tiles['Panel'], "Panel", "Panel")
+        label3, _ = make_dropdown(self.df_umap_tiles['Marker'], "Marker", "Marker")
 
         inner = widgets.VBox([
             widgets.HTML("<span style='font-size:11px;'>Hold Ctrl to select/deselect multiple</span>"),
-            label1, self.combination_filter_dropdown,
-            label2, self.panel_filter_dropdown,
-            label3, self.marker_filter_dropdown
+            label1, self.advanced_filter_dropdowns["Cell_Line_Condition"],
+            label2, self.advanced_filter_dropdowns["Panel"],
+            label3, self.advanced_filter_dropdowns["Marker"]
         ])
 
         acc = widgets.Accordion(children=[inner])
@@ -505,6 +506,10 @@ class InteractiveUMAPPipeline:
             col: [cb.description for cb in cbs]
             for col, cbs in self.filter_checkboxes.items()
         }
+        # Get all options per filter column in the more filters section
+        for name, dropdown in self.advanced_filter_dropdowns.items():
+            if dropdown is not None:
+                all_options[name] = list(dropdown.options)
 
         for col, selected_values in filters.items():
             # Clean both selected and full options to ignore counts like "WT (42)"
@@ -719,15 +724,11 @@ class InteractiveUMAPPipeline:
             if selected:
                 filters[col] = selected
 
-        for name, attr in {
-            'Cell_Line_Condition': 'combination_filter_dropdown',
-            'Panel': 'panel_filter_dropdown',
-            'Marker': 'marker_filter_dropdown'
-        }.items():
-            if hasattr(self, attr):
-                selected = list(getattr(self, attr).value)
-                if selected:
-                    filters[name] = selected
+        for name, dropdown in self.advanced_filter_dropdowns.items():
+            selected = list(dropdown.value)
+            if selected:
+                filters[name] = selected
+
         return filters
     
     def plot_interactive_umap(self, 
