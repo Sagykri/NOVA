@@ -34,6 +34,29 @@ config_myexperiment = {
 
 You can also leave `config = {}` and type the data paths directly into the fields in the notebook interface when prompted.
 
+## Launching Jupyter Notebook
+
+To use the Interactive UMAP Viewer, you must first launch a Jupyter Notebook session from your computing environment.
+
+1. **Select the Jupyter Notebook App:**  
+   - From your Interactive Apps menu, choose **Jupyter Notebook** (see example below).
+
+   ![Jupyter Notebook app](screenshots/jupyter.png)
+
+2. **Recommended settings:**
+   - **Extra Jupyter Args:**  
+     ```
+     --NotebookApp.iopub_data_rate_limit=1000000000 --NotebookApp.iopub_msg_rate_limit=10000 --NotebookApp.rate_limit_window=5
+     ```
+   - **Memory per job:**  
+     At least `16G` is recommended (choose more if needed).
+   - **Number of hours:**  
+     Specify the number of hours for your session as needed.  
+
+3. **Click “Launch” to start your session.**
+
+Once your notebook environment is ready, proceed with the instructions in the next section to open and use the `interactive_umap_GUI` notebook.
+
 ## Getting Started
 
 1. **Open the `interactive_umap_GUI` notebook.**
