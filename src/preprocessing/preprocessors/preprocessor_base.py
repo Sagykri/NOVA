@@ -426,8 +426,11 @@ class Preprocessor(ABC):
         dict_matches = defaultdict(list)
 
         # get parameters of tiles, for determiming the tile location on the complete image
+        # expected image shape - the width/height (assumed to be the same) of the whole image
         expected_image_shape = self.preprocessing_config.EXPECTED_IMAGE_SHAPE[0]
+        # tile width/height (assumed to be the same) 
         tile_size = self.preprocessing_config.TILE_INTERMEDIATE_SHAPE[0]
+        # number of tiles along the width/height of the whole image
         n_tiles = expected_image_shape // tile_size
 
         # Iterate over each tile (part polygons inside)
