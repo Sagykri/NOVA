@@ -39,8 +39,13 @@ config_d8 = {
     'paths':{
     'umaps_folder' : f'{momaps_figures}/neurons_iu/UMAPs/',
     'csv_path' : f'{momaps_preprocessing}/spd/brenner/raw_metrics_all_batches_all_metrics_site_fix.csv',
-    'images_dir' : [f'{momaps_input}/SpinningDisk/batch9/',
-                    f'{momaps_input}/SpinningDisk/batch6/',]
+    'images_dir' : [f'{momaps_input}/SpinningDisk/batch3/',
+                    f'{momaps_input}/SpinningDisk/batch4/',
+                    f'{momaps_input}/SpinningDisk/batch5/',
+                    f'{momaps_input}/SpinningDisk/batch6/',
+                    f'{momaps_input}/SpinningDisk/batch7/',
+                    f'{momaps_input}/SpinningDisk/batch8/',
+                    f'{momaps_input}/SpinningDisk/batch9/',]
     },
     'layouts': None
 }
