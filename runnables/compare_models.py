@@ -1,6 +1,7 @@
 import os
 import re
 import json
+import pandas as pd
 import sys
 import subprocess
 import datetime
@@ -212,8 +213,6 @@ def load_model_data(model_dir: str, experiment_type: str, batches: List[str]) ->
         all_embeddings = np.vstack(all_embeddings)
 
     return all_embeddings, all_labels
-
-import pandas as pd
 
 def save_results_as_dataframe(results: dict, save_dir: str, experiment_type: str, batch: str):
     """
@@ -435,6 +434,8 @@ def run_evaluation(model_folders_dict: Dict[str, str], experiment_type: str,
         # SAMPLING BY LABEL FRACTION
         logging.warning(f"NOTE: Sampling {experiment_type} by label fraction!!!")
         embeddings, labels = sample_by_label_fraction(embeddings, labels, fraction=sample_fraction)
+
+        logging.info(pd.value_counts(labels))
 
         parsed_labels = [parse_label(l) for l in labels]
         formatted_labels = ['_'.join([d[k] for k in pos_keys if d[k]]) for d in parsed_labels]
