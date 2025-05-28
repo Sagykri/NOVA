@@ -510,6 +510,61 @@ def save_plots(results: dict, save_dir: str, experiment_type: str, batches: List
     save_plot_alignment_vs_recall(results_align_recall, experiment_type, batches, os.path.join(plot_dir, f"align_recall.png"), k)
     save_plot_alignment_vs_entropy(results_align_entropy, experiment_type, batches, os.path.join(plot_dir, f"align_entropy.png"), k=neg_k)
 
+def aggregate_and_plot_metrics(save_dir: str, postfix: str = "_average") -> None:
+    """
+    Aggregate all metrics.csv files from subdirectories of save_dir,
+    compute the average metrics per model, and save the results and plots.
+
+    Args:
+        save_dir (str): Directory containing subdirectories with *_metrics.csv files.
+        postfix (str): Suffix to append to saved plot filenames.
+
+    Returns:
+        None
+    """
+    metrics_files = []
+    for root, _, files in os.walk(save_dir):
+        for file in files:
+            if file == "metrics.csv":
+                metrics_files.append(os.path.join(root, file))
+
+    if not metrics_files:
+        logging.info("No metrics CSV files found.")
+        return
+
+    experiments_df = []
+    for path in metrics_files:
+        df = pd.read_csv(path, index_col=0)
+        experiments_df.append(df)
+
+    combined_df = pd.concat(experiments_df).drop(columns=['pos_keys'])
+    avg_df = combined_df.groupby(combined_df.index).mean()
+
+    # Save averaged CSV
+    avg_csv_path = os.path.join(save_dir, f"metrics{postfix}.csv")
+    avg_df.to_csv(avg_csv_path)
+
+    # Save the list of used files
+    used_list_path = os.path.join(save_dir, f"sources{postfix}.txt")
+    with open(used_list_path, 'w') as f:
+        for path in metrics_files:
+            f.write(path + '\n')
+
+    # Prepare results dictionaries for existing plotting functions
+    results_align_uniformity = {m: (r['alignment'], r['uniformity']) for m, r in avg_df.iterrows()}
+    results_align_recall = {m: (r['alignment'], r['recall_at_k']) for m, r in avg_df.iterrows()}
+    results_align_entropy = {m: (r['alignment'], r['entropy_at_k']) for m, r in avg_df.iterrows()}
+
+    # Save plots using existing plot functions
+    save_plot_alignment_vs_uniformity(results_align_uniformity, "Average", "", os.path.join(save_dir, f"align_uniform{postfix}.png"))
+    save_plot_alignment_vs_recall(results_align_recall, "Average", "", os.path.join(save_dir, f"align_recall{postfix}.png"), k=int(avg_df['k'].iloc[0]))
+    save_plot_alignment_vs_entropy(results_align_entropy, "Average", "", os.path.join(save_dir, f"align_entropy{postfix}.png"), k=int(avg_df['neg_k'].iloc[0]))
+
+    logging.info(f"Averaged metrics and plots saved to: {save_dir}")
+
+    return avg_df
+
+
 def init_logging(path):
     """Init logging.
     Writes to log file and console.
@@ -582,38 +637,52 @@ def parse_positional_args(argv):
     }
 
 
+# if __name__ == "__main__":
+#     args = parse_positional_args(sys.argv)
+
+#     experiment = args['experiment']
+#     batches = args['batches']
+#     save_dir = args['save_dir']
+#     k = args['k']
+#     neg_k = args['neg_k']
+#     sample_fraction = args['sample_fraction']
+
+#     model_folders_dict = {
+#             'pretrained': '/home/projects/hornsteinlab/Collaboration/MOmaps_Sagy/NOVA/outputs/vit_models_local/pretrained_model',  
+#             'finetuned_CL': '/home/projects/hornsteinlab/Collaboration/MOmaps_Sagy/NOVA/outputs/vit_models_local/finetuned_model',  
+#             'finetuned_CL_nofreeze': '/home/projects/hornsteinlab/Collaboration/MOmaps_Sagy/NOVA/outputs/vit_models_local/finetuned_model_no_freeze',  
+#             'finetuned_CE_nofreeze': '/home/projects/hornsteinlab/Collaboration/MOmaps_Sagy/NOVA/outputs/vit_models_local/finetuned_model_classification_with_batch_no_freeze',
+#             'finetuned_CE': "/home/projects/hornsteinlab/Collaboration/MOmaps_Sagy/NOVA/outputs/vit_models_local/finetuned_model_classification_with_batch_freeze"
+#         }
+
+#     precomputed_dists_paths = {
+#             'pretrained': None, 
+#             'finetuned_CL': None,
+#             'finetuned_CL_nofreeze': None, 
+#             'finetuned_CE_nofreeze': None,
+#             'finetuned_CE': None
+#         }
+
+#     init_logging(os.path.join(save_dir, experiment, '_'.join(batches), 'logs'))
+#     logging.info(f"Model folders: {model_folders_dict}; Experiment: {experiment}; Batches: {batches}; k: {k}; neg_k: {neg_k} ; Save dir: {save_dir}; Sample fraction: {sample_fraction}")
+    
+#     try:
+#         results = run_evaluation(model_folders_dict, experiment_type=experiment, batches=batches, precomputed_dists_paths=precomputed_dists_paths, save_dir=save_dir, k=k, neg_k=neg_k, sample_fraction=sample_fraction)
+#         save_plots(results, save_dir=save_dir, experiment_type=experiment, batches=batches, k=k, neg_k=neg_k)
+#     except Exception as e:
+#         logging.exception(f"Error during evaluation {str(e)}")
+#         raise
+
+
 if __name__ == "__main__":
-    args = parse_positional_args(sys.argv)
+    save_dir = sys.argv[1]
 
-    experiment = args['experiment']
-    batches = args['batches']
-    save_dir = args['save_dir']
-    k = args['k']
-    neg_k = args['neg_k']
-    sample_fraction = args['sample_fraction']
-
-    model_folders_dict = {
-            'pretrained': '/home/projects/hornsteinlab/Collaboration/MOmaps_Sagy/NOVA/outputs/vit_models_local/pretrained_model',  
-            'finetuned_CL': '/home/projects/hornsteinlab/Collaboration/MOmaps_Sagy/NOVA/outputs/vit_models_local/finetuned_model',  
-            'finetuned_CL_nofreeze': '/home/projects/hornsteinlab/Collaboration/MOmaps_Sagy/NOVA/outputs/vit_models_local/finetuned_model_no_freeze',  
-            'finetuned_CE_nofreeze': '/home/projects/hornsteinlab/Collaboration/MOmaps_Sagy/NOVA/outputs/vit_models_local/finetuned_model_classification_with_batch_no_freeze',
-            'finetuned_CE': "/home/projects/hornsteinlab/Collaboration/MOmaps_Sagy/NOVA/outputs/vit_models_local/finetuned_model_classification_with_batch_freeze"
-        }
-
-    precomputed_dists_paths = {
-            'pretrained': None, 
-            'finetuned_CL': None,
-            'finetuned_CL_nofreeze': None, 
-            'finetuned_CE_nofreeze': None,
-            'finetuned_CE': None
-        }
-
-    init_logging(os.path.join(save_dir, experiment, '_'.join(batches), 'logs'))
-    logging.info(f"Model folders: {model_folders_dict}; Experiment: {experiment}; Batches: {batches}; k: {k}; neg_k: {neg_k} ; Save dir: {save_dir}; Sample fraction: {sample_fraction}")
+    init_logging(os.path.join(save_dir, 'logs'))
+    logging.info(f"Save dir: {save_dir}")
     
     try:
-        results = run_evaluation(model_folders_dict, experiment_type=experiment, batches=batches, precomputed_dists_paths=precomputed_dists_paths, save_dir=save_dir, k=k, neg_k=neg_k, sample_fraction=sample_fraction)
-        save_plots(results, save_dir=save_dir, experiment_type=experiment, batches=batches, k=k, neg_k=neg_k)
+        average_metrics = aggregate_and_plot_metrics(save_dir=save_dir, postfix="_average")
+        logging.info(f"Average metrics:\n{average_metrics}")
     except Exception as e:
         logging.exception(f"Error during evaluation {str(e)}")
         raise
