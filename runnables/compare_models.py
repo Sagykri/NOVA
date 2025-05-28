@@ -636,45 +636,43 @@ def parse_positional_args(argv):
         'sample_fraction': sample_fraction
     }
 
+def main_eval_model_on_specific_experiment():
+    args = parse_positional_args(sys.argv)
 
-# if __name__ == "__main__":
-#     args = parse_positional_args(sys.argv)
+    experiment = args['experiment']
+    batches = args['batches']
+    save_dir = args['save_dir']
+    k = args['k']
+    neg_k = args['neg_k']
+    sample_fraction = args['sample_fraction']
 
-#     experiment = args['experiment']
-#     batches = args['batches']
-#     save_dir = args['save_dir']
-#     k = args['k']
-#     neg_k = args['neg_k']
-#     sample_fraction = args['sample_fraction']
+    model_folders_dict = {
+            'pretrained': '/home/projects/hornsteinlab/Collaboration/MOmaps_Sagy/NOVA/outputs/vit_models_local/pretrained_model',  
+            'finetuned_CL': '/home/projects/hornsteinlab/Collaboration/MOmaps_Sagy/NOVA/outputs/vit_models_local/finetuned_model',  
+            'finetuned_CL_nofreeze': '/home/projects/hornsteinlab/Collaboration/MOmaps_Sagy/NOVA/outputs/vit_models_local/finetuned_model_no_freeze',  
+            'finetuned_CE_nofreeze': '/home/projects/hornsteinlab/Collaboration/MOmaps_Sagy/NOVA/outputs/vit_models_local/finetuned_model_classification_with_batch_no_freeze',
+            'finetuned_CE': "/home/projects/hornsteinlab/Collaboration/MOmaps_Sagy/NOVA/outputs/vit_models_local/finetuned_model_classification_with_batch_freeze"
+        }
 
-#     model_folders_dict = {
-#             'pretrained': '/home/projects/hornsteinlab/Collaboration/MOmaps_Sagy/NOVA/outputs/vit_models_local/pretrained_model',  
-#             'finetuned_CL': '/home/projects/hornsteinlab/Collaboration/MOmaps_Sagy/NOVA/outputs/vit_models_local/finetuned_model',  
-#             'finetuned_CL_nofreeze': '/home/projects/hornsteinlab/Collaboration/MOmaps_Sagy/NOVA/outputs/vit_models_local/finetuned_model_no_freeze',  
-#             'finetuned_CE_nofreeze': '/home/projects/hornsteinlab/Collaboration/MOmaps_Sagy/NOVA/outputs/vit_models_local/finetuned_model_classification_with_batch_no_freeze',
-#             'finetuned_CE': "/home/projects/hornsteinlab/Collaboration/MOmaps_Sagy/NOVA/outputs/vit_models_local/finetuned_model_classification_with_batch_freeze"
-#         }
+    precomputed_dists_paths = {
+            'pretrained': None, 
+            'finetuned_CL': None,
+            'finetuned_CL_nofreeze': None, 
+            'finetuned_CE_nofreeze': None,
+            'finetuned_CE': None
+        }
 
-#     precomputed_dists_paths = {
-#             'pretrained': None, 
-#             'finetuned_CL': None,
-#             'finetuned_CL_nofreeze': None, 
-#             'finetuned_CE_nofreeze': None,
-#             'finetuned_CE': None
-#         }
-
-#     init_logging(os.path.join(save_dir, experiment, '_'.join(batches), 'logs'))
-#     logging.info(f"Model folders: {model_folders_dict}; Experiment: {experiment}; Batches: {batches}; k: {k}; neg_k: {neg_k} ; Save dir: {save_dir}; Sample fraction: {sample_fraction}")
+    init_logging(os.path.join(save_dir, experiment, '_'.join(batches), 'logs'))
+    logging.info(f"Model folders: {model_folders_dict}; Experiment: {experiment}; Batches: {batches}; k: {k}; neg_k: {neg_k} ; Save dir: {save_dir}; Sample fraction: {sample_fraction}")
     
-#     try:
-#         results = run_evaluation(model_folders_dict, experiment_type=experiment, batches=batches, precomputed_dists_paths=precomputed_dists_paths, save_dir=save_dir, k=k, neg_k=neg_k, sample_fraction=sample_fraction)
-#         save_plots(results, save_dir=save_dir, experiment_type=experiment, batches=batches, k=k, neg_k=neg_k)
-#     except Exception as e:
-#         logging.exception(f"Error during evaluation {str(e)}")
-#         raise
+    try:
+        results = run_evaluation(model_folders_dict, experiment_type=experiment, batches=batches, precomputed_dists_paths=precomputed_dists_paths, save_dir=save_dir, k=k, neg_k=neg_k, sample_fraction=sample_fraction)
+        save_plots(results, save_dir=save_dir, experiment_type=experiment, batches=batches, k=k, neg_k=neg_k)
+    except Exception as e:
+        logging.exception(f"Error during evaluation {str(e)}")
+        raise
 
-
-if __name__ == "__main__":
+def main_avg_metrics_across_experiments():
     save_dir = sys.argv[1]
 
     init_logging(os.path.join(save_dir, 'logs'))
@@ -686,3 +684,7 @@ if __name__ == "__main__":
     except Exception as e:
         logging.exception(f"Error during evaluation {str(e)}")
         raise
+
+if __name__ == "__main__":
+    # main_eval_model_on_specific_experiment()
+    main_avg_metrics_across_experiments()
