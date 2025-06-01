@@ -14,15 +14,15 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 from sklearn.metrics import accuracy_score, roc_curve, auc, confusion_matrix, roc_auc_score
 from sklearn.preprocessing import label_binarize
+from typing import List
 
-
-def build_probs_dataframe(probs: np.ndarray, labels, unique_labels, anot_file_path: str) -> pd.DataFrame:
+def build_probs_dataframe(probs: np.ndarray, labels:List[str], unique_labels:List[str], anot_file_path: str) -> pd.DataFrame:
     """Build dataframe with softmax probabilities and true labels.
 
     Args:
         probs (np.ndarray): Softmax probabilities.
-        labels (List[str]): Protein name labels.
-        unique_labels (List[str]): Unique protein names from dataset.
+        labels (List[str]): full labels.
+        unique_labels (List[str]): Unique full labels from dataset (to match between probabilty and label).
         anot_file_path (str): Path to annotation CSV.
 
     Returns:
@@ -30,8 +30,9 @@ def build_probs_dataframe(probs: np.ndarray, labels, unique_labels, anot_file_pa
     """
     anot = pd.read_csv(anot_file_path)
     markers = get_markers_from_labels(labels)
-
-    probs_df = pd.DataFrame(probs, columns=unique_labels)
+    unique_markers = get_markers_from_labels(unique_labels)
+    
+    probs_df = pd.DataFrame(probs, columns=unique_markers)
     probs_df['gene_name'] = markers
     probs_df = probs_df.merge(anot, on='gene_name', how='left')
     probs_df = probs_df.rename(columns={'localization': "true_localization"})
@@ -50,12 +51,13 @@ def compute_localization_probs(probs_df: pd.DataFrame, anot: pd.DataFrame) -> pd
     """
     class_names = np.unique(anot.localization)
     sum_probs = pd.DataFrame(columns=class_names)
-
-    for localization, group in anot.groupby('localization'):
-        localization_markers = list(set(group['gene_name']) & set(probs_df.columns))
+    markers_set = set(probs_df.columns) - {'gene_name', 'true_localization'}
+    
+    for localization, markers_group in anot.groupby('localization'):
+        localization_markers = list(set(markers_group['gene_name']) & markers_set)
         sum_probs[localization] = probs_df[localization_markers].sum(axis=1)
 
-    markers_with_no_localization = list(set(probs_df.columns) - set(anot.gene_name) - {'gene_name', 'true_localization'})
+    markers_with_no_localization = list(markers_set - set(anot.gene_name))
     sum_probs['Other'] = probs_df[markers_with_no_localization].sum(axis=1)
 
     sum_probs = sum_probs.merge(probs_df[['true_localization']], left_index=True, right_index=True)

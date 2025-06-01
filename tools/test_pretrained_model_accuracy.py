@@ -9,7 +9,6 @@ import logging
 from src.common.utils import load_config_file
 from src.datasets.dataset_config import DatasetConfig
 from src.datasets.dataset_NOVA import DatasetNOVA
-from src.datasets.label_utils import get_markers_from_labels
 from src.embeddings.embeddings_utils import load_embeddings
 from tools.pretrained_model_accuracy_utils import build_probs_dataframe, compute_localization_probs, evaluate_classification_accuracy, multiclass_roc
 
@@ -17,15 +16,46 @@ import torch
 import pandas as pd
 import numpy as np
 
+"""
+Script to evaluate the accuracy of the pretrained model using embeddings, labels, 
+and protein-localcization annotations.
+
+Usage:
+    python tools/test_pretrained_model_accuracy.py <outputs_folder_path> <config_path_data> <anot_file_path>
+
+Example:
+    python tools/test_pretrained_model_accuracy.py \
+        /home/projects/hornsteinlab/Collaboration/MOmaps/outputs/vit_models/pretrained_model \
+        ./manuscript/embeddings_config/EmbeddingsOpenCellDatasetConfig \
+        /home/projects/hornsteinlab/Collaboration/MOmaps_Noam/MOmaps/tools/OpenCell_annotated_proteins.csv
+"""
+
+
 def calculate_accuracy(outputs_folder_path:str, config_path_data:str, anot_file_path:str)->None:
+    """
+    Evaluates classification accuracy of a pretrained model.
+
+    Parameters:
+    - outputs_folder_path (str): Path to the folder containing model output embeddings.
+    - config_path_data (str): Path to the dataset configuration file.
+    - anot_file_path (str): Path to the annotation CSV file containing ground truth labels.
+
+    This function:
+    - Loads dataset configuration and embeddings.
+    - Computes softmax probabilities over the model outputs.
+    - Builds a dataframe aligning predictions with true labels.
+    - Computes per-class localization probabilities.
+    - Evaluates accuracy and generates a multiclass ROC curve.
+    """
+     
     config_data:DatasetConfig = load_config_file(config_path_data, 'data')
     config_data.OUTPUTS_FOLDER = outputs_folder_path
     config_data.MARKERS_TO_EXCLUDE = []
-    logging.info("[Calcaulte pretrained accuracy]")    
+    logging.info("[Calculate pretrained accuracy]")    
     embeddings, labels, _ = load_embeddings(outputs_folder_path, config_data)  
 
     dataset = DatasetNOVA(config_data)
-    unique_labels = get_markers_from_labels(dataset.unique_labels)
+    unique_labels = dataset.unique_labels
     
     outputs = torch.from_numpy(embeddings)
 
@@ -56,7 +86,3 @@ if __name__ == '__main__':
         logging.exception(str(e))
         raise e
     logging.info("Done")
-
-
-### TO RUN:
-# python tools/test_pretrained_model_accuracy.py /home/projects/hornsteinlab/Collaboration/MOmaps/outputs/vit_models/pretrained_model ./manuscript/embeddings_config/EmbeddingsOpenCellDatasetConfig /home/projects/hornsteinlab/Collaboration/MOmaps_Noam/MOmaps/tools/OpenCell_annotated_proteins.csv
