@@ -74,7 +74,7 @@ def evaluate_classification_accuracy(sum_probs: pd.DataFrame, class_names: list,
     y_pred = sum_probs.drop(columns=['true_localization']).idxmax(axis=1)
     y_true = sum_probs['true_localization']
 
-    print(f'accuracy_score: {accuracy_score(y_true, y_pred):.4f}')
+    logging.info(f'accuracy_score: {accuracy_score(y_true, y_pred):.4f}')
 
     cm = confusion_matrix(y_true, y_pred, normalize='true', labels=class_names)
     cm_df = pd.DataFrame(cm, index=class_names, columns=class_names)
@@ -97,7 +97,8 @@ def evaluate_classification_accuracy(sum_probs: pd.DataFrame, class_names: list,
     plt.title('Pre-trained model accuracy on Opencell data\n(normalized to true labels)')
     plt.xticks(rotation=45)
     plt.tight_layout()
-    print(f'saving in {output_folder_path}/confusion_matrix')
+    
+    logging.info(f'saving in {output_folder_path}/confusion_matrix')
     save_plot(fig, f'{output_folder_path}/confusion_matrix', dpi=100, save_png=True, save_eps=True)
 
 def multiclass_roc(sum_probs: pd.DataFrame, class_names: list, output_folder_path: str):
