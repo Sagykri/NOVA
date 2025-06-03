@@ -52,7 +52,6 @@ def calculate_accuracy(outputs_folder_path:str, config_path_data:str, anot_file_
     config_data:DatasetConfig = load_config_file(config_path_data, 'data')
     config_data.OUTPUTS_FOLDER = outputs_folder_path
     logging.info("[Calculate pretrained accuracy]")    
-    # embeddings, labels, _ = load_embeddings(outputs_folder_path, config_data)  
     dataset = DatasetNOVA(config_data)
     unique_labels = dataset.unique_labels
         
