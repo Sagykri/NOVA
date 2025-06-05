@@ -45,44 +45,6 @@ class AnalyzerEffects(Analyzer):
                 - combined_effects_df: DataFrame with overall (combined) effect sizes and pvalues per marker.
                 - batch_effects_df: DataFrame with per-batch calculated effect sizes and pvalues.
         """
-        # baseline_perturb_dict = get_if_exists(self.data_config, 'BASELINE_PERTURB', None)
-        # assert baseline_perturb_dict is not None, "BASELINE_PERTURB is None. You have to specify " #TODO give example
-
-        # embeddings_df = pd.DataFrame(embeddings)
-        # embeddings_dim = embeddings.shape[1]
-        # embeddings_df['label'] = labels
-        # embeddings_df[['marker','cell_line','condition','batch', 'rep']] = embeddings_df.label.str.split('_',expand=True)
-
-        # batch_effects= []
-        # for baseline in baseline_perturb_dict.keys():
-        #     logging.info(f"[AnalyzerEffects.calculate] baseline: {baseline}")
-        #     baseline_cell_line, baseline_cond = baseline.split('_')
-
-        #     for pert in baseline_perturb_dict[baseline]:
-        #         logging.info(f"[AnalyzerEffects.calculate] pert: {pert}")
-        #         perturb_cell_line, perturb_cond = pert.split('_')
-        #         pert_baseline_df = embeddings_df[(embeddings_df.cell_line.isin([perturb_cell_line,baseline_cell_line])) 
-        #                      & (embeddings_df.condition.isin([perturb_cond,baseline_cond]))]
-
-        #         for marker, marker_df in pert_baseline_df.groupby('marker'):
-        #             logging.info(f"[AnalyzerEffects.calculate] marker: {marker}")
-        #             for batch, batch_df in marker_df.groupby('batch'):
-        #                 logging.info(f"[AnalyzerEffects.calculate] batch: {batch}")
-                        
-        #                 res = self._calculate_effect_per_batch(batch_df, baseline_cell_line, baseline_cond, 
-        #                                                 perturb_cell_line, perturb_cond,
-        #                                                 embeddings_dim)
-        #                 if res:
-        #                     res.update({'marker':marker,'baseline':baseline,'pert':pert, 'batch': batch})
-        #                     batch_effects.append(res)
-        #                 else:
-        #                     logging.info(f'skipping {marker} in {batch} for missing samples')
-                            
-        # batch_effects_df = pd.DataFrame(batch_effects)
-        # combined_effects_df = self._combine_effects(batch_effects_df, alt='two-sided')
-        # self.features = combined_effects_df, batch_effects_df
-
-        # return combined_effects_df, batch_effects_df
         baseline_perturb_dict = self._get_baseline_perturb_dict()
         embeddings_df = self._prepare_embeddings_df(embeddings, labels)
         embeddings_dim = embeddings.shape[1]

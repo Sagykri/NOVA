@@ -8,12 +8,12 @@ import logging
 
 from src.common.utils import load_config_file
 from src.embeddings.embeddings_utils import load_embeddings
-from src.datasets.dataset_config import DatasetConfig
+from src.effects.effects_config import EffectConfig
 from src.analysis.analyzer_effects_mean_diff import AnalyzerEffectsMeanDiff
 
 def generate_effects(output_folder_path:str, config_path_data:str )->None:
     
-    config_data:DatasetConfig = load_config_file(config_path_data, 'data')
+    config_data:EffectConfig = load_config_file(config_path_data, 'data')
     config_data.OUTPUTS_FOLDER = output_folder_path
     embeddings, labels, _ = load_embeddings(output_folder_path, config_data)
     logging.info("[Generate effects]")
