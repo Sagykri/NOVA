@@ -21,6 +21,7 @@ from scipy.cluster.hierarchy import linkage, dendrogram
 from scipy.stats import ttest_ind
 from scipy.spatial.distance import squareform
 from sklearn.metrics.pairwise import nan_euclidean_distances
+from statsmodels.stats.multitest import multipletests
 
 import matplotlib
 from matplotlib import font_manager as fm
@@ -48,6 +49,66 @@ def plot_distances_plots(distances:pd.DataFrame, config_data:DatasetConfig, conf
     plot_clustermap(distances, saveroot, config_data, config_plot, metric=metric)
     plot_bubble_plot(distances, saveroot, config_data, config_plot, metric=metric)
 
+def plot_combined_effect_sizes_barplots(combined_effects_df, batch_effects_df,
+                                       saveroot:str, config_data:DatasetConfig,
+                                    config_plot:PlotConfig):
+    
+    for (baseline, pert), cur_df_combined in combined_effects_df.groupby(['baseline','pert']):
+        if saveroot:
+            savepath = os.path.join(saveroot, f'{pert}_vs_{baseline}_barplot')
+        cur_df_batch = batch_effects_df[(batch_effects_df.baseline==baseline)&(batch_effects_df.pert==pert)]
+        __plot_barplot(cur_df_combined, baseline, pert, savepath, config_plot, cur_df_batch)
+
+def __plot_barplot(combined_effects_df, baseline, pert, savepath, config_plot, cur_df_batch):
+    combined_effects_df['pvalue'] = combined_effects_df['pvalue'].replace(0, 1e-300)  # avoid log(0)
+    _, adj_pvals, _, _ = multipletests(combined_effects_df['pvalue'], method='fdr_bh')
+    combined_effects_df['adj_pvalue'] = adj_pvals
+    
+    combined_effects_df['low_error'] = combined_effects_df['combined_effect'] - combined_effects_df['ci_low']
+    combined_effects_df['high_error'] = combined_effects_df['ci_upp'] - combined_effects_df['combined_effect']
+    
+    combined_effects_df['stars'] = combined_effects_df['adj_pvalue'].apply(__convert_pvalue_to_asterisks)
+    
+    combined_effects_df = combined_effects_df.sort_values('combined_effect', ascending=False).reset_index(drop=True)
+    fig, ax = plt.subplots(figsize=(8, 5))
+
+    ax.bar(combined_effects_df['marker'], combined_effects_df['combined_effect'], 
+                yerr = np.array([combined_effects_df['low_error'], combined_effects_df['high_error']]),
+                capsize=5, edgecolor='k',
+                error_kw={'elinewidth': 0.7,'capthick': 0.7})
+    
+    # Add the separate batch effect sizes
+    marker_order = combined_effects_df['marker']
+    cur_df_batch['marker'] = pd.Categorical(cur_df_batch['marker'], categories=marker_order, ordered=True)
+    cur_df_batch = cur_df_batch.sort_values('marker')
+    ax.plot(cur_df_batch['marker'], cur_df_batch['effect_size'], 
+            linestyle='None', marker='.', color='black', markersize=3)
+    
+    # Add significance stars
+    for index, row in combined_effects_df.iterrows():
+        star = row['stars']
+        if star:
+            height = max(row['combined_effect'], row['ci_upp'],0)
+            ax.text(index, height + 0.02, star, ha='center', 
+                    va='bottom', fontsize=8, color='black')
+    
+    # Aesthetics
+    name_key=config_plot.MAPPINGS_ALIAS_KEY
+    marker_name_color_dict = config_plot.COLOR_MAPPINGS_MARKERS
+    x_ticklabels = [marker_name_color_dict[marker][name_key] if marker_name_color_dict else marker for marker in combined_effects_df['marker']]
+    ax.set_xticklabels(x_ticklabels, rotation=90)#, ha='right')
+    ax.set_ylabel("Combined Effect Size")
+    ax.axhline(0, color='gray', linestyle='--', linewidth=0.8)
+    plt.title(f'{config_plot.COLOR_MAPPINGS_CELL_LINE_CONDITION[pert][name_key]} vs {config_plot.COLOR_MAPPINGS_CELL_LINE_CONDITION[baseline][name_key]}')
+
+    plt.tight_layout()
+    
+    if savepath:
+        save_plot(fig, savepath, dpi=150, save_eps=True)
+    else:
+        plt.show()
+    return
+        
 def plot_marker_ranking(distances:pd.DataFrame, saveroot:str, config_data:DatasetConfig,
                         config_plot:PlotConfig, metric:str='ARI_KMeansConstrained', show_effect_size:bool=False)->None:
     """Generate and save a boxplot of marker distances with p-values, separately for each condition.
@@ -664,3 +725,65 @@ def __calculate_hierarchical_clustering(data)->np.ndarray[float]:
         # Compute hierarchical clustering of samples
         linkage_matrix:np.ndarray = linkage(condensed_dists, method='average', optimal_ordering=True)
         return linkage_matrix
+
+# def __convert_pvalue_to_asterisks(pval:float)->str:
+#     if pval < 1e-4:
+#         return '\u2736\u2736\u2736'
+#     elif pval < 1e-3:
+#         return '\u2736\u2736'
+#     elif pval < 0.05:
+#         return '\u2736'
+#     else:
+#         return ''
+    
+def plot_permutation_distribution(df_results, title=None):
+    ncols=4
+    nrows=int(np.ceil(df_results.shape[0]/ncols))
+    fig, axes = plt.subplots(figsize=(2*ncols, 2*nrows), ncols=ncols, nrows=nrows)
+    axes = axes.flatten()
+    for i, (idx, row) in enumerate(df_results.iterrows()):
+        ax = axes[i]
+        # ax.set_xlim(-1,2)
+        # Plot the KDE of the permuted values
+        sns.kdeplot(row["permuted"], ax=ax, fill=True, color="skyblue", alpha=0.5)
+        
+        # Add a vertical line for the observed effect size
+        ax.axvline(row["effect_size"], color="red", linestyle="--", linewidth=1)
+        
+        # Titles and labels
+        small_title = f'{row["batch"]}'
+        ax.set_title(small_title)
+        ax.set_xlabel("Effect size")
+        ax.set_ylabel("Density")
+
+    
+    # Remove any unused subplots
+    for j in range(i + 1, len(axes)):
+        fig.delaxes(axes[j])
+
+    plt.suptitle(title)
+    plt.tight_layout()
+    plt.show()
+
+
+
+def plot_batch_effect_size(df_marker_results, marker_val):
+    df_marker_results['stars'] = df_marker_results['pvalue'].apply(__convert_pvalue_to_asterisks)
+    
+    fig, ax = plt.subplots(figsize=(4, 3))
+    x = np.arange(len(df_marker_results))
+    bars = ax.bar(x, df_marker_results['effect_size'], capsize=5, edgecolor='k',)
+    
+    # Add significance stars
+    for i, (height, star) in enumerate(zip(df_marker_results['effect_size'], df_marker_results['stars'])):
+        if star:
+            ax.text(i, height + 0.02 if height > 0 else 0, star, ha='center', va='bottom', fontsize=5, color='black')
+    
+    # Aesthetics
+    ax.set_xticks(x)
+    ax.set_xticklabels(df_marker_results['batch'], rotation=45, ha='right')
+    ax.set_ylabel("Effect Size")
+    ax.axhline(0, color='gray', linestyle='--', linewidth=0.8)
+    plt.title(marker_val)
+    plt.tight_layout()
+    plt.show()    

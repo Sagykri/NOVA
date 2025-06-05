@@ -254,6 +254,20 @@ class dNLSDistancesFigureConfig(FigureConfig):
         self.ADD_BATCH_TO_LABEL = True
         self.ADD_REP_TO_LABEL = True
 
+class dNLSEffectsFigureConfig(FigureConfig):
+    def __init__(self):
+        super().__init__()
+        self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "spd2", "SpinningDisk","deltaNLS", f) for f in 
+                        [f"batch{i}" for i in range(3,6)]]
+        
+        self.EXPERIMENT_TYPE = 'deltaNLS'
+        self.MARKERS_TO_EXCLUDE = ['TIA1']
+        self.CELL_LINES = ['TDP43']
+
+        self.MARKERS = list(PlotConfig().COLOR_MAPPINGS_MARKERS.keys())
+        self.ADD_BATCH_TO_LABEL = True
+        self.ADD_REP_TO_LABEL = True
+
 ############################################################
 # Figure 3 - supp
 ############################################################
@@ -598,6 +612,7 @@ class NeuronsUMAP2ALSB9FUSFigureConfig(NeuronsUMAP2ALSB9FigureConfig):
         # Decide if to show ARI metric on the UMAP
         self.SHOW_ARI = True
         self.ADD_REP_TO_LABEL=False
+        
 class NeuronsUMAP2ALSD18B2FigureConfig(FigureConfig):
     def __init__(self):
         super().__init__()
@@ -865,3 +880,16 @@ class NeuronsUMAP0ALS_TDP43_B69FigureConfig(NeuronsUMAP0ALSB6FigureConfig):
         self.ADD_BATCH_TO_LABEL = False
 
         self.CELL_LINES = ['WT','TDP43']
+
+
+
+
+class NeuronsUMAP0ALSFUSFigureConfig(NeuronsUMAP0ALSFigureConfig):
+    def __init__(self):
+        super().__init__()
+
+        self.INPUT_FOLDERS = ["batch9"]
+        self.CELL_LINES = ['WT','FUSHomozygous']
+        self.ADD_BATCH_TO_LABEL = False
+        self.ADD_REP_TO_LABEL = False
+        self.SHOW_ARI = False
