@@ -17,6 +17,17 @@ class B78DatasetConfig(DatasetConfig):
         self.SPLIT_DATA = True
         self.MARKERS_TO_EXCLUDE = ['TIA1','DAPI']
 
+class B78NoRepDatasetConfig(DatasetConfig):
+    def __init__(self):
+        super().__init__()
+        self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "spd2", "SpinningDisk", f) for f in 
+                        ["batch7", "batch8"]]
+
+        self.SPLIT_DATA = True
+        self.MARKERS_TO_EXCLUDE = ['TIA1','DAPI']
+        self.ADD_BATCH_TO_LABEL:bool = True
+        self.ADD_REP_TO_LABEL:bool = False
+
 ############################################################
 # deltaNLS
 ############################################################        

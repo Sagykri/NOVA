@@ -90,7 +90,11 @@ class NOVAModel():
                 # convert from indexes to the labels
                 labels = data_loader.dataset.id2label(y)
                 # run the model to get the embeddings
-                outputs = self.model(X).cpu()
+                # outputs = self.model(X)
+                _, outputs = self.model(X, return_hidden=True) # head outputs, hidden_outputs (i.e. before head)
+                # # Normalize the outputs
+                # outputs = F.normalize(outputs, dim=-1)
+                outputs = outputs.cpu()
                 
                 all_outputs.append(outputs)
                 all_labels = np.append(all_labels, labels)
