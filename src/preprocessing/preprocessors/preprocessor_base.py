@@ -394,13 +394,14 @@ class Preprocessor(ABC):
         Returns:
             List[Polygon]: Filtered list of polygons.
         """
-        # Define image outer frame 
-        image_border = box(0,0,image_shape[0],image_shape[1]) 
-        # Create a buffered version of the image border
-        # This is to ensure that polygons touching the border are also filtered out
-        image_border_buffered = image_border.buffer(self.preprocessing_config.FRAME_WIDTH_BUFFER)
-        # Filter out polygons which touch the outer frame 
-        whole_polygons = [p for p in whole_polygons if not p.intersects(image_border_buffered)]
+        height, width = image_shape
+        buffer = self.preprocessing_config.FRAME_WIDTH_BUFFER
+
+        # Create a smaller inner box inset by `buffer` from all sides
+        inner_box = box(buffer, buffer, width - buffer, height - buffer)
+
+        # Keep only polygons that are fully inside this box
+        whole_polygons = [p for p in whole_polygons if inner_box.contains(p)]
         
         return whole_polygons
     
