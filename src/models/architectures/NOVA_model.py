@@ -6,6 +6,7 @@ import torch
 from torch.utils.data import DataLoader
 from typing import Dict, List, Tuple
 from collections import OrderedDict
+import torch.nn.functional as F
 
 sys.path.insert(1, os.getenv("NOVA_HOME"))
 
@@ -62,11 +63,13 @@ class NOVAModel():
         
         return embeddings_utils.generate_embeddings(self, dataset_config)
     
-    def infer(self, data_loader: DataLoader)->Tuple[np.ndarray[torch.Tensor], np.ndarray[str]]:
+    def infer(self, data_loader: DataLoader, return_hidden_outputs=True, normalize_outputs=True)->Tuple[np.ndarray[torch.Tensor], np.ndarray[str]]:
         """Run inference on the data_loader data
 
         Args:
             data_loader (DataLoader): The dataloader to run inference on
+            return_hidden_outputs (bool, optional): Whether to return the hidden outputs (i.e. before the head). Defaults to True.
+            normalize_outputs (bool, optional): Whether to normalize the outputs. Defaults to True.
 
         Returns:
             Tuple[np.ndarray[torch.Tensor], np.ndarray[str]]: (all the outputs, all the labels)
@@ -90,13 +93,62 @@ class NOVAModel():
                 # convert from indexes to the labels
                 labels = data_loader.dataset.id2label(y)
                 # run the model to get the embeddings
-                outputs = self.model(X).cpu()
+                if return_hidden_outputs:
+                    _, outputs = self.model(X, return_hidden=return_hidden_outputs) # head outputs, hidden_outputs (i.e. before head)
+                else: 
+                    outputs = self.model(X, return_hidden=return_hidden_outputs)
+
+                if normalize_outputs:
+                    # Normalize the outputs
+                    outputs = F.normalize(outputs, dim=-1)
+
+                outputs = outputs.cpu()
                 
                 all_outputs.append(outputs)
                 all_labels = np.append(all_labels, labels)
                 all_paths = np.append(all_paths, path)
         
         all_outputs:np.ndarray[torch.Tensor] = np.vstack(all_outputs)
+        
+        return all_outputs, all_labels, all_paths
+
+    def gen_attn_maps(self, data_loader: DataLoader)->Tuple[np.ndarray[torch.Tensor], np.ndarray[str]]:
+        """ same as  - self.Infer(), but calls self.model.get_all_selfattention(X) instead of self.model(X)
+        Run epoch on the data_loader data
+
+        Args:
+            data_loader (DataLoader): The dataloader to run inference on
+
+        Returns:
+            Tuple[np.ndarray[torch.Tensor], np.ndarray[str]]: (all the outputs, all the labels)
+        """
+        all_outputs:List[torch.Tensor] = []
+        all_labels:np.ndarray[str] = np.array([])
+        all_paths:np.ndarray[str] = np.array([])
+        # Move model to cuda
+        self.model = self.model.cuda()
+        
+        # Set model to eval mode
+        self.model.eval()
+        
+        with torch.no_grad():
+            for it, res in enumerate(data_loader): #it: index, res: batch (X, y, path)
+                logging.info(f"[Inference] Batch number: {it}/{len(data_loader)}")
+                X, y, path = res
+                X = X.cuda()
+                
+                # convert from indexes to the labels
+                labels = data_loader.dataset.id2label(y)
+                # run the model to get the embeddings
+                outputs = self.model.get_all_selfattention(X).cpu() # (num_layers, num_samples, num_heads, num_patches, num_patches)
+                outputs = outputs.permute(1, 0, 2, 3, 4) # (num_samples, num_layers, num_heads, num_patches, num_patches)
+                all_outputs.append(outputs)
+
+                all_labels = np.append(all_labels, labels) # (num_samples)
+
+                all_paths = np.append(all_paths, path)
+        
+        all_outputs:np.ndarray[torch.Tensor] = np.vstack(all_outputs) # concanate all output  - [num_of_samples, output_dim]
         
         return all_outputs, all_labels, all_paths
     
