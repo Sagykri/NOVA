@@ -21,7 +21,7 @@ from src.datasets.label_utils import get_batches_from_labels, get_unique_parts_f
 ###############################################################
 
 def generate_embeddings(model:NOVAModel, config_data:DatasetConfig, 
-                        batch_size:int=700, num_workers:int=6)->Tuple[List[np.ndarray[torch.Tensor]],
+                        batch_size:int=700, num_workers:int=6, on_hidden_outputs:bool=True, on_normalized_output:bool=True)->Tuple[List[np.ndarray[torch.Tensor]],
                                                                       List[np.ndarray[str]]]:
     logging.info(f"[generate_embeddings] Is GPU available: {torch.cuda.is_available()}")
     logging.info(f"[generate_embeddings] Num GPUs Available: {torch.cuda.device_count()}")
@@ -59,7 +59,7 @@ def generate_embeddings(model:NOVAModel, config_data:DatasetConfig,
         new_set_dataset = deepcopy(full_dataset)
         new_set_dataset.set_Xy(new_set_paths, new_set_labels)
         
-        embeddings, labels, paths = __generate_embeddings_with_dataloader(new_set_dataset, model, batch_size, num_workers)
+        embeddings, labels, paths = __generate_embeddings_with_dataloader(new_set_dataset, model, batch_size, num_workers, on_hidden_outputs=on_hidden_outputs, on_normalized_output=on_normalized_output)
         
         all_embeddings.append(embeddings)
         all_labels.append(labels)
@@ -134,11 +134,11 @@ def load_embeddings(model_output_folder:str, config_data:DatasetConfig)-> Tuple[
     return filtered_embeddings, filtered_labels, filtered_paths
 
 def __generate_embeddings_with_dataloader(dataset:DatasetNOVA, model:NOVAModel, batch_size:int=700, 
-                                          num_workers:int=6)->Tuple[np.ndarray[torch.Tensor], np.ndarray[str]]:
+                                          num_workers:int=6, on_hidden_outputs:bool=True, on_normalized_output:bool=True)->Tuple[np.ndarray[torch.Tensor], np.ndarray[str]]:
     data_loader = get_dataloader(dataset=dataset, batch_size=batch_size, num_workers=num_workers, drop_last=False)
     logging.info(f"[generate_embeddings_with_dataloader] Data loaded: there are {len(dataset)} images.")
     
-    embeddings, labels, paths = model.infer(data_loader)
+    embeddings, labels, paths = model.infer(data_loader, return_hidden_outputs=on_hidden_outputs, normalize_outputs=on_normalized_output)
     logging.info(f'[generate_embeddings_with_dataloader] total embeddings: {embeddings.shape}')
     
     return embeddings, labels, paths
