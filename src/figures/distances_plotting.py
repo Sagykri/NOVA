@@ -50,8 +50,7 @@ def plot_distances_plots(distances:pd.DataFrame, config_data:DatasetConfig, conf
     plot_bubble_plot(distances, saveroot, config_data, config_plot, metric=metric)
 
 def plot_combined_effect_sizes_barplots(combined_effects_df, batch_effects_df,
-                                       saveroot:str, config_data:DatasetConfig,
-                                    config_plot:PlotConfig):
+                                       saveroot:str, config_plot:PlotConfig):
     
     for (baseline, pert), cur_df_combined in combined_effects_df.groupby(['baseline','pert']):
         if saveroot:
