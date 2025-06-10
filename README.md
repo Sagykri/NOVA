@@ -15,6 +15,8 @@ Welcome to the official repository for **NOVA**, a deep learning framework desig
     - [Download the model](#download-the-model)
     - [Download the images](#download-the-images)
   - [Usage](#usage)
+    - [Preprocessing the data](#preprocess-the-data)
+    - [Train a model](#train-a-model)
     - [Generate Embeddings](#generate-embeddings)
     - [Generate UMAPs](#generate-umaps)
     - [Generate distances plots](#generate-distances-plots)
@@ -345,6 +347,10 @@ CONDITIONS:Union[None, List[List]]
 
 # Reps to include
 REPS:Union[None, List[List]]  
+
+# Panels to include
+PANELS:Union[None, List[List]]
+
 
 # The path to the Preprocessor class (the path to the py file, then / and then the name of the class)
 # ex: os.path.join("src", "preprocessing", "preprocessor_spd", "SPDPreprocessor")
