@@ -71,6 +71,9 @@ class PreprocessingConfig(BaseConfig):
         self.CONDITIONS:Union[None, List[List]]         = None
         # Reps to include
         self.REPS:Union[None, List[List]]               = None
+        # Panels to include
+        self.PANELS:Union[None, List[List]]             = None
+
         
         # The path to the Preprocessor class (the path to the py file, then / and then the name of the class)
         # ex: os.path.join("src", "preprocessing", "preprocessor_spd", "SPDPreprocessor")
