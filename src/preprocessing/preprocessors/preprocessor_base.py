@@ -11,6 +11,10 @@ import cv2
 import numpy as np
 from cellpose import models
 import pandas as pd
+from shapely import affinity , make_valid
+from shapely.geometry import box ,Polygon
+import cellpose
+
 
 from skimage import transform
 
@@ -233,13 +237,14 @@ class Preprocessor(ABC):
             str: The regex for the path
         """
         pass
-    
+
     def _get_valid_tiles_indexes(self, nucleus_image: np.ndarray, return_masked_tiles:bool = True) -> np.ndarray:
         """
         Get the indexes of valid tiles 
         
         Args:
-            nucleus_image (np.ndarray): The nucleus image
+            nucleus_image (np.ndarray): The nucleus imageת
+            return_masked_tiles (bool): Whether to return the masked tiles or not
 
         Returns:
             np.ndarray: Array of valid tile indexes.
@@ -254,10 +259,22 @@ class Preprocessor(ABC):
         )
         # Tile the nucleus mask and validate each tile
         nuclei_mask_tiled = crop_image_to_tiles(nuclei_mask, self.preprocessing_config.TILE_INTERMEDIATE_SHAPE)
-        valid_tiles_indexes = np.where([self.__is_valid_tile(masked_tile) for masked_tile in nuclei_mask_tiled])[0]
-        
+        # Fix for non-valid polygons 
+        whole_polygons = extract_polygons_from_mask(nuclei_mask) 
+        # Filter out polygons which touch the outer frame         
+        whole_polygons = self.__filter_intersecting_with_outer_frame(whole_polygons=whole_polygons, image_shape=self.preprocessing_config.EXPECTED_IMAGE_SHAPE)
+        # In each tile - match the contained polygons with the whole ones.
+        # output will look like: {tile_index: [whole_polygons_indexes]}
+        dict_matches = self.__match_part_with_whole_pols(nuclei_mask_tiled , whole_polygons)
+        # Select only tiles with passed nuclues 
+        valid_tiles_indexes = np.where([self.__is_valid_tile(masked_tile,dict_matches, whole_polygons = whole_polygons , 
+                                                                        ix=ix)
+                                                   for ix, masked_tile in enumerate(nuclei_mask_tiled)])
+
+        valid_tiles_indexes = valid_tiles_indexes[0]
+
         if return_masked_tiles:
-            return valid_tiles_indexes, nuclei_mask_tiled
+            return valid_tiles_indexes , nuclei_mask_tiled
         return valid_tiles_indexes
 
     def _get_image(self, path: str) -> Union[np.ndarray , None]:
@@ -330,10 +347,8 @@ class Preprocessor(ABC):
                 Key: The path to the raw file
                 Value: The processed valid tiles
         """        
-        logging.info(f"Processing the group: {group_id}: {images_group}")
         
         processed_images: Dict[str, np.ndarray ] = {}
-        
         nucleus_path = images_group[self.__NUCLEUS_MARKER_NAME]
         logging.info(f"[{group_id}] Processing {self.__NUCLEUS_MARKER_NAME}: {nucleus_path}")
         
@@ -362,12 +377,9 @@ class Preprocessor(ABC):
         if len(valid_tiles_indexes) == 0: 
             logging.warning(f"[{group_id}] No valid tiles were found for nucleus image: {nucleus_path}")
             return
-        
-        logging.info(f"[{group_id}] {len(valid_tiles_indexes)} valid tiles were found")
-        
+                
         # Process each marker image in the same plate as the current nucleus
         for marker_name, marker_path in images_group.items():
-            logging.info(f"[{group_id}] Processing {marker_name}: {marker_path}")
 
             processed_marker = self._get_image(marker_path)
 
@@ -401,20 +413,138 @@ class Preprocessor(ABC):
         logging.info(f"[{group_id}] Shape of processed images: {__shapes}")
             
         return processed_images
-            
-    def __is_valid_tile(self, masked_tile: np.ndarray) -> bool:
+    
+    def __filter_intersecting_with_outer_frame(self, whole_polygons: List[Polygon], image_shape: tuple) -> List[Polygon]:
         """
-        Check if the tile has at least one whole nucleus but not more than the maximum allowed nucleus 
+        Filter out whole_polygons that intersect with the outer frame of the image.
 
         Args:
-            masked_tile (np.ndarray): Segmented tile for nuclei within
+            whole_polygons (List[Polygon]): List of polygons to filter.
+            image_shape (tuple): Shape of the image (height, width).
+
+        Returns:
+            List[Polygon]: Filtered list of polygons.
+        """
+        height, width = image_shape
+        buffer = self.preprocessing_config.FRAME_WIDTH_BUFFER
+
+        # Create a smaller inner box inset by `buffer` from all sides
+        inner_box = box(buffer, buffer, width - buffer, height - buffer)
+
+        # Keep only polygons that are fully inside this box
+        whole_polygons = [p for p in whole_polygons if inner_box.contains(p)]
+        
+        return whole_polygons
+    
+    def __match_part_with_whole_pols(self ,nuclei_mask_tiled , whole_polygons) -> Dict :
+        """
+    Matches nuclei polygons extracted from tiled masks to corresponding whole-image polygons.
+
+    Each tile in the image , which contains one/few nuclei, and the goal is to match these
+    partial tile-based polygons to their corresponding complete polygon in the whole image.
+
+    The function does the following:
+    - Iterates over each tile and extracts part-polygons from it.
+    - Translates each part-polygon to the global coordinate space based on its tile location.
+    - For each part-polygon, checks if its representative point lies inside any full polygon.
+    - If a match is found - it appends the match index. If no match is found, it appends `None`.
+
+    Args:
+        nuclei_mask_tiled (List[np.ndarray]): List of binary mask tiles containing nuclei segmentations.
+        whole_polygons (List[shapely.geometry.Polygon]): List of full polygons in the complete image space.
+
+    Returns:
+        dict_matches (Dict[int, List[int | None]]): A dictionary mapping each tile index to a list of matched
+                                                    whole polygon indices, or None if no match was found.
+    """
+        
+        dict_matches = defaultdict(list)
+
+        # get parameters of tiles, for determiming the tile location on the complete image
+        # expected image shape - the width/height (assumed to be the same) of the whole image
+        expected_image_shape = self.preprocessing_config.EXPECTED_IMAGE_SHAPE[0]
+        # tile width/height (assumed to be the same) 
+        tile_size = self.preprocessing_config.TILE_INTERMEDIATE_SHAPE[0]
+        # number of tiles along the width/height of the whole image
+        n_tiles = expected_image_shape // tile_size
+
+        # Iterate over each tile (part polygons inside)
+        for ix, masked_tile in enumerate(nuclei_mask_tiled):
+            part_polygons = extract_polygons_from_mask(masked_tile)
+
+            # --------------------------------------
+            # Iterate over each part polygon (nuclei parts inside the tile) and find it's matching whole polygon 
+            # If found - add the whole polygon index to the dict, else add None
+            # --------------------------------------
+            for p in part_polygons:
+                # 1. Translate polygon to global image coordinates based on tile index
+                # 2. Find a point guaranteed to be inside the polygon
+                p1 = affinity.translate(p, xoff=ix % n_tiles * tile_size, yoff=ix // n_tiles * tile_size)
+                pc = p1.representative_point()  
+
+                # --------------------------------------
+                # Check if this polygon corresponds to a known whole polygon
+                # by verifying:
+                #   - the point lies inside a full polygon
+                #   - the area ratio exceeds a set threshold
+                # --------------------------------------
+                found_match = 0
+                if p is not None: 
+                    for ix_whole , pol_whole in enumerate(whole_polygons):
+                        if pc.intersects(pol_whole):
+                            dict_matches[ix].append(ix_whole)
+                            found_match = 1 
+
+                if found_match == 0:
+                    dict_matches[ix].append(None)
+
+        return dict_matches
+
+
+    def __is_valid_tile(self, masked_tile: np.ndarray,dict_matches: Dict, whole_polygons=None, ix=None) -> bool:
+        """
+        Check if the tile has at least one whole nucleus but not more than the maximum allowed nuclei.
+        
+        Args:
+            masked_tile (np.ndarray): Segmented tile image (mask of nuclei within the tile)
+            dict_matches (Dict): Dictionary mapping tile index to matched whole polygon indices
+            whole_polygons (List[Polygon]): List of all complete nucleus polygons across the entire image
+            ix (int): Index of the tile (used to compute its position in the global image)
         
         Returns:
-            bool: True if the tile contains a whole nucleus and not more than the maximum allowed nucleus, False otherwise.
+            bool: True if the tile contains a valid nucleus and not more than the allowed number, else False.
         """
+
+        # --------------------------------------
+        # Extract partial polygons from tile mask
+        # These are the intersected nuclei parts within the tile
+        # --------------------------------------
+
+        
         polygons = extract_polygons_from_mask(masked_tile)
-        return is_contains_whole_nucleus(polygons, self.preprocessing_config.TILE_INTERMEDIATE_SHAPE) and get_nuclei_count(masked_tile) <= self.preprocessing_config.MAX_NUM_NUCLEI
-    
+        matched_polygons_ixs = dict_matches[ix]
+
+        passed_tile = False
+
+        for pol_ix, pol_part in zip(matched_polygons_ixs, polygons):
+            if pol_ix is not None and pol_part is not None:
+                if pol_part.area/ whole_polygons[pol_ix].area > self.preprocessing_config.INCLUDED_AREA_RATIO:
+                    passed_tile = True
+                    break
+
+        # Image and tile size setup
+        max_num_nuclei = self.preprocessing_config.MAX_NUM_NUCLEI
+
+        # --------------------------------------
+        # Evaluate tile conditions
+        #   cond1: contains at least one sufficiently complete nucleus
+        #   cond2: does not exceed the maximum allowed nuclei count
+        # --------------------------------------
+        cond1 = passed_tile
+        cond2 = get_nuclei_count(masked_tile) <= max_num_nuclei
+
+        return cond1 and cond2 
+   
     def __get_grouped_images_for_folder(self, folder_path:str)->Dict[str, Dict[str, str]]:
         """Get groups of images for the given folder, filtered based on the configuration settings
 
@@ -494,6 +624,13 @@ class Preprocessor(ABC):
         # Filter markers
         paths = filter_paths_by_substrings(paths, self.preprocessing_config.MARKERS, path_utils.raw_parts.marker_part_indx)
         paths = filter_paths_by_substrings(paths, self.preprocessing_config.MARKERS_TO_EXCLUDE, path_utils.raw_parts.marker_part_indx, filter_out=True)
+<<<<<<< HEAD
+=======
+      
+        # Filter panels
+        paths = filter_paths_by_substrings(paths, self.preprocessing_config.PANELS, path_utils.raw_parts.panel_part_indx)
+      
+>>>>>>> 29b1f8f6e7ed8be8f71d14fd627325df580fb51e
         return paths
     
     def __get_supported_filepaths_from_basedir(self, base_dir:str)->List[Path]:

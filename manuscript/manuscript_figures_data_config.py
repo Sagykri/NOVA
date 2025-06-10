@@ -561,7 +561,14 @@ class NeuronsUMAP2ALSB9ALSLinesFigureConfig(NeuronsUMAP2ALSB9FigureConfig):
         super().__init__()
         self.CELL_LINES = ['WT','TDP43','SCNA', 'FUSHomozygous',
                            'TBK1','OPTN']
-            
+
+class CellPaintingNeuronsUMAP2ALSB9ALSLinesFigureConfig(NeuronsUMAP2ALSB9ALSLinesFigureConfig):
+    def __init__(self):
+        super().__init__()
+        self.MARKERS = ['DAPI','Calreticulin','NCL','mitotracker','Phalloidin','GM130']
+        self.MARKERS_TO_EXCLUDE = ['TDP43','NONO','ANXA11','LAMP1','FUS','PEX14',
+                                   'DCP1A','CD41','SQSTM1','PML','SCNA','SNCA','NEMO',
+                                   'PSD95','KIF5A','CLTC','TOMM20','PURA','G3BP1','FMRP']
 class NeuronsUMAP2ALSD18B1FigureConfig(FigureConfig):
     def __init__(self):
         super().__init__()
