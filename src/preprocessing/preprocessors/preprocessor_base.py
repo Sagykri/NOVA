@@ -624,13 +624,10 @@ class Preprocessor(ABC):
         # Filter markers
         paths = filter_paths_by_substrings(paths, self.preprocessing_config.MARKERS, path_utils.raw_parts.marker_part_indx)
         paths = filter_paths_by_substrings(paths, self.preprocessing_config.MARKERS_TO_EXCLUDE, path_utils.raw_parts.marker_part_indx, filter_out=True)
-<<<<<<< HEAD
-=======
       
         # Filter panels
         paths = filter_paths_by_substrings(paths, self.preprocessing_config.PANELS, path_utils.raw_parts.panel_part_indx)
       
->>>>>>> 29b1f8f6e7ed8be8f71d14fd627325df580fb51e
         return paths
     
     def __get_supported_filepaths_from_basedir(self, base_dir:str)->List[Path]:
