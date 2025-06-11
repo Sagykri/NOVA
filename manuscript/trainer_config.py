@@ -104,7 +104,7 @@ class ContrastiveTrainerNoFreezeConfig(TrainerConfig):
     def __init__(self):
         super().__init__()
        
-        self.OUTPUTS_FOLDER:str = os.path.join(os.getenv("NOVA_HOME"), "outputs/vit_models/finetuned_model_nobatch_no_freeze")
+        self.OUTPUTS_FOLDER:str = os.path.join(os.getenv("NOVA_HOME"), "outputs/vit_models/finetuned_model_no_freeze")
 
         # Training parameters
         self.LR:float = 0.0008
@@ -128,7 +128,7 @@ class ContrastiveTrainerConfig(TrainerConfig):
     def __init__(self):
         super().__init__()
        
-        self.OUTPUTS_FOLDER:str = os.path.join(os.getenv("NOVA_HOME"), "outputs/vit_models/finetuned_model_nobatch")
+        self.OUTPUTS_FOLDER:str = os.path.join(os.getenv("NOVA_HOME"), "outputs/vit_models/finetuned_model")
 
         # Training parameters
         self.LR:float = 0.0008

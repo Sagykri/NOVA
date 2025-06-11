@@ -1,22 +1,23 @@
 echo "NOVA_HOME:" $NOVA_HOME
 
-output_dir="/home/projects/hornsteinlab/Collaboration/MOmaps_Sagy/NOVA/outputs/model_evaluation_01_differential"
-k=5
+mem=100000
+output_dir="$NOVA_HOME/outputs/model_evaluations_090625_80pct"
+models_path_filepath="$NOVA_HOME/manuscript/models_path.json"
+embeddings_path="./manuscript/embeddings_config_80pct"
+k=10
 neg_k=20
 sample_fraction=0.1
-mem=70000
 
-$NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/compare_models -g -b 1 -m $mem -j eval_coyne -a AlyssaCoyne_7tiles batch1 $output_dir $k $neg_k 1
+# Alyssa Coyne
+$NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/evaluate_models -g -b 1 -m 10000 -j eval_coyne -a $output_dir $embeddings_path/"EmbeddingsAlyssaCoyneDatasetConfig_NoRepNoBatchNoDAPI" $models_path_filepath $k $neg_k 1
 
-# dNLS
-$NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/compare_models -g -b 1 -m $mem -j eval_dNLS3 -a deltaNLS batch3 $output_dir $k $neg_k 0.5
-$NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/compare_models -g -b 1 -m $mem -j eval_dNLS4 -a deltaNLS batch4 $output_dir $k $neg_k 0.5
-$NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/compare_models -g -b 1 -m $mem -j eval_dNLS5 -a deltaNLS batch5 $output_dir $k $neg_k 0.5
+# # dNLS
+$NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/evaluate_models -g -b 1 -m $mem -j eval_dNLS3 -a $output_dir $embeddings_path/"EmbeddingsdNLSB3DatasetConfig_NoRepNoBatchNoDAPI" $models_path_filepath $k $neg_k 0.3
+$NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/evaluate_models -g -b 1 -m $mem -j eval_dNLS4 -a $output_dir $embeddings_path/"EmbeddingsdNLSB4DatasetConfig_NoRepNoBatchNoDAPI" $models_path_filepath $k $neg_k 0.3
+$NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/evaluate_models -g -b 1 -m $mem -j eval_dNLS5 -a $output_dir $embeddings_path/"EmbeddingsdNLSB5DatasetConfig_NoRepNoBatchNoDAPI" $models_path_filepath $k $neg_k 0.5
 
-# neurons
-$NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/compare_models -g -b 1 -m $mem -j eval_neurons4 -a neurons batch4 $output_dir $k $neg_k $sample_fraction
-$NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/compare_models -g -b 1 -m $mem -j eval_neurons5 -a neurons batch5 $output_dir $k $neg_k $sample_fraction
-$NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/compare_models -g -b 1 -m $mem -j eval_neurons6 -a neurons batch6 $output_dir $k $neg_k $sample_fraction
-$NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/compare_models -g -b 1 -m $mem -j eval_neurons7 -a neurons batch7 $output_dir $k $neg_k $sample_fraction
-$NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/compare_models -g -b 1 -m $mem -j eval_neurons8 -a neurons batch8 $output_dir $k $neg_k $sample_fraction
-$NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/compare_models -g -b 1 -m $mem -j eval_neurons9 -a neurons batch9 $output_dir $k $neg_k $sample_fraction
+neurons
+$NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/evaluate_models -g -b 1 -m $mem -j eval_neurons4 -a $output_dir $embeddings_path/"EmbeddingsB4DatasetConfig_NoRepNoBatchNoDAPI" $models_path_filepath $k $neg_k $sample_fraction
+$NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/evaluate_models -g -b 1 -m $mem -j eval_neurons5 -a $output_dir $embeddings_path/"EmbeddingsB5DatasetConfig_NoRepNoBatchNoDAPI" $models_path_filepath $k $neg_k $sample_fraction
+$NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/evaluate_models -g -b 1 -m $mem -j eval_neurons6 -a $output_dir $embeddings_path/"EmbeddingsB6DatasetConfig_NoRepNoBatchNoDAPI" $models_path_filepath $k $neg_k $sample_fraction
+$NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/evaluate_models -g -b 1 -m $mem -j eval_neurons9 -a $output_dir $embeddings_path/"EmbeddingsB9DatasetConfig_NoRepNoBatchNoDAPI" $models_path_filepath $k $neg_k $sample_fraction

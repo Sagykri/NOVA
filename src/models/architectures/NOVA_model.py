@@ -6,6 +6,7 @@ import torch
 from torch.utils.data import DataLoader
 from typing import Dict, List, Tuple
 from collections import OrderedDict
+import torch.nn.functional as F
 
 sys.path.insert(1, os.getenv("NOVA_HOME"))
 
@@ -62,11 +63,13 @@ class NOVAModel():
         
         return embeddings_utils.generate_embeddings(self, dataset_config)
     
-    def infer(self, data_loader: DataLoader)->Tuple[np.ndarray[torch.Tensor], np.ndarray[str]]:
+    def infer(self, data_loader: DataLoader, return_hidden_outputs=True, normalize_outputs=True)->Tuple[np.ndarray[torch.Tensor], np.ndarray[str]]:
         """Run inference on the data_loader data
 
         Args:
             data_loader (DataLoader): The dataloader to run inference on
+            return_hidden_outputs (bool, optional): Whether to return the hidden outputs (i.e. before the head). Defaults to True.
+            normalize_outputs (bool, optional): Whether to normalize the outputs. Defaults to True.
 
         Returns:
             Tuple[np.ndarray[torch.Tensor], np.ndarray[str]]: (all the outputs, all the labels)
@@ -90,10 +93,15 @@ class NOVAModel():
                 # convert from indexes to the labels
                 labels = data_loader.dataset.id2label(y)
                 # run the model to get the embeddings
-                # outputs = self.model(X)
-                _, outputs = self.model(X, return_hidden=True) # head outputs, hidden_outputs (i.e. before head)
-                # # Normalize the outputs
-                # outputs = F.normalize(outputs, dim=-1)
+                if return_hidden_outputs:
+                    _, outputs = self.model(X, return_hidden=return_hidden_outputs) # head outputs, hidden_outputs (i.e. before head)
+                else: 
+                    outputs = self.model(X, return_hidden=return_hidden_outputs)
+
+                if normalize_outputs:
+                    # Normalize the outputs
+                    outputs = F.normalize(outputs, dim=-1)
+
                 outputs = outputs.cpu()
                 
                 all_outputs.append(outputs)
