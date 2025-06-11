@@ -11,8 +11,8 @@ effects_configs=./manuscript/effects_config
 
 ### Neurons d8
 
-# $NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_effects \
-# -a $output_folder $effects_configs/NeuronsEffectConfig -q short -j dist_neurons
+$NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_effects \
+-a $output_folder $effects_configs/NeuronsEffectWithBioReplicateConfig -q short -j dist_neurons
 
 # $NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_effects \
 # -a $output_folder $effects_configs/NeuronsEffectWithBioReplicateConfig -q short -j dist_neurons_with_345
@@ -20,8 +20,8 @@ effects_configs=./manuscript/effects_config
 # $NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_effects \
 # -a $output_folder $effects_configs/NeuronsTBK1EffectConfig -q short -j dist_neurons_tbk1
 
-$NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_effects \
--a $output_folder $effects_configs/dNLS345EffectConfig -q short -j dist_dnls345
+# $NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_effects \
+# -a $output_folder $effects_configs/dNLSNewEffectConfig -q short -j dist_dnlsNew -m 30000
 
 # $NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_effects \
 # -a $output_folder $effects_configs/Day18EffectConfig -q short -j dist_d18
