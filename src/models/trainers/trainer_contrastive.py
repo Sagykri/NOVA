@@ -12,20 +12,7 @@ from src.models.architectures.NOVA_model import NOVAModel
 from src.models.trainers.trainer_base import TrainerBase
 from src.models.trainers.trainer_config import TrainerConfig
 from src.common.utils import flat_list_of_lists, get_if_exists
-from src.datasets.dataset_config import DatasetConfig
-from src.datasets import label_utils
-
-
-class _LabelInfo:
-    """Holds all the needed info on the label for generating pairs for the contrastive loss
-    """
-    def __init__(self, label:str, index:int, dataset_config:DatasetConfig):
-        __labels_np = np.asarray([label])
-        self.batch:str = label_utils.get_batches_from_labels(__labels_np, dataset_config)[0]
-        self.cell_line_cond:str = label_utils.get_cell_lines_conditions_from_labels(__labels_np, dataset_config)[0]
-        self.marker:str = label_utils.get_markers_from_labels(__labels_np, dataset_config)[0]
-        self.rep:str = label_utils.get_reps_from_labels(__labels_np, dataset_config)[0]
-        self.index:int = index
+from src.datasets.label_utils import LabelInfo
 
 class TrainerContrastive(TrainerBase):
     def __init__(self, trainer_config:TrainerConfig, nova_model:NOVAModel):
@@ -109,14 +96,14 @@ class TrainerContrastive(TrainerBase):
             'negative_idx': negative_idx
         }
     
-    def __get_positives(self, anchor:_LabelInfo, labels_dicts: List[_LabelInfo])->List[int]:
+    def __get_positives(self, anchor:LabelInfo, labels_dicts: List[LabelInfo])->List[int]:
         """given an anchor, we define positive as:
         # the same marker, batch, cell line, cond
         # different rep
 
         Args:
-            anchor (_LabelInfo): The anchor
-            labels_dicts (List[_LabelInfo]): List of the labels information
+            anchor (LabelInfo): The anchor
+            labels_dicts (List[LabelInfo]): List of the labels information
 
         Returns:
             List[int]: List of indexes for negative samples
@@ -132,14 +119,14 @@ class TrainerContrastive(TrainerBase):
                 and lbl.index != anchor.index]
         return positives
         
-    def __get_negatives(self, anchor:_LabelInfo, labels_dicts: List[_LabelInfo])->List[int]:
+    def __get_negatives(self, anchor:LabelInfo, labels_dicts: List[LabelInfo])->List[int]:
         """given an anchor, we define negative as:
         the same marker, batch
         different cell line, cond
 
         Args:
-            anchor (_LabelInfo): The anchor
-            labels_dicts (List[_LabelInfo]): List of the labels information
+            anchor (LabelInfo): The anchor
+            labels_dicts (List[LabelInfo]): List of the labels information
 
         Returns:
             List[int]: List of indexes for negative samples
@@ -176,7 +163,7 @@ class TrainerContrastive(TrainerBase):
                 And, the embeddings in indices [3,6,8,12,20] can be used as negatives.
         """
         dataset_config = self.data_loader_train.dataset.get_configuration()
-        labels_dicts = [_LabelInfo(label, i, dataset_config) for i,label in enumerate(labels)]        
+        labels_dicts = [LabelInfo(label, dataset_config, i) for i,label in enumerate(labels)]        
         
         anchor_idx, positive_idx, negative_idx = [], [] , []
         for index, anchor in enumerate(labels_dicts):

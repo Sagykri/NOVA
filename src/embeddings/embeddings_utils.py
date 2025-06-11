@@ -7,6 +7,7 @@ from copy import deepcopy
 import numpy as np
 import logging
 import torch
+from sklearn.model_selection import train_test_split
 
 from src.common.utils import get_if_exists
 from src.datasets.data_loader import get_dataloader
@@ -23,6 +24,21 @@ from src.datasets.label_utils import get_batches_from_labels, get_unique_parts_f
 def generate_embeddings(model:NOVAModel, config_data:DatasetConfig, 
                         batch_size:int=700, num_workers:int=6, on_hidden_outputs:bool=True, on_normalized_output:bool=True)->Tuple[List[np.ndarray[torch.Tensor]],
                                                                       List[np.ndarray[str]]]:
+    """Generate embeddings for the model on the dataset defined in config_data.
+
+    Args:
+        model (NOVAModel): The model
+        config_data (DatasetConfig): The dataset configuration, which defines the data to load.
+        batch_size (int, optional):  The batch size. Defaults to 700.
+        num_workers (int, optional): Number of workers. Defaults to 6.
+        on_hidden_outputs (bool, optional): If True, the embeddings will be generated on the hidden outputs of the model. Defaults to True.
+        on_normalized_output (bool, optional): If True, the embeddings will be normalized. Defaults to True.
+
+    Returns:
+        Tuple[List[np.ndarray[torch.Tensor]], List[np.ndarray[str]]]: _description_
+    """
+
+
     logging.info(f"[generate_embeddings] Is GPU available: {torch.cuda.is_available()}")
     logging.info(f"[generate_embeddings] Num GPUs Available: {torch.cuda.device_count()}")
 
@@ -101,8 +117,20 @@ def save_embeddings(embeddings:List[np.ndarray[torch.Tensor]],
 
             logging.info(f'[save_embeddings] Finished {set_type} set, saved in {batch_save_path}')
 
-def load_embeddings(model_output_folder:str, config_data:DatasetConfig)-> Tuple[np.ndarray[float], np.ndarray[str]]:
-    """Loads the vit embeddings 
+def load_embeddings(model_output_folder:str, config_data:DatasetConfig, sample_fraction:float=1.0)-> Tuple[np.ndarray[float], np.ndarray[str]]:
+    """
+    Load embeddings from the model output folder, filtering and sampling as specified in the config_data.
+
+    Args:
+        model_output_folder (str): Path to the folder where the model outputs are stored.
+        config_data (DatasetConfig): Configuration data containing settings for loading and filtering embeddings.
+        sample_fraction (float, optional): Fraction of each label group to sample. Defaults to 1.0 (no sampling).
+
+    Returns:
+        Tuple[np.ndarray[float], np.ndarray[str], np.ndarray[str]]:
+            - embeddings: Concatenated array of embeddings.
+            - labels: Concatenated array of labels.
+            - paths: Concatenated array of paths corresponding to the embeddings. 
     """
 
     experiment_type = get_if_exists(config_data, 'EXPERIMENT_TYPE', None)
@@ -127,11 +155,66 @@ def load_embeddings(model_output_folder:str, config_data:DatasetConfig)-> Tuple[
     labels = edit_labels_by_config(labels, config_data)
     filtered_labels, filtered_embeddings, filtered_paths = __filter(labels, embeddings, paths, config_data)
 
+    if sample_fraction < 1.0:
+        logging.info(f"[load_embeddings] Sampling {sample_fraction*100:.1f}% of each label group (from {len(filtered_labels)} total labels)")
+        sampled_indices = __sample_by_label_fraction(filtered_labels, sample_fraction, seed=config_data.SEED)
+        filtered_embeddings, filtered_labels, filtered_paths = filtered_embeddings[sampled_indices], filtered_labels[sampled_indices], filtered_paths[sampled_indices]
+
     logging.info(f'[load_embeddings] embeddings shape: {filtered_embeddings.shape}')
     logging.info(f'[load_embeddings] labels shape: {filtered_labels.shape}')
     logging.info(f'[load_embeddings] example label: {filtered_labels[0]}')
     logging.info(f'[load_embeddings] paths shape: {filtered_paths.shape}')
     return filtered_embeddings, filtered_labels, filtered_paths
+
+def __sample_by_label_fraction(
+    labels: List[str],
+    fraction: float,
+    seed: int = 1
+) -> np.ndarray:
+    """
+    Sample a given fraction of data from each label group.
+
+    Args:
+        labels (List[str]): List of N labels corresponding to the embeddings.
+        fraction (float): Value between 0 and 1 indicating the proportion of each label group to keep.
+        seed (int): Random seed for reproducibility.
+
+    Returns:
+        np.ndarray: Indices of the sampled data.
+    """
+    assert 0 < fraction <= 1.0, "fraction must be in (0, 1]"
+
+    labels = np.array(labels)
+    indices = np.arange(len(labels))
+
+    
+    ##
+    # Handle case where label has only 1 sample
+
+    # Count label frequencies efficiently
+    unique_labels, counts = np.unique(labels, return_counts=True)
+    valid_labels = unique_labels[counts >= 2]
+
+    # Create mask for valid labels
+    valid_mask = np.isin(labels, valid_labels)
+    if not np.all(valid_mask):
+        dropped = np.unique(labels[~valid_mask])
+        logging.warning(f"Dropped labels with < 2 samples: {dropped.tolist()}")
+
+    # Apply mask
+    filtered_indices = indices[valid_mask]
+    filtered_labels = labels[valid_mask]
+
+    ###
+
+    _, sampled_idx = train_test_split(
+        filtered_indices,
+        test_size=fraction,
+        stratify=filtered_labels,
+        random_state=seed
+    )
+    
+    return sampled_idx
 
 def __generate_embeddings_with_dataloader(dataset:DatasetNOVA, model:NOVAModel, batch_size:int=700, 
                                           num_workers:int=6, on_hidden_outputs:bool=True, on_normalized_output:bool=True)->Tuple[np.ndarray[torch.Tensor], np.ndarray[str]]:
