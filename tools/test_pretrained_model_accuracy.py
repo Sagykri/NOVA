@@ -58,7 +58,7 @@ def calculate_accuracy(outputs_folder_path:str, config_path_data:str, anot_file_
     chkp_path = os.path.join(outputs_folder_path, CHECKPOINTS_FOLDERNAME, CHECKPOINT_BEST_FILENAME)
     model = NOVAModel.load_from_checkpoint(chkp_path)
 
-    all_embeddings, all_labels, _ = generate_embeddings(model, config_data, on_hidden_outputs:bool=False, on_normalized_output:bool=False)
+    all_embeddings, all_labels, _ = generate_embeddings(model, config_data, on_hidden_outputs=False, on_normalized_output=False)
     test_embeddings, test_labels = all_embeddings[-1], all_labels[-1]
     logging.info(f'np.unique(test_labels).shape: {np.unique(test_labels).shape} (should be 1311)')
     outputs = torch.from_numpy(test_embeddings)
