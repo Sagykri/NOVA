@@ -26,7 +26,7 @@ def generate_embeddings(model:NOVAModel, config_data:DatasetConfig,
     logging.info(f"[generate_embeddings] Is GPU available: {torch.cuda.is_available()}")
     logging.info(f"[generate_embeddings] Num GPUs Available: {torch.cuda.device_count()}")
 
-    all_embeddings, all_labels, all_paths, all_paths = [], [], [], []
+    all_embeddings, all_labels, all_paths = [], [], []
 
     train_paths:np.ndarray[str] = model.trainset_paths
     val_paths:np.ndarray[str] = model.valset_paths
