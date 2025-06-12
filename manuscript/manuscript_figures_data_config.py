@@ -19,7 +19,7 @@ class NeuronsUMAP1B9FigureConfig(FigureConfig):
         self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "spd2", "SpinningDisk", f) for f in 
                         ["batch9"]]
         
-        self.EXPERIMENT_TYPE = 'neurons_iu'    
+        self.EXPERIMENT_TYPE = 'neurons'    
         self.CELL_LINES = ['WT']
         self.CONDITIONS = ['Untreated']
         
@@ -42,7 +42,7 @@ class NeuronsUMAP1B6FigureConfig(FigureConfig):
         self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "spd2", "SpinningDisk", f) for f in 
                         ["batch6"]]
         
-        self.EXPERIMENT_TYPE = 'neurons_iu'    
+        self.EXPERIMENT_TYPE = 'neurons'    
         self.CELL_LINES = ['WT']
         self.CONDITIONS = ['Untreated']
         
@@ -62,7 +62,7 @@ class NeuronsUMAP1B6WithoutDAPIFigureConfig(FigureConfig):
         self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "spd2", "SpinningDisk", f) for f in 
                         ["batch6"]]
         
-        self.EXPERIMENT_TYPE = 'neurons_iu'    
+        self.EXPERIMENT_TYPE = 'neurons'    
         self.CELL_LINES = ['WT']
         self.CONDITIONS = ['Untreated']
         
@@ -82,7 +82,7 @@ class NeuronsUMAP1B9WithoutDapiFigureConfig(FigureConfig):
         self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "spd2", "SpinningDisk", f) for f in 
                         ["batch9"]]
         
-        self.EXPERIMENT_TYPE = 'neurons_iu'    
+        self.EXPERIMENT_TYPE = 'neurons'    
         self.CELL_LINES = ['WT']
         self.CONDITIONS = ['Untreated']
         
@@ -103,13 +103,49 @@ class NeuronsUMAP0StressB9WithoutDAPIFigureConfig(FigureConfig):
         self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "spd2", "SpinningDisk", f) for f in 
                         ["batch9"]]
         
-        self.EXPERIMENT_TYPE = 'neurons_iu'    
+        self.EXPERIMENT_TYPE = 'neurons'    
         self.CELL_LINES = ['WT']
         self.MARKERS_TO_EXCLUDE = ['TIA1','DAPI']
         
         # Decide if to show ARI metric on the UMAP
         self.SHOW_ARI = True
         self.ADD_REP_TO_LABEL=False
+
+class NeuronsUMAP0StressB3WithoutDAPIFigureConfig(NeuronsUMAP0StressB9WithoutDAPIFigureConfig):
+    def __init__(self):
+        super().__init__()
+        self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "spd2", "SpinningDisk", f) for f in 
+                        ["batch3"]]
+        
+class NeuronsUMAP0StressB4WithoutDAPIFigureConfig(NeuronsUMAP0StressB9WithoutDAPIFigureConfig):
+    def __init__(self):
+        super().__init__()
+        self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "spd2", "SpinningDisk", f) for f in 
+                        ["batch4"]]
+        
+class NeuronsUMAP0StressB5WithoutDAPIFigureConfig(NeuronsUMAP0StressB9WithoutDAPIFigureConfig):
+    def __init__(self):
+        super().__init__()
+        self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "spd2", "SpinningDisk", f) for f in 
+                        ["batch5"]]
+        
+class NeuronsUMAP0StressB6WithoutDAPIFigureConfig(NeuronsUMAP0StressB9WithoutDAPIFigureConfig):
+    def __init__(self):
+        super().__init__()
+        self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "spd2", "SpinningDisk", f) for f in 
+                        ["batch6"]]
+        
+class NeuronsUMAP0StressB7WithoutDAPIFigureConfig(NeuronsUMAP0StressB9WithoutDAPIFigureConfig):
+    def __init__(self):
+        super().__init__()
+        self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "spd2", "SpinningDisk", f) for f in 
+                        ["batch7"]]
+        
+class NeuronsUMAP0StressB8WithoutDAPIFigureConfig(NeuronsUMAP0StressB9WithoutDAPIFigureConfig):
+    def __init__(self):
+        super().__init__()
+        self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "spd2", "SpinningDisk", f) for f in 
+                        ["batch8"]]
 
 class NeuronsUMAP0StressB9DAPIFigureConfig(FigureConfig):
     def __init__(self):
@@ -119,7 +155,7 @@ class NeuronsUMAP0StressB9DAPIFigureConfig(FigureConfig):
         self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "spd2", "SpinningDisk", f) for f in 
                         ["batch9"]]
         
-        self.EXPERIMENT_TYPE = 'neurons_iu'    
+        self.EXPERIMENT_TYPE = 'neurons'    
         self.CELL_LINES = ['WT']
         self.MARKERS_TO_EXCLUDE = None
         self.MARKERS = ['DAPI']
@@ -128,13 +164,61 @@ class NeuronsUMAP0StressB9DAPIFigureConfig(FigureConfig):
         self.SHOW_ARI = True
         self.ADD_REP_TO_LABEL=False
 
+class NeuronsUMAP0StressB3DAPIFigureConfig(NeuronsUMAP0StressB9DAPIFigureConfig):
+    def __init__(self):
+        super().__init__()
+
+        # Batches used for model development
+        self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "spd2", "SpinningDisk", f) for f in 
+                        ["batch3"]]
+        
+class NeuronsUMAP0StressB4DAPIFigureConfig(NeuronsUMAP0StressB9DAPIFigureConfig):
+    def __init__(self):
+        super().__init__()
+
+        # Batches used for model development
+        self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "spd2", "SpinningDisk", f) for f in 
+                        ["batch4"]]
+        
+class NeuronsUMAP0StressB5DAPIFigureConfig(NeuronsUMAP0StressB9DAPIFigureConfig):
+    def __init__(self):
+        super().__init__()
+
+        # Batches used for model development
+        self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "spd2", "SpinningDisk", f) for f in 
+                        ["batch5"]]
+        
+class NeuronsUMAP0StressB6DAPIFigureConfig(NeuronsUMAP0StressB9DAPIFigureConfig):
+    def __init__(self):
+        super().__init__()
+
+        # Batches used for model development
+        self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "spd2", "SpinningDisk", f) for f in 
+                        ["batch6"]]
+        
+class NeuronsUMAP0StressB7DAPIFigureConfig(NeuronsUMAP0StressB9DAPIFigureConfig):
+    def __init__(self):
+        super().__init__()
+
+        # Batches used for model development
+        self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "spd2", "SpinningDisk", f) for f in 
+                        ["batch7"]]
+        
+class NeuronsUMAP0StressB8DAPIFigureConfig(NeuronsUMAP0StressB9DAPIFigureConfig):
+    def __init__(self):
+        super().__init__()
+
+        # Batches used for model development
+        self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "spd2", "SpinningDisk", f) for f in 
+                        ["batch8"]]
+
 class NeuronsDistancesStressFigureConfig(FigureConfig):
     def __init__(self):
         super().__init__()
         self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "spd2", "SpinningDisk", f) for f in 
                         [f"batch{i}" for i in range(6,10)]]
         
-        self.EXPERIMENT_TYPE = 'neurons_iu'
+        self.EXPERIMENT_TYPE = 'neurons'
         self.MARKERS_TO_EXCLUDE = ['TIA1']
         self.BASELINE_CELL_LINE_CONDITION = "WT_Untreated"
         self.CELL_LINES_CONDITIONS = ['WT_stress']
@@ -148,7 +232,7 @@ class NeuronsDistancesStressWith45FigureConfig(FigureConfig):
         self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "spd2", "SpinningDisk", f) for f in 
                         [f"batch{i}" for i in range(4,10)]]
         
-        self.EXPERIMENT_TYPE = 'neurons_iu'
+        self.EXPERIMENT_TYPE = 'neurons'
         self.MARKERS_TO_EXCLUDE = ['TIA1']
         self.BASELINE_CELL_LINE_CONDITION = "WT_Untreated"
         self.CELL_LINES_CONDITIONS = ['WT_stress']
@@ -167,7 +251,7 @@ class NeuronsUMAP0StressB6FigureConfig(FigureConfig):
         self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "spd2", "SpinningDisk", f) for f in 
                         ["batch6"]]
         
-        self.EXPERIMENT_TYPE = 'neurons_iu'    
+        self.EXPERIMENT_TYPE = 'neurons'    
         self.CELL_LINES = ['WT']
         self.MARKERS_TO_EXCLUDE = ['TIA1']
         
@@ -183,7 +267,7 @@ class U2OSUMAP0StressDatasetConfig(FigureConfig):
                         ["U2OS_spd_format"]]
         
         self.CELL_LINES = ['U2OS']
-        self.EXPERIMENT_TYPE = 'U2OS_iu'
+        self.EXPERIMENT_TYPE = 'U2OS'
         self.MARKERS = ['G3BP1', 'DCP1A', 'Phalloidin', 'DAPI']
         self.SHOW_ARI = True
 
@@ -198,7 +282,7 @@ class dNLSUMAP0B3DatasetConfig(FigureConfig):
         self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "spd2", "SpinningDisk", "deltaNLS", f) for f in 
                         ["batch3"]]
         
-        self.EXPERIMENT_TYPE = 'deltaNLS_iu'
+        self.EXPERIMENT_TYPE = 'deltaNLS'
         # self.CELL_LINES = ['TDP43']
         self.MARKERS = ['TDP43B']
         self.SHOW_ARI = True
@@ -211,7 +295,7 @@ class dNLSUMAP0B3TDP43DatasetConfig(FigureConfig):
         self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "spd2", "SpinningDisk", "deltaNLS", f) for f in 
                         ["batch3"]]
         
-        self.EXPERIMENT_TYPE = 'deltaNLS_iu'
+        self.EXPERIMENT_TYPE = 'deltaNLS'
         self.CELL_LINES = ['TDP43']
         self.MARKERS = ['TDP43B','DCP1A']
         self.SHOW_ARI = True
@@ -224,7 +308,7 @@ class dNLSUMAP0B4TDP43DatasetConfig(FigureConfig):
         self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "spd2", "SpinningDisk", "deltaNLS", f) for f in 
                         ["batch4"]]
         
-        self.EXPERIMENT_TYPE = 'deltaNLS_iu'
+        self.EXPERIMENT_TYPE = 'deltaNLS'
         self.CELL_LINES = ['TDP43']
         self.MARKERS = ['TDP43B','DCP1A']
         self.SHOW_ARI = True
@@ -237,7 +321,7 @@ class dNLSUMAP0B5TDP43DatasetConfig(FigureConfig):
         self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "spd2", "SpinningDisk", "deltaNLS", f) for f in 
                         ["batch5"]]
         
-        self.EXPERIMENT_TYPE = 'deltaNLS_iu'
+        self.EXPERIMENT_TYPE = 'deltaNLS'
         self.CELL_LINES = ['TDP43']
         self.MARKERS = ['TDP43B','DCP1A']
         self.SHOW_ARI = True
@@ -249,7 +333,7 @@ class dNLSDistancesFigureConfig(FigureConfig):
         self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "spd2", "SpinningDisk","deltaNLS", f) for f in 
                         [f"batch{i}" for i in range(3,6)]]
         
-        self.EXPERIMENT_TYPE = 'deltaNLS_iu'
+        self.EXPERIMENT_TYPE = 'deltaNLS'
         self.MARKERS_TO_EXCLUDE = ['TIA1']
         self.BASELINE_CELL_LINE_CONDITION = "TDP43_Untreated"
         self.CELL_LINES_CONDITIONS = ['TDP43_dox']
@@ -269,7 +353,7 @@ class NeuronsUMAP2ALSFigureConfig(FigureConfig):
     def __init__(self):
         super().__init__()
        
-        self.EXPERIMENT_TYPE = 'neurons_iu'    
+        self.EXPERIMENT_TYPE = 'neurons'    
         self.CONDITIONS = ['Untreated']
         self.MARKERS_TO_EXCLUDE = ['TIA1']
         
@@ -290,7 +374,7 @@ class NeuronsDistancesALSFigureConfig(FigureConfig):
         self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "spd2", "SpinningDisk", f) for f in 
                         [f"batch{i}" for i in range(6,10)]]
         
-        self.EXPERIMENT_TYPE = 'neurons_iu'
+        self.EXPERIMENT_TYPE = 'neurons'
         self.MARKERS_TO_EXCLUDE = ['TIA1']
         self.BASELINE_CELL_LINE_CONDITION = "WT_Untreated"
         self.CELL_LINES_CONDITIONS = ['FUSHomozygous_Untreated','FUSHeterozygous_Untreated',
@@ -302,13 +386,48 @@ class NeuronsUMAP0ALSFigureConfig(FigureConfig):
     def __init__(self):
         super().__init__()
        
-        self.EXPERIMENT_TYPE = 'neurons_iu'    
+        self.EXPERIMENT_TYPE = 'neurons'    
         self.CONDITIONS = ['Untreated']
         self.MARKERS_TO_EXCLUDE = ['TIA1']
         
         # Decide if to show ARI metric on the UMAP
         self.SHOW_ARI = True
         self.ADD_REP_TO_LABEL=False
+
+class NeuronsUMAP0ALSB3AllCLAllMarkersFigureConfig(NeuronsUMAP0ALSFigureConfig):
+    def __init__(self):
+        super().__init__()
+        self.INPUT_FOLDERS = ["batch3"]
+
+class NeuronsUMAP0ALSB4AllCLAllMarkersFigureConfig(NeuronsUMAP0ALSFigureConfig):
+    def __init__(self):
+        super().__init__()
+        self.INPUT_FOLDERS = ["batch4"]
+
+class NeuronsUMAP0ALSB5AllCLAllMarkersFigureConfig(NeuronsUMAP0ALSFigureConfig):
+    def __init__(self):
+        super().__init__()
+        self.INPUT_FOLDERS = ["batch5"]
+
+class NeuronsUMAP0ALSB6AllCLAllMarkersFigureConfig(NeuronsUMAP0ALSFigureConfig):
+    def __init__(self):
+        super().__init__()
+        self.INPUT_FOLDERS = ["batch6"]
+
+class NeuronsUMAP0ALSB7AllCLAllMarkersFigureConfig(NeuronsUMAP0ALSFigureConfig):
+    def __init__(self):
+        super().__init__()
+        self.INPUT_FOLDERS = ["batch7"]
+
+class NeuronsUMAP0ALSB8AllCLAllMarkersFigureConfig(NeuronsUMAP0ALSFigureConfig):
+    def __init__(self):
+        super().__init__()
+        self.INPUT_FOLDERS = ["batch8"]
+
+class NeuronsUMAP0ALSB9AllCLAllMarkersFigureConfig(NeuronsUMAP0ALSFigureConfig):
+    def __init__(self):
+        super().__init__()
+        self.INPUT_FOLDERS = ["batch9"]
 
 
 class NeuronsUMAP0ALSB9FUSFigureConfig(NeuronsUMAP0ALSFigureConfig):
@@ -319,6 +438,36 @@ class NeuronsUMAP0ALSB9FUSFigureConfig(NeuronsUMAP0ALSFigureConfig):
         self.CELL_LINES = ['WT','FUSHomozygous']
         self.MARKERS = ['FUS']
 
+class NeuronsUMAP0ALSB3FUSFigureConfig(NeuronsUMAP0ALSB9FUSFigureConfig):
+    def __init__(self):
+        super().__init__()
+        self.INPUT_FOLDERS = ["batch3"]
+
+class NeuronsUMAP0ALSB4FUSFigureConfig(NeuronsUMAP0ALSB9FUSFigureConfig):
+    def __init__(self):
+        super().__init__()
+        self.INPUT_FOLDERS = ["batch4"]
+
+class NeuronsUMAP0ALSB5FUSFigureConfig(NeuronsUMAP0ALSB9FUSFigureConfig):
+    def __init__(self):
+        super().__init__()
+        self.INPUT_FOLDERS = ["batch5"]
+
+class NeuronsUMAP0ALSB6FUSFigureConfig(NeuronsUMAP0ALSB9FUSFigureConfig):
+    def __init__(self):
+        super().__init__()
+        self.INPUT_FOLDERS = ["batch6"]
+
+class NeuronsUMAP0ALSB7FUSFigureConfig(NeuronsUMAP0ALSB9FUSFigureConfig):
+    def __init__(self):
+        super().__init__()
+        self.INPUT_FOLDERS = ["batch7"]
+
+class NeuronsUMAP0ALSB8FUSFigureConfig(NeuronsUMAP0ALSB9FUSFigureConfig):
+    def __init__(self):
+        super().__init__()
+        self.INPUT_FOLDERS = ["batch8"]
+
 class NeuronsUMAP0ALSB9DCP1AFigureConfig(NeuronsUMAP0ALSFigureConfig):
     def __init__(self):
         super().__init__()
@@ -327,6 +476,41 @@ class NeuronsUMAP0ALSB9DCP1AFigureConfig(NeuronsUMAP0ALSFigureConfig):
         self.CELL_LINES = ['WT','TBK1','TDP43','FUSHomozygous']
         self.MARKERS = ['DCP1A']
 
+class NeuronsUMAP0ALSB3DCP1AFigureConfig(NeuronsUMAP0ALSB9DCP1AFigureConfig):
+    def __init__(self):
+        super().__init__()
+
+        self.INPUT_FOLDERS = ["batch3"]
+
+class NeuronsUMAP0ALSB4DCP1AFigureConfig(NeuronsUMAP0ALSB9DCP1AFigureConfig):
+    def __init__(self):
+        super().__init__()
+
+        self.INPUT_FOLDERS = ["batch4"]
+
+class NeuronsUMAP0ALSB5DCP1AFigureConfig(NeuronsUMAP0ALSB9DCP1AFigureConfig):
+    def __init__(self):
+        super().__init__()
+
+        self.INPUT_FOLDERS = ["batch5"]
+
+class NeuronsUMAP0ALSB6DCP1AFigureConfig(NeuronsUMAP0ALSB9DCP1AFigureConfig):
+    def __init__(self):
+        super().__init__()
+
+        self.INPUT_FOLDERS = ["batch6"]
+
+class NeuronsUMAP0ALSB7DCP1AFigureConfig(NeuronsUMAP0ALSB9DCP1AFigureConfig):
+    def __init__(self):
+        super().__init__()
+
+        self.INPUT_FOLDERS = ["batch7"]
+
+class NeuronsUMAP0ALSB8DCP1AFigureConfig(NeuronsUMAP0ALSB9DCP1AFigureConfig):
+    def __init__(self):
+        super().__init__()
+
+        self.INPUT_FOLDERS = ["batch8"]
 
 class NeuronsUMAP0ALSB9ANXA11FigureConfig(NeuronsUMAP0ALSFigureConfig):
     def __init__(self):
@@ -344,6 +528,36 @@ class NeuronsUMAP0ALSB9CLTCFigureConfig(NeuronsUMAP0ALSFigureConfig):
         self.CELL_LINES = ['WT','OPTN','TBK1']
         self.MARKERS = ['CLTC']
 
+class NeuronsUMAP0ALSB3CLTCFigureConfig(NeuronsUMAP0ALSB9CLTCFigureConfig):
+    def __init__(self):
+        super().__init__()
+        self.INPUT_FOLDERS = ["batch3"]
+
+class NeuronsUMAP0ALSB4CLTCFigureConfig(NeuronsUMAP0ALSB9CLTCFigureConfig):
+    def __init__(self):
+        super().__init__()
+        self.INPUT_FOLDERS = ["batch4"]
+
+class NeuronsUMAP0ALSB5CLTCFigureConfig(NeuronsUMAP0ALSB9CLTCFigureConfig):
+    def __init__(self):
+        super().__init__()
+        self.INPUT_FOLDERS = ["batch5"]
+
+class NeuronsUMAP0ALSB6CLTCFigureConfig(NeuronsUMAP0ALSB9CLTCFigureConfig):
+    def __init__(self):
+        super().__init__()
+        self.INPUT_FOLDERS = ["batch6"]
+
+class NeuronsUMAP0ALSB7CLTCFigureConfig(NeuronsUMAP0ALSB9CLTCFigureConfig):
+    def __init__(self):
+        super().__init__()
+        self.INPUT_FOLDERS = ["batch7"]
+
+class NeuronsUMAP0ALSB8CLTCFigureConfig(NeuronsUMAP0ALSB9CLTCFigureConfig):
+    def __init__(self):
+        super().__init__()
+        self.INPUT_FOLDERS = ["batch8"]
+
 class NeuronsUMAP0ALSB9SQSTM1FigureConfig(NeuronsUMAP0ALSFigureConfig):
     def __init__(self):
         super().__init__()
@@ -351,12 +565,43 @@ class NeuronsUMAP0ALSB9SQSTM1FigureConfig(NeuronsUMAP0ALSFigureConfig):
         self.INPUT_FOLDERS = ["batch9"]
         self.CELL_LINES = ['WT','OPTN']
         self.MARKERS = ['SQSTM1']
+
+class NeuronsUMAP0ALSB3SQSTM1FigureConfig(NeuronsUMAP0ALSB9SQSTM1FigureConfig):
+    def __init__(self):
+        super().__init__()
+        self.INPUT_FOLDERS = ["batch3"]
+
+class NeuronsUMAP0ALSB4SQSTM1FigureConfig(NeuronsUMAP0ALSB9SQSTM1FigureConfig):
+    def __init__(self):
+        super().__init__()
+        self.INPUT_FOLDERS = ["batch4"]
+
+class NeuronsUMAP0ALSB5SQSTM1FigureConfig(NeuronsUMAP0ALSB9SQSTM1FigureConfig):
+    def __init__(self):
+        super().__init__()
+        self.INPUT_FOLDERS = ["batch5"]
+
+class NeuronsUMAP0ALSB6SQSTM1FigureConfig(NeuronsUMAP0ALSB9SQSTM1FigureConfig):
+    def __init__(self):
+        super().__init__()
+        self.INPUT_FOLDERS = ["batch6"]
+
+class NeuronsUMAP0ALSB7SQSTM1FigureConfig(NeuronsUMAP0ALSB9SQSTM1FigureConfig):
+    def __init__(self):
+        super().__init__()
+        self.INPUT_FOLDERS = ["batch7"]
+
+class NeuronsUMAP0ALSB8SQSTM1FigureConfig(NeuronsUMAP0ALSB9SQSTM1FigureConfig):
+    def __init__(self):
+        super().__init__()
+        self.INPUT_FOLDERS = ["batch8"]
+
 class AlyssaCoyneDistancesFigureConfig(FigureConfig):
     def __init__(self):
         super().__init__()
         self.INPUT_FOLDERS = ["batch1"]
         
-        self.EXPERIMENT_TYPE = 'AlyssaCoyne_7tiles_iu'
+        self.EXPERIMENT_TYPE = 'AlyssaCoyne_7tiles'
         self.MARKERS_TO_EXCLUDE = ['MERGED']
         self.BASELINE_CELL_LINE_CONDITION = "Controls_Untreated"
         self.CELL_LINES_CONDITIONS = ['sALSPositiveCytoTDP43_Untreated','sALSNegativeCytoTDP43_Untreated','c9orf72ALSPatients_Untreated']
@@ -371,7 +616,7 @@ class AlyssaCoyneUMAP0FigureConfig(FigureConfig):
 
         self.INPUT_FOLDERS = ["batch1"]
       
-        self.EXPERIMENT_TYPE = 'AlyssaCoyne_7tiles_iu'    
+        self.EXPERIMENT_TYPE = 'AlyssaCoyne_7tiles'    
         self.CELL_LINES = ['Controls','sALSPositiveCytoTDP43', 
                            'sALSNegativeCytoTDP43','c9orf72ALSPatients']
         self.MARKERS_TO_EXCLUDE = ['MERGED']
@@ -389,7 +634,7 @@ class AlyssaCoyneUMAP2FigureConfig(FigureConfig):
         # Batches used for model development
         self.INPUT_FOLDERS = ["batch1"]
         
-        self.EXPERIMENT_TYPE = 'AlyssaCoyne_7tiles_iu'    
+        self.EXPERIMENT_TYPE = 'AlyssaCoyne_7tiles'    
         self.MARKERS_TO_EXCLUDE = ['MERGED']
         
         # Decide if to show ARI metric on the UMAP
@@ -411,7 +656,7 @@ class NeuronsUMAP2StressB6FigureConfig(FigureConfig):
         self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "spd2", "SpinningDisk", f) for f in 
                         ["batch6"]]
         
-        self.EXPERIMENT_TYPE = 'neurons_iu'    
+        self.EXPERIMENT_TYPE = 'neurons'    
         self.CELL_LINES = ['WT']
         self.MARKERS_TO_EXCLUDE = ['TIA1']
         
@@ -427,7 +672,7 @@ class dNLSUMAP2B3FigureConfig(FigureConfig):
         self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "spd2", "SpinningDisk","deltaNLS", f) for f in 
                         ["batch3"]]
         
-        self.EXPERIMENT_TYPE = 'deltaNLS_iu'    
+        self.EXPERIMENT_TYPE = 'deltaNLS'    
         self.CELL_LINES = ['TDP43']
         self.MARKERS_TO_EXCLUDE = ['TIA1']
         self.MARKERS = list(PlotConfig().COLOR_MAPPINGS_MARKERS.keys())
@@ -443,7 +688,7 @@ class dNLSUMAP2B4FigureConfig(FigureConfig):
         self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "spd2", "SpinningDisk","deltaNLS", f) for f in 
                         ["batch4"]]
         
-        self.EXPERIMENT_TYPE = 'deltaNLS_iu'    
+        self.EXPERIMENT_TYPE = 'deltaNLS'    
         self.CELL_LINES = ['TDP43']
         self.MARKERS_TO_EXCLUDE = ['TIA1']
         self.MARKERS = list(PlotConfig().COLOR_MAPPINGS_MARKERS.keys())
@@ -459,7 +704,7 @@ class dNLSUMAP2B5FigureConfig(FigureConfig):
         self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "spd2", "SpinningDisk","deltaNLS", f) for f in 
                         ["batch5"]]
         
-        self.EXPERIMENT_TYPE = 'deltaNLS_iu'    
+        self.EXPERIMENT_TYPE = 'deltaNLS'    
         self.CELL_LINES = ['TDP43']
         self.MARKERS_TO_EXCLUDE = ['TIA1']
         self.MARKERS = list(PlotConfig().COLOR_MAPPINGS_MARKERS.keys())
@@ -475,7 +720,7 @@ class NeuronsUMAP2StressB9FigureConfig(FigureConfig):
         self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "spd2", "SpinningDisk", f) for f in 
                         ["batch9"]]
         
-        self.EXPERIMENT_TYPE = 'neurons_iu'    
+        self.EXPERIMENT_TYPE = 'neurons'    
         self.CELL_LINES = ['WT']
         self.MARKERS_TO_EXCLUDE = ['TIA1']
         
@@ -577,7 +822,7 @@ class NeuronsUMAP2ALSD18B1FigureConfig(FigureConfig):
         self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "spd2", "SpinningDisk","Opera18DaysReimaged", f) for f in 
                         ["batch1"]]
         
-        self.EXPERIMENT_TYPE = 'neurons_d18_iu'    
+        self.EXPERIMENT_TYPE = 'neurons_d18'    
         self.CONDITIONS = ['Untreated']
         self.CELL_LINES = ['WT', 'FUSHomozygous','FUSHeterozygous','FUSRevertant']
         self.MARKERS = list(PlotConfig().COLOR_MAPPINGS_MARKERS.keys())
@@ -594,7 +839,7 @@ class NeuronsUMAP2ALSB9FUSFigureConfig(NeuronsUMAP2ALSB9FigureConfig):
         self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "spd2", "SpinningDisk", f) for f in 
                         ["batch9"]]
         
-        self.EXPERIMENT_TYPE = 'neurons_iu'    
+        self.EXPERIMENT_TYPE = 'neurons'    
         self.CONDITIONS = ['Untreated']
         self.CELL_LINES = ['WT', 'FUSHomozygous','FUSHeterozygous','FUSRevertant']
         
@@ -609,7 +854,7 @@ class NeuronsUMAP2ALSD18B2FigureConfig(FigureConfig):
         self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "spd2", "SpinningDisk","Opera18DaysReimaged", f) for f in 
                         ["batch2"]]
         
-        self.EXPERIMENT_TYPE = 'neurons_d18_iu'    
+        self.EXPERIMENT_TYPE = 'neurons_d18'    
         self.CONDITIONS = ['Untreated']
         self.CELL_LINES = ['WT', 'FUSHomozygous','FUSHeterozygous','FUSRevertant']
         self.MARKERS = list(PlotConfig().COLOR_MAPPINGS_MARKERS.keys())
@@ -626,7 +871,7 @@ class NeuronsUMAP0ALSB9FigureConfig(FigureConfig):
         self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "spd2", "SpinningDisk", f) for f in 
                         ["batch9"]]
         
-        self.EXPERIMENT_TYPE = 'neurons_iu'    
+        self.EXPERIMENT_TYPE = 'neurons'    
         self.CONDITIONS = ['Untreated']
         self.MARKERS_TO_EXCLUDE = ['TIA1']
         
@@ -714,7 +959,7 @@ class NeuronsUMAP0ALSB6FigureConfig(FigureConfig):
         # Batches used for model development
         self.INPUT_FOLDERS = ["batch6"]
         
-        self.EXPERIMENT_TYPE = 'neurons_iu'    
+        self.EXPERIMENT_TYPE = 'neurons'    
         self.CONDITIONS = ['Untreated']
         self.MARKERS_TO_EXCLUDE = ['TIA1']
         
@@ -765,7 +1010,7 @@ class NeuronsDistancesALSWith45FigureConfig(FigureConfig):
         self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "spd2", "SpinningDisk", f) for f in 
                         [f"batch{i}" for i in range(4,10)]]
         
-        self.EXPERIMENT_TYPE = 'neurons_iu'
+        self.EXPERIMENT_TYPE = 'neurons'
         self.MARKERS_TO_EXCLUDE = ['TIA1']
         self.BASELINE_CELL_LINE_CONDITION = "WT_Untreated"
         self.CELL_LINES_CONDITIONS = ['FUSHomozygous_Untreated',
@@ -783,7 +1028,7 @@ class NeuronsDistancesALSD18FigureConfig(FigureConfig):
         self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "spd2", "SpinningDisk", f) for f in 
                         [f"batch{i}" for i in range(1,3)]]
         
-        self.EXPERIMENT_TYPE = 'neurons_d18_iu'
+        self.EXPERIMENT_TYPE = 'neurons_d18'
         self.MARKERS = list(PlotConfig().COLOR_MAPPINGS_MARKERS.keys())
         self.BASELINE_CELL_LINE_CONDITION = "WT_Untreated"
         self.CELL_LINES_CONDITIONS = ['FUSHomozygous_Untreated','FUSHeterozygous_Untreated','FUSRevertant_Untreated']
@@ -796,7 +1041,7 @@ class NeuronsDistancesALSFUSFigureConfig(FigureConfig):
         self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "spd2", "SpinningDisk", f) for f in 
                         [f"batch{i}" for i in range(4,10)]]
         
-        self.EXPERIMENT_TYPE = 'neurons_iu'
+        self.EXPERIMENT_TYPE = 'neurons'
         self.MARKERS = list(PlotConfig().COLOR_MAPPINGS_MARKERS.keys())
         self.BASELINE_CELL_LINE_CONDITION = "WT_Untreated"
         self.CELL_LINES_CONDITIONS = ['FUSHomozygous_Untreated','FUSHeterozygous_Untreated','FUSRevertant_Untreated']
@@ -814,7 +1059,7 @@ class NeuronsUMAP1D18B1FigureConfig(FigureConfig):
         self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "spd2", "SpinningDisk","Opera18DaysReimaged", f) for f in 
                         ["batch1"]]
         
-        self.EXPERIMENT_TYPE = 'neurons_d18_iu'    
+        self.EXPERIMENT_TYPE = 'neurons_d18'    
         self.CELL_LINES = ['WT']
         self.CONDITIONS = ['Untreated']
         self.MARKERS = list(PlotConfig().COLOR_MAPPINGS_MARKERS.keys())
