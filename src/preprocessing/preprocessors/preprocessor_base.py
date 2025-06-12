@@ -401,6 +401,8 @@ class Preprocessor(ABC):
                 threshold = tuple(self.markers_focus_boundries_tiles.loc[marker_name].values)
                 # Remove indices that do not pass the focus check
                 valid_tiles_indexes_marker = [ind for ind in valid_tiles_indexes if is_tile_focused(image_pair_tiled[ind][:, :, 0], threshold)]
+            else:
+                valid_tiles_indexes_marker = valid_tiles_indexes
             
             image_pair_tiled = image_pair_tiled[valid_tiles_indexes_marker]
 
