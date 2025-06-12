@@ -46,7 +46,7 @@ def plot_processed_images(images, paths, n_samples=3, figsize=(16,8)):
     
 def put_tiles_grid(ax, w, h, block_size=128):
     # Add dashed grid lines
-    num_blocks = w / block_size
+    num_blocks = int(np.floor(w / block_size))
     for i in range(1, num_blocks):
         # Draw horizontal dashed lines
         ax.plot([0, w], [i * block_size, i * block_size], linestyle='--', lw=1, alpha=0.5, color='pink')
