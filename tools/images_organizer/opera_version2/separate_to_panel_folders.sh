@@ -5,8 +5,8 @@ if [ "$#" -lt 3 ]; then
 fi
 
 # Assign the first two arguments to variables for readability
-SOURCE_DIR=$1
-DESTINATION_DIR=$2
+SOURCE_DIR="$1"
+DESTINATION_DIR="$2"
 
 # Shift the first two arguments to leave only the patterns
 shift 2
@@ -22,6 +22,9 @@ if [ ! -d "$DESTINATION_DIR" ]; then
     mkdir -p "$DESTINATION_DIR"
 fi
 
+
+echo "Source directory: $SOURCE_DIR Destination directory: $DESTINATION_DIR"
+
 # Prepare an array to hold the find command arguments
 FIND_ARGS=(-maxdepth 2 -type f)
 
@@ -33,6 +36,6 @@ done
 FIND_ARGS=("${FIND_ARGS[@]}")
 
 # Execute find command and move files
-find "$SOURCE_DIR" "${FIND_ARGS[@]}" -exec mv {} "$DESTINATION_DIR" \;
+find "$SOURCE_DIR" "${FIND_ARGS[@]}" -exec cp {} "$DESTINATION_DIR" \;
 
-# echo "Files moved successfully."
+echo "Files moved successfully."

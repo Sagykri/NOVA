@@ -4,7 +4,7 @@ import pandas as pd
 import numpy as np
 import sys
 
-sys.path.insert(1, os.getenv("MOMAPS_HOME"))
+sys.path.insert(1, os.getenv("NOVA_HOME"))
 from tools.images_organizer.opera_version2.utils import Utils
 from src.common.utils import get_class
 
@@ -26,12 +26,16 @@ def main():
     print(f"CUT_FILES: {utils_obj.config.CUT_FILES}")
     
     folders = utils_obj.get_folders_to_handle()
+    print(f"folders: {folders}")
     assert all([os.path.exists(os.path.join(utils_obj.config.SRC_ROOT_PATH, f)) and os.path.isdir(os.path.join(utils_obj.config.SRC_ROOT_PATH, f)) for f in folders]), "One or more of the specified folders don't exists (or aren't folders)"
+    
+    print(f"From {utils_obj.config.SRC_ROOT_PATH} to {utils_obj.config.DST_ROOT_PATH}\n")
     
     for folder in folders:
             folder_path, batch, panel = utils_obj.init_folders(folder)#, replace_wells=copy_well_folder)
             
             # Copy files to dist
+            print(folder_path)
             n_copied += utils_obj.copy_files(folder_path, panel, batch, cut_files=utils_obj.config.CUT_FILES,
                                              raise_on_missing_index=utils_obj.config.RAISE_ON_MISSING_INDEX)#, replace_wells=copy_well_folder, wells=wells)
         

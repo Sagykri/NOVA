@@ -8,6 +8,14 @@ import sys
 sys.path.insert(1, os.getenv("MOMAPS_HOME"))
 from tools.images_organizer.opera_version2.config import Config
 
+####
+#
+# In the reimaged images Opera18DaysReimaged_sorted the Tubulin and PSPC1 markers flipped in the imaging process.
+# Therefore, the configuration for panelJ here is different
+#
+####
+
+
 batch = 'batch2'
 
 class Config_A(Config):
@@ -613,7 +621,7 @@ class Config_J(Config):
             # ch4 - Cy5
             self.KEY_MARKERS_ALIAS_ORDERED: ["ch1", "ch2", "ch3", "ch4"],
             self.KEY_MARKERS: {
-                'panelJ': ["DAPI", "PSPC1", "Tubulin", "HNRNPA1"]
+                'panelJ': ["DAPI", "Tubulin", "PSPC1", "HNRNPA1"]
                 },
             self.KEY_REPS: ["rep1", "rep2"],
         }

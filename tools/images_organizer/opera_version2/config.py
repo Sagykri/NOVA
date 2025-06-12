@@ -8,7 +8,7 @@ class Config():
     def __init__(self):
         super().__init__()
 
-        self.LOGGING_PATH = os.path.join('tools', 'images_organizer', 'opera_version2', 'logs')
+        self.LOGGING_PATH = os.path.join('tools', 'images_organizer', 'opera_version2', 'logs', 'iAstrocytes') #os.path.join('tools', 'images_organizer', 'opera_version2', 'logs', 'Coyne080525') #
         self.KEY_CELL_LINES = "cell_lines"
         self.KEY_MARKERS_ALIAS_ORDERED = "markers_alias_ordered"
         self.KEY_MARKERS = "markers"
@@ -28,10 +28,14 @@ class Config():
         #####################################
 
         # Path to source folder (root)
-        self.SRC_ROOT_PATH = "/home/projects/hornsteinlab/Collaboration/MOmaps/input/images/raw/Opera18Days/"
+        # self.SRC_ROOT_PATH = "/home/labs/hornsteinlab/Collaboration/MOmaps/input/images/raw/Opera18DaysReimaged/"
+        self.SRC_ROOT_PATH = "/home/projects/hornsteinlab/Collaboration/MOmaps/input/images/raw/John/iAstrocytes/pre-ordered/"
+        # self.SRC_ROOT_PATH = "/home/projects/hornsteinlab/Collaboration/MOmaps/input/images/raw/AlyssaCoyne/Coyne_080525/"
 
         # Path to destination folder (root)
-        self.DST_ROOT_PATH = "/home/projects/hornsteinlab/Collaboration/MOmaps/input/images/raw/Opera18Days_sorted/"
+        # self.DST_ROOT_PATH = "/home/labs/hornsteinlab/Collaboration/MOmaps/input/images/raw/Opera18DaysReimaged_sorted/"
+        self.DST_ROOT_PATH = "/home/projects/hornsteinlab/Collaboration/MOmaps/input/images/raw/John/iAstrocytes/ordered/"
+        # self.DST_ROOT_PATH = "/home/projects/hornsteinlab/Collaboration/MOmaps/input/images/raw/AlyssaCoyne/Coyne_080525_ordered/"
 
         # Names of folders to handle
         # - For selecting all folders in SRC_ROOT_PATH - set FOLDERS to None or delete the assignment 

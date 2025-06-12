@@ -43,7 +43,7 @@ class Utils():
         
 
     def __get_batch(self, batch):
-        return batch
+        return batch.split('/')[0] # Get the first part of the batch name, in case it contains a path
 
 
     def __get_reps_ranges(self, cell_line, condition):
@@ -128,7 +128,7 @@ class Utils():
         # Changed! 190324
         coord, info = file.split('-')
         r, c = coord[1:3], coord[4:6]
-        ch = info[:4]
+        ch = info[:3]#[:4]
         return ch, (r,c)
 
 
@@ -218,7 +218,6 @@ class Utils():
                 matched_marker = self.__get_marker_by_alias(ch, panel)
                     
                 logging.info(f"[{os.path.join(folder_path, f)}] batch={batch},rep={matched_rep}, panel={panel}, condition={matched_condition},cell_line={matched_cell_line}, marker={matched_marker}")
-                print(f"[{os.path.join(folder_path, f)}] batch={batch},rep={matched_rep}, panel={panel}, condition={matched_condition},cell_line={matched_cell_line}, marker={matched_marker}")
 
                 if matched_marker is None:
                     logging.warn(f"[{os.path.join(folder_path, f)}] batch={batch},rep={matched_rep}, panel={panel}, condition={matched_condition},cell_line={matched_cell_line}, marker={matched_marker}] marker is None. Skipping it")
@@ -234,7 +233,6 @@ class Utils():
                     dst_path_full = shutil.copy2(src_path, dst_path)
                 n_copied += 1
                 logging.info(f"[{os.path.join(folder_path, f)}] {src_path} {'moved' if cut_files else 'copied'} to {dst_path_full}")
-                    
             except Exception as e:
                 logging.error(e, exc_info=True)
                 raise
