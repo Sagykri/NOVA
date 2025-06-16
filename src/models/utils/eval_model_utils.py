@@ -109,7 +109,7 @@ def aggregate_and_plot_metrics(save_dir: str, postfix: str = "_average") -> None
         df = pd.read_csv(path, index_col=0)
         experiments_df.append(df)
 
-    combined_df = pd.concat(experiments_df).drop(columns=['pos_keys'])
+    combined_df = pd.concat(experiments_df)
     avg_df = combined_df.groupby(combined_df.index).mean()
 
     # Save averaged CSV
@@ -124,7 +124,7 @@ def aggregate_and_plot_metrics(save_dir: str, postfix: str = "_average") -> None
 
     results = avg_df[['alignment', 'uniformity', 'precision_at_k', 'recall', 'entropy_at_k', 'accuracy']].to_dict(orient='index')
 
-    save_plots(results, save_dir, "Average", [""], k=int(avg_df['k'].iloc[0]), neg_k=int(avg_df['neg_k'].iloc[0]), postfix=postfix)
+    save_plots(results, save_dir, "Average", "", k=int(avg_df['k'].iloc[0]), neg_k=int(avg_df['neg_k'].iloc[0]), postfix=postfix)
 
     return avg_df
 

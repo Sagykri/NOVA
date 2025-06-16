@@ -64,6 +64,7 @@ if __name__ == "__main__":
     try:
         results = run_evaluation(model_folders_dict, embeddings_config=embeddings_config, precomputed_dists_paths=precomputed_dists_paths, save_dir=save_dir, k=k, neg_k=neg_k, sample_fraction=sample_fraction)
         save_plots(results, save_dir, experiment_type=embeddings_config.EXPERIMENT_TYPE, batches=batches, k=k, neg_k=neg_k)
+        logging.info("Done")
     except Exception as e:
         logging.exception(f"Error during evaluation {str(e)}")
         raise
