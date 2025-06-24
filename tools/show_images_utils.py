@@ -85,7 +85,6 @@ def put_tiles_grid(image, ax):
     ax.set_xticks([])
     ax.set_yticks([])
 
-            
 def extract_image_metadata(base_dir, FILE_EXTENSION='.tiff', KEY_BATCH='Batch'):
     """
     Traverse through a directory structure and extract metadata for images.
