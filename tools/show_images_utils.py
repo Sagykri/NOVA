@@ -3,8 +3,7 @@ from typing import Tuple
 import matplotlib.pyplot as plt
 import pandas as pd
 import cv2
-from matplotlib.backends.backend_pdf import PdfPages
-import re
+
 from src.preprocessing.preprocessing_utils import rescale_intensity, fit_image_shape
 
 # Utility functions
