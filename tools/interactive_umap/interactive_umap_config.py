@@ -47,7 +47,8 @@ config_d8 = {
                     f'{momaps_input}/SpinningDisk/batch8/',
                     f'{momaps_input}/SpinningDisk/batch9/',]
     },
-    'layouts': None
+    'layouts': None,
+    'name': 'Day8'
 }
 
 ## Alyssa  ##
@@ -57,7 +58,8 @@ config_alyssa = {
     'csv_path' : None,
     'images_dir' : [f'{momaps_input}/AlyssaCoyne/MOmaps_iPSC_patients_TDP43_PB_CoyneLab/',]
     },
-    'layouts': None
+    'layouts': None,
+    'name': 'AlyssaCoyne'
 }
 
 ## deltaNLS ##
@@ -67,7 +69,8 @@ config_deltaNLS = {
     'csv_path' : f'{momaps_preprocessing}/spd/brenner/raw_metrics_all_batches_brenner_site_dNLS.csv',
     'images_dir' : [f'{momaps_input}/SpinningDisk/deltaNLS_sort/' ]
     },
-    'layouts': None
+    'layouts': None,
+    'name': 'deltaNLS'
 }
 
 ## Day 18 Neurons ##
@@ -77,7 +80,8 @@ config_d18 = {
     'csv_path' : f'{momaps_preprocessing}/Opera18Days_Reimaged/brenner/raw_metrics_230724.csv',
     'images_dir' : [f'{momaps_input}/Opera18DaysReimaged_sorted/',]
     },
-    'layouts': None
+    'layouts': None,
+    'name': 'Day18'
 }
 
 ## Funova ##
@@ -163,7 +167,8 @@ config_funova = {
         'csv_path' : "/home/projects/hornsteinlab/Collaboration/FUNOVA/outputs/preprocessing/brenner/raw_metrics_exp3_exp4.csv",
         'images_dir' : ['/home/projects/hornsteinlab/Collaboration/FUNOVA/input/images/raw',] 
     },
-    'layouts': funova_fov_layouts
+    'layouts': funova_fov_layouts,
+    'name': 'FUNOVA'
 }
 
 config_funova_finetuned = {
@@ -172,7 +177,8 @@ config_funova_finetuned = {
         'csv_path' : "/home/projects/hornsteinlab/Collaboration/FUNOVA/outputs/preprocessing/brenner/raw_metrics_exp3_exp4.csv",
         'images_dir' : ['/home/projects/hornsteinlab/Collaboration/FUNOVA/input/images/raw',]
     },
-    'layouts': funova_fov_layouts
+    'layouts': funova_fov_layouts,
+    'name': 'FUNOVA_Finetuned'
 }
 
 # Collect all variables starting with "config" into a dictionary called `configs`.
