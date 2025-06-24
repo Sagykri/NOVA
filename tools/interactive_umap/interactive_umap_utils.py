@@ -10,9 +10,11 @@ from matplotlib.widgets import RectangleSelector
 import random
 from skimage.measure import shannon_entropy 
 import psutil
+import tifffile as tiff  # for TIFF writing
 
 from src.preprocessing.preprocessing_utils import get_image_focus_quality 
 from src.figures.umap_plotting import __format_UMAP_axes, __format_UMAP_legend
+from tools.show_images_utils import process_tif
 
 
 def load_and_process_data(umaps_dir, path_to_umap, df_brenner=None, print_validations=False):
@@ -105,125 +107,6 @@ def set_colors_by_brenners(sharpness_values, bins=10):
     
     return [get_blue_shade(val) for val in sharpness_values], percentiles, plt.cm.Blues
 
-# Global storage for selected indices (needed for external access)
-selected_indices_global = []
-rect_selector = None  # Persistent RectangleSelector
-
-def plot_umap_embeddings(
-    umap_embeddings: np.ndarray,
-    label_data: np.ndarray,
-    config_data,
-    config_plot,
-    df_data=None,
-    title: str = None,
-    dpi: int = 500,
-    figsize: tuple = (6, 5),
-    cmap: str = 'tab20',
-    ari_score: float = None,
-    RECOLOR_BY_BRENNER=True,
-    dilute: int = 1, bins: int = 10
-):
-    """Plots UMAP embeddings with interactive hovering for labels, with optional data dilution."""
-    global rect_selector, selected_indices_global  # Keep selector alive
-    if umap_embeddings.shape[0] != label_data.shape[0]:
-        raise ValueError("The number of embeddings and labels must match.")
-    
-    # Apply dilution
-    umap_embeddings = umap_embeddings[::dilute]
-    label_data = label_data[::dilute]
-    df = df_data.copy().iloc[::dilute].reset_index() if df_data is not None else None
-
-    annotations_dict = {}; colors_dict = {}; scatter_mappings = {}
-
-    if df is not None:
-        image_names_dict = {idx: row.Image_Name for idx, row in df.iterrows()}
-        if "Target_Sharpness_Brenner" in df.columns:
-            brenner_scores_dict = {idx: row.Target_Sharpness_Brenner for idx, row in df.iterrows()}
-            annotations_dict = {
-                idx: f"{idx}: {image_names_dict.get(idx, 'Unknown')}\nBrenner Score: {brenner_scores_dict.get(idx, 'N/A')}"
-                for idx in df.index
-            }
-            if RECOLOR_BY_BRENNER:
-                df["Color"] = set_colors_by_brenners(df["Target_Sharpness_Brenner"].fillna(0), bins=bins)
-                colors_dict = {idx: row.Color for idx, row in df.iterrows()}
-        else:
-            annotations_dict = {idx: f"{idx}: {image_names_dict.get(idx, 'Unknown')}" for idx in df.index}
-    
-    name_key, color_key = config_plot['MAPPINGS_ALIAS_KEY'], config_plot['MAPPINGS_COLOR_KEY']
-    marker_size, alpha = config_plot['SIZE'], config_plot['ALPHA']
-    cmap = plt.get_cmap(cmap)
-    unique_groups = np.unique(label_data)
-    name_color_dict = config_plot.get('COLOR_MAPPINGS', {group: cmap(i / (len(unique_groups) - 1)) for i, group in enumerate(unique_groups)})
-
-    fig, ax = plt.subplots(figsize=figsize)
-    scatter_objects = []
-    legend_labels = []
-    for group in unique_groups:
-        group_indices = np.where(label_data == group)[0]
-        if RECOLOR_BY_BRENNER and df is not None and "Target_Sharpness_Brenner" in df.columns:
-            rgba_colors = [colors_dict.get(idx, "#000000") for idx in group_indices]
-        else:
-            base_color = name_color_dict[group][color_key]
-            rgba_colors = [mcolors.to_rgba(base_color, alpha=alpha)] * len(group_indices)
-        
-        scatter = ax.scatter(
-            umap_embeddings[group_indices, 0],
-            umap_embeddings[group_indices, 1],
-            s=marker_size,
-            alpha=alpha,
-            c=rgba_colors,
-            marker='o',
-        )
-        scatter_objects.append(scatter)
-        legend_labels.append(name_color_dict[group][name_key])
-        scatter_mappings[scatter] = group_indices.tolist()
-    
-    # Add legend
-    ax.legend(scatter_objects, legend_labels, loc="upper right", title="Groups")
-    
-    # Enable interactive hovering with precomputed labels
-    cursor = mplcursors.cursor(scatter_objects, hover=True)
-    
-    @cursor.connect("add")
-    def on_hover(sel):
-        scatter_obj = sel.artist
-        scatter_index = sel.index
-        
-        if scatter_obj in scatter_mappings:
-            actual_index = scatter_mappings[scatter_obj][scatter_index]  # Correct mapping
-            sel.annotation.set_text(annotations_dict.get(actual_index, "Unknown"))
-        else:
-            sel.annotation.set_text("Unknown")
-            
-    # **Rectangle Selection Functionality**
-    def on_select(eclick, erelease):
-        """Handles rectangle selection and stores selected point indices."""
-        global selected_indices_global
-        selected_indices_global.clear()  # Ensure it's reset each time
-
-        if eclick.xdata is None or erelease.xdata is None:
-            return  # Ignore invalid selections
-
-        x_min, x_max = sorted([eclick.xdata, erelease.xdata])
-        y_min, y_max = sorted([eclick.ydata, erelease.ydata])
-
-        selected_indices_global.extend(
-            idx for idx, x_val, y_val in all_points
-            if x_min <= x_val <= x_max and y_min <= y_val <= y_max
-        )
-
-        print("Selected Indices:", selected_indices_global)  # Output in Jupyter Notebook
-
-    # Attach Rectangle Selector (global storage prevents garbage collection)
-    rect_selector = RectangleSelector(ax, on_select, interactive=True, useblit=False)
-    
-    ax.set_title(title if title else "UMAP Projection")
-    __format_UMAP_legend(ax, marker_size)
-    __format_UMAP_axes(ax, title)
-    fig.tight_layout()
-    plt.show()
-    return selected_indices_global
-
 def construct_target_path(df, index, df_site_meta):
     row = df.iloc[index]
     
@@ -273,53 +156,118 @@ def compute_snr(image: np.ndarray) -> float:
     signal = np.mean(image)
     noise = np.std(image)
     return 20 * np.log10(signal / noise) if noise > 0 else float("inf")
-    
-def show_processed_tile(df, index=0):
-    """
-    Displays the processed tile image from the dataset.
 
-    Parameters:
-    - df: DataFrame containing 'Path', 'Tile', and 'Image_Name' columns.
-    - index: Row index in df to visualize (default is 0).
+def process_tile(df, index):
+    """
+    Load and process a tile from the given DataFrame row index.
+    
+    Returns:
+        marker: normalized marker channel (2D array)
+        nucleus: normalized nucleus channel (2D array)
+        overlay: RGB overlay image (H, W, 3)
+        metadata: dict with 'path', 'tile', 'image_name'
     """
     path = df.Path.loc[index]
     tile = int(df.Tile.loc[index])
     image_name = df.Image_Name.loc[index]
-    
-    # Load the image
+
     image = np.load(path)
     site_image = image[tile]
-    marker = site_image[:, :, 0]
-    nucleus = site_image[:, :, 1]
 
-    # Normalize
-    marker = np.clip(marker, 0, 1)
-    nucleus = np.clip(nucleus, 0, 1)
+    marker = np.clip(site_image[:, :, 0], 0, 1)
+    nucleus = np.clip(site_image[:, :, 1], 0, 1)
 
-    # Create RGB overlay: Red for marker, Green for nucleus
-    overlay = np.zeros((*marker.shape, 3))
-    overlay[..., 0] = marker      # Red channel = marker
-    overlay[..., 1] = nucleus     # Green channel = nucleus
-    # Blue remains 0
+    overlay = np.zeros((*marker.shape, 3), dtype=np.float32)
+    overlay[..., 0] = marker
+    overlay[..., 1] = nucleus
 
-    # Plot target, nucleus, and overlay
+    return marker, nucleus, overlay, {'path': path, 'tile': tile, 'image_name': image_name}
+    
+def show_processed_tile(df, index=0):
+    """
+    Processes and displays the tile image from the dataset.
+
+    This function extracts the marker and nucleus channels from the specified tile,
+    creates an RGB overlay, and displays all three views side by side.
+
+    Parameters:
+    - df: DataFrame containing 'Path', 'Tile', and 'Image_Name' columns.
+    - index: Row index in df to process and display (default is 0).
+
+    Plots:
+    - marker: 2D image of the normalized marker channel
+    - nucleus: 2D image of the normalized nucleus channel
+    - overlay: RGB overlay image as a (H, W, 3) array
+    """
+    marker, nucleus, overlay, meta = process_tile(df, index)
+
     fig, ax = plt.subplots(1, 3, figsize=(10, 4))
 
-    ax[0].set_title(f'{image_name}/{tile} - Marker', fontsize=11)
+    ax[0].set_title(f'{meta["image_name"]}/{meta["tile"]} - Marker', fontsize=11)
     ax[0].imshow(marker, cmap='gray', vmin=0, vmax=1)
-    ax[0].set_axis_off()
+    ax[0].axis('off')
 
-    ax[1].set_title(f'{image_name}/{tile} - Nucleus', fontsize=11)
+    ax[1].set_title(f'{meta["image_name"]}/{meta["tile"]} - Nucleus', fontsize=11)
     ax[1].imshow(nucleus, cmap='gray', vmin=0, vmax=1)
-    ax[1].set_axis_off()
+    ax[1].axis('off')
 
-    ax[2].set_title(f'{image_name}/{tile} - Overlay', fontsize=11)
+    ax[2].set_title(f'{meta["image_name"]}/{meta["tile"]} - Overlay', fontsize=11)
     ax[2].imshow(overlay)
-    ax[2].set_axis_off()
+    ax[2].axis('off')
 
     plt.show()
 
-    return site_image
+def save_processed_tile(df, index, folder_path, high_resolution=True):
+    """
+    Processes and saves a tile image (marker, nucleus, and overlay) as TIFF files.
+
+    Parameters:
+    - df: DataFrame containing 'Path', 'Tile', and 'Image_Name' columns.
+    - index: Row index in df to save.
+    - folder_path: Destination folder for output files.
+    - high_resolution: Whether to save in 16-bit with 600 DPI (default: True).
+    """
+    try:
+        marker, nucleus, overlay, meta = process_tile(df, index)
+        base = f"{index}_{meta['image_name']}_{meta['tile']}"
+
+        factor = 65535 if high_resolution else 255
+        dtype = np.uint16 if high_resolution else np.uint8
+        dpi = 600 if high_resolution else 300
+        meta_data = {'dpi': (dpi, dpi)}
+
+        tiff.imwrite(os.path.join(folder_path, f"{base}_marker.tiff"),
+                     (marker * factor).astype(dtype), metadata=meta_data)
+        tiff.imwrite(os.path.join(folder_path, f"{base}_nucleus.tiff"),
+                     (nucleus * factor).astype(dtype), metadata=meta_data)
+        tiff.imwrite(os.path.join(folder_path, f"{base}_overlay.tiff"),
+                     (overlay * factor).astype(dtype), metadata=meta_data)
+
+    except Exception as e:
+        print(f"❌ Failed saving tile at index {index}: {e}")
+
+
+def save_processed_tif_image(path, index, folder_path, high_resolution=True):
+    """
+    Processes and saves a TIFF image from the given path.
+    Parameters:
+    - path (str): Path to the image file.
+    - index (int): Index in df for naming the output file.
+    - folder_path (str): Destination folder for the output file.
+    - high_resolution (bool): Whether to save in 16-bit with 600 DPI (default: True).
+    """
+    try:
+        img = process_tif(path)
+
+        factor = 65535 if high_resolution else 255
+        dtype = np.uint16 if high_resolution else np.uint8
+        dpi = 600 if high_resolution else 300
+        meta = {'dpi': (dpi, dpi)}
+
+        output_path = os.path.join(folder_path, f"{index}_{os.path.basename(path).replace('.tif', '')}.tiff")
+        tiff.imwrite(output_path, (img * factor).astype(dtype), metadata=meta)
+    except Exception as e:
+        print(f"❌ Failed saving processed TIFF from {path}: {e}")
 
 def extract_umap_data(base_dir):
     """
@@ -450,26 +398,41 @@ def get_umap_pickle_path(df_umaps, batch, umap_type, reps, coloring, marker, cel
     except:
         return -1
 
-def plot_fov_histogram(df, selected_indices_global):
+def plot_fov_histogram(df, selected_indices_global, return_fig=False):
     """
     Plots a histogram comparing the total FOV distribution and the selected subset.
     
     Parameters:
         df (pd.DataFrame): DataFrame containing FOV data.
         selected_indices_global (list): Indices of selected data points.
+        return_fig (bool): Whether to return the matplotlib figure object (Plot when False).
     """
     fov_counts = df["FOV"].value_counts().sort_index()
     fov_selected_counts = df.loc[selected_indices_global, "FOV"].value_counts().sort_index()
 
-    plt.figure(figsize=(10, 4))
+    # Prevent automatic display
+    plt.ioff()
+
+    fig = plt.figure(figsize=(10, 4))
     plt.bar(fov_counts.index - 0.2, fov_counts.values, width=0.4, label="All Data", alpha=0.7)
     plt.bar(fov_selected_counts.index + 0.2, fov_selected_counts.values, width=0.4, label="Selected", alpha=0.7, color="orange")
-    plt.xlabel("FOV"), plt.ylabel("Count"), plt.legend(), plt.show()
+    plt.xlabel("FOV")
+    plt.ylabel("Count")
+    plt.title("FOV Distribution Histogram: All Data vs Selected")
+    plt.legend()
+    plt.tight_layout()
+
+    if return_fig:
+        plt.close(fig)  # Prevent display in Jupyter
+        return fig
+    else:
+        plt.ion()  # Re-enable automatic display
+        plt.show()
 
 
-def plot_fov_heatmaps(df, selected_indices_global, fov_grid):
+def plot_fov_heatmaps(df, selected_indices_global, fov_grid, return_fig=False):
     """
-    Generates heatmaps for:
+    Generates heatmaps based on the scan fov grid for:
     1. Total FOV distribution
     2. Selected FOV distribution
     3. Percentage of selected points vs. total
@@ -478,6 +441,7 @@ def plot_fov_heatmaps(df, selected_indices_global, fov_grid):
         df (pd.DataFrame): DataFrame containing FOV data.
         selected_indices_global (list): Indices of selected data points.
         fov_grid (np.ndarray): 2D array defining FOV positions.
+        return_fig (bool): Whether to return the matplotlib figure object (Plot when False).
     """
     # Create heatmaps initialized with NaNs
     heatmap_all = np.full(fov_grid.shape, np.nan)
@@ -501,6 +465,8 @@ def plot_fov_heatmaps(df, selected_indices_global, fov_grid):
                     heatmap_selected[i, j] = selected_count
                     heatmap_percentage[i, j] = (selected_count / all_count) * 100  # Compute percentage
 
+    # Prevent automatic display
+    plt.ioff()
     # Plot heatmaps
     fig, axs = plt.subplots(1, 3, figsize=(10, 6))
 
@@ -522,7 +488,14 @@ def plot_fov_heatmaps(df, selected_indices_global, fov_grid):
     fig.colorbar(im3, ax=axs[2], label="Percentage")
     axs[2].set_xticks([]), axs[2].set_yticks([])
 
-    plt.show()
+    fig.suptitle("FOV Heatmaps", fontsize=14)
+
+    if return_fig:
+        plt.close(fig)  # Prevent display in Jupyter
+        return fig
+    else:
+        plt.ion()
+        plt.show()
 
 def get_lsf_mem_limit_gb():
     res_req = os.environ.get("LSB_EFFECTIVE_RSRCREQ") or ""
