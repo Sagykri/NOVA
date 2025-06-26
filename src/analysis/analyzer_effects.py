@@ -10,7 +10,7 @@ import pandas as pd
 import numpy as np
 from typing import Dict, Tuple
 import statsmodels.stats.meta_analysis as smm
-from scipy.stats import norm
+from scipy.stats import norm, chi2
 
 from src.datasets.dataset_config import DatasetConfig
 from src.analysis.analyzer import Analyzer
@@ -18,9 +18,13 @@ from src.common.utils import get_if_exists
 
 class AnalyzerEffects(Analyzer):
     """
-    AnalyzerEffects is responsible for calculating distance metrics between different conditions
-    based on model embeddings. The effects are computed for each marker and batch, comparing
-    a baseline condition to other conditions.
+    AnalyzerEffects calculates effect sizes representing differences between baseline and perturbed groups
+    using model embeddings. Effects are computed per marker and batch, then combined via meta-analysis.
+
+    The main workflow:
+    - Prepare a DataFrame of embeddings and metadata parsed from sample labels.
+    - For each baseline-perturbation pair, calculate effect sizes within each marker-batch group.
+    - Aggregate batch-level effects into overall marker-level effects using meta-analysis.
     """
     def __init__(self, data_config: DatasetConfig, output_folder_path:str):
         """Get an instance
@@ -31,26 +35,45 @@ class AnalyzerEffects(Analyzer):
         """
         super().__init__(data_config, output_folder_path)
 
-
-    def calculate(self, embeddings:np.ndarray[float], labels:np.ndarray[str])->Tuple[pd.DataFrame, pd.DataFrame]:
+    def calculate(self, embeddings:np.ndarray[float], labels:np.ndarray[str], n_boot:int=1000)->Tuple[pd.DataFrame, pd.DataFrame]:
         """
         Calculate effect sizes from embeddings and corresponding labels.
 
         Args:
-            embeddings (np.ndarray): The embeddings array of shape (n_samples, n_features).
-            labels (np.ndarray): Array of strings with metadata per sample in the format 'marker_cellline_condition_batch_rep'.
+            embeddings (np.ndarray): 
+                The embeddings array of shape (n_samples, n_features).
+            labels (np.ndarray):
+                Array of strings with metadata per sample in the format 
+                'marker_cellline_condition_batch_rep'.
+            n_boot (int): 
+                Number of bootstrap iterations used to estimate variance of 
+                effect sizes (default: 1000).
 
         Returns:
             Tuple[pd.DataFrame, pd.DataFrame]:
-                - combined_effects_df: DataFrame with overall (combined) effect sizes and pvalues per marker.
-                - batch_effects_df: DataFrame with per-batch calculated effect sizes and pvalues.
+                combined_effects_df: Summary DataFrame aggregated across batches, with one row per marker-baseline-perturb pair.
+                    Contains columns:
+                        - 'marker': marker identifier
+                        - 'baseline': baseline condition string (e.g. "WT_Untreated")
+                        - 'pert': perturbation condition string (e.g. "WT_stress")
+                        - 'combined_effect': meta-analyzed effect size estimate
+                        - 'combined_se': standard error of the combined effect
+                        - 'pvalue': p-value testing effect significance under the chosen alternative hypothesis
+                        - 'ci_low', 'ci_upp': confidence interval bounds for the combined effect
+                        - 'p_heterogeneity', 'I2', 'Q': statistics describing between-batch heterogeneity
+
+                batch_effects_df: Detailed DataFrame with effect sizes and variances estimated per batch and marker.
+                    Each row corresponds to a single batch-marker-baseline-perturb combination and includes:
+                        - 'marker', 'baseline', 'pert', 'batch'
+                        - 'baseline_size', 'perturb_size': number of samples in baseline and perturbed groups
+                        - 'effect_size': bootstrap-estimated effect size for that batch
+                        - 'variance': bootstrap-estimated variance of the effect size
         """
         baseline_perturb_dict = self._get_baseline_perturb_dict()
         embeddings_df = self._prepare_embeddings_df(embeddings, labels)
         embeddings_dim = embeddings.shape[1]
-        batch_effects_df = self._calculate_all_effects(embeddings_df, baseline_perturb_dict, embeddings_dim)
-
-        combined_effects_df = self._combine_effects(batch_effects_df, alt='two-sided')
+        batch_effects_df = self._calculate_all_effects(embeddings_df, baseline_perturb_dict, embeddings_dim, n_boot)
+        combined_effects_df = self._combine_effects(batch_effects_df)
         self.features = combined_effects_df, batch_effects_df
 
         return combined_effects_df, batch_effects_df
@@ -71,20 +94,27 @@ class AnalyzerEffects(Analyzer):
         output_folder_path = self.get_saving_folder(feature_type='effects')
         os.makedirs(output_folder_path, exist_ok=True)
         savepath_combined, savepath_batch = self._get_save_path(output_folder_path)
+        
         logging.info(f"Saving combined effects to {savepath_combined}")
         self.features[0].to_csv(savepath_combined, index=False)
+        
         logging.info(f"Saving batch effects to {savepath_batch}")
         self.features[1].to_csv(savepath_batch, index=False)
+        
         return None
 
     @abstractmethod    
-    def _compute_effect(self, group_baseline: np.ndarray[float], group_pert: np.ndarray[float]) -> Tuple[float, float]:
+    def _compute_effect(self, group_baseline: np.ndarray[float], group_pert: np.ndarray[float],
+                        n_boot:int=1000)->Tuple[float, float]:
         """
-        Abstract method to compute the effect between two groups of embeddings.
+        Abstract method to compute the effect between two groups of embeddings, and its 
+        estimated variance.
 
         Args:
             group_baseline (np.ndarray[float]): Embeddings of the baseline group.
-            group_pert (np.ndarray[float]): Embeddings of the perturbed group.
+            group_pert (np.ndarray[float]):     Embeddings of the perturbed group.
+            n_boot (int):                       Number of bootstrap iterations for estimating 
+                                                variance (default: 1000).
 
         Returns:
              Tuple[float, float]: A tuple containing:
@@ -93,27 +123,27 @@ class AnalyzerEffects(Analyzer):
         """
         pass
 
-    def _combine_effects(self, batch_effects: pd.DataFrame, alt: str = "two-sided", 
-                     effect_type: str = 'random', plot_forest: bool = False) -> pd.DataFrame:
+    def _combine_effects(self, batch_effects: pd.DataFrame, alt: str = "greater", 
+                     effect_type: str = 'random') -> pd.DataFrame:
         """
         Combine per-batch effect sizes into a single summary statistic per 
         marker using meta-analysis.
+        Uses statsmodels' `combine_effects` with DerSimonian-Laird random effects by default.
+        Falls back to fixed effects if random effects variance is invalid.
 
         Args:
-            batch_effects : pd.DataFrame
-                DataFrame containing per-batch effect sizes and variances, along with 'marker', 'baseline', and 'pert'.
-            alt : str, default='two-sided'
-                Type of statistical test to compute p-values. Must be one of {'two-sided', 'greater', 'smaller'}.
-            effect_type : str, default='random'
-                Type of meta-analysis to apply. Must be one of {'random', 'fixed'}.
-                If 'random' fails due to variance estimation, the method falls back to 'fixed'.
-            plot_forest : bool, default=False
-                If True, generate forest plots for each marker (currently not implemented).
+            batch_effects (pd.DataFrame):   DataFrame containing per-batch effect sizes and 
+                                            variances, with columns:
+                                            ['marker', 'baseline', 'pert', 'effect_size', 'variance', 'batch'].
+            alt (str):                      Statistical alternative hypothesis for p-value 
+                                            calculation. One of {'two-sided', 'greater', 'smaller'}.
+            effect_type (str):              Meta-analysis model type: 'random' (default) or 'fixed'.
 
         Returns:
-            pd.DataFrame
-                A DataFrame with columns:
-                ['marker', 'baseline', 'pert', 'combined_effect', 'pvalue', 'ci_low', 'ci_upp']
+            pd.DataFrame:                   DataFrame with combined effect statistics per marker, including columns:
+                                            ['marker', 'baseline', 'pert', 'combined_effect', 
+                                            'combined_se', 'pvalue', 'ci_low', 'ci_upp', 
+                                            'p_heterogeneity', 'I2', 'Q'].
         """
         if alt not in {"two-sided", "greater", "smaller"}:
             raise ValueError("Parameter 'alt' must be one of: 'two-sided', 'greater', or 'smaller'")
@@ -125,8 +155,8 @@ class AnalyzerEffects(Analyzer):
             effects = marker_df['effect_size'].values
             variances = marker_df['variance'].values
             
-            # # Run random effects meta-analysis
-            meta_res = smm.combine_effects(effects, variances, method_re='dl') 
+            # Run random effects meta-analysis
+            meta_res = smm.combine_effects(effects, variances, method_re='dl', row_names = np.unique(marker_df.batch)) 
             
             summary = meta_res.summary_frame()
             effect_row = summary.loc[f"{effect_type} effect"]
@@ -138,7 +168,7 @@ class AnalyzerEffects(Analyzer):
             ci_low = effect_row["ci_low"]
             ci_upp = effect_row["ci_upp"]
             
-            # # Compute z and p
+            # Compute z and p
             z = combined_effect / combined_se
             if alt == "two-sided":
                 pvalue = 2 * (1 - norm.cdf(abs(z)))
@@ -146,172 +176,154 @@ class AnalyzerEffects(Analyzer):
                 pvalue = 1 - norm.cdf(z)
             elif alt == "smaller":
                 pvalue = norm.cdf(z)
-            
-            # if plot_forest: # TODO: if we want to save this add here..
-            #     meta_res.plot_forest()
-            #     plt.title(title)
-            #     plt.show()
 
-            combined_effects.append({'marker':marker, 'baseline':baseline,'pert':pert,
-                'combined_effect':combined_effect, 'pvalue':pvalue,
-                'ci_low':ci_low, 'ci_upp':ci_upp})
-        return pd.DataFrame(combined_effects)
-
-    def _permutation_test(self, observed, group_baseline, group_pert, 
-                      n_permutations=1000, seed=42, alt="greater"):
-        """
-        Perform a permutation test for the observed effect size between two groups.
-
-        Args:
-            observed : float
-                The observed test statistic (e.g., effect size).
-            group_baseline : np.ndarray
-                Embeddings for the baseline group.
-            group_pert : np.ndarray
-                Embeddings for the perturbed group.
-            n_permutations : int, default=1000
-                Number of permutations to perform.
-            seed : int or None, default=42
-                Seed for reproducibility.
-            alt : str, default='greater'
-                Type of test. One of {'two-sided', 'greater', 'less'}.
-
-        Returns:
-            float
-                p-value from the permutation test.
-        """
-        if alt not in {"two-sided", "greater", "less"}:
-            raise ValueError("Parameter 'alt' must be one of: 'two-sided', 'greater', or 'less'")
-
-        if seed is not None:
-            np.random.seed(seed)
-
-        combined = np.vstack([group_baseline, group_pert])
-        n_baseline = len(group_baseline)
-        permuted = []
-        for _ in range(n_permutations):
-            perm = np.random.permutation(len(combined))
-            perm_baseline = combined[perm[:n_baseline]]
-            perm_pert = combined[perm[n_baseline:]]
-            stat, _ = self._compute_effect(perm_baseline, perm_pert)
-            permuted.append(stat)
-
-        if alt == "greater":
-            p_value = np.mean([x >= observed for x in permuted])
-        elif alt == "smaller":
-            p_value = np.mean([x <= observed for x in permuted])
-        else: # two-sided test
-            p_value = np.mean([abs(x) >= abs(observed) for x in permuted]) 
-
-        return p_value
+            p_heterogeneity  = 1 - chi2.cdf(meta_res.q, df=meta_res.df)
+            I2 = max(0, (meta_res.q - meta_res.df) / meta_res.q) * 100
     
-    def _calculate_effect_per_batch(self, batch_df: pd.DataFrame, baseline_cell_line: str, baseline_cond: str,
-                                perturb_cell_line: str, perturb_cond: str, embeddings_dim: int):
+            combined_effects.append({'marker':marker, 'baseline':baseline,'pert':pert,
+                'combined_effect':combined_effect, 'combined_se':combined_se, 'pvalue':pvalue,
+                'ci_low':ci_low, 'ci_upp':ci_upp, 'p_heterogeneity':p_heterogeneity, 'I2':I2, 'Q':meta_res.q})
+        return pd.DataFrame(combined_effects)
+    
+    def _calculate_effect_per_batch(self, batch_marker_baseline_df:pd.DataFrame, 
+                                    batch_marker_pert_df:pd.DataFrame, embeddings_dim: int, 
+                                    n_boot:int=1000, min_required:int = 1000):
         """
-        Compute the effect size and variance between baseline and perturbed groups in a batch.
+        Calculate the effect size and variance between baseline and perturbed groups 
+        within a single batch and marker.
 
         Args:
-            batch_df : pd.DataFrame
-                DataFrame containing embeddings and associated metadata for one marker and one batch.
-            baseline_cell_line : str
-                Cell line identifier for the baseline.
-            baseline_cond : str
-                Condition identifier for the baseline.
-            perturb_cell_line : str
-                Cell line identifier for the perturbed.
-            perturb_cond : str
-                Condition identifier for the perturbation.
-            embeddings_dim : int
-                Dimensionality of the embedding vectors.
+            batch_marker_baseline_df (pd.DataFrame):    
+                DataFrame of baseline group samples for a single marker and batch,
+                containing embedding columns plus metadata.
+            batch_marker_pert_df (pd.DataFrame): 
+                DataFrame of perturbed group samples for the same marker and batch.
+            embeddings_dim (int): 
+                Number of embedding feature columns.
+            n_boot (int): 
+                Number of bootstrap iterations for variance estimation (default: 1000).
+            min_required (int): 
+                Minimum sample size in each group required to calculate effect size (default: 1000).
 
         Returns:
-            dict
-                Dictionary with keys: 
-                ['baseline_size', 'perturb_size', 'effect_size', 'variance', 'pvalue'] 
-                or an empty dict if insufficient samples.
+            dict: Dictionary with keys:
+                'baseline_size': Number of baseline samples,
+                'perturb_size': Number of perturbed samples,
+                'effect_size': Calculated effect size,
+                'variance': Estimated variance of the effect size.
+            Returns empty dict if sample sizes are below `min_required`.
         """
-        baseline_df = batch_df[(batch_df.cell_line == baseline_cell_line) & (batch_df.condition == baseline_cond)]
-        baseline_embeddings = baseline_df.iloc[:, :embeddings_dim].values
+        baseline_embeddings = batch_marker_baseline_df.iloc[:, :embeddings_dim].values
 
-        perturb_df = batch_df[(batch_df.cell_line == perturb_cell_line) & (batch_df.condition == perturb_cond)]
-        perturb_embeddings = perturb_df.iloc[:, 0:embeddings_dim].values
-        if (baseline_embeddings.shape[0] < 2) or (perturb_embeddings.shape[0] <2):
+        perturb_embeddings = batch_marker_pert_df.iloc[:, 0:embeddings_dim].values
+
+        n_baseline = baseline_embeddings.shape[0]
+        n_pert = perturb_embeddings.shape[0]
+        if min(n_baseline, n_pert) < min_required:
+            logging.warning(f"Too few samples: baseline={n_baseline}, pert={n_pert}. Minimum required is {min_required}")
             return {}
-        effect_size, variance = self._compute_effect(baseline_embeddings, perturb_embeddings)
-        pvalue = self._permutation_test(effect_size, baseline_embeddings, perturb_embeddings,)
+        
+        effect_size, variance = self._compute_effect(baseline_embeddings, perturb_embeddings, n_boot)
 
-        return {'baseline_size':len(baseline_df), 'perturb_size':len(perturb_df),
-                 'effect_size': effect_size, 'variance':variance, 'pvalue':pvalue}
+        return {'baseline_size':n_baseline, 'perturb_size':n_pert,
+                 'effect_size': effect_size, 'variance':variance}
 
-    def _get_baseline_perturb_dict(self) -> str:
+    def _get_baseline_perturb_dict(self) -> Dict[str, list[str]]:
         """
         Retrieve baseline-to-perturbation mapping from the data configuration.
         """
         baseline = get_if_exists(self.data_config, 'BASELINE_PERTURB', None)
-        assert baseline is not None, "BASELINE_PERTURB is None. Example: {'WT_Untreated': ['WT_stress']}"
+        assert baseline is not None, "BASELINE_PERTURB dict in data config is None. Example: {'WT_Untreated': ['WT_stress']}"
         return baseline
 
     def _prepare_embeddings_df(self, embeddings: np.ndarray[float], 
                            labels: np.ndarray[str]) -> pd.DataFrame:
         """
-        Convert raw embeddings and sample labels into a structured DataFrame.
+        Create a DataFrame with embeddings and metadata parsed from sample labels.
+        Parses labels of the form "marker_cellline_condition_batch_rep" into separate columns.
 
         Args:
-            embeddings : np.ndarray[float]
-                Embedding array with shape (n_samples, n_features).
-            labels : np.ndarray[str]
-                Array of label strings in the format: "marker_cellline_condition_batch_rep".
+            embeddings (np.ndarray[float]):     Embeddings array of shape (n_samples, n_features).
+            labels (np.ndarray[str]):           Array of label strings matching embedding rows.
 
         Returns:
-            pd.DataFrame
-                DataFrame with embedding vectors and extracted metadata columns:
+            pd.DataFrame: DataFrame containing embedding columns plus columns:
                 ['marker', 'cell_line', 'condition', 'batch', 'rep'].
+
+        Raises:
+            ValueError: If any label string does not contain exactly 5 underscore-separated parts.
         """
         df = pd.DataFrame(embeddings)
         df['label'] = labels
-        df[['marker', 'cell_line', 'condition', 'batch', 'rep']] = df.label.str.split('_', expand=True)
+
+        # Split and validate
+        split_labels = df['label'].str.split('_', expand=True)
+
+        # Check that all labels have 5 parts
+        if split_labels.shape[1] != 5:
+            invalid_labels = df['label'][split_labels.isnull().any(axis=1)].tolist()
+            raise ValueError(
+                f"Some label strings are invalid (expected 5 parts separated by '_').\n"
+                f"Example invalid labels: {invalid_labels[:5]}"
+            )
+        df[['marker', 'cell_line', 'condition', 'batch', 'rep']] = split_labels
         return df
+
     
-    def _calculate_all_effects(self, embeddings_df: pd.DataFrame, 
-                           baseline_perturb_dict: Dict, embeddings_dim:int) -> pd.DataFrame:
+    def _calculate_all_effects(self, embeddings_df: pd.DataFrame, baseline_perturb_dict: Dict, 
+                               embeddings_dim:int, n_boot:int=1000) -> pd.DataFrame:
         """
-        Calculate batch-level effect sizes for all marker–baseline–perturbation combinations.
+        Calculate batch-level effect sizes for all marker-baseline-perturbation combinations.
 
         Args:
-            embeddings_df : pd.DataFrame
+            embeddings_df (pd.DataFrame):
                 DataFrame with embedding vectors and metadata, created by `_prepare_embeddings_df`.
-            baseline_perturb_dict : dict
+            baseline_perturb_dict (dict):
                 Dictionary mapping each baseline (e.g., "WT_Untreated") to a list of perturbations.
-            embeddings_dim : int
+            embeddings_dim (int):
                 Dimensionality of the embedding vectors.
+            n_boot (int)
+                Number of bootstrap iterations (default: 1000).
+
         Returns:
             pd.DataFrame
                 DataFrame with per-batch effect size statistics including:
                 ['marker', 'baseline', 'pert', 'batch', 'baseline_size', 'perturb_size', 
-                'effect_size', 'variance', 'pvalue'].
+                'effect_size', 'variance'].
         """
 
         results = []
         for baseline in baseline_perturb_dict:
             logging.info(f"[AnalyzerEffects] baseline: {baseline}")
             baseline_cell_line, baseline_cond = baseline.split('_')
-
+            baseline_df = embeddings_df[
+                                (embeddings_df.cell_line == baseline_cell_line) &
+                                (embeddings_df.condition == baseline_cond)]
             for pert in baseline_perturb_dict[baseline]:
                 logging.info(f"[AnalyzerEffects] pert: {pert}")
                 pert_cell_line, pert_cond = pert.split('_')
-                subset_df = embeddings_df[
-                    embeddings_df.cell_line.isin([pert_cell_line, baseline_cell_line]) & embeddings_df.condition.isin([pert_cond, baseline_cond])
-                ]
-                for marker, marker_df in subset_df.groupby('marker'):
-                    logging.info(f"[AnalyzerEffects] marker: {marker}")
-                    for batch, batch_df in marker_df.groupby('batch'):
-                        logging.info(f"[AnalyzerEffects] batch: {batch}")
-                        res = self._calculate_effect_per_batch(batch_df, baseline_cell_line, baseline_cond, pert_cell_line, pert_cond, embeddings_dim)
-                        if res:
-                            res.update({'marker': marker, 'baseline': baseline, 'pert': pert, 'batch': batch})
-                            results.append(res)
-                        else:
-                            logging.info(f'skipping {marker} in {batch} for missing samples')
+                pert_df = embeddings_df[
+                                (embeddings_df.cell_line == pert_cell_line) &
+                                (embeddings_df.condition == pert_cond)]
+                
+                # Group each DataFrame by marker and batch separately
+                baseline_groups = baseline_df.groupby(['marker', 'batch'])
+                pert_groups = pert_df.groupby(['marker', 'batch'])
+                # Iterate over marker-batch keys that appear in both baseline and perturbed
+                common_batch_marker_keys = set(baseline_groups.groups.keys()) & set(pert_groups.groups.keys())
+                common_batch_marker_keys = sorted(common_batch_marker_keys)
+                for key in common_batch_marker_keys:
+                    marker, batch = key
+                    logging.info(f"[AnalyzerEffects] marker: {marker}, batch: {batch}")
+                    
+                    batch_marker_baseline_df = baseline_groups.get_group(key)
+                    batch_marker_pert_df = pert_groups.get_group(key)
+
+                    res = self._calculate_effect_per_batch(batch_marker_baseline_df, 
+                                                           batch_marker_pert_df, embeddings_dim, 
+                                                           n_boot)
+                    if res:
+                        res.update({'marker': marker, 'baseline': baseline, 'pert': pert, 'batch': batch})
+                        results.append(res)
 
         return pd.DataFrame(results)
-        

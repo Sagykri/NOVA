@@ -16,9 +16,8 @@ def generate_effects(output_folder_path:str, config_path_data:str )->None:
     config_data:EffectConfig = load_config_file(config_path_data, 'data')
     config_data.OUTPUTS_FOLDER = output_folder_path
     embeddings, labels, _ = load_embeddings(output_folder_path, config_data)
-    logging.info("[Generate effects]")
+    logging.info(f"[Generate effects]")
     d = AnalyzerEffectsMeanDiff(config_data, output_folder_path)
-    
     d.calculate(embeddings, labels)
     d.save()
         

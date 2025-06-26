@@ -192,6 +192,16 @@ plot_configs=./manuscript/manuscript_plot_config
 # $finetune_model $data_configs/dNLSNewEffectsFigureConfig  $plot_configs/DistancesdNLSPlotConfig -q short -j dnls_dist
 
 
-$NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_umaps_distances \
--a $finetune_model $data_configs/dNLSUMAP1DOXB1FigureConfig
-    $effects_configs/NeuronsEffectWithBioReplicateConfig -q short -j dist_neurons
+finetunedModel_MLPHead_frozen=/home/projects/hornsteinlab/Collaboration/MOmaps_Sagy/NOVA/outputs/vit_models_local/finetunedModel_MLPHead_frozen
+
+# ####### new dnls ###########
+$NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/plot_effect_sizes -m 1000 -a \
+$finetunedModel_MLPHead_frozen $data_configs/dNLSNewEffectsFigureConfig  $plot_configs/DistancesdNLSPlotConfig -q short -j dnls_new
+
+# ##### dnls old ########
+# $NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/plot_effect_sizes -m 1000 -a \
+# $finetunedModel_MLPHead_frozen $data_configs/dNLSEffectsFigureConfig  $plot_configs/DistancesdNLSPlotConfig -q short -j dnls
+
+##### neurons ########
+# $NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/plot_effect_sizes -m 1000 -a \
+# $finetunedModel_MLPHead_frozen $data_configs/NeuronsEffectsFigureConfig  $plot_configs/DistancesNeuronsALSPlotConfig -q short -j dists

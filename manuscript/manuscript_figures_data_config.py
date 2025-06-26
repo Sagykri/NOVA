@@ -260,9 +260,8 @@ class dNLSEffectsFigureConfig(FigureConfig):
         self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "spd2", "SpinningDisk","deltaNLS", f) for f in 
                         [f"batch{i}" for i in range(3,6)]]
         
-        self.EXPERIMENT_TYPE = 'deltaNLS'
-        self.MARKERS_TO_EXCLUDE = ['TIA1']
-        self.CELL_LINES = ['TDP43']
+        self.EXPERIMENT_TYPE = 'deltaNLS80pct'
+        self.MARKERS_TO_EXCLUDE = ['TIA1','DAPI']
 
         self.MARKERS = list(PlotConfig().COLOR_MAPPINGS_MARKERS.keys())
         self.ADD_BATCH_TO_LABEL = True
@@ -271,17 +270,22 @@ class dNLSEffectsFigureConfig(FigureConfig):
 class dNLSNewEffectsFigureConfig(FigureConfig):
     def __init__(self):
         super().__init__()
-        self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "spd2", "SpinningDisk","deltaNLS", f) for f in 
-                        [f"batch{i}" for i in range(1,7)]]
+        self.INPUT_FOLDERS = [f"batch{i}" for i in range(1,7)]
         
         self.EXPERIMENT_TYPE = 'deltaNLS_new'
         self.MARKERS_TO_EXCLUDE = ['TIA1','DAPI']
-        self.CELL_LINES = ['dNLS']
-
         self.MARKERS = list(PlotConfig().COLOR_MAPPINGS_MARKERS.keys())
+
+class NeuronsEffectsFigureConfig(FigureConfig):
+    def __init__(self):
+        super().__init__()
+        self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "spd2", "SpinningDisk", f) for f in 
+                        [f"batch{i}80pct" for i in [4,5,6,9]]]
+        
+        self.EXPERIMENT_TYPE = 'neurons'
+        self.MARKERS_TO_EXCLUDE = ['TIA1','DAPI']
         self.ADD_BATCH_TO_LABEL = True
         self.ADD_REP_TO_LABEL = True
-
 
 ############################################################
 # Figure 3 - supp
