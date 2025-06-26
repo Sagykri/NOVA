@@ -17,10 +17,13 @@ import seaborn as sns
 import matplotlib.colors as mcolors
 import matplotlib.pyplot as plt
 from matplotlib.colors import Normalize
+from matplotlib.lines import Line2D
+
 from scipy.cluster.hierarchy import linkage, dendrogram
 from scipy.stats import ttest_ind
 from scipy.spatial.distance import squareform
 from sklearn.metrics.pairwise import nan_euclidean_distances
+from statsmodels.stats.multitest import multipletests
 
 import matplotlib
 from matplotlib import font_manager as fm
@@ -48,6 +51,70 @@ def plot_distances_plots(distances:pd.DataFrame, config_data:DatasetConfig, conf
     plot_clustermap(distances, saveroot, config_data, config_plot, metric=metric)
     plot_bubble_plot(distances, saveroot, config_data, config_plot, metric=metric)
 
+def plot_combined_effect_sizes_barplots(combined_effects_df, batch_effects_df,saveroot:str,config_plot:PlotConfig):
+    
+    for (baseline, pert), cur_df_combined in combined_effects_df.groupby(['baseline','pert']):
+        if saveroot:
+            savepath = os.path.join(saveroot, f'{pert}_vs_{baseline}_barplot')
+        cur_df_batch = batch_effects_df[(batch_effects_df.baseline==baseline)&(batch_effects_df.pert==pert)]
+        __plot_barplot(cur_df_combined, baseline, pert, savepath, config_plot, cur_df_batch)
+
+def __plot_barplot(combined_effects_df, baseline, pert, savepath, config_plot, cur_df_batch):
+    for pval_col in ['pvalue','p_heterogeneity']:
+        combined_effects_df[pval_col] = combined_effects_df[pval_col].replace(0, 1e-300)  # avoid log(0)
+        _, adj_pvals, _, _ = multipletests(combined_effects_df[pval_col], method='fdr_bh')
+        combined_effects_df[f'adj_{pval_col}'] = adj_pvals
+        combined_effects_df[f'stars_{pval_col}'] = combined_effects_df[f'adj_{pval_col}'].apply(__convert_pvalue_to_asterisks)
+    
+    combined_effects_df['low_error'] = combined_effects_df['combined_effect'] - combined_effects_df['ci_low']
+    combined_effects_df['high_error'] = combined_effects_df['ci_upp'] - combined_effects_df['combined_effect']
+        
+    combined_effects_df = combined_effects_df.sort_values('combined_effect', ascending=False).reset_index(drop=True)
+    fig, ax = plt.subplots(figsize=(8, 5))
+
+    ax.bar(combined_effects_df['marker'], combined_effects_df['combined_effect'], 
+            yerr = np.array([combined_effects_df['low_error'], combined_effects_df['high_error']]),
+            capsize=5, edgecolor='k',
+            error_kw={'elinewidth': 0.7,'capthick': 0.7})
+
+    # Add the separate batch effect sizes
+    marker_order = combined_effects_df['marker']
+    cur_df_batch['marker'] = pd.Categorical(cur_df_batch['marker'], categories=marker_order, ordered=True)
+    cur_df_batch = cur_df_batch.sort_values('marker')
+    ax.plot(cur_df_batch['marker'], cur_df_batch['effect_size'], 
+            linestyle='None', marker='.', color='black', markersize=3)
+    
+    # Add significance stars
+    for index, row in combined_effects_df.iterrows():
+        height = max(row['combined_effect'], row['ci_upp'],0)
+        for pval_col,color, bonus in zip(['pvalue','p_heterogeneity'],['red','blue'],[0,0.1]):
+            star = row[f'stars_{pval_col}']
+            if star:
+                ax.text(index, height+bonus, star, ha='center', 
+                        fontsize=12, color=color)
+    
+    # Aesthetics
+    name_key=config_plot.MAPPINGS_ALIAS_KEY
+    marker_name_color_dict = config_plot.COLOR_MAPPINGS_MARKERS
+    x_ticklabels = [marker_name_color_dict[marker][name_key] if marker_name_color_dict else marker for marker in combined_effects_df['marker']]
+    ax.set_xticklabels(x_ticklabels, rotation=90)#, ha='right')
+    ax.set_ylabel("Combined Effect Size")
+    ax.axhline(0, color='gray', linestyle='--', linewidth=0.8)
+    legend_elements = [
+        Line2D([0], [0], color='red', lw=0, marker='*', label='adj p-value'),
+        Line2D([0], [0], color='blue', lw=0, marker='*', label='adj p-heterogeneity'),
+    ]
+
+    ax.legend(handles=legend_elements, loc='best', frameon=False)
+    plt.title(f'{config_plot.COLOR_MAPPINGS_CELL_LINE_CONDITION[pert][name_key]} vs {config_plot.COLOR_MAPPINGS_CELL_LINE_CONDITION[baseline][name_key]}')
+    plt.tight_layout()
+    
+    if savepath:
+        save_plot(fig, savepath, dpi=150, save_eps=True)
+    else:
+        plt.show()
+    return
+        
 def plot_marker_ranking(distances:pd.DataFrame, saveroot:str, config_data:DatasetConfig,
                         config_plot:PlotConfig, metric:str='ARI_KMeansConstrained', show_effect_size:bool=False)->None:
     """Generate and save a boxplot of marker distances with p-values, separately for each condition.
@@ -589,15 +656,15 @@ def __add_pvalue(marker:str, marker_index:int, dists_order:List[str], pvalue:flo
             
 def __convert_pvalue_to_asterisks(pval:float)->str:
     if pval <= 0.0001:
-        asterisks = '****'
+        return '****'
     elif pval <= 0.001:
-        asterisks = '***'
+        return '***'
     elif pval <= 0.01:
-        asterisks = '**'
+        return '**'
+    elif pval <= 0.05:
+        return '*'
     else:
-        asterisks = '*'
-    
-    return asterisks
+        return ''
 
 def __bin_pvalues(pvalues):
     """Adjust p-values and bin them for better visualization."""
