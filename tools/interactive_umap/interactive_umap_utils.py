@@ -165,11 +165,9 @@ def process_tile(df, index):
         marker: normalized marker channel (2D array)
         nucleus: normalized nucleus channel (2D array)
         overlay: RGB overlay image (H, W, 3)
-        metadata: dict with 'path', 'tile', 'image_name'
     """
     path = df.Path.loc[index]
     tile = int(df.Tile.loc[index])
-    image_name = df.Image_Name.loc[index]
 
     image = np.load(path)
     site_image = image[tile]
@@ -181,7 +179,7 @@ def process_tile(df, index):
     overlay[..., 0] = marker
     overlay[..., 1] = nucleus
 
-    return marker, nucleus, overlay, {'path': path, 'tile': tile, 'image_name': image_name}
+    return marker, nucleus, overlay
     
 def show_processed_tile(df, index=0):
     """
@@ -199,19 +197,21 @@ def show_processed_tile(df, index=0):
     - nucleus: 2D image of the normalized nucleus channel
     - overlay: RGB overlay image as a (H, W, 3) array
     """
-    marker, nucleus, overlay, meta = process_tile(df, index)
+    marker, nucleus, overlay = process_tile(df, index)
+    image_name = df.Image_Name.loc[index]
+    tile = df.Tile.loc[index]
 
     fig, ax = plt.subplots(1, 3, figsize=(10, 4))
 
-    ax[0].set_title(f'{meta["image_name"]}/{meta["tile"]} - Marker', fontsize=11)
+    ax[0].set_title(f'{image_name}/{tile} - Marker', fontsize=11)
     ax[0].imshow(marker, cmap='gray', vmin=0, vmax=1)
     ax[0].axis('off')
 
-    ax[1].set_title(f'{meta["image_name"]}/{meta["tile"]} - Nucleus', fontsize=11)
+    ax[1].set_title(f'{image_name}/{tile} - Nucleus', fontsize=11)
     ax[1].imshow(nucleus, cmap='gray', vmin=0, vmax=1)
     ax[1].axis('off')
 
-    ax[2].set_title(f'{meta["image_name"]}/{meta["tile"]} - Overlay', fontsize=11)
+    ax[2].set_title(f'{image_name}/{tile} - Overlay', fontsize=11)
     ax[2].imshow(overlay)
     ax[2].axis('off')
 
@@ -228,8 +228,19 @@ def save_processed_tile(df, index, folder_path, high_resolution=True):
     - high_resolution: Whether to save in 16-bit with 600 DPI (default: True).
     """
     try:
-        marker, nucleus, overlay, meta = process_tile(df, index)
-        base = f"{index}_{meta['image_name']}_{meta['tile']}"
+        marker, nucleus, overlay = process_tile(df, index)
+        full_path = df.Path.loc[index]
+        batch = df.Batch.loc[index]
+        tile = df.Tile.loc[index]
+
+        # Get relative path inside batch
+        rel_path = full_path.split(batch, 1)[-1].lstrip(os.sep).replace('.npy', '')
+
+        # Replace / or \ with .
+        rel_path = rel_path.replace('/', '.').replace('\\', '.')
+
+        # Final base name: batch.rel_path.tile
+        base = f"{batch}.{rel_path}.{tile}"
 
         factor = 65535 if high_resolution else 255
         dtype = np.uint16 if high_resolution else np.uint8
