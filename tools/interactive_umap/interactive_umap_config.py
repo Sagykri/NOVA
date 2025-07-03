@@ -29,34 +29,29 @@ config_example = {
 
 import numpy as np
 
+nova_home = "/home/projects/hornsteinlab/Collaboration/NOVA"
 momaps_home = "/home/projects/hornsteinlab/Collaboration/MOmaps"
-momaps_input = f"{momaps_home}/input/images/raw"
-momaps_figures = f"{momaps_home}/outputs/vit_models/finetuned_model/figures"
-momaps_preprocessing = f"{momaps_home}/outputs/preprocessing"
+input_path = f"{nova_home}/input/images/raw"
+figures_path = f"{momaps_home}/outputs/vit_models/finetuned_model/figures"
+preprocessing_path = f"{momaps_home}/outputs/preprocessing"
 
 ## Day 8 Neurons ##
 config_d8 = {
     'paths':{
-    'umaps_folder' : f'{momaps_figures}/neurons_iu/UMAPs/',
-    'csv_path' : f'{momaps_preprocessing}/spd/brenner/raw_metrics_all_batches_all_metrics_site_fix.csv',
-    'images_dir' : [f'{momaps_input}/SpinningDisk/batch3/',
-                    f'{momaps_input}/SpinningDisk/batch4/',
-                    f'{momaps_input}/SpinningDisk/batch5/',
-                    f'{momaps_input}/SpinningDisk/batch6/',
-                    f'{momaps_input}/SpinningDisk/batch7/',
-                    f'{momaps_input}/SpinningDisk/batch8/',
-                    f'{momaps_input}/SpinningDisk/batch9/',]
+    'umaps_folder' : f'{figures_path}/neurons_iu/UMAPs/',
+    'csv_path' : f'{preprocessing_path}/spd/brenner/raw_metrics_all_batches_all_metrics_site_fix.csv',
+    'images_dir' : [f'{input_path}/NeuronsDay8']
     },
     'layouts': None,
-    'name': 'Day8'
+    'name': 'NeuronsDay8'
 }
 
 ## Alyssa  ##
 config_alyssa = {
     'paths':{
-    'umaps_folder' : f'{momaps_figures}/AlyssaCoyne_7tiles_iu/UMAPs/',
+    'umaps_folder' : f'{figures_path}/AlyssaCoyne_7tiles_iu/UMAPs/',
     'csv_path' : None,
-    'images_dir' : [f'{momaps_input}/AlyssaCoyne/MOmaps_iPSC_patients_TDP43_PB_CoyneLab/',]
+    'images_dir' : [f'{input_path}/AlyssaCoyne/MOmaps_iPSC_patients_TDP43_PB_CoyneLab/',]
     },
     'layouts': None,
     'name': 'AlyssaCoyne'
@@ -65,9 +60,9 @@ config_alyssa = {
 ## deltaNLS ##
 config_deltaNLS = {
     'paths':{
-    'umaps_folder' : f'{momaps_figures}/deltaNLS_iu/UMAPs/',
-    'csv_path' : f'{momaps_preprocessing}/spd/brenner/raw_metrics_all_batches_brenner_site_dNLS.csv',
-    'images_dir' : [f'{momaps_input}/SpinningDisk/deltaNLS_sort/' ]
+    'umaps_folder' : f'{figures_path}/deltaNLS_iu/UMAPs/',
+    'csv_path' : f'{preprocessing_path}/spd/brenner/raw_metrics_all_batches_brenner_site_dNLS.csv',
+    'images_dir' : [f'{input_path}/SpinningDisk/deltaNLS_sort/' ]
     },
     'layouts': None,
     'name': 'deltaNLS'
@@ -76,9 +71,9 @@ config_deltaNLS = {
 ## Day 18 Neurons ##
 config_d18 = {
     'paths':{
-    'umaps_folder' : f'{momaps_figures}/neurons_d18_iu/UMAPs/',
-    'csv_path' : f'{momaps_preprocessing}/Opera18Days_Reimaged/brenner/raw_metrics_230724.csv',
-    'images_dir' : [f'{momaps_input}/Opera18DaysReimaged_sorted/',]
+    'umaps_folder' : f'{figures_path}/neurons_d18_iu/UMAPs/',
+    'csv_path' : f'{preprocessing_path}/Opera18Days_Reimaged/brenner/raw_metrics_230724.csv',
+    'images_dir' : [f'{input_path}/Opera18DaysReimaged_sorted/',]
     },
     'layouts': None,
     'name': 'Day18'
@@ -163,7 +158,7 @@ funova_fov_layouts = {
 
 config_funova = {
     'paths':{
-        'umaps_folder' : f'{momaps_figures}/funova/UMAPs',
+        'umaps_folder' : f'{figures_path}/funova/UMAPs',
         'csv_path' : "/home/projects/hornsteinlab/Collaboration/FUNOVA/outputs/preprocessing/brenner/raw_metrics_exp3_exp4.csv",
         'images_dir' : ['/home/projects/hornsteinlab/Collaboration/FUNOVA/input/images/raw',] 
     },
