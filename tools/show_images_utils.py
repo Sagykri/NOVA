@@ -5,6 +5,7 @@ import pandas as pd
 import cv2
 from matplotlib.backends.backend_pdf import PdfPages
 import re
+import numpy as np
 from src.preprocessing.preprocessing_utils import rescale_intensity, fit_image_shape
 
 # Utility functions
@@ -19,8 +20,9 @@ def show_images(
     condition: str = None, 
     cell_line: str = None,
     panel: str = None,
-    funova: bool = False,
-    image_id: str = None
+    image_id: str = None,
+    change_ch: bool = False,
+    dapi_name: str = 'DAPI'
 ) -> None:
     """
     Display images from a DataFrame based on specific criteria and optionally show corresponding DAPI images.
@@ -34,7 +36,8 @@ def show_images(
         rep (int, optional): The replicate number to filter by. Defaults to None.
         condition (str, optional): The condition to filter by. Defaults to None.
         cell_line (str, optional): The cell line to filter by. Defaults to None.
-
+        change_ch (bool, optional): If True, change the channel digit in the DAPI file name. Defaults to False.
+        dapi_name (str, optional): The name of the DAPI channel to look for. Defaults to 'DAPI'.
     Returns:
         None
     """
@@ -51,12 +54,12 @@ def show_images(
 
         if show_DAPI:
             # Display the corresponding DAPI image
-            dapi_file_name = get_dapi_path(target_path, marker, funova=funova)
+            dapi_file_name = get_dapi_path(target_path, marker, dapi_name, change_ch = change_ch)
             print(dapi_file_name)
             show_processed_tif(dapi_file_name)
             print('--------------------------------')  
 
-def get_dapi_path(path, marker1, marker2='DAPI', funova=False):
+def get_dapi_path(path, marker1, marker2='DAPI', change_ch=False):
     """
     Modify the given path to generate a DAPI file name.
 
@@ -64,19 +67,32 @@ def get_dapi_path(path, marker1, marker2='DAPI', funova=False):
         path (str): Original file path.
         marker1 (str): Marker to be replaced in the path.
         marker2 (str): Marker to replace with in the path.
-        funova (bool): If True, change the digit after 'ch' in the file name to '1'.
+        change_ch (bool, optional): If True, change the channel digit in the DAPI file name. Defaults to False.
 
     Returns:
         str: Modified path for the DAPI file.
     """
-    # Replace marker1 with marker2
-    new_path = path.replace(marker1, marker2)
+    dir_path, file_name = os.path.split(path)
 
-    if funova:
-        # Change the digit after 'ch' to '1'
-        new_path = re.sub(r'ch\d+', 'ch1', new_path)
+    # Replace marker in file name only
+    dir_path = dir_path.replace(marker1, marker2)
 
-    return new_path
+    if change_ch:
+        # Look for any DAPI file in dir_path
+        dapi_ch = None
+        for f in os.listdir(dir_path):
+            match = re.search(r'ch(\d+)', f)
+            if match:
+                dapi_ch = match.group(1)
+                break
+
+        if not dapi_ch:
+            raise ValueError(f"No DAPI channel found in {dir_path}")
+
+        # Replace ch digit in the name
+        file_name = re.sub(r'ch\d+', f'ch{dapi_ch}', file_name)
+
+    return os.path.join(dir_path, file_name)
 
 def show_label(path):
     path_l = path.split("/")
@@ -141,11 +157,10 @@ def get_tile_location(tile_index: int, img_shape:Tuple[int, int], tile_shape:Tup
     
     return (x, y)
     
-def put_tiles_grid(image, ax):
-    # assumes 1000x1000 image
-    # Add dashed grid lines for 64 blocks
-    num_blocks = 10
-    block_size = 100
+def put_tiles_grid(image, ax, block_size = 128):
+    # Add dashed grid lines for num_blocks blocks
+    num_blocks = image.shape[0] // block_size  # Assuming square blocks
+    
     for i in range(1, num_blocks):
         # Draw horizontal dashed lines
         ax.plot([0, 1000], [i * block_size, i * block_size], linestyle='--', lw=1, alpha=0.5, color='pink')
@@ -338,3 +353,112 @@ def extract_processed_image_metadata(base_dir, FILE_EXTENSION='.npy', KEY_BATCH=
                 })
 
     return pd.DataFrame(data)
+
+def get_combined_metadata(
+    raw_base_dir: str,
+    processed_base_dir: str,
+    raw_file_extension: str = '.tiff',
+    key_batch: str = 'Batch',
+    processed_FILE_EXTENSION: str = '.npy') -> pd.DataFrame:
+    """
+    Combine metadata from raw and processed images into a single DataFrame.
+    Args:
+        raw_base_dir (str): The base directory containing the raw images.
+        raw_file_extension (str): Expected extension for raw images (e.g., '.tiff').
+        key_batch (str): Name of batch prefix (case-insensitive, e.g., 'Batch').
+        processed_base_dir (str, optional): The base directory containing the processed images. Defaults to None.
+        processed_FILE_EXTENSION (str): Expected extension for processed images (e.g., '.npy'). Defaults to '.npy'.
+    Returns:
+        pd.DataFrame: A DataFrame containing combined metadata with columns
+                      ['Path_raw', 'RootFolder_raw', 'Path_processed', 'RootFolder_processed',
+                       'Marker', 'Condition', 'CellLine', 'Batch_Rep', 'Rep', 'Batch', 'Panel', 'Image_Name'].
+    """
+    df_raw = extract_image_metadata(raw_base_dir, raw_file_extension, key_batch)
+    df_processed = extract_processed_image_metadata(processed_base_dir, processed_FILE_EXTENSION, key_batch)
+    # Rename columns in df_raw
+    df_raw = df_raw.rename(columns={
+        'Path': 'Path_raw',
+        'RootFolder': 'RootFolder_raw',
+    })
+
+    # Rename columns in df_processed
+    df_processed = df_processed.rename(columns={
+        'Path': 'Path_processed',
+        'RootFolder': 'RootFolder_processed',
+    })
+
+    # Define columns to match on (common metadata columns)
+    match_cols = ['Marker', 'Condition', 'CellLine', 'Batch_Rep', 'Rep', 'Batch', 'Panel', 'Image_Name']
+
+    # Drop duplicates to avoid exploding the merge if raw has multiple matches
+    df_raw_unique = df_raw.drop_duplicates(subset=match_cols)
+
+    # Merge df_processed with raw to get Path_raw, RootFolder_raw
+    df_combined = df_processed.merge(
+        df_raw_unique[match_cols + ['Path_raw', 'RootFolder_raw']],
+        on=match_cols,
+        how='left'
+    )
+    for col in ['Marker', 'Condition', 'CellLine', 'Rep', 'Batch', 'Panel']:
+        print(col, 'values are:', np.unique(df_combined[col]))
+    return df_combined
+
+
+def plot_overlay(df: pd.DataFrame, 
+    marker: str, 
+    samples: int = 5, 
+    show_DAPI: bool = True, 
+    batch: int = None, 
+    rep: int = None, 
+    condition: str = None, 
+    cell_line: str = None,
+    panel: str = None,
+    image_id: str = None,
+    change_ch: bool = False,
+    dapi_name: str = 'DAPI'
+    ) -> None:
+    """
+    Plot an overlay of marker and its corresponding DAPI image.
+
+    Args:
+        df (pd.DataFrame): The input DataFrame containing image data.
+        marker (str): The marker to filter and display images for.
+        samples (int, optional): Number of images to display. Defaults to 5.
+        batch (int, optional): The batch number to filter by. Defaults to None.
+        rep (int, optional): The replicate number to filter by. Defaults to None.
+        condition (str, optional): The condition to filter by. Defaults to None.
+        cell_line (str, optional): The cell line to filter by. Defaults to None.
+        change_ch (bool, optional): If True, change the channel digit in the DAPI file name. Defaults to False.
+        dapi_name (str, optional): The name of the DAPI channel to look for. Defaults to 'DAPI'.
+    Returns:
+        None
+    """
+    df = get_specific_imgs(
+        df, marker=marker, batch=batch, rep=rep, 
+        condition=condition, cell_line=cell_line, panel = panel, image_id = image_id
+    ).sample(frac=1, random_state=1)  # Shuffle the filtered DataFrame
+    print(len(df), "images found:", marker)
+
+    for index, target_path in enumerate(df.Path.values[:samples]):
+        print(index + 1)
+        marker_path = df.Path.iloc[index]
+        marker_name = df.Marker.iloc[index]
+        
+        dapi_path = get_dapi_path(marker_path, marker_name, dapi_name, change_ch==change_ch)
+        
+        # Load images
+        marker_img = process_tif(marker_path)
+        dapi_img = process_tif(dapi_path)
+        
+        # Make RGB overlay
+        overlay = np.zeros((*marker_img.shape, 3), dtype=np.float32)
+        overlay[..., 0] = rescale_intensity(marker_img)  # Red: marker
+        overlay[..., 1] = rescale_intensity(dapi_img)    # Green: DAPI
+
+        # Plot
+        fig, ax = plt.subplots(figsize=(5, 5), dpi=100)
+        ax.imshow(overlay)
+        ax.axis('off')
+        ax.set_title(f"Overlay: {marker_name} + DAPI\n{os.path.basename(marker_path)}", fontsize=10)
+        plt.show()
+        print('--------------------------------')  
