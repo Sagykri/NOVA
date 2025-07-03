@@ -54,10 +54,11 @@ def put_tiles_grid(ax, w, h, block_size=128):
         # Draw vertical dashed lines
         ax.plot([i * block_size, i * block_size], [0, h], linestyle='--', lw=1, alpha=0.5, color='pink')
 
-def test_cellpose(images, images_paths, flow_threshold=0.4, cellprob_threshold=0, diameter=60):
+def test_cellpose(images, images_paths, flow_threshold=0.4, cellprob_threshold=0, diameter=60, add_grid=False):
     from cellpose import models
     import cellpose
     from shapely.geometry import Polygon
+    from tools.show_images_utils import put_tiles_grid
     
     cp_model = models.Cellpose(gpu=True, model_type='nuclei')
     for i, image in enumerate(images):
@@ -77,6 +78,9 @@ def test_cellpose(images, images_paths, flow_threshold=0.4, cellprob_threshold=0
         axs[1].axis('off')
         axs[1].set_title(f'Segmented {len(np.unique(masks))-1} objects')
         plt.tight_layout()
+        if add_grid:
+            put_tiles_grid(image, axs[0], block_size=160)
+            put_tiles_grid(masks, axs[1], block_size=160)
         plt.show()
 
 def check_preprocessing_steps(input_dir_batch, sample_size, brenner_path, marker, cell_line, condition, rep, panel=None,
