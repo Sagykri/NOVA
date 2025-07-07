@@ -263,3 +263,17 @@ class funovaTBK1DistanceConfigControlStressFinetuned(funovaTBK1DistanceConfigCon
         super().__init__()
         self.CONDITIONS = ['stress']
         self.BASELINE_CELL_LINE_CONDITION =  "Control_stress"
+
+class iAstrocytesTBK1DistanceConfig(DistanceConfig):
+    def __init__(self):
+        super().__init__()
+
+        self.INPUT_FOLDERS = ["batch1"]
+        
+        self.EXPERIMENT_TYPE = 'iAstrocytes'   
+        self.CELL_LINES = ['WT', 'C9']
+        self.CONDITIONS = ['Untreated']
+        self.MARKERS_TO_EXCLUDE = []
+        self.ADD_BATCH_TO_LABEL = True
+        self.ADD_REP_TO_LABEL = True   
+        self.BASELINE_CELL_LINE_CONDITION = "WT_Untreated"

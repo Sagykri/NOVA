@@ -26,7 +26,7 @@ from tools.preprocessing_tools.image_sampling_utils import sample_images_all_mar
 
 
 BASE_DIR = os.path.join('/home','projects','hornsteinlab','Collaboration','MOmaps')
-INPUT_DIR = os.path.join(BASE_DIR, 'input', 'images', 'raw', 'SpinningDisk', 'NOVA_d18_neurons_sorted')
+INPUT_DIR = os.path.join(BASE_DIR, 'input', 'images', 'raw', 'John', 'iAstrocytes', 'ordered')
 calc_per_tile = False # I ran _site_ with this being False! (281123)
 raw = True
 # When calculating tile's Brenner set: calc_per_tile = True, raw = False
@@ -154,14 +154,13 @@ def main():
     # cell_lines = ['WT']
     # conditions = ['Untreated']#, 'stress']
     # markers = #['DAPI']#["DAPI"]#['NONO', 'G3BP1']
-    batches = ['Batch3', 'Batch4' ]#[os.path.join('240323_day29_neurons_sorted', 'batch1')]#['batch4','batch5','batch6', 'batch9']#['batch7', 'batch8', 'batch3', 'batch4','batch5','batch6', 'batch9']#, 'batch8']#['batch6_16bit_no_downsample']
+    batches = ['batch1' ]#[os.path.join('240323_day29_neurons_sorted', 'batch1')]#['batch4','batch5','batch6', 'batch9']#['batch7', 'batch8', 'batch3', 'batch4','batch5','batch6', 'batch9']#, 'batch8']#['batch6_16bit_no_downsample']
     # raw_base_path = '/home/labs/hornsteinlab/Collaboration/MOmaps/input/images/raw/SpinningDisk/'
     
     
-    log_file_path = "/home/projects/hornsteinlab/Collaboration/MOmaps/outputs/preprocessing/spd18days/brenner/log280524_all.txt"
-    savepath =      "/home/projects/hornsteinlab/Collaboration/MOmaps/outputs/preprocessing/spd18days/brenner/raw_metrics280524_all.csv"
-    log_file_path = "/home/labs/hornsteinlab/Collaboration/FUNOVA/outputs/preprocessing/brenner/log260225_exp4_processed.txt"
-    savepath =      "/home/labs/hornsteinlab/Collaboration/FUNOVA/outputs/preprocessing/brenner/raw_metrics260225_exp4_processed.csv"
+    log_file_path = "/home/projects/hornsteinlab/Collaboration/MOmaps/outputs/preprocessing/iAstrocytes/brenner/log110625_all.txt"
+    savepath =      "/home/projects/hornsteinlab/Collaboration/MOmaps/outputs/preprocessing/iAstrocytes/brenner/raw_metrics110625_all.csv"
+    
     
     init_logging(log_file_path)
     

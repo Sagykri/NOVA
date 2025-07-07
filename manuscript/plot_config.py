@@ -42,7 +42,7 @@ class PlotConfig(PlotConfig):
         self.COLOR_MAPPINGS_ALS['SCNA'] = self.COLOR_MAPPINGS_ALS['SCNA_Untreated']
         self.COLOR_MAPPINGS_ALS['SNCA'] = self.COLOR_MAPPINGS_ALS['SNCA_Untreated']
         self.COLOR_MAPPINGS_ALS['TDP43'] = self.COLOR_MAPPINGS_ALS['TDP43_Untreated']
-        
+
         self.COLOR_MAPPINGS_DOX: Dict[str, Dict[str,str]] = {
             'WT_Untreated':{self.MAPPINGS_ALIAS_KEY:'Wild-Type', self.MAPPINGS_COLOR_KEY:'#2FA0C1'},
             'TDP43_Untreated':{self.MAPPINGS_ALIAS_KEY:'TDP-43dNLS, -DOX', self.MAPPINGS_COLOR_KEY:'#6BAD31'},
@@ -326,3 +326,25 @@ class PlotConfig(PlotConfig):
             'TDP--43_stress': {self.MAPPINGS_ALIAS_KEY: 'TDP-43 Stress', self.MAPPINGS_COLOR_KEY: '#C75D6A'}
         }
 
+        # self.COLOR_MAPPINGS_IASTROCYTES: Dict[str, Dict[str, str]] = {
+        #     'DAPI': {self.MAPPINGS_ALIAS_KEY: 'Nucleus', self.MAPPINGS_COLOR_KEY: '#AFBDFF'},
+        #     'ARL13B': {self.MAPPINGS_ALIAS_KEY: 'ARL13B', self.MAPPINGS_COLOR_KEY: '#F7810F'},
+        #     'PML': {self.MAPPINGS_ALIAS_KEY: 'PML Bodies', self.MAPPINGS_COLOR_KEY: '#37AFD7'},
+        #     'Vimentin': {self.MAPPINGS_ALIAS_KEY: 'Vimentin', self.MAPPINGS_COLOR_KEY: '#AB7A5B'},
+        #     'WDR49': {self.MAPPINGS_ALIAS_KEY: 'WDR49', self.MAPPINGS_COLOR_KEY: '#78491C'},
+        #     'Calreticulin': {self.MAPPINGS_ALIAS_KEY: 'ER', self.MAPPINGS_COLOR_KEY: '#C8C512'},
+        #     'TDP43': {self.MAPPINGS_ALIAS_KEY: 'TDP-43 granules', self.MAPPINGS_COLOR_KEY: '#FF98BB'},
+        # }
+        self.COLOR_MAPPINGS_IASTROCYTES = {**self.COLOR_MAPPINGS_MARKERS} 
+        self.COLOR_MAPPINGS_IASTROCYTES.update({
+            'ARL13B': {self.MAPPINGS_ALIAS_KEY: 'ARL13B', self.MAPPINGS_COLOR_KEY: '#F7810F'},
+            'Vimentin': {self.MAPPINGS_ALIAS_KEY: 'Vimentin', self.MAPPINGS_COLOR_KEY: '#AB7A5B'},
+            'WDR49': {self.MAPPINGS_ALIAS_KEY: 'WDR49', self.MAPPINGS_COLOR_KEY: '#78491C'},
+        })
+
+        self.COLOR_MAPPINGS_ALS_IASTROCYTES: Dict[str, Dict[str,str]] = {
+            'WT_Untreated':{self.MAPPINGS_ALIAS_KEY:'Wild-Type', self.MAPPINGS_COLOR_KEY:'#37AFD7'},
+            'C9_Untreated':{self.MAPPINGS_ALIAS_KEY:'C9', self.MAPPINGS_COLOR_KEY:'#AB7A5B'},
+        }
+        self.COLOR_MAPPINGS_ALS_IASTROCYTES['WT'] = self.COLOR_MAPPINGS_ALS_IASTROCYTES['WT_Untreated']
+        self.COLOR_MAPPINGS_ALS_IASTROCYTES['C9'] = self.COLOR_MAPPINGS_ALS_IASTROCYTES['C9_Untreated']

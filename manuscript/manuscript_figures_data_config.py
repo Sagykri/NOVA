@@ -1266,4 +1266,83 @@ class NIH8DaysUMAP0ALSB9SQSTM1FigureConfig(NIH8DaysUMAP0ALSFigureConfig):
         self.INPUT_FOLDERS = ["batch1"]
         self.CELL_LINES = ['WT','FUSHomozygous','FUSHeterozygous','FUSRevertant']
         self.MARKERS = ['SQSTM1']
+
+############################################################
+# iAstrocytes
+############################################################
+
+class iAstrocytesUMAP0CellLinesFigureConfig(FigureConfig):
+    def __init__(self):
+        super().__init__()
+        """UMAP0 of single markers - Cell lines 
+        """        
+        self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "batch1")]
+
+        self.EXPERIMENT_TYPE = 'iAstrocytes'    
+        self.MARKERS_TO_EXCLUDE = []
+        self.SHOW_ARI = True
+        self.ARI_LABELS_FUNC = MapLabelsFunction.CELL_LINES.name
+        self.ADD_LINE_TO_LABEL = True
+        self.ADD_REP_TO_LABEL=False   
+
+class iAstrocytesUMAP1WTFigureConfig(FigureConfig):
+    def __init__(self):
+        super().__init__()
         
+        """UMAP1 of WT untreated
+        """
+
+        self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "batch1")]
+
+        self.EXPERIMENT_TYPE = 'iAstrocytes'    
+        self.MARKERS_TO_EXCLUDE = ['DAPI'] 
+        self.CELL_LINES = ['WT']
+        
+        # Decide if to show ARI metric on the UMAP
+        self.SHOW_ARI = True
+        self.ADD_REP_TO_LABEL = False
+
+class iAstrocytesUMAP1C9FigureConfig(FigureConfig):
+    def __init__(self):
+        super().__init__()
+        
+        """UMAP1 of C9 untreated
+        """
+
+        self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "batch1")]
+
+        self.EXPERIMENT_TYPE = 'iAstrocytes'    
+        self.MARKERS_TO_EXCLUDE = ['DAPI'] 
+        self.CELL_LINES = ['C9']
+        
+        # Decide if to show ARI metric on the UMAP
+        self.SHOW_ARI = True
+        self.ADD_REP_TO_LABEL = False
+
+class UMAP2iAstrocytesCellLinesFigureConfig(FigureConfig):
+    def __init__(self):
+        super().__init__()
+        """UMAP2 multiplex of WT vs c9
+        """
+        self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "batch1")]
+        self.EXPERIMENT_TYPE = 'iAstrocytes'   
+        self.MARKERS_TO_EXCLUDE = [] 
+        self.CONDITIONS = ['Untreated']
+        self.SHOW_ARI = True
+        self.ADD_REP_TO_LABEL=False
+
+class iAstrocytesDistancesALSFigureConfig(FigureConfig):
+    def __init__(self):
+        """Bubbleplot of WT vs other cell lines
+        """
+        super().__init__()
+        self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "batch1")]
+
+        self.EXPERIMENT_TYPE = 'iAstrocytes'    
+        self.MARKERS_TO_EXCLUDE = []
+        self.BASELINE_CELL_LINE_CONDITION = "WT_Untreated"
+        self.CONDITIONS = ['Untreated']
+        self.CELL_LINES = ['WT','C9']
+        self.CELL_LINES_CONDITIONS = ['C9_Untreated']
+        self.ADD_BATCH_TO_LABEL = True
+        self.ADD_REP_TO_LABEL = True

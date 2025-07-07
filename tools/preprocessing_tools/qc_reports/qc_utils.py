@@ -206,7 +206,6 @@ def log_files_qc(LOGS_PATH, batches=None, only_wt_cond = True, filename_split='_
         for file in os.listdir(os.path.join(LOGS_PATH, batch_folder)):
             # Take only "cell_count_stats" CSV files
             if file.endswith(".csv") and file.startswith("cell_count_stats"):
-
                 # Load each CSV
                 df = pd.read_csv(os.path.join(LOGS_PATH,batch_folder,file), 
                                 index_col=None, 
@@ -1324,7 +1323,7 @@ def show_total_sum_tables(total_sum):
     display(HTML(describe.to_html()))
     return
 
-def plot_marker_data(total_sum, split_by_cell_line=True):
+def plot_marker_data(total_sum, split_by_cell_line=True, separate_markers=['DAPI', 'TUJ1']):
     """
     Plot total valid tiles by batch for DAPI, TUJ1, and other markers.
 
@@ -1338,8 +1337,8 @@ def plot_marker_data(total_sum, split_by_cell_line=True):
 
     # Define subsets and plotting logic
     def plot_data(data, title_suffix):
-        for markers, figsize in [(['DAPI', 'TUJ1'], (12, 4)), (None, (12, 8))]:
-            subset = data[data['marker'].isin(markers)] if markers else data[~data['marker'].isin(['DAPI', 'TUJ1'])]
+        for markers, figsize in [(separate_markers, (12, 4)), (None, (12, 8))]:
+            subset = data[data['marker'].isin(markers)] if markers else data[~data['marker'].isin(separate_markers)]
             if not subset.empty:
                 plt.figure(figsize=figsize)
                 sns.barplot(
@@ -1402,9 +1401,9 @@ def find_bad_wells(dfb, threshold, percentage_filter,
             )
 
             # Merge and calculate percentages
-            merged_table = pd.merge(table1, table2, on=subset, how='inner', suffixes=('_table1', '_table2'))
+            merged_table = pd.merge(table1, table2, on=subset, how='inner', suffixes=('_bad', '_total'))
             merged_table = merged_table.copy()  # Ensure it's not a slice
-            merged_table['Percentage'] = (merged_table['Count_table1'] / merged_table['Count_table2']) * 100
+            merged_table['Percentage'] = (merged_table['Count_bad'] / merged_table['Count_total']) * 100
 
             # Filter for percentages > percentage_filter
             high_percentage = merged_table[merged_table['Percentage'] > percentage_filter].copy()  # Ensure copy here
@@ -1414,13 +1413,41 @@ def find_bad_wells(dfb, threshold, percentage_filter,
                 high_percentage.loc[:, 'Combination'] = str(subset)  # Add subset info using .loc to avoid warnings
                 results.append(high_percentage)
 
-    # Concatenate all results into a single DataFrame
-    if results:
-        final_results = pd.concat(results, ignore_index=True)
-    else:
-        final_results = pd.DataFrame()  # Return empty DataFrame if no results
+    if not results:
+        return pd.DataFrame()
 
+    # Concatenate all results into a single DataFrame
+    final_results = pd.concat(results, ignore_index=True)
+
+    # Sort least specific to most specific
+    final_results['Combination_cols'] = final_results['Combination'].apply(eval)
+    final_results['Combination_len'] = final_results['Combination_cols'].apply(len)
+    final_results = final_results.sort_values(by='Combination_len', ascending=True).reset_index(drop=True)
+
+    filtered_rows = []
+
+    for i, row in final_results.iterrows():
+        key_i = row['Combination_cols']
+        val_i = tuple(row.get(col, None) for col in key_i)
+        pct_i = round(row['Percentage'], 4)
+
+        # Check if already covered by a more general (earlier) row
+        redundant = False
+        for prev in filtered_rows:
+            key_prev = prev['Combination_cols']
+            if set(key_prev).issubset(set(key_i)):  # prev is more general
+                val_prev = tuple(row.get(col, None) for col in key_prev)
+                pct_prev = round(prev['Percentage'], 4)
+                if val_prev == tuple(prev.get(col, None) for col in key_prev) and abs(pct_prev - pct_i) < 1e-3:
+                    redundant = True
+                    break
+
+        if not redundant:
+            filtered_rows.append(row)
+
+    final_results = pd.DataFrame(filtered_rows).drop(columns=['Combination_len', 'Combination_cols'])
     return final_results
+
 
 def create_marker_info_df(root_path: str) -> pd.DataFrame:
     """
@@ -1457,3 +1484,80 @@ def create_marker_info_df(root_path: str) -> pd.DataFrame:
     final_marker_info["Antibody"] = [[] for _ in range(len(final_marker_info))]  # Create an empty array for Antibody
 
     return final_marker_info
+
+def generate_configs_from_df(df_metadata: pd.DataFrame, prefix: str = 'NIH'):
+    print(f"## {prefix}\n")
+
+    # Markers
+    markers = sorted(df_metadata['Marker'].unique().tolist())
+    print(f"{prefix}_markers = {markers}\n")
+
+    # Panels – reorder manually based on image layout
+    panel_order = sorted(df_metadata['Panel'].unique().tolist())
+    panel_names = [p.replace('panel', '').strip() for p in panel_order]
+
+    panel_matrix = []
+    for p in panel_order:
+        df_p = df_metadata[df_metadata['Panel'] == p]
+        # Sort by Image_Name to preserve visual order
+        markers_sorted = df_p.sort_values('Image_Name')['Marker'].tolist()
+        # Keep unique while preserving order
+        seen = set()
+        row = [m for m in markers_sorted if not (m in seen or seen.add(m))]
+        panel_matrix.append(row)
+
+    # Transpose matrix to fit column-wise panel construction
+    panel_matrix_T = list(map(list, zip(*panel_matrix)))
+    print(f"{prefix}_panels = pd.DataFrame({panel_matrix_T},\n"
+          f"             columns={panel_names})\n")
+
+    # Marker info
+    marker_set = sorted(df_metadata['Marker'].unique())
+    marker_info_df = pd.DataFrame(index=marker_set)
+    marker_info_df['Antibody'] = [[''] for _ in marker_info_df.index]
+    marker_info_df['panel'] = marker_info_df.index.map(
+        lambda m: sorted(
+            df_metadata[df_metadata['Marker'] == m]['Panel']
+            .str.replace('panel', '').str.strip().unique().tolist()
+        )
+    )
+    marker_info_T = marker_info_df[['Antibody', 'panel']].T
+    print(f"{prefix}_marker_info = pd.DataFrame({marker_info_T.values.tolist()},\n"
+          f"             index={marker_info_T.index.tolist()},\n"
+          f"             columns = {marker_info_T.columns.tolist()}).T\n")
+
+    # Cell lines and conditions
+    cell_lines = sorted(df_metadata['CellLine'].unique().tolist())
+    cell_line_to_cond = {
+        cl: sorted(df_metadata[df_metadata['CellLine'] == cl]['Condition'].unique().tolist())
+        for cl in cell_lines
+    }
+    print(f"{prefix}_cell_lines = {cell_lines}\n")
+    print(f"{prefix}_cell_lines_to_cond = {cell_line_to_cond}\n")
+
+    # Cell lines for display
+    print(f"{prefix}_cell_lines_for_disp = {{f'{{cell_line}}_{{cond}}': f'{{cell_line}}_{{cond}}'\n"
+          f"                                    for cell_line in {prefix}_cell_lines for cond in {prefix}_cell_lines_to_cond[cell_line]}}\n")
+
+    # Color palette
+    print(f"{prefix}_colorblind_palette = sns.color_palette('colorblind')\n")
+
+    # Line colors with inline logic
+    print(f"{prefix}_line_colors =  {{f'{{k}} {{c}}': {prefix}_colorblind_palette[i%len({prefix}_colorblind_palette)] \n"
+          f"                   for i, (k,conds) in enumerate({prefix}_cell_lines_to_cond.items())\n"
+          f"                   for c in conds}}\n")
+
+    # Lines order
+    print(f"{prefix}_lines_order = {prefix}_line_colors.keys()\n")
+
+    # Custom palette
+    print(f"{prefix}_custom_palette = [{prefix}_line_colors[line] for line in {prefix}_lines_order]\n")
+
+    # Expected DAPI
+    expected_dapi_raw = int(len(df_metadata[df_metadata['Marker'] == 'DAPI']) /
+                            (df_metadata['Rep'].nunique() * df_metadata['CellLine'].nunique()))
+    print(f"{prefix}_expected_dapi_raw = {expected_dapi_raw}\n")
+
+    # Reps
+    reps = sorted(df_metadata['Rep'].unique().tolist())
+    print(f"{prefix}_reps = {reps}\n")

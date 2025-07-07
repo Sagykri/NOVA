@@ -431,3 +431,47 @@ class DistancesFunovaPlotConfig(PlotConfig):
         self.UMAP_TYPE = 2
         self.COLOR_MAPPINGS_MARKERS = self.COLOR_MAPPINGS_FUNOVA
     
+class UMAP0ALSPlotConfigiAstrocytes(PlotConfig):
+    def __init__(self):
+        super().__init__()
+
+        self.MAP_LABELS_FUNCTION =  MapLabelsFunction.CELL_LINES.name
+        self.COLOR_MAPPINGS = self.COLOR_MAPPINGS_ALS_IASTROCYTES
+        # umap type
+        self.UMAP_TYPE = 0
+
+class UMAP1iAstrocytesPlotConfig(PlotConfig):
+    def __init__(self):
+        super().__init__()
+        
+        self.ORDERED_MARKER_NAMES = ['DAPI', 'Vimentin', 'ARL13B', 'WDR49', 'Calreticulin', 'PML', 'TDP43']
+    
+        # Set the size of the dots
+        self.SIZE = 1
+        self.ALPHA = 1
+        # How labels are shown in legend
+        self.MAP_LABELS_FUNCTION = MapLabelsFunction.MARKERS.name
+        # umap type
+        self.UMAP_TYPE = 1
+        # Colors 
+        self.COLOR_MAPPINGS = self.COLOR_MAPPINGS_IASTROCYTES
+        self.COLOR_MAPPINGS_MARKERS = self.COLOR_MAPPINGS_IASTROCYTES
+
+class UMAP2iAstrocytesALSPlotConfig(PlotConfig):
+    def __init__(self):
+        super().__init__()
+
+        self.MAP_LABELS_FUNCTION =  MapLabelsFunction.MULTIPLEX_CELL_LINES.name
+        self.COLOR_MAPPINGS = self.COLOR_MAPPINGS_ALS_IASTROCYTES
+        # umap type
+        self.UMAP_TYPE = 2
+
+class DistancesiAstrocytesPlotConfig(PlotConfig):
+    ## Bubbleplot
+    def __init__(self):
+        super().__init__()
+
+        self.COLOR_MAPPINGS_CELL_LINE_CONDITION = self.COLOR_MAPPINGS_ALS_IASTROCYTES
+        self.ORDERED_MARKERS = ['DAPI', 'Vimentin', 'ARL13B', 'WDR49', 'Calreticulin', 'PML', 'TDP43']
+        self.UMAP_TYPE = 2
+        self.COLOR_MAPPINGS_MARKERS = self.COLOR_MAPPINGS_IASTROCYTES

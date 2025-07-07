@@ -24,7 +24,7 @@ from src.preprocessing.log_df_preprocessing import LogDFPreprocessing
 from src.preprocessing import path_utils
 from src.preprocessing.preprocessing_utils import get_nuclei_count, crop_image_to_tiles, extract_polygons_from_mask,\
                                                       fit_image_shape, get_nuclei_segmentations, is_image_focused,\
-                                                      is_contains_whole_nucleus, is_tile_focused, rescale_intensity
+                                                      is_contains_whole_nucleus, rescale_intensity
 from src.preprocessing.preprocessing_config import PreprocessingConfig
 
 class Preprocessor(ABC):
@@ -44,15 +44,6 @@ class Preprocessor(ABC):
             logging.info(f"Focus boundries file for markers has been detected: {self.markers_focus_boundries_path}. Loading the file...")
             self.markers_focus_boundries = pd.read_csv(self.markers_focus_boundries_path, index_col=0)
         
-        self.markers_focus_boundries_tiles_path = get_if_exists(self.preprocessing_config, 'MARKERS_FOCUS_BOUNDRIES_TILES_PATH', None)
-        self.markers_focus_boundries_tiles = None
-        if self.markers_focus_boundries_tiles_path is None:
-            logging.info(f"No file for focus boundires for tiles has been detected in the configuration. Skipping this check.")
-        else:
-            logging.info(f"Focus boundries file for markers's tiles has been detected: {self.markers_focus_boundries_tiles_path}. Loading the file...")
-            self.markers_focus_boundries_tiles = pd.read_csv(self.markers_focus_boundries_tiles_path, index_col=0)
-
-
         self.logging_df = LogDFPreprocessing(self.preprocessing_config.LOGS_FOLDER)
 
     @staticmethod
@@ -259,6 +250,7 @@ class Preprocessor(ABC):
         )
         # Tile the nucleus mask and validate each tile
         nuclei_mask_tiled = crop_image_to_tiles(nuclei_mask, self.preprocessing_config.TILE_INTERMEDIATE_SHAPE)
+        
         # Fix for non-valid polygons 
         whole_polygons = extract_polygons_from_mask(nuclei_mask) 
         # Filter out polygons which touch the outer frame         
@@ -316,6 +308,7 @@ class Preprocessor(ABC):
             images_group (Dict[str, str]): The group of paths
             save_folder_path (str): The path to the folder where to save the files
         """
+        
         processed_images = self._process_images_group(group_id, images_group)
         
         if processed_images is None or len(processed_images) == 0:
@@ -356,24 +349,9 @@ class Preprocessor(ABC):
         if processed_nucleus is None: return 
         
         # Get valid tile indexes for the nucleus image
-        valid_tiles_indexes, nuclei_mask_tiled  = self._get_valid_tiles_indexes(processed_nucleus)
-        valid_tiles_indexes_after = valid_tiles_indexes.copy()
+        valid_tiles_indexes, nuclei_mask_tiled  = self._get_valid_tiles_indexes(processed_nucleus) 
 
-        # Filter out-of-focus nucleus tiles
-        if self.markers_focus_boundries_tiles is not None:
-            marker = self.__NUCLEUS_MARKER_NAME
-            threshold = tuple(self.markers_focus_boundries_tiles.loc[marker].values)
-            cropped_nucleus = crop_image_to_tiles(processed_nucleus, self.preprocessing_config.TILE_INTERMEDIATE_SHAPE)
-            cropped_nucleus = [transform.resize(tile, self.preprocessing_config.TILE_SHAPE, anti_aliasing=True) 
-                               for tile in cropped_nucleus]
-
-            # Remove indices that do not pass the focus check
-            valid_tiles_indexes_after = np.array([ind for ind in valid_tiles_indexes if is_tile_focused(cropped_nucleus[ind][:, :, 0], 
-                                                                                                  threshold)])
-        
-        self.logging_df.log_nucleus(nuclei_mask_tiled, valid_tiles_indexes, nucleus_path, valid_tiles_indexes_after)
-        valid_tiles_indexes = valid_tiles_indexes_after
-
+        self.logging_df.log_nucleus(nuclei_mask_tiled, valid_tiles_indexes, nucleus_path)
         if len(valid_tiles_indexes) == 0: 
             logging.warning(f"[{group_id}] No valid tiles were found for nucleus image: {nucleus_path}")
             return
@@ -384,32 +362,21 @@ class Preprocessor(ABC):
             processed_marker = self._get_image(marker_path)
 
             if processed_marker is None: continue
+            if marker_name != self.__NUCLEUS_MARKER_NAME:
+                self.logging_df.log_marker(valid_tiles_indexes, marker_path)
             
             # Pair marker and nucleus images
             image_pair = np.stack([processed_marker, processed_nucleus], axis=-1)
 
             # Crop to tiles and take the valid ones
             image_pair_tiled = crop_image_to_tiles(image_pair, self.preprocessing_config.TILE_INTERMEDIATE_SHAPE)
+            image_pair_valid_tiles = image_pair_tiled[valid_tiles_indexes]
             
-            # image_pair_tiled = image_pair_tiled[valid_tiles_indexes]
             # Resize the tile to be TILE_SHAPE
-            image_pair_tiled = [transform.resize(tile, self.preprocessing_config.TILE_SHAPE, anti_aliasing=True) for tile in image_pair_tiled]
-            image_pair_tiled = np.stack(image_pair_tiled)
-
-             # Filter out-of-focus tiles
-            if self.markers_focus_boundries_tiles is not None:
-                threshold = tuple(self.markers_focus_boundries_tiles.loc[marker_name].values)
-                # Remove indices that do not pass the focus check
-                valid_tiles_indexes_marker = [ind for ind in valid_tiles_indexes if is_tile_focused(image_pair_tiled[ind][:, :, 0], threshold)]
-            else:
-                valid_tiles_indexes_marker = valid_tiles_indexes
+            image_pair_valid_tiles = [transform.resize(tile, self.preprocessing_config.TILE_SHAPE, anti_aliasing=True) for tile in image_pair_valid_tiles]
+            image_pair_valid_tiles = np.stack(image_pair_valid_tiles)
             
-            image_pair_tiled = image_pair_tiled[valid_tiles_indexes_marker]
-
-            if marker_name != self.__NUCLEUS_MARKER_NAME:
-                self.logging_df.log_marker(valid_tiles_indexes, marker_path, valid_tiles_indexes_marker)
-            
-            processed_images[marker_path] = image_pair_tiled
+            processed_images[marker_path] = image_pair_valid_tiles
             
         __shapes =  {m: v.shape for m, v in processed_images.items()}
         logging.info(f"[{group_id}] Shape of processed images: {__shapes}")

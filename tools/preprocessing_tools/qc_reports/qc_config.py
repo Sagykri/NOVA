@@ -607,3 +607,35 @@ funova_line_colors = {f'{k} {c}': funova_colorblind_palette[i%len(funova_colorbl
 funova_lines_order = funova_line_colors.keys()
 funova_custom_palette = [funova_line_colors[line] for line in funova_lines_order]
 funova_expected_dapi_raw = 100
+
+## iAstrocytes
+
+iAstrocytes_markers = ['ARL13B', 'Calreticulin', 'DAPI', 'PML', 'TDP43', 'Vimentin', 'WDR49']
+
+iAstrocytes_panels = pd.DataFrame([['Vimentin', 'ARL13B', 'Vimentin', 'Vimentin'], ['WDR49', 'WDR49', 'Calreticulin', 'WDR49'], ['DAPI', 'DAPI', 'DAPI', 'DAPI'], ['PML', 'Vimentin', 'PML', 'TDP43']],
+             columns=['A', 'B', 'C', 'D'])
+
+iAstrocytes_marker_info = pd.DataFrame([[[''], [''], [''], [''], [''], [''], ['']], [['B'], ['C'], ['A', 'B', 'C', 'D'], ['A', 'C'], ['D'], ['A', 'B', 'C', 'D'], ['A', 'B', 'D']]],
+             index=['Antibody', 'panel'],
+             columns = ['ARL13B', 'Calreticulin', 'DAPI', 'PML', 'TDP43', 'Vimentin', 'WDR49']).T
+
+iAstrocytes_cell_lines = ['C9', 'WT']
+
+iAstrocytes_cell_lines_to_cond = {'C9': ['Untreated'], 'WT': ['Untreated']}
+
+iAstrocytes_cell_lines_for_disp = {f'{cell_line}_{cond}': f'{cell_line}_{cond}'
+                                    for cell_line in iAstrocytes_cell_lines for cond in iAstrocytes_cell_lines_to_cond[cell_line]}
+
+iAstrocytes_colorblind_palette = sns.color_palette('colorblind')
+
+iAstrocytes_line_colors =  {f'{k} {c}': iAstrocytes_colorblind_palette[i%len(iAstrocytes_colorblind_palette)] 
+                   for i, (k,conds) in enumerate(iAstrocytes_cell_lines_to_cond.items())
+                   for c in conds}
+
+iAstrocytes_lines_order = iAstrocytes_line_colors.keys()
+
+iAstrocytes_custom_palette = [iAstrocytes_line_colors[line] for line in iAstrocytes_lines_order]
+
+iAstrocytes_expected_dapi_raw = 72
+
+iAstrocytes_reps = ['rep1', 'rep2', 'rep3']
