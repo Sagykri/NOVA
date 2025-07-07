@@ -256,6 +256,7 @@ def log_files_qc(LOGS_PATH, batches=None, only_wt_cond = True, filename_split='_
     df['site_whole_cells_counts_sum'] = df['whole_cells_counts'].apply(get_array_sum)
     df['cells_counts_list']=df['cells_counts'].apply(convert_to_list)
     
+    print(f'\nPAY ATTENTION!!!! df.site_num: {df.site_num[:1].values[0]}, can be defined using filename_split & site_location')
     return df.sort_values(by=['batch'])
 
 def create_folder_structure(folder_type, markers,cell_lines_to_cond, reps, panels, cell_lines_to_reps = None):
@@ -316,7 +317,7 @@ def custom_fmt(value):
     return f'/{value:.0f}'
 
 def plot_filtering_heatmap(filtered, extra_index, xlabel='', figsize=(5,5), second=None, vmin=0, vmax=100, 
-                           show_sum=False, fmt=""):
+                           show_sum=False, fmt=".0f"):
     for batch, batch_data in filtered.groupby('batch'):
         p = batch_data.pivot_table(index=['rep', extra_index],
                                     columns='cell_line_cond',
@@ -413,11 +414,11 @@ def add_empty_lines(df, batches, line_colors, panels, reps, to_ignore=None, mark
                             should_ignore = False
                             if to_ignore:
                                 should_ignore = all([
-                                    (k == 'batch' and to_ignore[k] == batch) or
-                                    (k == 'cell_line_cond' and to_ignore[k] == cell_line_cond) or
-                                    (k == 'panel' and to_ignore[k] == f'panel{panel}') or
-                                    (k == 'rep' and to_ignore[k] == rep) or
-                                    (k == 'marker' and marker is not None and to_ignore[k] == marker)
+                                    (k == 'batch' and batch in to_ignore[k]) or
+                                    (k == 'cell_line_cond' and cell_line_cond in to_ignore[k]) or
+                                    (k == 'panel' and f'panel{panel}' in to_ignore[k]) or
+                                    (k == 'rep' and rep in to_ignore[k]) or
+                                    (k == 'marker' and marker is not None and marker in to_ignore[k])
                                     for k in to_ignore
                                 ])
                             value = np.nan if should_ignore else 0
@@ -563,7 +564,7 @@ def run_validate_folder_structure(root_dir, proc, panels, markers,plot_path, mar
             print('No bad files are found.')
         else:
             print(f'{len(bad_files)} files are bad:')
-            for file in bad_files:
+            for file in bad_files[:3]:
                 print(file)
 
         title = f'{folder_type}_table_{batch}'
@@ -1044,7 +1045,7 @@ def plot_count_plot(df, custom_palette, reps, title, batch_min=3, batch_max=9):
     plt.show()
 
 def plot_catplot(df, custom_palette, reps, x, x_title, y='cell_line_cond', y_title='cell line',hue='batch_rep', 
-                 batch_min=3, batch_max=9, height = 12, aspect=1):
+                 batch_min=3, batch_max=9, height = 12, aspect=1, batches=None):
     if np.unique(df.batch)[0]=='Perturbations':
         g = sns.catplot(kind='box', data=df, y='cell_line', x=x,height=12, hue='condition')
         g.set_axis_labels(x_title, 'cell line')
@@ -1053,9 +1054,12 @@ def plot_catplot(df, custom_palette, reps, x, x_title, y='cell_line_cond', y_tit
     else:
         df.loc[:, 'batch_rep'] = df['batch'] + " " + df['rep']
         colors_list = custom_palette
-
         if hue == 'batch_rep':
-            palette = {f'batch{i} {rep}':colors_list[i-batch_min] for i in range(batch_min,batch_max+1) for rep in reps}
+            if batches is None:
+                palette = {f'batch{i} {rep}':colors_list[i-batch_min] for i in range(batch_min,batch_max+1) for rep in reps}
+            else:
+                batches = [int(batch.replace('batch','')) for batch in batches]
+                palette = {f'batch{i} {rep}':colors_list[i-1] for i in batches for rep in reps}
             hue_order=palette.keys()
         else:
             palette=custom_palette
@@ -1200,7 +1204,9 @@ def show_site_survival_dapi_brenner(df_dapi, batches, line_colors, panels, reps,
     dapi_filter_by_brenner=add_empty_lines(dapi_filter_by_brenner, batches, line_colors, panels, reps, to_ignore)
     dapi_filter_by_brenner.sort_values(by=['batch','cell_line_cond','panel','rep'], inplace=True)
     dapi_filter_by_brenner.reset_index(inplace=True, drop=True)
-    plot_filtering_heatmap(dapi_filter_by_brenner, extra_index='panel',xlabel='% site survival Brenner on DAPI', figsize=figsize, vmax=vmax)
+    plot_filtering_heatmap(dapi_filter_by_brenner, extra_index='panel',
+                           xlabel='% site survival Brenner on DAPI', figsize=figsize, 
+                           vmax=vmax)
     return dapi_filter_by_brenner
 
 def show_site_survival_dapi_cellpose(df_dapi, batches, dapi_filter_by_brenner, line_colors, panels, reps, figsize=(5,5), to_ignore=None):
@@ -1212,7 +1218,8 @@ def show_site_survival_dapi_cellpose(df_dapi, batches, dapi_filter_by_brenner, l
     assert(dapi_filter_by_cellpose.drop(columns='index') == dapi_filter_by_brenner.drop(columns='index')).all().all()
     dapi_filter_by_cellpose_per = dapi_filter_by_cellpose.copy()
     dapi_filter_by_cellpose_per['index'] = round(dapi_filter_by_cellpose_per['index']*100 / np.maximum(dapi_filter_by_brenner['index'],1))
-    plot_filtering_heatmap(dapi_filter_by_cellpose_per, extra_index='panel', xlabel='% Site survival Cellpose', second=dapi_filter_by_cellpose, figsize=figsize)
+    plot_filtering_heatmap(dapi_filter_by_cellpose_per, extra_index='panel', xlabel='% Site survival Cellpose', 
+                           second=dapi_filter_by_cellpose, figsize=figsize, fmt="")
     return dapi_filter_by_cellpose
 
 def show_site_survival_dapi_tiling(df_dapi, batches, dapi_filter_by_cellpose, line_colors, panels, reps, figsize=(5,5),to_ignore=None):
@@ -1225,14 +1232,13 @@ def show_site_survival_dapi_tiling(df_dapi, batches, dapi_filter_by_cellpose, li
     dapi_filter_by_tiling_per = dapi_filter_by_tiling.copy()
     dapi_filter_by_tiling_per['index'] = round(dapi_filter_by_tiling_per['index']*100 / np.maximum(dapi_filter_by_cellpose['index'],1))
     plot_filtering_heatmap(dapi_filter_by_tiling_per, extra_index='panel', xlabel='% Site survival tiling', 
-                       second=dapi_filter_by_tiling, figsize=figsize)
+                       second=dapi_filter_by_tiling, figsize=figsize, fmt="")
     return dapi_filter_by_tiling
 
 def show_site_survival_target_brenner(df_dapi, df_target, dapi_filter_by_tiling, markers, figsize=(6,8) ):
     pass_dapi = df_dapi[(df_dapi.site_cell_count!=0) & (df_dapi.n_valid_tiles!=0)] # take only DAPI's that passed so far (Brenner & Cellpose & tiling)
     passs = pd.concat([pass_dapi,df_target])
     pass_target = pd.DataFrame(columns=['batch','rep','marker','panel']) # create empty df for results
-
     for marker in markers:
         if marker=='DAPI':
             continue
@@ -1253,15 +1259,14 @@ def show_site_survival_target_brenner(df_dapi, df_target, dapi_filter_by_tiling,
     pass_target_per['index'] = round(merge['index_pass']*100 / merge['index_dapi'])
     plot_filtering_heatmap(pass_target_per.drop(columns=['level_0','panel']), extra_index='marker', 
                         xlabel = '% Site survival by Brenner on target channel', second=pass_target,
-                        figsize=figsize)
+                        figsize=figsize, fmt="")
     return
 
 def calc_total_sums(df_target, df_dapi, stats, markers):
     dfs = []
     for marker in markers:
         if marker=='DAPI':
-            cur_dapi = df_dapi[df_dapi.marker==marker]
-            merge = cur_dapi[['batch','cell_line_cond','rep','site_num','panel'] + stats]
+            merge = df_dapi[['batch','cell_line_cond','rep','site_num','panel'] + stats]
         else:
             cur_target = df_target[df_target.marker==marker]
             to_merge_target = cur_target[['batch','cell_line_cond','rep','site_num','panel']]
