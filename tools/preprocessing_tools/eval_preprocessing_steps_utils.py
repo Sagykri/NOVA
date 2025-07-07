@@ -79,8 +79,8 @@ def test_cellpose(images, images_paths, flow_threshold=0.4, cellprob_threshold=0
         axs[1].set_title(f'Segmented {len(np.unique(masks))-1} objects')
         plt.tight_layout()
         if add_grid:
-            put_tiles_grid(image, axs[0], block_size=160)
-            put_tiles_grid(masks, axs[1], block_size=160)
+            put_tiles_grid(image, axs[0], block_size=128)
+            put_tiles_grid(masks, axs[1], block_size=128)
         plt.show()
 
 def check_preprocessing_steps(input_dir_batch, sample_size, brenner_path, marker, cell_line, condition, rep, panel=None,
