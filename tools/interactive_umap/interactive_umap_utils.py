@@ -11,6 +11,7 @@ import random
 from skimage.measure import shannon_entropy 
 import psutil
 import tifffile as tiff  # for TIFF writing
+from skimage.exposure import rescale_intensity
 
 from src.preprocessing.preprocessing_utils import get_image_focus_quality 
 from src.figures.umap_plotting import __format_UMAP_axes, __format_UMAP_legend
@@ -257,6 +258,74 @@ def save_processed_tile(df, index, folder_path, high_resolution=True):
     except Exception as e:
         print(f"❌ Failed saving tile at index {index}: {e}")
 
+def improve_brightness(img, contrast_factor, brightness_factor):
+    in_range = (0.1,0.8)
+    out_range = (0,1)
+    img_normalized = rescale_intensity(img, in_range, out_range)
+    img_normalized += brightness_factor
+    # Clip values to keep them within the 0-1 range
+    img_normalized = img_normalized.clip(0, 1)
+    return img_normalized
+
+def save_processed_tile_new(
+    df,
+    tile_index,
+    colormap,
+    tile_pixel_size_in_um,
+    tile_scalebar_length_in_um=5,
+    contrast_factor=1,
+    brightness_factor=0.1
+):
+    """
+    Processes and saves marker, nucleus, and overlay tile images.
+    """
+    # Get marker and nucleus channels + empty overlay
+    marker, nucleus, _ = process_tile(df, tile_index)
+
+    # Adjust channels
+    marker_adj = improve_brightness(marker, contrast_factor, brightness_factor)
+    nucleus_adj = improve_brightness(nucleus, contrast_factor, brightness_factor)
+
+    # Build overlay from adjusted channels
+    overlay = np.zeros((*marker.shape, 3), dtype=np.float32)
+    overlay[..., 0] = marker_adj  # Red
+    overlay[..., 1] = nucleus_adj  # Green
+
+    # Calculate scale bar in pixels
+    scalebar_pixels = tile_scalebar_length_in_um / tile_pixel_size_in_um
+
+    # Generic saver
+    def save_image(img, cmap, filename):
+        fig = plt.figure(figsize=(100/127, 100/127), dpi=127) #100/dpi,100/dpi
+        if cmap:
+            plt.imshow(img, cmap=cmap)
+        else:
+            plt.imshow(img)
+        plt.axis('off')
+        plt.margins = (0, 0)
+        plt.hlines(y=90, xmin=85 - scalebar_pixels, xmax=85, color='white', linewidth=2)
+        plt.subplots_adjust(top=1, bottom=0, right=1, left=0, hspace=0, wspace=0)
+        plt.savefig(filename, dpi=127, bbox_inches='tight', pad_inches=0)
+        plt.close(fig)
+
+    # Prepare filename base
+    full_path = df.Path.loc[tile_index]
+    batch = df.Batch.loc[tile_index]
+    tile = df.Tile.loc[tile_index]
+
+    # Get relative path inside batch
+    rel_path = full_path.split(batch, 1)[-1].lstrip(os.sep).replace('.npy', '')
+
+    # Replace / or \ with .
+    rel_path = rel_path.replace('/', '.').replace('\\', '.')
+
+    # Final base name: batch.rel_path.tile
+    filename_base = f"{batch}.{rel_path}.{tile}"
+
+    # Save images
+    save_image(marker_adj, colormap, f"{filename_base}_marker.png")
+    save_image(nucleus_adj, colormap, f"{filename_base}_nucleus.png")
+    save_image(overlay, None, f"{filename_base}_overlay.png")
 
 def save_processed_tif_image(path, index, folder_path, high_resolution=True):
     """

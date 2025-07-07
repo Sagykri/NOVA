@@ -616,7 +616,7 @@ class InteractiveUMAPPipeline:
                 print("❌ df_site_meta missing — skipping TIFF save.")
 
             # Save tile visualizations
-            save_processed_tile(df_to_use, idx, image_folder)
+            save_processed_tile_new(df_to_use, idx, image_folder)
         
         self.zip_saved_outputs(image_folder) ## Zip the saved images and tiles folder for easy download
         # Clean up the folder after zipping
