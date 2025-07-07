@@ -233,10 +233,10 @@ def log_files_qc(LOGS_PATH, batches=None, only_wt_cond = True, filename_split='_
     _subset=['site_num', 'batch', 'cell_line', 'panel', 'condition', 'rep', 'marker', 
             'cells_counts', 'cells_count_mean', 'cells_count_std',
             'whole_cells_counts', 'whole_cells_count_mean', 'whole_cells_count_std',
-            'n_valid_tiles', 'n_valid_tiles_after_tiles_brenner', 'cells_count_in_valid_tiles_mean',
+            'n_valid_tiles','cells_count_in_valid_tiles_mean',
             'cells_count_in_valid_tiles_std',
             'whole_cells_count_in_valid_tiles_mean',
-            'whole_cells_count_in_valid_tiles_std']
+            'whole_cells_count_in_valid_tiles_std']#  'n_valid_tiles_after_tiles_brenner', 
 
 
     df = df_tmp.drop_duplicates(subset=_subset,inplace=False)
