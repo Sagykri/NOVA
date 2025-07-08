@@ -98,7 +98,7 @@ def show_label(path):
     path_l = path.split("/")
     return " ".join(path_l[-7:-4]) + "\n" + " ".join(path_l[-4:])
 
-def process_tif(path):
+def process_tif(path, expected_shape=(1024, 1024)):
     """
     Read and process the image.
 
@@ -109,7 +109,7 @@ def process_tif(path):
         ndarray: Processed image.
     """
     img = cv2.imread(path, cv2.IMREAD_ANYDEPTH)
-    img = fit_image_shape(img, (1024, 1024))
+    img = fit_image_shape(img, expected_shape)
     img = rescale_intensity(img)
     return img
     
@@ -162,10 +162,12 @@ def put_tiles_grid(image, ax, block_size = 128):
     num_blocks = image.shape[0] // block_size  # Assuming square blocks
     
     for i in range(1, num_blocks):
-        # Draw horizontal dashed lines
-        ax.plot([0, 1000], [i * block_size, i * block_size], linestyle='--', lw=1, alpha=0.5, color='pink')
-        # Draw vertical dashed lines
-        ax.plot([i * block_size, i * block_size], [0, 1000], linestyle='--', lw=1, alpha=0.5, color='pink')
+        # Horizontal lines
+        ax.plot([0, image.shape[1]], [i * block_size, i * block_size],
+                linestyle='--', lw=1, alpha=0.5, color='pink')
+        # Vertical lines
+        ax.plot([i * block_size, i * block_size], [0, image.shape[0]],
+                linestyle='--', lw=1, alpha=0.5, color='pink')
     # Remove x and y axis labels
     ax.set_xticks([])
     ax.set_yticks([])

@@ -10,8 +10,9 @@ from matplotlib.widgets import RectangleSelector
 import random
 from skimage.measure import shannon_entropy 
 import psutil
-import tifffile as tiff  # for TIFF writing
 from skimage.exposure import rescale_intensity
+from matplotlib.colors import LinearSegmentedColormap as LSC
+from pathlib import Path
 
 from src.preprocessing.preprocessing_utils import get_image_focus_quality 
 from src.figures.umap_plotting import __format_UMAP_axes, __format_UMAP_legend
@@ -218,47 +219,17 @@ def show_processed_tile(df, index=0):
 
     plt.show()
 
-def save_processed_tile(df, index, folder_path, high_resolution=True):
+def improve_brightness(img, brightness_factor):
     """
-    Processes and saves a tile image (marker, nucleus, and overlay) as TIFF files.
+    Normalize image intensity to [0, 1] and apply a brightness offset.
 
-    Parameters:
-    - df: DataFrame containing 'Path', 'Tile', and 'Image_Name' columns.
-    - index: Row index in df to save.
-    - folder_path: Destination folder for output files.
-    - high_resolution: Whether to save in 16-bit with 600 DPI (default: True).
+    Args:
+        img (ndarray): Input image.
+        brightness_factor (float): Value to add to the normalized image.
+
+    Returns:
+        ndarray: Brightness-adjusted image, clipped to [0, 1].
     """
-    try:
-        marker, nucleus, overlay = process_tile(df, index)
-        full_path = df.Path.loc[index]
-        batch = df.Batch.loc[index]
-        tile = df.Tile.loc[index]
-
-        # Get relative path inside batch
-        rel_path = full_path.split(batch, 1)[-1].lstrip(os.sep).replace('.npy', '')
-
-        # Replace / or \ with .
-        rel_path = rel_path.replace('/', '.').replace('\\', '.')
-
-        # Final base name: batch.rel_path.tile
-        base = f"{batch}.{rel_path}.{tile}"
-
-        factor = 65535 if high_resolution else 255
-        dtype = np.uint16 if high_resolution else np.uint8
-        dpi = 600 if high_resolution else 300
-        meta_data = {'dpi': (dpi, dpi)}
-
-        tiff.imwrite(os.path.join(folder_path, f"{base}_marker.tiff"),
-                     (marker * factor).astype(dtype), metadata=meta_data)
-        tiff.imwrite(os.path.join(folder_path, f"{base}_nucleus.tiff"),
-                     (nucleus * factor).astype(dtype), metadata=meta_data)
-        tiff.imwrite(os.path.join(folder_path, f"{base}_overlay.tiff"),
-                     (overlay * factor).astype(dtype), metadata=meta_data)
-
-    except Exception as e:
-        print(f"❌ Failed saving tile at index {index}: {e}")
-
-def improve_brightness(img, contrast_factor, brightness_factor):
     in_range = (0.1,0.8)
     out_range = (0,1)
     img_normalized = rescale_intensity(img, in_range, out_range)
@@ -267,85 +238,148 @@ def improve_brightness(img, contrast_factor, brightness_factor):
     img_normalized = img_normalized.clip(0, 1)
     return img_normalized
 
-def save_processed_tile_new(
+# Generic saver
+def save_image(img, cmap, filename, dpi, add_scale_bar=False, scalebar_pixels=0, tile_size_px=100):
+    """
+    Save a single image tile with optional colormap and scale bar.
+
+    Args:
+        img (ndarray): Image to save.
+        cmap: Matplotlib colormap to use (grayscale by default).
+        filename (str): Output file path.
+        dpi (int): Dots per inch for output image.
+        add_scale_bar (bool): Whether to draw a scale bar.
+        scalebar_pixels (int): Length of the scale bar in pixels.
+        tile_size_px (int): Tile size in pixels.
+
+    Saves:
+        An image file (PNG, EPS, etc.) to `filename`.
+    """
+    fig, ax = plt.subplots(figsize=(tile_size_px/dpi, tile_size_px/dpi), dpi=dpi)
+    if cmap is None:
+        cmap = LSC.from_list("", ["black","white"], N=256)
+    ax.imshow(img, cmap=cmap)
+    
+    ax.axis('off')
+    ax.margins(0, 0)
+    if add_scale_bar:
+        ax.hlines(y=90, xmin=85 - scalebar_pixels, xmax=85, color='white', linewidth=2)
+    fig.subplots_adjust(top=1, bottom=0, right=1, left=0, hspace=0, wspace=0)
+    fig.savefig(filename, dpi=dpi, bbox_inches='tight', pad_inches=0)
+    plt.close(fig)
+
+def format_path(path, ext='.npy'):
+    """
+    Format a file path by:
+    - Keeping only the parts from the first 'batch*' (case-insensitive) to the end.
+    - Joining the parts with dots instead of slashes.
+    - Removing the file extension if it matches `ext`.
+
+    Args:
+        path (str): Full file path to format.
+        ext (str): Extension to remove (default '.npy').
+
+    Returns:
+        str: Formatted path string.
+    """
+    parts = Path(path).parts
+    batch_idx = next(i for i, p in enumerate(parts) if p.lower().startswith("batch"))
+    result = '.'.join(parts[batch_idx:]).replace(ext, '')
+    return result
+
+def save_processed_tile(
     df,
     tile_index,
-    colormap,
-    tile_pixel_size_in_um,
+    image_folder,
+    colormap=None,
+    brightness_factor=0.1,
+    save_eps = True,
+    add_scale_bar = False,
+    tile_pixel_size_in_um = None,
     tile_scalebar_length_in_um=5,
-    contrast_factor=1,
-    brightness_factor=0.1
+    dpi=127
 ):
     """
-    Processes and saves marker, nucleus, and overlay tile images.
+    Processes and saves a tile image (marker, nucleus, and RGB overlay) as image files.
+
+    Parameters:
+    - df (pd.DataFrame): DataFrame containing columns 'Path', 'Tile', and metadata.
+    - tile_index (int): Row index in df indicating which tile to process and save.
+    - image_folder (str): Destination folder where output image files will be saved.
+    - colormap: Matplotlib colormap to apply to grayscale channels (default: simple black-white).
+    - brightness_factor (float): Factor to adjust brightness of marker/nucleus channels.
+    - save_eps (bool): If True, also save EPS versions in addition to TIFF.
+    - add_scale_bar (bool): If True, draw a scale bar on the images.
+    - tile_pixel_size_in_um (float or None): Physical pixel size (µm) used to compute scale bar length.
+    - tile_scalebar_length_in_um (float): Length of the scale bar in µm (if enabled).
+    - dpi (int): Dots per inch for the saved images (default: 127).
+
+    Saves:
+    - Marker image (TIFF [+ EPS])
+    - Nucleus image (TIFF [+ EPS])
+    - RGB overlay image (TIFF [+ EPS])
+
+    Files are named based on relative path and tile index.
     """
-    # Get marker and nucleus channels + empty overlay
-    marker, nucleus, _ = process_tile(df, tile_index)
+    try:
+        # Get marker and nucleus channels
+        marker, nucleus, _ = process_tile(df, tile_index)
 
-    # Adjust channels
-    marker_adj = improve_brightness(marker, contrast_factor, brightness_factor)
-    nucleus_adj = improve_brightness(nucleus, contrast_factor, brightness_factor)
+        # Adjust channels
+        marker_adj = improve_brightness(marker, brightness_factor)
+        nucleus_adj = improve_brightness(nucleus, brightness_factor)
 
-    # Build overlay from adjusted channels
-    overlay = np.zeros((*marker.shape, 3), dtype=np.float32)
-    overlay[..., 0] = marker_adj  # Red
-    overlay[..., 1] = nucleus_adj  # Green
+        # Build overlay from adjusted channels
+        overlay = np.zeros((*marker.shape, 3), dtype=np.float32)
+        overlay[..., 0] = marker_adj  # Red
+        overlay[..., 1] = nucleus_adj  # Green
 
-    # Calculate scale bar in pixels
-    scalebar_pixels = tile_scalebar_length_in_um / tile_pixel_size_in_um
-
-    # Generic saver
-    def save_image(img, cmap, filename):
-        fig = plt.figure(figsize=(100/127, 100/127), dpi=127) #100/dpi,100/dpi
-        if cmap:
-            plt.imshow(img, cmap=cmap)
+        # Calculate scale bar in pixels
+        if add_scale_bar:
+            scalebar_pixels = tile_scalebar_length_in_um / tile_pixel_size_in_um    
         else:
-            plt.imshow(img)
-        plt.axis('off')
-        plt.margins = (0, 0)
-        plt.hlines(y=90, xmin=85 - scalebar_pixels, xmax=85, color='white', linewidth=2)
-        plt.subplots_adjust(top=1, bottom=0, right=1, left=0, hspace=0, wspace=0)
-        plt.savefig(filename, dpi=127, bbox_inches='tight', pad_inches=0)
-        plt.close(fig)
+            scalebar_pixels = 0
 
-    # Prepare filename base
-    full_path = df.Path.loc[tile_index]
-    batch = df.Batch.loc[tile_index]
-    tile = df.Tile.loc[tile_index]
+        # Prepare filename base
+        full_path = df.Path.loc[tile_index]
+        tile = df.Tile.loc[tile_index]
 
-    # Get relative path inside batch
-    rel_path = full_path.split(batch, 1)[-1].lstrip(os.sep).replace('.npy', '')
+        rel_path = format_path(full_path)
 
-    # Replace / or \ with .
-    rel_path = rel_path.replace('/', '.').replace('\\', '.')
+        filename_base =  os.path.join(image_folder, f"{rel_path}.Tile{tile}")
 
-    # Final base name: batch.rel_path.tile
-    filename_base = f"{batch}.{rel_path}.{tile}"
+        # Save images
+        save_image(marker_adj, colormap, f"{filename_base}_marker.tiff", dpi, add_scale_bar, scalebar_pixels)
+        save_image(nucleus_adj, colormap, f"{filename_base}_nucleus.tiff", dpi, add_scale_bar, scalebar_pixels)
+        save_image(overlay, None, f"{filename_base}_overlay.tiff",  dpi, add_scale_bar, scalebar_pixels)
+        if save_eps:
+            save_image(marker_adj, colormap, f"{filename_base}_marker.eps", dpi, add_scale_bar, scalebar_pixels)
+            save_image(nucleus_adj, colormap, f"{filename_base}_nucleus.eps", dpi, add_scale_bar, scalebar_pixels)
+            save_image(overlay, None, f"{filename_base}_overlay.eps", dpi, add_scale_bar, scalebar_pixels)
+    except Exception as e:
+        print(f"❌ Failed saving tile at index {tile_index}: {e}")
 
-    # Save images
-    save_image(marker_adj, colormap, f"{filename_base}_marker.png")
-    save_image(nucleus_adj, colormap, f"{filename_base}_nucleus.png")
-    save_image(overlay, None, f"{filename_base}_overlay.png")
-
-def save_processed_tif_image(path, index, folder_path, high_resolution=True):
+def save_processed_site(path, image_folder, save_eps=True, dpi=200, colormap=None):
     """
-    Processes and saves a TIFF image from the given path.
+    Processes and saves the site image from the given path.
     Parameters:
     - path (str): Path to the image file.
-    - index (int): Index in df for naming the output file.
-    - folder_path (str): Destination folder for the output file.
-    - high_resolution (bool): Whether to save in 16-bit with 600 DPI (default: True).
+    - image_folder (str): Destination folder for the output file.
+    - save_eps (bool): If True, also save EPS versions in addition to TIFF.
+    - dpi (int): Dots per inch for the saved image (default: 200).
+    - colormap: Matplotlib colormap to apply to grayscale channels (default: simple black-white).
+
+    Saves:
+    - Processed TIFF image with optional EPS version.
     """
     try:
         img = process_tif(path)
+        filename_base = format_path(path, '.tif')
+        filename_base =  os.path.join(image_folder, filename_base)
+        save_image(img, colormap, f"{filename_base}.tiff", dpi, add_scale_bar=False, tile_size_px=1000)
+        if save_eps:
+            save_image(img, colormap, f"{filename_base}.eps", dpi, add_scale_bar=False)
 
-        factor = 65535 if high_resolution else 255
-        dtype = np.uint16 if high_resolution else np.uint8
-        dpi = 600 if high_resolution else 300
-        meta = {'dpi': (dpi, dpi)}
-
-        output_path = os.path.join(folder_path, f"{index}_{os.path.basename(path).replace('.tif', '')}.tiff")
-        tiff.imwrite(output_path, (img * factor).astype(dtype), metadata=meta)
     except Exception as e:
         print(f"❌ Failed saving processed TIFF from {path}: {e}")
 
@@ -490,9 +524,6 @@ def plot_fov_histogram(df, selected_indices_global, return_fig=False):
     fov_counts = df["FOV"].value_counts().sort_index()
     fov_selected_counts = df.loc[selected_indices_global, "FOV"].value_counts().sort_index()
 
-    # Prevent automatic display
-    plt.ioff()
-
     fig = plt.figure(figsize=(10, 4))
     plt.bar(fov_counts.index - 0.2, fov_counts.values, width=0.4, label="All Data", alpha=0.7)
     plt.bar(fov_selected_counts.index + 0.2, fov_selected_counts.values, width=0.4, label="Selected", alpha=0.7, color="orange")
@@ -503,10 +534,8 @@ def plot_fov_histogram(df, selected_indices_global, return_fig=False):
     plt.tight_layout()
 
     if return_fig:
-        plt.close(fig)  # Prevent display in Jupyter
         return fig
     else:
-        plt.ion()  # Re-enable automatic display
         plt.show()
 
 
@@ -545,8 +574,6 @@ def plot_fov_heatmaps(df, selected_indices_global, fov_grid, return_fig=False):
                     heatmap_selected[i, j] = selected_count
                     heatmap_percentage[i, j] = (selected_count / all_count) * 100  # Compute percentage
 
-    # Prevent automatic display
-    plt.ioff()
     # Plot heatmaps
     fig, axs = plt.subplots(1, 3, figsize=(10, 6))
 
@@ -571,10 +598,8 @@ def plot_fov_heatmaps(df, selected_indices_global, fov_grid, return_fig=False):
     fig.suptitle("FOV Heatmaps", fontsize=14)
 
     if return_fig:
-        plt.close(fig)  # Prevent display in Jupyter
         return fig
     else:
-        plt.ion()
         plt.show()
 
 def get_lsf_mem_limit_gb():

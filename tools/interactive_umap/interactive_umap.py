@@ -611,13 +611,13 @@ class InteractiveUMAPPipeline:
             if self.df_site_meta is not None:
                 target_path = construct_target_path(df_to_use, idx, self.df_site_meta)
                 if target_path != -1:
-                    save_processed_tif_image(target_path, idx, image_folder)
+                    save_processed_site(target_path, image_folder)
             else:
                 print("❌ df_site_meta missing — skipping TIFF save.")
 
             # Save tile visualizations
-            save_processed_tile_new(df_to_use, idx, image_folder)
-        
+            save_processed_tile(df_to_use, idx, image_folder)
+
         self.zip_saved_outputs(image_folder) ## Zip the saved images and tiles folder for easy download
         # Clean up the folder after zipping
         shutil.rmtree(image_folder)
@@ -679,10 +679,12 @@ class InteractiveUMAPPipeline:
 
         with self.warnings_output:
             try:
+                plt.ioff() # Prevent automatic display
                 self.write_umap_params(folder_path)
                 self.save_umap(folder_path, dpi)
                 self.save_selected_images(folder_path)
                 self.save_fov_visualizations(folder_path)
+                plt.ion() # Re-enable automatic display
                 self.save_status_label.value = f"<span style='color: green;'>✅ Outputs saved in:</span> <code>{folder_path}</code>"
             except Exception as e:
                 self.save_status_label.value = f"<span style='color: red;'>❌ Error saving outputs:</span> {e}"
@@ -745,13 +747,13 @@ class InteractiveUMAPPipeline:
         time.sleep(3)
         # Section 3: FOV
         with self.fov_output:
+            plot_fov_histogram(self.df_umap_tiles, self.selected_indices_global)
             if self.fov_layouts:
                 fov_grid = self.create_fov_grid()
                 if fov_grid is not None:
                     plot_fov_heatmaps(self.df_umap_tiles, self.selected_indices_global, fov_grid)
             else:
                 print("❌ Please specify the FOV layout to display FOV map.")
-            plot_fov_histogram(self.df_umap_tiles, self.selected_indices_global)
         check_memory_status()
                 
     def clear_outputs(self, selected_points=True, umaps=True): 

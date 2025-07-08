@@ -23,7 +23,8 @@ config_myexperiment = {
         'csv_path': '/path/to/brenner_scores.csv',  # None if not available
         'images_dir': ['/path/to/image_dir1/', '/path/to/image_dir2/']
     },
-    'layouts': None  # None if unknown
+    'layouts': None,  # None if unknown
+    'name': 'ExampleDataset'
 }
 ```
 
@@ -31,6 +32,7 @@ config_myexperiment = {
 - **`csv_path`**: Path to a CSV file with Brenner (image sharpness) scores. Put `None` if not available.
 - **`images_dir`**: List of directories with raw images.
 - **`layouts`**: FOV layouts for additional visualizations. Put `None` if unknown.
+- **`name`**: String indicating the dataset or experiment name.
 
 You can also leave `config = {}` and type the data paths directly into the fields in the notebook interface when prompted.
 
@@ -171,8 +173,8 @@ After selecting your desired filters, click **Apply Filters** to update the UMAP
 - **Show Selected Points:**  
   After selecting an area, specify the number of images you wish to preview (default is 10) and click **Show Selected Points** to display the corresponding images.
 
-- **Save UMAP:**  
-  Click **Save UMAP** to save the current figure as displayed to the `saved_umaps` directory.
+- **Save:**  
+  Click **Save** to save the current figures to the `saved_umaps` directory.
 
 These features allow rapid and interactive exploration of your data without recomputation.
 

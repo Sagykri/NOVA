@@ -9,6 +9,7 @@ To add a new config:
        - 'csv_path' (str or None): path to a CSV with Brenner metrics
        - 'images_dir' (list): list of image directories containing the raw images ('sites')
    - 'layouts': a dictionary defining panel-wise tile FOV layouts, or None
+   - 'name': a string identifier for the configuration indicating the dataset or experiment
 
 Example:
 config_example = {
@@ -17,7 +18,8 @@ config_example = {
         'csv_path': '/path/to/brenner.csv',
         'images_dir': ['/path/to/images/']
     },
-    'layouts': None
+    'layouts': None,
+    'name': 'ExampleDataset'
 }
 
 2. Name the variable starting with `config_`.  
@@ -34,6 +36,7 @@ momaps_home = "/home/projects/hornsteinlab/Collaboration/MOmaps"
 input_path = f"{nova_home}/input/images/raw"
 figures_path = f"{momaps_home}/outputs/vit_models/finetuned_model/figures"
 preprocessing_path = f"{momaps_home}/outputs/preprocessing"
+momaps_input_path = f"{momaps_home}/input/images/raw"
 
 ## Day 8 Neurons ##
 config_d8 = {
@@ -62,7 +65,7 @@ config_deltaNLS = {
     'paths':{
     'umaps_folder' : f'{figures_path}/deltaNLS_iu/UMAPs/',
     'csv_path' : f'{preprocessing_path}/spd/brenner/raw_metrics_all_batches_brenner_site_dNLS.csv',
-    'images_dir' : [f'{input_path}/SpinningDisk/deltaNLS_sort/' ]
+    'images_dir' : [f'{momaps_input_path}/SpinningDisk/deltaNLS_sort/' ]
     },
     'layouts': None,
     'name': 'deltaNLS'
@@ -158,9 +161,9 @@ funova_fov_layouts = {
 
 config_funova = {
     'paths':{
-        'umaps_folder' : f'{figures_path}/funova/UMAPs',
-        'csv_path' : "/home/projects/hornsteinlab/Collaboration/FUNOVA/outputs/preprocessing/brenner/raw_metrics_exp3_exp4.csv",
-        'images_dir' : ['/home/projects/hornsteinlab/Collaboration/FUNOVA/input/images/raw',] 
+        'umaps_folder' : f'{figures_path}/funova/UMAPs/',
+        'csv_path' : f"{nova_home}/outputs/preprocessing/FUNOVA/brenner/raw_metrics_exp3_exp4.csv",
+        'images_dir' : [f'{input_path}/FUNOVA/raw/',] 
     },
     'layouts': funova_fov_layouts,
     'name': 'FUNOVA'
@@ -168,9 +171,9 @@ config_funova = {
 
 config_funova_finetuned = {
     'paths':{
-        'umaps_folder' : '/home/projects/hornsteinlab/Collaboration/MOmaps/outputs/vit_models/funova_finetuned_model/figures/funova/UMAPs',
-        'csv_path' : "/home/projects/hornsteinlab/Collaboration/FUNOVA/outputs/preprocessing/brenner/raw_metrics_exp3_exp4.csv",
-        'images_dir' : ['/home/projects/hornsteinlab/Collaboration/FUNOVA/input/images/raw',]
+        'umaps_folder' : '/home/projects/hornsteinlab/Collaboration/MOmaps/outputs/vit_models/funova_finetuned_model/figures/funova/UMAPs/',
+        'csv_path' : f"{nova_home}/outputs/preprocessing/FUNOVA/brenner/raw_metrics_exp3_exp4.csv",
+        'images_dir' : [f'{input_path}/FUNOVA/raw/',]
     },
     'layouts': funova_fov_layouts,
     'name': 'FUNOVA_Finetuned'
