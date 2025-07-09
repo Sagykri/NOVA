@@ -624,14 +624,21 @@ class InteractiveUMAPPipeline:
 
     def create_fov_grid(self):
         """
-        Create a grid layout for FOV visualization based on batch, panel and self.fov_layouts definition.
+        Return the FOV grid based on the current batch/panel or fallback to a default grid.
+        Handles both:
+        - Nested dict: self.fov_layouts[batch][panel]
+        - Single grid: self.fov_layouts (np.array)
         """
+        if isinstance(self.fov_layouts, np.ndarray):
+            # If it's already a grid, just return it
+            return self.fov_layouts
+        
         batch = self.df_umap_tiles["Batch"].unique()
         panel = self.df_umap_tiles["Panel"].unique()
 
         if len(batch) != 1 or len(panel) != 1:
             print("⚠️ FOV grid requires exactly one batch and one panel.")
-            ## TODO: concider combining grid from multiple batches and panels
+            ## TODO: consider combining grid from multiple batches and panels
             return None
         
         batch = batch[0]
@@ -655,7 +662,7 @@ class InteractiveUMAPPipeline:
             fig1.savefig(os.path.join(folder_path, "fov_histogram.png"))
             plt.close(fig1)
 
-            if not self.fov_layouts:
+            if self.fov_layouts is None:
                 print("⚠️ No FOV layouts available.")
             else:
                 fov_grid = self.create_fov_grid()
@@ -748,7 +755,7 @@ class InteractiveUMAPPipeline:
         # Section 3: FOV
         with self.fov_output:
             plot_fov_histogram(self.df_umap_tiles, self.selected_indices_global)
-            if self.fov_layouts:
+            if self.fov_layouts is not None:
                 fov_grid = self.create_fov_grid()
                 if fov_grid is not None:
                     plot_fov_heatmaps(self.df_umap_tiles, self.selected_indices_global, fov_grid)
@@ -906,7 +913,7 @@ class InteractiveUMAPPipeline:
                 annotations_dict = {idx: f"{idx}: {image_names_dict.get(idx, 'Unknown')}" for idx in df_umap_tiles.index}
             if RECOLOR_BY_BRENNER:
                 if ('Path_List' not in df_umap_tiles) and ("Target_Sharpness_Brenner" in df_umap_tiles.columns) and not (df_umap_tiles["Target_Sharpness_Brenner"].isna().all()):
-                    df_umap_tiles["Color"], percentiles, cmap = set_colors_by_brenners(df_umap_tiles["Target_Sharpness_Brenner"].fillna(0), bins=bins)
+                    df_umap_tiles["Color"], percentiles, cmap = set_colors_by_brenners(df_umap_tiles["Target_Sharpness_Brenner"], bins=bins)
                     colors_dict = {idx: row.Color for idx, row in df_umap_tiles.iterrows()}
                 elif ('Path_List' in df_umap_tiles):
                     print("❌ Recoloring by Brenner score is not possible for Multiplexed Embeddings.")
@@ -1016,6 +1023,17 @@ class InteractiveUMAPPipeline:
                 ])
                 cbar.ax.tick_params(labelsize=6) 
                 cbar.set_label('Target Sharpness (Brenner Score)', fontsize=8)
+                if df_umap_tiles["Target_Sharpness_Brenner"].isna().any():
+                    # Add a small square below the colorbar for NaN 
+                    ax.figure.text(
+                        0.92, 0.1, "NaN", ha='center', fontsize=7
+                    )
+                    ax.figure.patches.extend([
+                        mpatches.Rectangle(
+                            (0.905, 0.08), 0.03, 0.02, transform=ax.figure.transFigure,
+                            facecolor='black', edgecolor='none'
+                        )
+                    ])
         else:
             if mix_groups:
                 # Manually create handles and labels
