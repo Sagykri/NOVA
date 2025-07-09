@@ -100,9 +100,11 @@ def load_and_process_data(umaps_dir, path_to_umap, df_brenner=None, print_valida
 def set_colors_by_brenners(sharpness_values, bins=10):
     # Ensure bins is at least 2 to avoid single-value percentile issue
     bins = max(bins, 2)
-    percentiles = np.percentile(sharpness_values, np.linspace(0, 100, bins + 1))
+    percentiles = np.percentile(sharpness_values.dropna(), np.linspace(0, 100, bins + 1))
     
     def get_blue_shade(value):
+        if np.isnan(value):
+            return (0, 0, 0, 1)  # black RGBA
         bin_idx = np.searchsorted(percentiles, value, side='right') - 1
         bin_idx = min(max(bin_idx, 0), bins - 1)  # Ensure valid bin index
         return plt.cm.Blues(0.2 + 0.8 * (bin_idx / (bins - 1)))  # Avoid very light colors
@@ -577,23 +579,23 @@ def plot_fov_heatmaps(df, selected_indices_global, fov_grid, return_fig=False):
     # Plot heatmaps
     fig, axs = plt.subplots(1, 3, figsize=(10, 6))
 
-    # Heatmap for all data
-    im1 = axs[0].imshow(heatmap_all, cmap="Blues", aspect="auto", interpolation="nearest")
-    axs[0].set_title("FOV Distribution - All Data")
-    fig.colorbar(im1, ax=axs[0], label="Count")
-    axs[0].set_xticks([]), axs[0].set_yticks([])
+    heatmaps = [heatmap_all, heatmap_selected, heatmap_percentage]
+    titles = [
+        "FOV Distribution - All Data",
+        "FOV Distribution - Selected Data",
+        "FOV Selection % (Selected / All)"
+    ]
+    cmaps = ["Blues", "Oranges", "Reds"]
 
-    # Heatmap for selected data
-    im2 = axs[1].imshow(heatmap_selected, cmap="Oranges", aspect="auto", interpolation="nearest")
-    axs[1].set_title("FOV Distribution - Selected Data")
-    fig.colorbar(im2, ax=axs[1], label="Count")
-    axs[1].set_xticks([]), axs[1].set_yticks([])
-
-    # Heatmap for percentage of selected data relative to all
-    im3 = axs[2].imshow(heatmap_percentage, cmap="Reds", aspect="auto", interpolation="nearest")
-    axs[2].set_title("FOV Selection % (Selected / All)")
-    fig.colorbar(im3, ax=axs[2], label="Percentage")
-    axs[2].set_xticks([]), axs[2].set_yticks([])
+    for ax, heatmap, title, cmap in zip(axs, heatmaps, titles, cmaps):
+        im = ax.imshow(heatmap, cmap=cmap, aspect="auto", interpolation="nearest")
+        ax.set_title(title)
+        fig.colorbar(im, ax=ax, label="Count" if "Distribution" in title else "Percentage")
+        ax.set_xticks(np.arange(-0.5, heatmap.shape[1], 1), minor=True)
+        ax.set_yticks(np.arange(-0.5, heatmap.shape[0], 1), minor=True)
+        ax.grid(which='minor', color='lightgray', linestyle='-', linewidth=0.3, alpha=0.5)
+        ax.tick_params(which="minor", bottom=False, left=False)
+        ax.set_xticks([]), ax.set_yticks([])
 
     fig.suptitle("FOV Heatmaps", fontsize=14)
 
