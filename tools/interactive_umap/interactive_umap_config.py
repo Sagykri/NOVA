@@ -33,17 +33,18 @@ import numpy as np
 
 nova_home = "/home/projects/hornsteinlab/Collaboration/NOVA"
 momaps_home = "/home/projects/hornsteinlab/Collaboration/MOmaps"
-input_path = f"{nova_home}/input/images/raw"
-figures_path = f"{momaps_home}/outputs/vit_models/finetuned_model/figures"
-preprocessing_path = f"{momaps_home}/outputs/preprocessing"
-momaps_input_path = f"{momaps_home}/input/images/raw"
+raw_images_path = f"/input/images/raw"
+figures_path = f"/outputs/vit_models/finetuned_model/figures"
+preprocessing_path = f"/outputs/preprocessing"
+
+new_finetuned_figures_path = f"/home/projects/hornsteinlab/Collaboration/MOmaps_Sagy/NOVA/outputs/vit_models_local/finetunedModel_MLPHead_acrossBatches_B56789_80pct_frozen/figures"
 
 ## Day 8 Neurons ##
 config_d8 = {
     'paths':{
-    'umaps_folder' : f'{figures_path}/neurons_iu/UMAPs/',
-    'csv_path' : f'{preprocessing_path}/spd/brenner/raw_metrics_all_batches_all_metrics_site_fix.csv',
-    'images_dir' : [f'{input_path}/NeuronsDay8']
+    'umaps_folder' : f'{momaps_home}{figures_path}/neurons_iu/UMAPs/',
+    'csv_path' : f'{momaps_home}{preprocessing_path}/spd/brenner/raw_metrics_all_batches_all_metrics_site_fix.csv',
+    'images_dir' : [f'{nova_home}{raw_images_path}/NeuronsDay8']
     },
     'layouts': None,
     'name': 'NeuronsDay8'
@@ -53,9 +54,9 @@ config_d8 = {
 ## Alyssa  ##
 config_alyssa = {
     'paths':{
-    'umaps_folder' : f'{figures_path}/AlyssaCoyne_7tiles_iu/UMAPs/',
+    'umaps_folder' : f'{momaps_home}{figures_path}/AlyssaCoyne_7tiles_iu/UMAPs/',
     'csv_path' : None,
-    'images_dir' : [f'{input_path}/AlyssaCoyne/MOmaps_iPSC_patients_TDP43_PB_CoyneLab/',]
+    'images_dir' : [f'{nova_home}{raw_images_path}/AlyssaCoyne/MOmaps_iPSC_patients_TDP43_PB_CoyneLab/',]
     },
     'layouts': None,
     'name': 'AlyssaCoyne'
@@ -64,9 +65,9 @@ config_alyssa = {
 ## deltaNLS ##
 config_dNLS = {
     'paths':{
-    'umaps_folder' : f'{figures_path}/deltaNLS_iu/UMAPs/',
-    'csv_path' : f'{preprocessing_path}/spd/brenner/raw_metrics_all_batches_brenner_site_dNLS.csv',
-    'images_dir' : [f'{momaps_input_path}/SpinningDisk/deltaNLS_sort/' ]
+    'umaps_folder' : f'{momaps_home}{figures_path}/deltaNLS_iu/UMAPs/',
+    'csv_path' : f'{momaps_home}{preprocessing_path}/spd/brenner/raw_metrics_all_batches_brenner_site_dNLS.csv',
+    'images_dir' : [f'{momaps_home}{raw_images_path}/SpinningDisk/deltaNLS_sort/' ]
     },
     'layouts': None,
     'name': 'deltaNLS'
@@ -75,9 +76,9 @@ config_dNLS = {
 ## Day 18 Neurons ##
 config_d18 = {
     'paths':{
-    'umaps_folder' : f'{figures_path}/neurons_d18_iu/UMAPs/',
-    'csv_path' : f'{preprocessing_path}/Opera18Days_Reimaged/brenner/raw_metrics_230724.csv',
-    'images_dir' : [f'{input_path}/Opera18DaysReimaged_sorted/',]
+    'umaps_folder' : f'{momaps_home}{figures_path}/neurons_d18_iu/UMAPs/',
+    'csv_path' : f'{momaps_home}{preprocessing_path}/Opera18Days_Reimaged/brenner/raw_metrics_230724.csv',
+    'images_dir' : [f'{nova_home}{raw_images_path}/Opera18DaysReimaged_sorted/',]
     },
     'layouts': None,
     'name': 'Day18'
@@ -109,14 +110,14 @@ new_data_layout = np.array([
 ## DeltaNLS new ##
 config_dNLS_new = {
     'paths':{
-    'umaps_folder' : '/home/projects/hornsteinlab/Collaboration/MOmaps_Sagy/NOVA/outputs/vit_models_local/finetunedModel_MLPHead_acrossBatches_B56789_80pct_frozen/figures/dNLS/UMAPs',
-    'csv_path' : '/home/projects/hornsteinlab/Collaboration/NOVA/outputs/preprocessing/ManuscriptFinalData_80pct/dNLS_new/brenner/raw_metrics030625_all.csv',
-    'images_dir' : [f'{input_path}/OPERA_dNLS_6_batches_NOVA_sorted/batch1/',
-                    f'{input_path}/OPERA_dNLS_6_batches_NOVA_sorted/batch2/',
-                    f'{input_path}/OPERA_dNLS_6_batches_NOVA_sorted/batch3/',
-                    f'{input_path}/OPERA_dNLS_6_batches_NOVA_sorted/batch4/',
-                    f'{input_path}/OPERA_dNLS_6_batches_NOVA_sorted/batch5/',
-                    f'{input_path}/OPERA_dNLS_6_batches_NOVA_sorted/batch6/']
+    'umaps_folder' : f'{new_finetuned_figures_path}/dNLS/UMAPs',
+    'csv_path' : f'{nova_home}{preprocessing_path}/ManuscriptFinalData_80pct/dNLS_new/brenner/raw_metrics030625_all.csv',
+    'images_dir' : [f'{nova_home}{raw_images_path}/OPERA_dNLS_6_batches_NOVA_sorted/batch1/',
+                    f'{nova_home}{raw_images_path}/OPERA_dNLS_6_batches_NOVA_sorted/batch2/',
+                    f'{nova_home}{raw_images_path}/OPERA_dNLS_6_batches_NOVA_sorted/batch3/',
+                    f'{nova_home}{raw_images_path}/OPERA_dNLS_6_batches_NOVA_sorted/batch4/',
+                    f'{nova_home}{raw_images_path}/OPERA_dNLS_6_batches_NOVA_sorted/batch5/',
+                    f'{nova_home}{raw_images_path}/OPERA_dNLS_6_batches_NOVA_sorted/batch6/']
     },
     'layouts': new_data_layout,
     'name': 'deltaNLS_new'
@@ -125,15 +126,15 @@ config_dNLS_new = {
 ## Day 8 Neurons new ##
 config_d8_new = {
     'paths':{
-    'umaps_folder' : '/home/projects/hornsteinlab/Collaboration/MOmaps_Sagy/NOVA/outputs/vit_models_local/finetunedModel_MLPHead_acrossBatches_B56789_80pct_frozen/figures/neuronsDay8_new/UMAPs',
-    'csv_path' : '/home/projects/hornsteinlab/Collaboration/NOVA/outputs/preprocessing/ManuscriptFinalData_80pct/neuronsDay8_new/brenner/raw_metrics080725_allBatches.csv',
-    'images_dir' : [f'{input_path}/OPERA_indi_sorted/batch1/',
-                    f'{input_path}/OPERA_indi_sorted/batch2/',
-                    f'{input_path}/OPERA_indi_sorted/batch3/',
-                    f'{input_path}/OPERA_indi_sorted/batch7/',
-                    f'{input_path}/OPERA_indi_sorted/batch8/',
-                    f'{input_path}/OPERA_indi_sorted/batch9/',
-                    f'{input_path}/OPERA_indi_sorted/batch10/',]
+    'umaps_folder' : f'{new_finetuned_figures_path}/neuronsDay8_new/UMAPs',
+    'csv_path' : f'{nova_home}{preprocessing_path}/ManuscriptFinalData_80pct/neuronsDay8_new/brenner/raw_metrics080725_allBatches.csv',
+    'images_dir' : [f'{nova_home}{raw_images_path}/OPERA_indi_sorted/batch1/',
+                    f'{nova_home}{raw_images_path}/OPERA_indi_sorted/batch2/',
+                    f'{nova_home}{raw_images_path}/OPERA_indi_sorted/batch3/',
+                    f'{nova_home}{raw_images_path}/OPERA_indi_sorted/batch7/',
+                    f'{nova_home}{raw_images_path}/OPERA_indi_sorted/batch8/',
+                    f'{nova_home}{raw_images_path}/OPERA_indi_sorted/batch9/',
+                    f'{nova_home}{raw_images_path}/OPERA_indi_sorted/batch10/',]
     },
     'layouts': new_data_layout,
     'name': 'neuronsDay8_new'
@@ -220,9 +221,9 @@ funova_fov_layouts = {
 
 config_funova = {
     'paths':{
-        'umaps_folder' : f'{figures_path}/funova/UMAPs/',
-        'csv_path' : f"{nova_home}/outputs/preprocessing/FUNOVA/brenner/raw_metrics_exp3_exp4.csv",
-        'images_dir' : [f'{input_path}/FUNOVA/raw/',] 
+        'umaps_folder' : f'{momaps_home}{figures_path}/funova/UMAPs/',
+        'csv_path' : f"{nova_home}{preprocessing_path}/FUNOVA/brenner/raw_metrics_exp3_exp4.csv",
+        'images_dir' : [f'{nova_home}{raw_images_path}/FUNOVA/ordered/',] 
     },
     'layouts': funova_fov_layouts,
     'name': 'FUNOVA'
@@ -230,9 +231,9 @@ config_funova = {
 
 config_funova_finetuned = {
     'paths':{
-        'umaps_folder' : '/home/projects/hornsteinlab/Collaboration/MOmaps/outputs/vit_models/funova_finetuned_model/figures/funova/UMAPs/',
-        'csv_path' : f"{nova_home}/outputs/preprocessing/FUNOVA/brenner/raw_metrics_exp3_exp4.csv",
-        'images_dir' : [f'{input_path}/FUNOVA/raw/',]
+        'umaps_folder' : f'{momaps_home}/outputs/vit_models/funova_finetuned_model/figures/funova/UMAPs/',
+        'csv_path' : f"{nova_home}{preprocessing_path}/FUNOVA/brenner/raw_metrics_exp3_exp4.csv",
+        'images_dir' : [f'{nova_home}{raw_images_path}/FUNOVA/ordered/',]
     },
     'layouts': funova_fov_layouts,
     'name': 'FUNOVA_Finetuned'
