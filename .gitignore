@@ -196,6 +196,9 @@ venv.bak/
 .dmypy.json
 dmypy.json
 
+# Allow screenshots for interactive umap readme
+!tools/interactive_umap/screenshots/*.png
+
 # Pyre type checker
 .pyre/
 input/gt_tables/.gitkeep

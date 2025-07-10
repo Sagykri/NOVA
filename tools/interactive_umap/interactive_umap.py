@@ -1,7 +1,9 @@
 import os
+import shutil
 import time
 import ctypes
 import gc
+from datetime import datetime
 
 import pandas as pd
 import numpy as np
@@ -60,6 +62,7 @@ class InteractiveUMAPPipeline:
         # --- UI Setup ---
         paths = config.get('paths', {})
         layouts = config.get('layouts', {})
+        self.exp_name = config.get('name', '')  # Experiment name for saving
         self._create_widgets(paths)  # Create all the ipywidgets (sliders, text fields, buttons)
         self._setup_callbacks()  # Connect buttons and actions to their event handlers
         self._display_ui()  # Display the complete layout of the app
@@ -95,6 +98,7 @@ class InteractiveUMAPPipeline:
         self.selected_images_output, self.selected_images_output_inner = self.create_scrollable_output(height='400px')
         self.selected_tiles_output, self.selected_tiles_output_inner = self.create_scrollable_output(height='350px')
         self.fov_output = Output(layout={'height': '1000px', 'margin': '0 auto', 'display': 'block'})
+        self.warnings_output = Output()
 
         # --- Control buttons ---
         self.run_button = Button(description="Run", layout=Layout(width='200px', margin='5px 250px', ), tooltip="Search for UMAPs and load available options",)
@@ -102,9 +106,9 @@ class InteractiveUMAPPipeline:
                                          tooltip="Create UMAP with selected parameters")
         self.show_images_button = Button(description="Show Selected Points", layout=Layout(width='200px', margin='0px 10px'), tooltip="Show sites and tiles images corresponding to selected points")
         self.apply_filter_button = Button(description="Apply Filters", layout=Layout(width='180px', margin='10px 0px 10px 5px', display = 'none'))
-        self.save_umap_button = Button(description="💾 Save UMAP", layout=Layout(width='150px', margin='0px 10px'), tooltip="Save displayed umap to folder saved_umaps")
+        self.save_button = Button(description="💾 Save", layout=Layout(width='150px', margin='0px 10px'), tooltip="Save displayed umap and images to folder saved_umaps")
         
-        self.save_status_emoji = widgets.Label(value="", layout=Layout(margin="0 0 0 10px"))
+        self.save_status_label = widgets.HTML(value="", layout=Layout(margin="0 0 0 10px"))
 
         self.num_images_slider = widgets.IntSlider(
             value=10, min=1, max=30, step=1,
@@ -115,8 +119,7 @@ class InteractiveUMAPPipeline:
         self.image_display_controls = widgets.HBox([
             self.num_images_slider,
             self.show_images_button,
-            self.save_umap_button,
-            self.save_status_emoji,
+            self.save_button,
         ], layout=Layout(display='none'))
 
         # --- UMAP dropdowns ---
@@ -214,7 +217,7 @@ class InteractiveUMAPPipeline:
         self.show_images_button.on_click(self.show_selected_images)
         self.create_umap_button.on_click(self.create_umap)
         self.apply_filter_button.on_click(self.apply_filters_and_update_plot)
-        self.save_umap_button.on_click(self.save_umap_figure)
+        self.save_button.on_click(self.save_all)
 
     def _display_ui(self):
         self.ui = widgets.VBox([
@@ -228,6 +231,7 @@ class InteractiveUMAPPipeline:
             widgets.HTML("<hr>"),
             widgets.HBox([self.umap_output, self.right_box]),
             self.image_display_controls,
+            self.save_status_label,
             widgets.HTML("<hr>"),
             self.selected_images_label,
             self.selected_images_output,
@@ -236,7 +240,8 @@ class InteractiveUMAPPipeline:
             self.selected_tiles_output,
             widgets.HTML("<hr>"),
             self.fov_label,
-            self.fov_output
+            self.fov_output,
+            self.warnings_output,
         ], layout=widgets.Layout(padding='10px', min_height='2500px', height='auto', overflow_y='visible'))
 
     def show(self):
@@ -255,6 +260,7 @@ class InteractiveUMAPPipeline:
             self.selected_images_output_inner,
             self.selected_tiles_output_inner,
             self.fov_output,
+            self.warnings_output
         ):
             out.clear_output(wait=True)
 
@@ -284,7 +290,7 @@ class InteractiveUMAPPipeline:
             setattr(self, attr, None)
 
         # 6. Clear saving status
-        self.save_status_emoji.value = ''
+        self.save_status_label.value = ''
 
         # 7. Optionally clear metadata and Brenner info
         if reset_metadata:
@@ -522,54 +528,193 @@ class InteractiveUMAPPipeline:
 
         return active_filter_groups
 
-    def save_umap_figure(self, btn=None, folder="saved_umaps", dpi=300):
-        """Save the current UMAP figure to the specified folder."""
-        if hasattr(self, "save_status_emoji"):
-            self.save_status_emoji.value = "⏳"
+    def get_save_folder_path(self, root_folder="saved_umaps"):
+        """
+        Creates a timestamped folder in the specified root folder to save UMAP outputs.
+        Args:
+            root_folder (str): The base folder where the timestamped folder will be created.
+        Returns:
+            str: Full path to the created folder.
+        """
+        os.makedirs(root_folder, exist_ok=True)
+        timestamp = datetime.now().strftime("%d%m%Y_%H%M%S")
+        base = self.exp_name.strip().replace(" ", "_") if getattr(self, "exp_name", "") else "experiment"
+        folder_name = f"{base}_{timestamp}"
+        full_path = os.path.join(root_folder, folder_name)
+        os.makedirs(full_path, exist_ok=True)
+        return full_path
+
+    def write_umap_params(self, folder_path):
+        """
+        Writes the current UMAP parameters and filter settings to a text file in the specified folder.
+        Args:
+            folder_path (str): Path to the folder where the parameters will be saved.
+        """
+        dropdown_parts = [
+            ("umap_type", self.umap_type_dropdown.value),
+            ("batch", f"batch{self.batch_dropdown.value}"),
+            ("rep", self.reps_dropdown.value),
+            ("coloring", self.coloring_dropdown.value),
+            ("marker", self.marker_dropdown.value),
+            ("cell_line", self.cell_line_dropdown.value),
+            ("condition", self.condition_dropdown.value),
+        ]
+        filters = self.get_active_filter_values()
+        filter_str = "\n".join([f"filter_{i}: {','.join(vals)}" for i, vals in enumerate(filters) if vals])
+
+        param_lines = [f"{k}: {str(v)}" for k, v in dropdown_parts if v]
+        
+        raw_html = self.pickle_status_label.value
+        match = re.search(r"<code>(.*?)</code>", raw_html)
+        pickle_path = match.group(1) if match else "N/A"
+        param_lines.append(f"pickle_file: {pickle_path}")    
+
+        param_lines.append("filters:\n" + filter_str)
+        param_lines.append(f"MIX_GROUPS: {True if self.mix_groups_checkbox.value else False}")
+        param_lines.append(f"RECOLOR_BY_BRENNER: {True if self.recolor_checkbox.value else False}")
+        param_lines.append(f"BRENNER_bins: {self.bins_slider.value}")
+        param_lines.append(f"DILUTE: {self.dilute_slider.value}")
+        param_lines.append(f"Selected Points: {len(self.selected_indices_global)}")
+
+        with open(os.path.join(folder_path, "params.txt"), "w") as f:
+            f.write("\n".join(param_lines))
+
+    def save_umap(self, folder_path, dpi=300):
+        """
+        Saves the current UMAP figure to the specified folder.
+        Args:
+            folder_path (str): Path to the folder where the UMAP figure will be saved.
+            dpi (int): Dots per inch for the saved figure.
+        """
         if not hasattr(self, "current_umap_figure") or self.current_umap_figure is None:
             print("⚠️ No UMAP figure found to save.")
             return
+        self.current_umap_figure.savefig(os.path.join(folder_path, "umap.png"), dpi=dpi, bbox_inches='tight')
 
-        os.makedirs(folder, exist_ok=True)
+    def save_selected_images(self, folder_path, img_path = 'images_and_tiles'):
+        """
+        Saves the selected images and tiles to the specified folder.
+        Args:
+            folder_path (str): Path to the folder where images will be saved.
+            img_path (str): Subfolder name for images and tiles.
+        """
+        if not self.selected_indices_global:
+            print("⚠️ No selected points to save images.")
+            return
 
-        # Base name from dropdowns
-        dropdown_parts = [
-            self.umap_type_dropdown.value,
-            f'batch{self.batch_dropdown.value}',
-            self.reps_dropdown.value,
-            self.coloring_dropdown.value,
-            self.marker_dropdown.value,
-            self.cell_line_dropdown.value,
-            self.condition_dropdown.value,
-        ]
-        parts = [str(p).replace(" ", "").replace("(", "").replace(")", "") for p in dropdown_parts if p]
+        df_to_use = self.df_umap_tiles_filt.copy() if self.df_umap_tiles_filt is not None else self.df_umap_tiles.copy()
 
-        # Active filters
-        active_filters = self.get_active_filter_values()
-        if active_filters:
-            grouped = [",".join(vals) for vals in active_filters if vals]
-            parts.append("FILTERS(remaining):" + "_".join(grouped))
+        image_folder = os.path.join(folder_path, img_path)
+        os.makedirs(image_folder, exist_ok=True)
 
-        # Optional flags
-        if self.recolor_checkbox.value:
-            parts.append(f"BRENNER{self.bins_slider.value}")
-        if self.dilute_slider.value != 1:
-            parts.append(f"DILUTE{self.dilute_slider.value}")
+        for idx in self.selected_indices_global[:self.num_images_slider.value]:
+            if self.df_site_meta is not None:
+                target_path = construct_target_path(df_to_use, idx, self.df_site_meta)
+                if target_path != -1:
+                    save_processed_site(target_path, image_folder)
+            else:
+                print("❌ df_site_meta missing — skipping TIFF save.")
 
-        filename = "_".join(parts).rstrip("_") + ".png"
-        filepath = os.path.join(folder, filename)
+            # Save tile visualizations
+            save_processed_tile(df_to_use, idx, image_folder)
 
+        self.zip_saved_outputs(image_folder) ## Zip the saved images and tiles folder for easy download
+        # Clean up the folder after zipping
+        shutil.rmtree(image_folder)
+
+    def create_fov_grid(self):
+        """
+        Return the FOV grid based on the current batch/panel or fallback to a default grid.
+        Handles both:
+        - Nested dict: self.fov_layouts[batch][panel]
+        - Single grid: self.fov_layouts (np.array)
+        """
+        if isinstance(self.fov_layouts, np.ndarray):
+            # If it's already a grid, just return it
+            return self.fov_layouts
+        
+        batch = self.df_umap_tiles["Batch"].unique()
+        panel = self.df_umap_tiles["Panel"].unique()
+
+        if len(batch) != 1 or len(panel) != 1:
+            print("⚠️ FOV grid requires exactly one batch and one panel.")
+            ## TODO: consider combining grid from multiple batches and panels
+            return None
+        
+        batch = batch[0]
+        panel = panel[0]
+
+        if batch not in self.fov_layouts or panel not in self.fov_layouts[batch]:
+            print(f"❌ Unknown Batch/Panel: {batch}, {panel}")
+            return None
+
+        fov_grid = self.fov_layouts[batch][panel]
+        return fov_grid
+
+    def save_fov_visualizations(self, folder_path):            
+        """
+        Saves FOV visualizations (histogram and heatmap) to the specified folder.
+        Args:
+            folder_path (str): Path to the folder where FOV visualizations will be saved.
+        """
         try:
-            self.current_umap_figure.savefig(filepath, dpi=dpi, bbox_inches='tight')
-            print(f"✅ UMAP figure saved to: {filepath}")
-            if hasattr(self, "save_status_emoji"):
-                self.save_status_emoji.value = "✅"
+            fig1 = plot_fov_histogram(self.df_umap_tiles, self.selected_indices_global, return_fig=True)
+            fig1.savefig(os.path.join(folder_path, "fov_histogram.png"))
+            plt.close(fig1)
+
+            if self.fov_layouts is None:
+                print("⚠️ No FOV layouts available.")
+            else:
+                fov_grid = self.create_fov_grid()
+                if fov_grid is not None:
+                    fig2 = plot_fov_heatmaps(self.df_umap_tiles, self.selected_indices_global, fov_grid, return_fig=True)
+                    fig2.savefig(os.path.join(folder_path, "fov_heatmap.png"))
+                    plt.close(fig2)
         except Exception as e:
-            print(f"❌ Failed to save figure: {e}")
-            if hasattr(self, "save_status_emoji"):
-                self.save_status_emoji.value = "❌"
+            print(f"❌ Failed to save FOV plots: {e}")
+
+    def save_all(self, btn=None, folder="saved_umaps", dpi=300):
+        """
+        Saves all outputs (UMAP, images, FOV visualizations) to a specified folder.
+        Args:
+            btn: Button that triggered the save action (optional).
+            folder (str): Base folder name where outputs will be saved.
+            dpi (int): Dots per inch for the saved UMAP figure.
+        """
+        self.save_status_label.value = "⏳ Saving outputs..."
+        folder_path = self.get_save_folder_path(folder)
+
+        with self.warnings_output:
+            try:
+                plt.ioff() # Prevent automatic display
+                self.write_umap_params(folder_path)
+                self.save_umap(folder_path, dpi)
+                self.save_selected_images(folder_path)
+                self.save_fov_visualizations(folder_path)
+                plt.ion() # Re-enable automatic display
+                self.save_status_label.value = f"<span style='color: green;'>✅ Outputs saved in:</span> <code>{folder_path}</code>"
+            except Exception as e:
+                self.save_status_label.value = f"<span style='color: red;'>❌ Error saving outputs:</span> {e}"
+            clear_output()
+
+    def zip_saved_outputs(self, folder_path):
+        """
+        Zips the specified folder containing saved images and tiles.
+        Args:
+            folder_path (str): Path to the folder to be zipped.
+        """
+        zip_path = folder_path + ".zip"
+        try:
+            shutil.make_archive(base_name=folder_path, format="zip", root_dir=folder_path)
+        except Exception as e:
+            print(f"❌ Failed to zip folder: {e}")
 
     def show_selected_images(self, btn):
+        """
+        Displays images and tiles corresponding to the selected UMAP points.
+        Args:
+            btn: Button that triggered the action (optional).
+        """
         self.clear_outputs(umaps=False)
         if not self.selected_indices_global:
             with self.selected_images_output_inner:
@@ -609,16 +754,11 @@ class InteractiveUMAPPipeline:
         time.sleep(3)
         # Section 3: FOV
         with self.fov_output:
-            if self.fov_layouts:
-                batch = self.df_umap_tiles["Batch"].iloc[0]
-                panel = self.df_umap_tiles["Panel"].iloc[0]
-
-                if batch not in self.fov_layouts or panel not in self.fov_layouts[batch]:
-                    raise ValueError(f"Unknown Batch/Panel: {batch}, {panel}")
-
-                fov_grid = self.fov_layouts[batch][panel]
-                plot_fov_heatmaps(self.df_umap_tiles, self.selected_indices_global, fov_grid)
-                plot_fov_histogram(self.df_umap_tiles, self.selected_indices_global)
+            plot_fov_histogram(self.df_umap_tiles, self.selected_indices_global)
+            if self.fov_layouts is not None:
+                fov_grid = self.create_fov_grid()
+                if fov_grid is not None:
+                    plot_fov_heatmaps(self.df_umap_tiles, self.selected_indices_global, fov_grid)
             else:
                 print("❌ Please specify the FOV layout to display FOV map.")
         check_memory_status()
@@ -628,6 +768,7 @@ class InteractiveUMAPPipeline:
             with self.selected_images_output_inner: clear_output()
             with self.selected_tiles_output_inner: clear_output()
             with self.fov_output: clear_output()
+            with self.warnings_output: clear_output()
         if umaps:
             with self.umap_output: clear_output()
             self.right_box.layout.display = 'none'
@@ -772,7 +913,7 @@ class InteractiveUMAPPipeline:
                 annotations_dict = {idx: f"{idx}: {image_names_dict.get(idx, 'Unknown')}" for idx in df_umap_tiles.index}
             if RECOLOR_BY_BRENNER:
                 if ('Path_List' not in df_umap_tiles) and ("Target_Sharpness_Brenner" in df_umap_tiles.columns) and not (df_umap_tiles["Target_Sharpness_Brenner"].isna().all()):
-                    df_umap_tiles["Color"], percentiles, cmap = set_colors_by_brenners(df_umap_tiles["Target_Sharpness_Brenner"].fillna(0), bins=bins)
+                    df_umap_tiles["Color"], percentiles, cmap = set_colors_by_brenners(df_umap_tiles["Target_Sharpness_Brenner"], bins=bins)
                     colors_dict = {idx: row.Color for idx, row in df_umap_tiles.iterrows()}
                 elif ('Path_List' in df_umap_tiles):
                     print("❌ Recoloring by Brenner score is not possible for Multiplexed Embeddings.")
@@ -882,6 +1023,17 @@ class InteractiveUMAPPipeline:
                 ])
                 cbar.ax.tick_params(labelsize=6) 
                 cbar.set_label('Target Sharpness (Brenner Score)', fontsize=8)
+                if df_umap_tiles["Target_Sharpness_Brenner"].isna().any():
+                    # Add a small square below the colorbar for NaN 
+                    ax.figure.text(
+                        0.92, 0.1, "NaN", ha='center', fontsize=7
+                    )
+                    ax.figure.patches.extend([
+                        mpatches.Rectangle(
+                            (0.905, 0.08), 0.03, 0.02, transform=ax.figure.transFigure,
+                            facecolor='black', edgecolor='none'
+                        )
+                    ])
         else:
             if mix_groups:
                 # Manually create handles and labels
