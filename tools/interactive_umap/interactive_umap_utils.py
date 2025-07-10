@@ -104,7 +104,7 @@ def set_colors_by_brenners(sharpness_values, bins=10):
     
     def get_blue_shade(value):
         if np.isnan(value):
-            return (0, 0, 0, 1)  # black RGBA
+            return (0.2, 0.2, 0.2, 0.8)  # Return black for NaN values
         bin_idx = np.searchsorted(percentiles, value, side='right') - 1
         bin_idx = min(max(bin_idx, 0), bins - 1)  # Ensure valid bin index
         return plt.cm.Blues(0.2 + 0.8 * (bin_idx / (bins - 1)))  # Avoid very light colors
