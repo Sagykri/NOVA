@@ -8,11 +8,12 @@ from abc import abstractmethod
 import logging
 import pandas as pd
 import numpy as np
-from typing import Dict, Tuple
+from typing import Tuple
 import statsmodels.stats.meta_analysis as smm
 from scipy.stats import norm, chi2
 
 from src.datasets.dataset_config import DatasetConfig
+from src.datasets.label_utils import get_batches_from_input_folders
 from src.analysis.analyzer import Analyzer
 from src.common.utils import get_if_exists
 
@@ -69,10 +70,11 @@ class AnalyzerEffects(Analyzer):
                         - 'effect_size': bootstrap-estimated effect size for that batch
                         - 'variance': bootstrap-estimated variance of the effect size
         """
-        baseline_perturb_dict = self._get_baseline_perturb_dict()
+        output_folder_path = self.get_saving_folder(feature_type='effects')
+        logging.info(f'output folder path: {output_folder_path}')
         embeddings_df = self._prepare_embeddings_df(embeddings, labels)
         embeddings_dim = embeddings.shape[1]
-        batch_effects_df = self._calculate_all_effects(embeddings_df, baseline_perturb_dict, embeddings_dim, n_boot)
+        batch_effects_df = self._calculate_all_effects(embeddings_df, embeddings_dim, n_boot)
         combined_effects_df = self._combine_effects(batch_effects_df)
         self.features = combined_effects_df, batch_effects_df
 
@@ -128,7 +130,7 @@ class AnalyzerEffects(Analyzer):
         """
         Combine per-batch effect sizes into a single summary statistic per 
         marker using meta-analysis.
-        Uses statsmodels' `combine_effects` with DerSimonian-Laird random effects by default.
+        Uses statsmodels' `combine_effects` with random effects by default.
         Falls back to fixed effects if random effects variance is invalid.
 
         Args:
@@ -156,10 +158,15 @@ class AnalyzerEffects(Analyzer):
             variances = marker_df['variance'].values
             
             # Run random effects meta-analysis
-            meta_res = smm.combine_effects(effects, variances, method_re='dl', row_names = np.unique(marker_df.batch)) 
+            meta_res = smm.combine_effects(effects, variances) # method_re=self.data_config.RE_METHOD
             
             summary = meta_res.summary_frame()
+            tau2 = meta_res.tau2
             effect_row = summary.loc[f"{effect_type} effect"]
+            if effect_type == 'random' and tau2 < 0:
+                logging.warning(f"[AnalyzerEffects._combine_effects] for {marker} in {baseline} vs {pert}, Random effect model has negative tau2 (Between-study variance) — falling back to fixed effect.")
+                effect_row = summary.loc[f"fixed effect"]
+            
             if (effect_row["sd_eff"] is np.nan or np.isnan(effect_row['sd_eff'])) and effect_type=='random':
                 logging.warning(f"[AnalyzerEffects._combine_effects] for {marker} in {baseline} vs {pert}, Random effect model has invalid variance estimate — falling back to fixed effect.")
                 effect_row = summary.loc[f"fixed effect"]
@@ -167,6 +174,15 @@ class AnalyzerEffects(Analyzer):
             combined_se = effect_row["sd_eff"]
             ci_low = effect_row["ci_low"]
             ci_upp = effect_row["ci_upp"]
+
+            from scipy.stats import t
+            k = len(marker_df)
+            df = k-2
+            t_crit = t.ppf(0.975, df)
+            pred_se = np.sqrt(combined_se**2 + tau2)
+
+            lower_pi = combined_effect - t_crit * pred_se
+            upper_pi = combined_effect + t_crit * pred_se
             
             # Compute z and p
             z = combined_effect / combined_se
@@ -182,12 +198,13 @@ class AnalyzerEffects(Analyzer):
     
             combined_effects.append({'marker':marker, 'baseline':baseline,'pert':pert,
                 'combined_effect':combined_effect, 'combined_se':combined_se, 'pvalue':pvalue,
-                'ci_low':ci_low, 'ci_upp':ci_upp, 'p_heterogeneity':p_heterogeneity, 'I2':I2, 'Q':meta_res.q})
+                'ci_low':ci_low, 'ci_upp':ci_upp, 'p_heterogeneity':p_heterogeneity, 
+                'I2':I2, 'Q':meta_res.q, 'tau2':tau2, 'pi_low':lower_pi, 'pi_upp':upper_pi})
         return pd.DataFrame(combined_effects)
     
     def _calculate_effect_per_batch(self, batch_marker_baseline_df:pd.DataFrame, 
                                     batch_marker_pert_df:pd.DataFrame, embeddings_dim: int, 
-                                    n_boot:int=1000, min_required:int = 1000):
+                                    min_required:int, n_boot:int=1000):
         """
         Calculate the effect size and variance between baseline and perturbed groups 
         within a single batch and marker.
@@ -200,10 +217,10 @@ class AnalyzerEffects(Analyzer):
                 DataFrame of perturbed group samples for the same marker and batch.
             embeddings_dim (int): 
                 Number of embedding feature columns.
-            n_boot (int): 
-                Number of bootstrap iterations for variance estimation (default: 1000).
             min_required (int): 
                 Minimum sample size in each group required to calculate effect size (default: 1000).
+            n_boot (int): 
+                Number of bootstrap iterations for variance estimation (default: 1000).
 
         Returns:
             dict: Dictionary with keys:
@@ -227,14 +244,6 @@ class AnalyzerEffects(Analyzer):
 
         return {'baseline_size':n_baseline, 'perturb_size':n_pert,
                  'effect_size': effect_size, 'variance':variance}
-
-    def _get_baseline_perturb_dict(self) -> Dict[str, list[str]]:
-        """
-        Retrieve baseline-to-perturbation mapping from the data configuration.
-        """
-        baseline = get_if_exists(self.data_config, 'BASELINE_PERTURB', None)
-        assert baseline is not None, "BASELINE_PERTURB dict in data config is None. Example: {'WT_Untreated': ['WT_stress']}"
-        return baseline
 
     def _prepare_embeddings_df(self, embeddings: np.ndarray[float], 
                            labels: np.ndarray[str]) -> pd.DataFrame:
@@ -270,7 +279,7 @@ class AnalyzerEffects(Analyzer):
         return df
 
     
-    def _calculate_all_effects(self, embeddings_df: pd.DataFrame, baseline_perturb_dict: Dict, 
+    def _calculate_all_effects(self, embeddings_df: pd.DataFrame, 
                                embeddings_dim:int, n_boot:int=1000) -> pd.DataFrame:
         """
         Calculate batch-level effect sizes for all marker-baseline-perturbation combinations.
@@ -278,8 +287,6 @@ class AnalyzerEffects(Analyzer):
         Args:
             embeddings_df (pd.DataFrame):
                 DataFrame with embedding vectors and metadata, created by `_prepare_embeddings_df`.
-            baseline_perturb_dict (dict):
-                Dictionary mapping each baseline (e.g., "WT_Untreated") to a list of perturbations.
             embeddings_dim (int):
                 Dimensionality of the embedding vectors.
             n_boot (int)
@@ -293,37 +300,68 @@ class AnalyzerEffects(Analyzer):
         """
 
         results = []
-        for baseline in baseline_perturb_dict:
-            logging.info(f"[AnalyzerEffects] baseline: {baseline}")
-            baseline_cell_line, baseline_cond = baseline.split('_')
-            baseline_df = embeddings_df[
-                                (embeddings_df.cell_line == baseline_cell_line) &
-                                (embeddings_df.condition == baseline_cond)]
-            for pert in baseline_perturb_dict[baseline]:
-                logging.info(f"[AnalyzerEffects] pert: {pert}")
-                pert_cell_line, pert_cond = pert.split('_')
-                pert_df = embeddings_df[
-                                (embeddings_df.cell_line == pert_cell_line) &
-                                (embeddings_df.condition == pert_cond)]
-                
-                # Group each DataFrame by marker and batch separately
-                baseline_groups = baseline_df.groupby(['marker', 'batch'])
-                pert_groups = pert_df.groupby(['marker', 'batch'])
-                # Iterate over marker-batch keys that appear in both baseline and perturbed
-                common_batch_marker_keys = set(baseline_groups.groups.keys()) & set(pert_groups.groups.keys())
-                common_batch_marker_keys = sorted(common_batch_marker_keys)
-                for key in common_batch_marker_keys:
-                    marker, batch = key
-                    logging.info(f"[AnalyzerEffects] marker: {marker}, batch: {batch}")
-                    
-                    batch_marker_baseline_df = baseline_groups.get_group(key)
-                    batch_marker_pert_df = pert_groups.get_group(key)
+        baseline = get_if_exists(self.data_config, 'BASELINE', None)
+        assert baseline is not None, "BASELINE is None. You have to specify the baseline (for example: WT_Untreated or TDP43_Untreated)"
 
-                    res = self._calculate_effect_per_batch(batch_marker_baseline_df, 
-                                                           batch_marker_pert_df, embeddings_dim, 
-                                                           n_boot)
-                    if res:
-                        res.update({'marker': marker, 'baseline': baseline, 'pert': pert, 'batch': batch})
-                        results.append(res)
+        logging.info(f"[AnalyzerEffects] baseline: {baseline}")
+        baseline_cell_line, baseline_cond = baseline.split('_')
+        baseline_df = embeddings_df[
+                            (embeddings_df.cell_line == baseline_cell_line) &
+                            (embeddings_df.condition == baseline_cond)]
+
+        pert = get_if_exists(self.data_config, 'PERTURBATION', None)
+        assert baseline is not None, "PERTURBATION is None. You have to specify the PERTURBATION (for example: WT_stress or TDP43_DOX)"
+
+        logging.info(f"[AnalyzerEffects] pert: {pert}")
+        pert_cell_line, pert_cond = pert.split('_')
+        pert_df = embeddings_df[
+                        (embeddings_df.cell_line == pert_cell_line) &
+                        (embeddings_df.condition == pert_cond)]
+        
+        # Group each DataFrame by marker and batch separately
+        baseline_groups = baseline_df.groupby(['marker', 'batch'])
+        pert_groups = pert_df.groupby(['marker', 'batch'])
+        # Iterate over marker-batch keys that appear in both baseline and perturbed
+        common_batch_marker_keys = set(baseline_groups.groups.keys()) & set(pert_groups.groups.keys())
+        common_batch_marker_keys = sorted(common_batch_marker_keys)
+        for key in common_batch_marker_keys:
+            marker, batch = key
+            logging.info(f"[AnalyzerEffects] marker: {marker}, batch: {batch}")
+            
+            batch_marker_baseline_df = baseline_groups.get_group(key)
+            batch_marker_pert_df = pert_groups.get_group(key)
+
+            min_required = self.data_config.MIN_REQUIRED
+            res = self._calculate_effect_per_batch(batch_marker_baseline_df, 
+                                                    batch_marker_pert_df, embeddings_dim, 
+                                                    min_required, n_boot)
+            if res:
+                res.update({'marker': marker, 'baseline': baseline, 'pert': pert, 'batch': batch})
+                results.append(res)
 
         return pd.DataFrame(results)
+    
+    def get_saving_folder(self, feature_type:str)->str:
+        """Get the path to the folder where the features and figures can be saved
+        Args:
+            feature_type (str): string indicating the feature type ('distances','UMAP')
+        """
+        model_output_folder = self.output_folder_path
+        feature_folder_path = os.path.join(model_output_folder, 'figures', self.data_config.EXPERIMENT_TYPE, feature_type)
+        os.makedirs(feature_folder_path, exist_ok=True)
+        
+        input_folders = get_batches_from_input_folders(self.data_config.INPUT_FOLDERS)
+        reps = self.data_config.REPS if self.data_config.REPS else ['all_reps']
+        markers = get_if_exists(self.data_config, 'MARKERS', None)
+        if markers is not None and len(markers)<=3:
+            title = f"{'_'.join(input_folders)}_{'_'.join(reps)}_{'_'.join(markers)}"
+        else:
+            excluded_markers = list(self.data_config.MARKERS_TO_EXCLUDE) if self.data_config.MARKERS_TO_EXCLUDE else ["all_markers"]
+            if excluded_markers != ['all_markers']:
+                excluded_markers.insert(0,"without")
+            title = f"{'_'.join(input_folders)}_{'_'.join(reps)}_{'_'.join(excluded_markers)}"
+        baseline = self.data_config.BASELINE
+        pert = self.data_config.PERTURBATION
+        title= f'{baseline}_vs_{pert}_{title}'
+        saveroot = os.path.join(feature_folder_path,f'{title}')
+        return saveroot

@@ -58,6 +58,8 @@ def plot_combined_effect_sizes_barplots(combined_effects_df, batch_effects_df,sa
             savepath = os.path.join(saveroot, f'{pert}_vs_{baseline}_barplot')
         cur_df_batch = batch_effects_df[(batch_effects_df.baseline==baseline)&(batch_effects_df.pert==pert)]
         __plot_barplot(cur_df_combined, baseline, pert, savepath, config_plot, cur_df_batch)
+        savepath = savepath.replace('barplot','forestplot')
+        __plot_forest_plot(cur_df_combined, baseline, pert, savepath, config_plot, cur_df_batch, config_plot.FIGSIZE)
 
 def __plot_barplot(combined_effects_df, baseline, pert, savepath, config_plot, cur_df_batch):
     for pval_col in ['pvalue','p_heterogeneity']:
@@ -83,7 +85,7 @@ def __plot_barplot(combined_effects_df, baseline, pert, savepath, config_plot, c
     cur_df_batch = cur_df_batch.sort_values('marker')
     ax.plot(cur_df_batch['marker'], cur_df_batch['effect_size'], 
             linestyle='None', marker='.', color='black', markersize=3)
-    
+
     # Add significance stars
     for index, row in combined_effects_df.iterrows():
         height = max(row['combined_effect'], row['ci_upp'],0)
@@ -114,7 +116,104 @@ def __plot_barplot(combined_effects_df, baseline, pert, savepath, config_plot, c
     else:
         plt.show()
     return
-        
+
+def __plot_forest_plot(combined_effects_df, baseline, pert, savepath, config_plot, cur_df_batch, figsize=(5, 7)):
+    for pval_col in ['pvalue','p_heterogeneity']:
+        combined_effects_df[pval_col] = combined_effects_df[pval_col].replace(0, 1e-300)  # avoid log(0)
+        _, adj_pvals, _, _ = multipletests(combined_effects_df[pval_col], method='fdr_bh')
+        combined_effects_df[f'adj_{pval_col}'] = adj_pvals
+        combined_effects_df[f'stars_{pval_col}'] = combined_effects_df[f'adj_{pval_col}'].apply(__convert_pvalue_to_asterisks)
+    
+    combined_effects_df = combined_effects_df.sort_values('combined_effect', ascending=True).reset_index(drop=True)
+
+    fig, ax = plt.subplots(figsize=figsize)
+    logging.info(f'figsize:{figsize}')
+    for marker_index, row in combined_effects_df.iterrows():
+        ax.errorbar(
+            x=row["combined_effect"], y=marker_index, fmt='o',
+            xerr=[[row["combined_effect"] - row["ci_low"]], 
+                  [row["ci_upp"] - row["combined_effect"]]],
+            color='black', capsize=3, lw=1)
+
+    marker_order = combined_effects_df['marker']
+    cur_df_batch['marker'] = pd.Categorical(cur_df_batch['marker'], categories=marker_order, ordered=True)
+    cur_df_batch = cur_df_batch.sort_values('marker')
+    ax.plot(cur_df_batch['effect_size'], cur_df_batch['marker'], 
+            linestyle='None', marker='.', color='black', markersize=3)
+    
+    # Aesthetics
+    name_key=config_plot.MAPPINGS_ALIAS_KEY
+    marker_name_color_dict = config_plot.COLOR_MAPPINGS_MARKERS
+    y_ticklabels = [marker_name_color_dict[marker][name_key] if marker_name_color_dict else marker for marker in combined_effects_df['marker']]
+    ax.set_yticks(range(len(combined_effects_df)))
+    ax.set_yticklabels(y_ticklabels)#, ha='right')
+    ax.axvline(0, color="gray", linestyle="--", zorder=0, lw=0.5)
+    ax.set_xlabel("Effect Size (Log2FC)")
+
+    ax.set_title(f'{config_plot.COLOR_MAPPINGS_CELL_LINE_CONDITION[pert][name_key]} vs {config_plot.COLOR_MAPPINGS_CELL_LINE_CONDITION[baseline][name_key]}')
+    legend_elements = [
+    Line2D([0], [0], marker='o', color='black', label='Combined effect',
+           markersize=6, linestyle='None'),
+    Line2D([0], [0], marker='.', color='black', label='Per-batch effect',
+           markersize=3, linestyle='None'),]
+
+    ax.legend(handles=legend_elements, bbox_to_anchor = (1.02,0.9), loc='lower left', frameon=False)
+
+    # plt.tight_layout()
+    
+    if savepath:
+        save_plot(fig, savepath, dpi=300, save_eps=True)
+    else:
+        plt.show()
+    return
+
+def plot_barplot_alyssa_old(effects_df, savepath, config_plot):
+    effects_df['pvalue'] = effects_df['pvalue'].replace(0, 1e-300)  # avoid log(0)
+    _, adj_pvals, _, _ = multipletests(effects_df['pvalue'], method='fdr_bh')
+    effects_df[f'adj_pvalue'] = adj_pvals
+    effects_df[f'stars_pvalue'] = effects_df[f'adj_pvalue'].apply(__convert_pvalue_to_asterisks)
+
+    name_key=config_plot.MAPPINGS_ALIAS_KEY
+    color_key=config_plot.MAPPINGS_COLOR_KEY
+    condition_name_color_dict = config_plot.COLOR_MAPPINGS_CELL_LINE_CONDITION
+    condition_to_color = {key: value[color_key] for key, value in condition_name_color_dict.items()}
+
+    # effects_df = effects_df.sort_values('marker', ascending=False).reset_index(drop=True)
+    fig, ax = plt.subplots(figsize=(8, 5))
+
+    ax = sns.barplot(data=effects_df, x='marker', y='effect_size', 
+                         hue='pert', palette=condition_to_color)
+
+    # Add significance stars
+    for bar, (_, row) in zip(ax.patches, effects_df.iterrows()):
+        height = bar.get_height()
+        if row['stars_pvalue']:
+            ax.text(
+                bar.get_x() + bar.get_width() / 2,  # center of the bar
+                height + 0.01 * effects_df['effect_size'].max(),  # just above the bar
+                row['stars_pvalue'],
+                ha='center',
+                va='bottom',
+                fontsize=10,
+            )
+
+    # Aesthetics
+    name_key=config_plot.MAPPINGS_ALIAS_KEY
+    marker_name_color_dict = config_plot.COLOR_MAPPINGS_MARKERS
+    x_ticklabels = [marker_name_color_dict[marker][name_key] if marker_name_color_dict else marker for marker in effects_df['marker']]
+    ax.set_xticklabels(x_ticklabels, rotation=45)#, ha='right')
+    ax.set_ylabel("Effect Size")
+    ax.set_xlabel('Marker')
+    ax.axhline(0, color='gray', linestyle='--', linewidth=0.8)
+    ax.legend(bbox_to_anchor=(1.5, 1), loc='upper right', borderaxespad=0, frameon=False)
+    # plt.tight_layout()
+    
+    if savepath:
+        save_plot(fig, savepath, dpi=150, save_eps=True)
+    else:
+        plt.show()
+    return
+
 def plot_marker_ranking(distances:pd.DataFrame, saveroot:str, config_data:DatasetConfig,
                         config_plot:PlotConfig, metric:str='ARI_KMeansConstrained', show_effect_size:bool=False)->None:
     """Generate and save a boxplot of marker distances with p-values, separately for each condition.

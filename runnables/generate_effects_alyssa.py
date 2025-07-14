@@ -1,3 +1,4 @@
+import copy
 import os
 import sys
 
@@ -9,19 +10,19 @@ import logging
 from src.common.utils import load_config_file
 from src.embeddings.embeddings_utils import load_embeddings
 from src.effects.effects_config import EffectConfig
-from src.analysis.analyzer_effects_dist_ratio import AnalyzerEffectsDistRatio
+from src.analysis.analyzer_effects_alyssa_OLD import AnalyzerEffectsAlyssaOLD
 
 def generate_effects(output_folder_path:str, config_path_data:str )->None:
     
     config_data:EffectConfig = load_config_file(config_path_data, 'data')
     config_data.OUTPUTS_FOLDER = output_folder_path
     logging.info(f"[Generate effects]")
-    config_data.CELL_LINES = list(set([config_data.BASELINE.split('_')[0],config_data.PERTURBATION.split('_')[0]]))
-    config_data.CONDITIONS = list(set([config_data.BASELINE.split('_')[1],config_data.PERTURBATION.split('_')[1]]))
     embeddings, labels, _ = load_embeddings(output_folder_path, config_data)
-    d = AnalyzerEffectsDistRatio(config_data, output_folder_path)
+    d = AnalyzerEffectsAlyssaOLD(config_data, output_folder_path)
     d.calculate(embeddings, labels)
     d.save()
+
+    #TODO: add the run of the NEW data (AnalyzerEffectsAlyssaNEW)
         
 
 if __name__ == "__main__":

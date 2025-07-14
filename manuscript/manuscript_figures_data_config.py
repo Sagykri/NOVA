@@ -261,7 +261,7 @@ class dNLSEffectsFigureConfig(FigureConfig):
                         [f"batch{i}" for i in range(3,6)]]
         
         self.EXPERIMENT_TYPE = 'deltaNLS80pct'
-        self.MARKERS_TO_EXCLUDE = ['TIA1','DAPI']
+        self.MARKERS_TO_EXCLUDE = ['DAPI']
 
         self.MARKERS = list(PlotConfig().COLOR_MAPPINGS_MARKERS.keys())
         self.ADD_BATCH_TO_LABEL = True
@@ -272,20 +272,26 @@ class dNLSNewEffectsFigureConfig(FigureConfig):
         super().__init__()
         self.INPUT_FOLDERS = [f"batch{i}" for i in range(1,7)]
         
-        self.EXPERIMENT_TYPE = 'deltaNLS_new'
-        self.MARKERS_TO_EXCLUDE = ['TIA1','DAPI']
+        self.EXPERIMENT_TYPE = 'dNLS'
+        self.MARKERS_TO_EXCLUDE = ['DAPI']
         self.MARKERS = list(PlotConfig().COLOR_MAPPINGS_MARKERS.keys())
+        self.BASELINE_PERTURB = {'dNLS_Untreated':['dNLS_DOX']}
 
 class NeuronsEffectsFigureConfig(FigureConfig):
     def __init__(self):
         super().__init__()
-        self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "spd2", "SpinningDisk", f) for f in 
-                        [f"batch{i}80pct" for i in [4,5,6,9]]]
+        self.INPUT_FOLDERS = [f"batch{i}" for i in [1,2,3,7,8,9,10]]
         
-        self.EXPERIMENT_TYPE = 'neurons'
-        self.MARKERS_TO_EXCLUDE = ['TIA1','DAPI']
+        self.EXPERIMENT_TYPE = 'neuronsDay8_new'
+        self.MARKERS_TO_EXCLUDE = ['DAPI']
         self.ADD_BATCH_TO_LABEL = True
         self.ADD_REP_TO_LABEL = True
+        self.BASELINE_PERTURB = {'WT_Untreated': 
+                                 [f'{cell_line}_Untreated' for cell_line in 
+                                  ['FUSHeterozygous','FUSHomozygous','FUSRevertant','OPTN','TDP43','TBK1']]+ ['WT_stress'],
+                                 'FUSRevertant_Untreated':
+                                 [f'{cell_line}_Untreated' for cell_line in 
+                                  ['FUSHeterozygous','FUSHomozygous','WT','OPTN','TDP43','TBK1']]}
 
 ############################################################
 # Figure 3 - supp
@@ -381,19 +387,17 @@ class NeuronsUMAP0ALSB9SQSTM1FigureConfig(NeuronsUMAP0ALSFigureConfig):
         self.INPUT_FOLDERS = ["batch9"]
         self.CELL_LINES = ['WT','OPTN']
         self.MARKERS = ['SQSTM1']
-class AlyssaCoyneDistancesFigureConfig(FigureConfig):
+class AlyssaCoyneEffectsFigureConfig(FigureConfig):
     def __init__(self):
         super().__init__()
         self.INPUT_FOLDERS = ["batch1"]
         
-        self.EXPERIMENT_TYPE = 'AlyssaCoyne_7tiles'
+        self.EXPERIMENT_TYPE = 'AlyssaCoyne'
         self.MARKERS_TO_EXCLUDE = ['MERGED']
-        self.BASELINE_CELL_LINE_CONDITION = "Controls_Untreated"
-        self.CELL_LINES_CONDITIONS = ['sALSPositiveCytoTDP43_Untreated','sALSNegativeCytoTDP43_Untreated','c9orf72ALSPatients_Untreated']
         self.ADD_BATCH_TO_LABEL = True
         self.ADD_REP_TO_LABEL = True
         self.MARKERS_TO_EXCLUDE = ['MERGED']
-        self.REPS = [f'rep{i}' for i in range(1,11)]
+
 
 class AlyssaCoyneUMAP0FigureConfig(FigureConfig):
     def __init__(self):
@@ -912,3 +916,14 @@ class NeuronsUMAP0ALSFUSFigureConfig(NeuronsUMAP0ALSFigureConfig):
         self.ADD_BATCH_TO_LABEL = False
         self.ADD_REP_TO_LABEL = False
         self.SHOW_ARI = False
+
+
+
+class tmp(NeuronsUMAP2ALSFigureConfig):
+    def __init__(self):
+        super().__init__()
+        self.MARKERS_TO_EXCLUDE = ['CD41']
+        self.CELL_LINES = ['WT','TDP43','FUSHomozygous','FUSHeterozygous',
+                           'FUSRevertant','TBK1','SCNA','OPTN']
+        self.INPUT_FOLDERS = ['batch2']
+        self.EXPERIMENT_TYPE = 'neuronsDay8_new'

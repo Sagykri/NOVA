@@ -179,29 +179,18 @@ class DistancesNeuronsStressPlotConfig(PlotConfig):
         super().__init__()
 
         self.COLOR_MAPPINGS_CELL_LINE_CONDITION = self.COLOR_MAPPINGS_CONDITION_AND_ALS
-        self.SHOW_BASELINE = True
-        self.YAXIS_CUT_RANGES = None
 
-class DistancesNeuronsStressNoBaselinePlotConfig(PlotConfig):
-    def __init__(self):
-        super().__init__()
-
-        self.COLOR_MAPPINGS_CELL_LINE_CONDITION = self.COLOR_MAPPINGS_CONDITION_AND_ALS
-        self.SHOW_BASELINE = False
-        self.YAXIS_CUT_RANGES = None
+        self.FIGSIZE = (5,7)
 
 class DistancesNeuronsALSPlotConfig(PlotConfig):
     def __init__(self):
         super().__init__()
 
         self.COLOR_MAPPINGS_CELL_LINE_CONDITION = self.COLOR_MAPPINGS_CONDITION_AND_ALS
-        self.ORDERED_CELL_LINES = ['FUSHomozygous_Untreated',
-                                         'TDP43_Untreated','TBK1_Untreated','OPTN_Untreated']
-        self.ORDERED_MARKERS = ['GM130','Phalloidin','G3BP1','CLTC','mitotracker','NCL','KIF5A', 'TOMM20', 'PURA',
-         'NONO','SCNA','ANXA11','FUS','TDP43','PEX14', 'DAPI','PSD95','PML',
-        'CD41','NEMO','Calreticulin','LAMP1','SQSTM1','DCP1A','FMRP']
+        self.FIGSIZE = (3,7)
+        #TODO: add fix order marker name (need to implmement in the distance_plotting.py relevat function...)
 
-class DistancesNeuronsFUSPlotConfig(PlotConfig):
+class DistancesNeuronsFUSPlotConfig(PlotConfig): # TODO: probably delete
     def __init__(self):
         super().__init__()
 
@@ -212,7 +201,7 @@ class DistancesNeuronsFUSPlotConfig(PlotConfig):
          'NONO','SCNA','ANXA11','FUS','TDP43','PEX14', 'DAPI','PSD95','PML',
         'CD41','NEMO','Calreticulin','LAMP1','SQSTM1','DCP1A','FMRP']
 
-class DistancesNeuronsFUSD18PlotConfig(PlotConfig):
+class DistancesNeuronsFUSD18PlotConfig(PlotConfig): # TODO: probably delete
     def __init__(self):
         super().__init__()
 
@@ -227,16 +216,7 @@ class DistancesdNLSPlotConfig(PlotConfig):
         super().__init__()
 
         self.COLOR_MAPPINGS_CELL_LINE_CONDITION = self.COLOR_MAPPINGS_DOX
-        self.YAXIS_CUT_RANGES = {'UPPER_GRAPH':(0.55, 1), 'LOWER_GRAPH':(-0.01, 0.25)}
-        self.SHOW_BASELINE = True
-
-class DistancesdNLSNoBaselinePlotConfig(PlotConfig):
-    def __init__(self):
-        super().__init__()
-
-        self.COLOR_MAPPINGS_CELL_LINE_CONDITION = self.COLOR_MAPPINGS_DOX
-        self.YAXIS_CUT_RANGES = {'UPPER_GRAPH':(0.55, 1), 'LOWER_GRAPH':(-0.01, 0.25)}
-        self.SHOW_BASELINE = False
+        self.FIGSIZE = (5,7)
 
 class DistancesAlyssaCoynePlotConfig(PlotConfig):
     def __init__(self):
