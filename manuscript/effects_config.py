@@ -27,7 +27,7 @@ class NeuronsEffectWTBaselineFUSHomoConfig(NeuronsEffectWTBaselineConfig):
 class NeuronsEffectWTBaselineFUSHeteroConfig(NeuronsEffectWTBaselineConfig):
     def __init__(self):
         super().__init__()
-        self.PERTURBATION = 'FUSHeteroyzgous_Untreated'
+        self.PERTURBATION = 'FUSHeterozygous_Untreated'
 
 class NeuronsEffectWTBaselineFUSRevConfig(NeuronsEffectWTBaselineConfig):
     def __init__(self):
