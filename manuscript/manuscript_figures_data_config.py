@@ -918,12 +918,3 @@ class NeuronsUMAP0ALSFUSFigureConfig(NeuronsUMAP0ALSFigureConfig):
         self.SHOW_ARI = False
 
 
-
-class tmp(NeuronsUMAP2ALSFigureConfig):
-    def __init__(self):
-        super().__init__()
-        self.MARKERS_TO_EXCLUDE = ['CD41']
-        self.CELL_LINES = ['WT','TDP43','FUSHomozygous','FUSHeterozygous',
-                           'FUSRevertant','TBK1','SCNA','OPTN']
-        self.INPUT_FOLDERS = ['batch2']
-        self.EXPERIMENT_TYPE = 'neuronsDay8_new'
