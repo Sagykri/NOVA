@@ -21,6 +21,18 @@ CONDITION_IDX = 2
 BATCH_IDX = 3
 REP_IDX = 4
 
+class LabelInfo:
+    """Holds all the needed info on the label for generating pairs for the contrastive loss
+    """
+    def __init__(self, label:str, index:int, dataset_config:DatasetConfig):
+        __labels_np = np.asarray([label])
+        self.batch:str = get_batches_from_labels(__labels_np, dataset_config)[0]
+        self.cell_line_cond:str = get_cell_lines_conditions_from_labels(__labels_np, dataset_config)[0]
+        self.marker:str = get_markers_from_labels(__labels_np, dataset_config)[0]
+        self.rep:str = get_reps_from_labels(__labels_np, dataset_config)[0]
+        self.index:int = index
+
+
 def extract_parts_from_label(label: str, indices:Tuple[int, int]) -> str:
     return '_'.join(label.split("_")[indices[0]:indices[1]])
 

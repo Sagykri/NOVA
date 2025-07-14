@@ -181,6 +181,7 @@ class DistancesNeuronsStressPlotConfig(PlotConfig):
 
         self.COLOR_MAPPINGS_CELL_LINE_CONDITION = self.COLOR_MAPPINGS_CONDITION_AND_ALS
         self.SHOW_BASELINE = True
+        self.YAXIS_CUT_RANGES = None
 
 class DistancesNeuronsStressNoBaselinePlotConfig(PlotConfig):
     def __init__(self):
@@ -188,6 +189,7 @@ class DistancesNeuronsStressNoBaselinePlotConfig(PlotConfig):
 
         self.COLOR_MAPPINGS_CELL_LINE_CONDITION = self.COLOR_MAPPINGS_CONDITION_AND_ALS
         self.SHOW_BASELINE = False
+        self.YAXIS_CUT_RANGES = None
 
 class DistancesNeuronsALSPlotConfig(PlotConfig):
     def __init__(self):

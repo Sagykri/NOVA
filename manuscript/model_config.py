@@ -12,6 +12,14 @@ class ClassificationModelConfig(ModelConfig):
         super().__init__()
         
         self.OUTPUT_DIM = 1311
+
+class FineTuningClassificationWithBatchModelConfig(ModelConfig):
+    """Configuration for the fine tuned classification model
+    """
+    def __init__(self):
+        super().__init__()
+        
+        self.OUTPUT_DIM = 216*2
         
 class ContrastiveModelConfig(ModelConfig):
     """Configuration for the contrastive learning model

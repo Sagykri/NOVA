@@ -398,7 +398,39 @@ dnls_lines_order = dnls_line_colors.keys()
 dnls_custom_palette = [dnls_line_colors[line] for line in dnls_lines_order]
 dnls_expected_dapi_raw = 100*len(dnls_panels.columns)
 
-
+# dNLS OPERA
+dnls_opera_cell_lines = ['dNLS','WT']
+dnls_opera_cell_lines_to_cond = {'dNLS':['DOX','Untreated'], 'WT':['Untreated']}
+dnls_opera_panels = pd.DataFrame([['G3BP1','NONO','SQSTM1','PSD95','NEMO','GM130','NCL','LSM14A','TDP43','ANXA11','PEX14','mitotracker'],
+                                  ['FMRP','SON','KIF5A','CLTC','DCP1A','Calreticulin','FUS','HNRNPA1','PML','LAMP1','SNCA','TIA1'],
+                                  ['PURA','CD41','Tubulin','Phalloidin',np.nan,np.nan,np.nan,np.nan,np.nan,np.nan,np.nan,'TOMM20'],
+             ['DAPI']*12], columns=['A','B','C','D','E','F','G','H','I','J','K','L'],
+            index=['ch4', 'ch2', 'ch3','ch1'])
+dnls_opera_markers = ['G3BP1','NONO','SQSTM1','PSD95','NEMO','GM130','NCL','LSM14A','TDP43','ANXA11','PEX14','mitotracker',
+                      'FMRP','SON','KIF5A','CLTC','DCP1A','Calreticulin','FUS','HNRNPA1','PML','LAMP1','SNCA','TIA1',
+                      'PURA','CD41','Tubulin','Phalloidin','TOMM20','DAPI']
+dnls_opera_cell_lines_for_disp = {f'{cell_line}_{cond}':f'{cell_line}_{cond}' 
+                            for cell_line in dnls_opera_cell_lines for cond in dnls_opera_cell_lines_to_cond[cell_line] }
+dnls_opera_marker_info = pd.DataFrame([[['ch4']]*12 + [['ch2']]*12 + [['ch3']]*5 ,
+                          [['A'],['B'],['C'],['D'],['E'],['F'],['G'],['H'],['I'],['J'],['K'],['L'], 
+                           ['A'],['B'],['C'],['D'],['E'],['F'],['G'],['H'],['I'],['J'],['K'],['L'], 
+                           ['A'],['B'],['C'],['D'],['L']]], index=['Antibody','panel'],
+                         columns = ['G3BP1','NONO','SQSTM1','PSD95','NEMO','GM130','NCL','LSM14A','TDP43','ANXA11','PEX14','mitotracker',
+                                    'FMRP','SON','KIF5A','CLTC','DCP1A','Calreticulin','FUS','HNRNPA1','PML','LAMP1','SNCA','TIA1',
+                                    'PURA','CD41','Tubulin','Phalloidin','TOMM20']).T #order here is important - taken from Lena's sheet
+dnls_opera_line_colors = {
+    'dNLS Untreated': colorblind_palette[4],
+    'dNLS DOX': colorblind_palette[2],
+    'WT Untreated': colorblind_palette[6]
+}
+dnls_opera_lines_order = dnls_opera_line_colors.keys()
+dnls_opera_custom_palette = [dnls_opera_line_colors[line] for line in dnls_opera_lines_order]
+dnls_opera_expected_dapi_raw = 250*len(dnls_opera_panels.columns)
+dnls_opera_cell_lines_to_reps = {
+    'WT': [f'rep{i}' for i in range(1,3)],
+    'dNLS': [f'rep{i}' for i in range(1,4)],
+}
+dnls_opera_reps = [f'rep{i}' for i in range(1,4)]
 # NP
 np_cell_lines = ['WT','KO']
 np_cell_lines_to_cond = {cell_line:['Untreated','HPBCD'] for cell_line in np_cell_lines}
@@ -476,6 +508,88 @@ AC_cell_lines_to_reps = {
     'sALSNegativeCytoTDP43': [f'rep{i}' for i in range(1,3)],
     'Controls': [f'rep{i}' for i in range(1,7)]
 }
+
+new_d8_panels = pd.DataFrame([['G3BP1','NONO','SQSTM1','PSD95','NEMO','GM130','NCL','LSM14A', 'TDP43', 'ANXA11', 'PEX14', 'mitotracker'],
+             ['FMRP','SON','KIF5A', 'CLTC', 'DCP1A', 'Calreticulin', 'FUS', 'HNRNPA1', 'PML', 'LAMP1', 'SNCA', 'TIA1'],
+             ['PURA','CD41','Tubulin', 'Phalloidin',np.nan, np.nan, np.nan, np.nan, np.nan, np.nan, np.nan,'TOMM20'],
+             ['DAPI']*12], columns=['A','B','C','D','E','F','G','H','I','J','K','L'],
+            index=['Cy5', 'mCherry', 'GFP','DAPI'])
+new_d8_markers = ['G3BP1','NONO','SQSTM1','PSD95','NEMO','GM130','NCL','LSM14A', 'TDP43', 'ANXA11', 'PEX14', 'mitotracker',
+                                 'FMRP','SON','KIF5A', 'CLTC', 'DCP1A', 'Calreticulin', 'FUS', 'HNRNPA1', 'PML', 'LAMP1', 'SNCA', 'TIA1',
+                                 'PURA','CD41','Tubulin', 'Phalloidin', 'TOMM20', 'DAPI']
+
+new_d8_marker_info = pd.DataFrame([[['Cy5']]*12 + [['mCherry']]*12 + [['GFP']]*5,
+                          [['A'],['B'],['C'],['D'],['E'],['F'],['G'],['H'],['I'],['J'],['K'],['L'],
+                          ['A'],['B'],['C'],['D'],['E'],['F'],['G'],['H'],['I'],['J'],['K'],['L'],
+                          ['A'],['B'],['C'],['D'],['L']]], index=['Antibody','panel'],
+                         columns = ['G3BP1','NONO','SQSTM1','PSD95','NEMO','GM130','NCL', 'LSM14A', 'TDP43', 'ANXA11', 'PEX14', 'mitotracker',
+                                 'FMRP','SON','KIF5A', 'CLTC', 'DCP1A', 'Calreticulin', 'FUS', 'HNRNPA1', 'PML', 'LAMP1', 'SNCA', 'TIA1',
+                                 'PURA','CD41','Tubulin', 'Phalloidin', 'TOMM20']).T  #order here is important - taken from Lena's sheet
+new_d8_cell_lines = ['FUSHomozygous', 'TDP43', 'TBK1', 'WT', 'FUSRevertant','OPTN', 'FUSHeterozygous', 'SCNA']
+new_d8_cell_lines_to_cond = {'FUSHomozygous':['Untreated'], 'TDP43':['Untreated'], 'TBK1':['Untreated'],
+                      'WT':['Untreated','stress'], 'FUSRevertant':['Untreated'],
+                      'OPTN':['Untreated'], 'FUSHeterozygous':['Untreated'],'SNCA':['Untreated']}
+new_d8_cell_lines_for_disp = {'FUSHomozygous_Untreated':'FUSHomozygous', 'TDP43_Untreated':'TDP43', 
+                       'TBK1_Untreated':'TBK1', 'WT_stress':'WT stress', 'WT_Untreated':'WT Untreated',
+                        'FUSRevertant_Untreated':'FUSRevertant',
+                        'OPTN_Untreated':'OPTN', 'FUSHeterozygous_Untreated':'FUSHeterozygous','SNCA_Untreated':'SNCA'}
+new_d8_reps = ['rep1','rep2']
+new_d8_colorblind_palette = sns.color_palette('colorblind')
+new_d8_line_colors = {
+    'FUSHeterozygous': colorblind_palette[0],
+    'FUSHomozygous': colorblind_palette[1],
+    'FUSRevertant': colorblind_palette[2],
+    'OPTN': colorblind_palette[8],
+    'SNCA': colorblind_palette[4],
+    'TBK1': colorblind_palette[5],
+    'TDP43': colorblind_palette[6],
+    'WT Untreated': colorblind_palette[9],
+    'WT stress': colorblind_palette[3]
+}
+new_d8_lines_order = line_colors.keys()
+new_d8_custom_palette = [line_colors[line] for line in lines_order] + [colorblind_palette[7]]
+new_d8_expected_dapi_raw = 250*12
+
+new_d8_panels = pd.DataFrame([['G3BP1','NONO','SQSTM1','PSD95','NEMO','GM130','NCL','LSM14A', 'TDP43', 'ANXA11', 'PEX14', 'mitotracker'],
+             ['FMRP','SON','KIF5A', 'CLTC', 'DCP1A', 'Calreticulin', 'FUS', 'HNRNPA1', 'PML', 'LAMP1', 'SNCA', 'TIA1'],
+             ['PURA','CD41','Tubulin', 'Phalloidin',np.nan, np.nan, np.nan, np.nan, np.nan, np.nan, np.nan,'TOMM20'],
+             ['DAPI']*12], columns=['A','B','C','D','E','F','G','H','I','J','K','L'],
+            index=['Cy5', 'mCherry', 'GFP','DAPI'])
+new_d8_markers = ['G3BP1','NONO','SQSTM1','PSD95','NEMO','GM130','NCL','LSM14A', 'TDP43', 'ANXA11', 'PEX14', 'mitotracker',
+                                 'FMRP','SON','KIF5A', 'CLTC', 'DCP1A', 'Calreticulin', 'FUS', 'HNRNPA1', 'PML', 'LAMP1', 'SNCA', 'TIA1',
+                                 'PURA','CD41','Tubulin', 'Phalloidin', 'TOMM20', 'DAPI']
+
+new_d8_marker_info = pd.DataFrame([[['Cy5']]*12 + [['mCherry']]*12 + [['GFP']]*5,
+                          [['A'],['B'],['C'],['D'],['E'],['F'],['G'],['H'],['I'],['J'],['K'],['L'],
+                          ['A'],['B'],['C'],['D'],['E'],['F'],['G'],['H'],['I'],['J'],['K'],['L'],
+                          ['A'],['B'],['C'],['D'],['L']]], index=['Antibody','panel'],
+                         columns = ['G3BP1','NONO','SQSTM1','PSD95','NEMO','GM130','NCL', 'LSM14A', 'TDP43', 'ANXA11', 'PEX14', 'mitotracker',
+                                 'FMRP','SON','KIF5A', 'CLTC', 'DCP1A', 'Calreticulin', 'FUS', 'HNRNPA1', 'PML', 'LAMP1', 'SNCA', 'TIA1',
+                                 'PURA','CD41','Tubulin', 'Phalloidin', 'TOMM20']).T  #order here is important - taken from Lena's sheet
+new_d8_cell_lines = ['FUSHomozygous', 'TDP43', 'TBK1', 'WT', 'FUSRevertant','OPTN', 'FUSHeterozygous', 'SCNA']
+new_d8_cell_lines_to_cond = {'FUSHomozygous':['Untreated'], 'TDP43':['Untreated'], 'TBK1':['Untreated'],
+                      'WT':['Untreated','stress'], 'FUSRevertant':['Untreated'],
+                      'OPTN':['Untreated'], 'FUSHeterozygous':['Untreated'],'SNCA':['Untreated']}
+new_d8_cell_lines_for_disp = {'FUSHomozygous_Untreated':'FUSHomozygous', 'TDP43_Untreated':'TDP43', 
+                       'TBK1_Untreated':'TBK1', 'WT_stress':'WT stress', 'WT_Untreated':'WT Untreated',
+                        'FUSRevertant_Untreated':'FUSRevertant',
+                        'OPTN_Untreated':'OPTN', 'FUSHeterozygous_Untreated':'FUSHeterozygous','SNCA_Untreated':'SNCA'}
+new_d8_reps = ['rep1','rep2']
+new_d8_colorblind_palette = sns.color_palette('colorblind')
+new_d8_line_colors = {
+    'FUSHeterozygous': colorblind_palette[0],
+    'FUSHomozygous': colorblind_palette[1],
+    'FUSRevertant': colorblind_palette[2],
+    'OPTN': colorblind_palette[8],
+    'SNCA': colorblind_palette[4],
+    'TBK1': colorblind_palette[5],
+    'TDP43': colorblind_palette[6],
+    'WT Untreated': colorblind_palette[9],
+    'WT stress': colorblind_palette[3]
+}
+new_d8_lines_order = line_colors.keys()
+new_d8_custom_palette = [line_colors[line] for line in lines_order] + [colorblind_palette[7]]
+new_d8_expected_dapi_raw = 250*12
 
 ### NIH data
 NIH_cell_lines = ['WT', 'FUSRevertant', 'FUSHomozygous', 'FUSHeterozygous']

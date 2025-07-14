@@ -46,7 +46,9 @@ class PlotConfig(PlotConfig):
         self.COLOR_MAPPINGS_DOX: Dict[str, Dict[str,str]] = {
             'WT_Untreated':{self.MAPPINGS_ALIAS_KEY:'Wild-Type', self.MAPPINGS_COLOR_KEY:'#2FA0C1'},
             'TDP43_Untreated':{self.MAPPINGS_ALIAS_KEY:'TDP-43dNLS, -DOX', self.MAPPINGS_COLOR_KEY:'#6BAD31'},
-            'TDP43_dox':{self.MAPPINGS_ALIAS_KEY:'TDP-43dNLS, +DOX', self.MAPPINGS_COLOR_KEY:'#90278E'}
+            'TDP43_dox':{self.MAPPINGS_ALIAS_KEY:'TDP-43dNLS, +DOX', self.MAPPINGS_COLOR_KEY:'#90278E'},
+            'dNLS_Untreated':{self.MAPPINGS_ALIAS_KEY:'TDP-43dNLS, -DOX', self.MAPPINGS_COLOR_KEY:'#6BAD31'},
+            'dNLS_DOX':{self.MAPPINGS_ALIAS_KEY:'TDP-43dNLS, +DOX', self.MAPPINGS_COLOR_KEY:'#90278E'}
         }
 
         self.COLOR_MAPPINGS_MARKERS: Dict[str, Dict[str,str]] = {
@@ -75,12 +77,17 @@ class PlotConfig(PlotConfig):
             'mitotracker':{self.MAPPINGS_ALIAS_KEY:'Mitochondria', self.MAPPINGS_COLOR_KEY:'#898700'},
             'PURA':{self.MAPPINGS_ALIAS_KEY:'PURA granules', self.MAPPINGS_COLOR_KEY:'#ACE142'},
             'G3BP1':{self.MAPPINGS_ALIAS_KEY:'Stress granules', self.MAPPINGS_COLOR_KEY:'#F0A3A3'},
-            'Phalloidin':{self.MAPPINGS_ALIAS_KEY:'Cytoskeleton', self.MAPPINGS_COLOR_KEY:'#06A0E9'},
+            'Phalloidin':{self.MAPPINGS_ALIAS_KEY:'Actin Cytoskeleton', self.MAPPINGS_COLOR_KEY:'#06A0E9'},
             'FMRP':{self.MAPPINGS_ALIAS_KEY:'FMRP granules', self.MAPPINGS_COLOR_KEY:'#EF218B'},
 
             'MERGED':{self.MAPPINGS_ALIAS_KEY:'MERGED', self.MAPPINGS_COLOR_KEY:'gray'},
             'Map2':{self.MAPPINGS_ALIAS_KEY:'Neuronal marker', self.MAPPINGS_COLOR_KEY:'gray'},
             # 'TDP43N':{self.MAPPINGS_ALIAS_KEY:'TDP43 granules 2', self.MAPPINGS_COLOR_KEY:'#06A0E9'}
+
+            'LSM14A':{self.MAPPINGS_ALIAS_KEY:'P-bodies #2', self.MAPPINGS_COLOR_KEY:'gray'},
+            'SON':{self.MAPPINGS_ALIAS_KEY:'Nuclear Speckles', self.MAPPINGS_COLOR_KEY:'gray'},
+            'HNRNPA1':{self.MAPPINGS_ALIAS_KEY:'hnRNP complex #2', self.MAPPINGS_COLOR_KEY:'gray'},
+            'Tubulin':{self.MAPPINGS_ALIAS_KEY:'Microtubules', self.MAPPINGS_COLOR_KEY:'gray'},
         }
         self.COLOR_MAPPINGS_CONDITION_AND_ALS: Dict[str, Dict[str,str]] = {
             'WT_stress':{self.MAPPINGS_ALIAS_KEY: 'Wild-Type + Stress',self.MAPPINGS_COLOR_KEY: '#F7810F'},
