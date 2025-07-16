@@ -193,3 +193,8 @@ finetunedModel_MLPHead_acrossBatches_B56789_80pct_frozen=/home/projects/hornstei
 ##### neurons ########
 $NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/plot_effect_sizes -m 1000 -a \
 $finetunedModel_MLPHead_acrossBatches_B56789_80pct_frozen $data_configs/NeuronsEffectsFigureConfig  $plot_configs/DistancesNeuronsALSPlotConfig -q short -j effect_sizes
+
+
+
+# $NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_umaps_and_plot -m 10000 \
+# -a $finetunedModel_MLPHead_acrossBatches_B56789_80pct_frozen $data_configs/tmp $plot_configs/UMAP2ALSPlotConfig -q short -j umap2_als_b9

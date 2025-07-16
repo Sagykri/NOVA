@@ -51,11 +51,14 @@ effects_configs=./manuscript/effects_config
 # -a $finetunedModel_MLPHead_acrossBatches_B56789_80pct_frozen $effects_configs/NeuronsEffectFUSRevBaselineTBK1Config -q short -j dists -m 60000
 
 ### Alyssa OLD###
-$NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_effects_alyssa \
--a $finetunedModel_MLPHead_acrossBatches_B56789_80pct_frozen $effects_configs/AlyssaCoyneEffectConfig -q short -j dist_alyssa
+# $NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_effects_alyssa \
+# -a $finetunedModel_MLPHead_acrossBatches_B56789_80pct_frozen $effects_configs/AlyssaCoyneEffectConfig -q short -j dist_alyssa
 
 
-# ##### new dNLS #
-####
+# ##### new dNLS #####
 # $NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_effects \
 # -a $finetunedModel_MLPHead_acrossBatches_B56789_80pct_frozen $effects_configs/dNLSNewEffectConfig -q short -j dist_dnlsNew -m 60000
+
+
+$NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_effects_alyssa \
+-a $finetunedModel_MLPHead_acrossBatches_B56789_80pct_frozen $effects_configs/iAstrocytesEffectConfig -q short -j dist_iAstrocytes

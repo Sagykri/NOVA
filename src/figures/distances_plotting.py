@@ -11,6 +11,7 @@ import numpy as np
 import pandas as pd
 import logging
 import math
+import natsort
 
 from typing import Dict, List, Tuple
 import seaborn as sns
@@ -18,6 +19,7 @@ import matplotlib.colors as mcolors
 import matplotlib.pyplot as plt
 from matplotlib.colors import Normalize
 from matplotlib.lines import Line2D
+import matplotlib.cm as cm
 
 from scipy.cluster.hierarchy import linkage, dendrogram
 from scipy.stats import ttest_ind
@@ -76,15 +78,8 @@ def __plot_barplot(combined_effects_df, baseline, pert, savepath, config_plot, c
 
     ax.bar(combined_effects_df['marker'], combined_effects_df['combined_effect'], 
             yerr = np.array([combined_effects_df['low_error'], combined_effects_df['high_error']]),
-            capsize=5, edgecolor='k',
+            capsize=5, edgecolor='k', color='gray',
             error_kw={'elinewidth': 0.7,'capthick': 0.7})
-
-    # Add the separate batch effect sizes
-    marker_order = combined_effects_df['marker']
-    cur_df_batch['marker'] = pd.Categorical(cur_df_batch['marker'], categories=marker_order, ordered=True)
-    cur_df_batch = cur_df_batch.sort_values('marker')
-    ax.plot(cur_df_batch['marker'], cur_df_batch['effect_size'], 
-            linestyle='None', marker='.', color='black', markersize=3)
 
     # Add significance stars
     for index, row in combined_effects_df.iterrows():
@@ -94,7 +89,25 @@ def __plot_barplot(combined_effects_df, baseline, pert, savepath, config_plot, c
             if star:
                 ax.text(index, height+bonus, star, ha='center', 
                         fontsize=12, color=color)
-    
+    legend_elements = [
+        Line2D([0], [0], color='red', lw=0, marker='*', label='adj p-value'),
+        Line2D([0], [0], color='blue', lw=0, marker='*', label='adj p-heterogeneity'),
+    ]
+
+    # Add the separate batch effect sizes
+    marker_order = combined_effects_df['marker']
+    cur_df_batch['marker'] = pd.Categorical(cur_df_batch['marker'], categories=marker_order, ordered=True)
+    cur_df_batch = cur_df_batch.sort_values('marker')
+
+    batches = natsort.natsorted(cur_df_batch['batch'].unique())
+    colors = cm.get_cmap('tab10', len(batches))
+
+    for i, batch in enumerate(batches):
+        df_batch = cur_df_batch[cur_df_batch['batch'] == batch]
+        ax.plot(df_batch['marker'], df_batch['effect_size'],
+                linestyle='None', marker='.', color=colors(i), markersize=3, label=batch)
+        legend_elements.append(Line2D([0], [0], marker='.', color=colors(i), lw=0, label=f'{batch}'))
+
     # Aesthetics
     name_key=config_plot.MAPPINGS_ALIAS_KEY
     marker_name_color_dict = config_plot.COLOR_MAPPINGS_MARKERS
@@ -102,10 +115,6 @@ def __plot_barplot(combined_effects_df, baseline, pert, savepath, config_plot, c
     ax.set_xticklabels(x_ticklabels, rotation=90)#, ha='right')
     ax.set_ylabel("Combined Effect Size")
     ax.axhline(0, color='gray', linestyle='--', linewidth=0.8)
-    legend_elements = [
-        Line2D([0], [0], color='red', lw=0, marker='*', label='adj p-value'),
-        Line2D([0], [0], color='blue', lw=0, marker='*', label='adj p-heterogeneity'),
-    ]
 
     ax.legend(handles=legend_elements, loc='best', frameon=False)
     plt.title(f'{config_plot.COLOR_MAPPINGS_CELL_LINE_CONDITION[pert][name_key]} vs {config_plot.COLOR_MAPPINGS_CELL_LINE_CONDITION[baseline][name_key]}')
@@ -130,17 +139,27 @@ def __plot_forest_plot(combined_effects_df, baseline, pert, savepath, config_plo
     logging.info(f'figsize:{figsize}')
     for marker_index, row in combined_effects_df.iterrows():
         ax.errorbar(
-            x=row["combined_effect"], y=marker_index, fmt='o',
+            x=row["combined_effect"], y=row['marker'], fmt='o', #y=marker_index
             xerr=[[row["combined_effect"] - row["ci_low"]], 
                   [row["ci_upp"] - row["combined_effect"]]],
             color='black', capsize=3, lw=1)
 
+    legend_elements = [
+    Line2D([0], [0], marker='o', color='black', label='Combined effect',
+           markersize=6, linestyle='None'),]
+
     marker_order = combined_effects_df['marker']
     cur_df_batch['marker'] = pd.Categorical(cur_df_batch['marker'], categories=marker_order, ordered=True)
-    cur_df_batch = cur_df_batch.sort_values('marker')
-    ax.plot(cur_df_batch['effect_size'], cur_df_batch['marker'], 
-            linestyle='None', marker='.', color='black', markersize=3)
-    
+    cur_df_batch = cur_df_batch.sort_values('marker',ascending=True)
+    batches = natsort.natsorted(cur_df_batch['batch'].unique())
+    colors = cm.get_cmap('tab10', len(batches))
+
+    for i, batch in enumerate(batches):
+        df_batch = cur_df_batch[cur_df_batch['batch'] == batch]
+        ax.plot(df_batch['effect_size'],df_batch['marker'],
+                linestyle='None', marker='.', color=colors(i), markersize=3, label=batch)
+        legend_elements.append(Line2D([0], [0], marker='.', color=colors(i), lw=0, label=f'{batch}'))
+
     # Aesthetics
     name_key=config_plot.MAPPINGS_ALIAS_KEY
     marker_name_color_dict = config_plot.COLOR_MAPPINGS_MARKERS
@@ -151,11 +170,6 @@ def __plot_forest_plot(combined_effects_df, baseline, pert, savepath, config_plo
     ax.set_xlabel("Effect Size (Log2FC)")
 
     ax.set_title(f'{config_plot.COLOR_MAPPINGS_CELL_LINE_CONDITION[pert][name_key]} vs {config_plot.COLOR_MAPPINGS_CELL_LINE_CONDITION[baseline][name_key]}')
-    legend_elements = [
-    Line2D([0], [0], marker='o', color='black', label='Combined effect',
-           markersize=6, linestyle='None'),
-    Line2D([0], [0], marker='.', color='black', label='Per-batch effect',
-           markersize=3, linestyle='None'),]
 
     ax.legend(handles=legend_elements, bbox_to_anchor = (1.02,0.9), loc='lower left', frameon=False)
 

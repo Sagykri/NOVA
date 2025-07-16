@@ -133,3 +133,14 @@ class dNLSNewEffectConfig(EffectConfig):
         self.BASELINE = 'dNLS_Untreated'
         self.PERTURBATION = 'dNLS_DOX'
         self.MARKERS = list(PlotConfig().COLOR_MAPPINGS_MARKERS.keys())
+
+
+class iAstrocytesEffectConfig(EffectConfig):
+    def __init__(self):
+        super().__init__()
+
+        self.INPUT_FOLDERS = ["batch1"]
+        
+        self.EXPERIMENT_TYPE = 'iAstrocytes_Tile146'    
+        self.BASELINE_PERTURB = {'WT_Untreated':['C9_Untreated']}
+        self.MIN_REQUIRED = 200 

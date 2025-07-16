@@ -88,6 +88,8 @@ class PlotConfig(PlotConfig):
             'SON':{self.MAPPINGS_ALIAS_KEY:'Nuclear Speckles', self.MAPPINGS_COLOR_KEY:'gray'},
             'HNRNPA1':{self.MAPPINGS_ALIAS_KEY:'hnRNP complex #2', self.MAPPINGS_COLOR_KEY:'gray'},
             'Tubulin':{self.MAPPINGS_ALIAS_KEY:'Microtubules', self.MAPPINGS_COLOR_KEY:'gray'},
+            'TIA1':{self.MAPPINGS_ALIAS_KEY:'TIA1', self.MAPPINGS_COLOR_KEY:'gray'},
+
         }
         self.COLOR_MAPPINGS_CONDITION_AND_ALS: Dict[str, Dict[str,str]] = {
             'WT_stress':{self.MAPPINGS_ALIAS_KEY: 'Wild-Type + Stress',self.MAPPINGS_COLOR_KEY: '#F7810F'},
