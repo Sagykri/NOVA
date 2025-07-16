@@ -185,16 +185,22 @@ finetunedModel_MLPHead_acrossBatches_B56789_80pct_frozen=/home/projects/hornstei
 # $NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/plot_effect_sizes_alyssa -m 1000 \
 # -a $finetunedModel_MLPHead_acrossBatches_B56789_80pct_frozen $data_configs/AlyssaCoyneEffectsFigureConfig $plot_configs/DistancesAlyssaCoynePlotConfig -q short -j alyssa_dist
 
+# $NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/plot_effect_sizes_alyssa_new -m 1000 \
+# -a $finetunedModel_MLPHead_acrossBatches_B56789_80pct_frozen $data_configs/AlyssaCoyneNEWEffectsFigureConfig $plot_configs/DistancesAlyssaCoynePlotConfig -q short -j alyssa_dist
 
 # ####### new dnls ###########
 # $NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/plot_effect_sizes -m 1000 -a \
 # $finetunedModel_MLPHead_acrossBatches_B56789_80pct_frozen $data_configs/dNLSNewEffectsFigureConfig  $plot_configs/DistancesdNLSPlotConfig -q short -j dnls_new
 
 ##### neurons ########
-$NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/plot_effect_sizes -m 1000 -a \
-$finetunedModel_MLPHead_acrossBatches_B56789_80pct_frozen $data_configs/NeuronsEffectsFigureConfig  $plot_configs/DistancesNeuronsALSPlotConfig -q short -j effect_sizes
+# $NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/plot_effect_sizes -m 1000 -a \
+# $finetunedModel_MLPHead_acrossBatches_B56789_80pct_frozen $data_configs/NeuronsEffectsFigureConfig  $plot_configs/DistancesNeuronsALSPlotConfig -q short -j effect_sizes
+
+# $NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/plot_effect_sizes_multiplex -m 1000 -a \
+# $finetunedModel_MLPHead_acrossBatches_B56789_80pct_frozen $data_configs/NeuronsEffectsFigureConfig  $plot_configs/DistancesNeuronsALSPlotConfig -q short -j effect_sizes
 
 
 
-# $NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_umaps_and_plot -m 10000 \
-# -a $finetunedModel_MLPHead_acrossBatches_B56789_80pct_frozen $data_configs/tmp $plot_configs/UMAP2ALSPlotConfig -q short -j umap2_als_b9
+
+$NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_umaps_and_plot -m 5000 \
+-a $finetunedModel_MLPHead_acrossBatches_B56789_80pct_frozen $data_configs/AlyssaCoyneNEWUMAP0FigureConfig $plot_configs/UMAP0AlyssaCoyneColorByGroupPlotConfig -q short -j umap0_alyssa

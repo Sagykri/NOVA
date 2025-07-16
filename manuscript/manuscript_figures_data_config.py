@@ -387,16 +387,31 @@ class NeuronsUMAP0ALSB9SQSTM1FigureConfig(NeuronsUMAP0ALSFigureConfig):
         self.INPUT_FOLDERS = ["batch9"]
         self.CELL_LINES = ['WT','OPTN']
         self.MARKERS = ['SQSTM1']
+
 class AlyssaCoyneEffectsFigureConfig(FigureConfig):
     def __init__(self):
         super().__init__()
         self.INPUT_FOLDERS = ["batch1"]
         
         self.EXPERIMENT_TYPE = 'AlyssaCoyne'
-        self.MARKERS_TO_EXCLUDE = ['MERGED']
         self.ADD_BATCH_TO_LABEL = True
         self.ADD_REP_TO_LABEL = True
         self.MARKERS_TO_EXCLUDE = ['MERGED']
+
+class AlyssaCoyneNEWEffectsFigureConfig(FigureConfig):
+    def __init__(self):
+        super().__init__()
+        self.INPUT_FOLDERS = ["batch1"]
+        
+        self.EXPERIMENT_TYPE = 'AlyssaCoyne_new'
+        self.ADD_BATCH_TO_LABEL = True
+        self.ADD_REP_TO_LABEL = True
+        self.BASELINE_PERTURB = {'Ctrl-EDi022_Untreated':
+                                 ['C9-CS2YNL_Untreated','SALSPositive-CS2FN3_Untreated','SALSNegative-CS0ANK_Untreated'],
+                                 'Ctrl-EDi029_Untreated':
+                                 ['C9-CS7VCZ_Untreated','SALSPositive-CS4ZCD_Untreated','SALSNegative-CS0JPP_Untreated'],
+                                 'Ctrl-EDi037_Untreated':
+                                 ['C9-CS8RFT_Untreated','SALSPositive-CS7TN6_Untreated','SALSNegative-CS6ZU8_Untreated']}
 
 
 class AlyssaCoyneUMAP0FigureConfig(FigureConfig):
@@ -416,6 +431,22 @@ class AlyssaCoyneUMAP0FigureConfig(FigureConfig):
         self.ADD_BATCH_TO_LABEL=False
         self.ADD_CONDITION_TO_LABEL = False
 
+class AlyssaCoyneNEWUMAP0FigureConfig(FigureConfig):
+    def __init__(self):
+        super().__init__()
+
+        self.INPUT_FOLDERS = ["batch1"]
+      
+        self.EXPERIMENT_TYPE = 'AlyssaCoyne_new'    
+        # self.CELL_LINES = ['Controls','sALSPositiveCytoTDP43', 
+        #                    'sALSNegativeCytoTDP43','c9orf72ALSPatients']
+        # self.MARKERS_TO_EXCLUDE = ['MERGED']
+        # Decide if to show ARI metric on the UMAP
+        # self.SHOW_ARI = True
+        # self.ARI_LABELS_FUNC = MapLabelsFunction.CELL_LINES.name
+        self.ADD_REP_TO_LABEL=False
+        self.ADD_BATCH_TO_LABEL=False
+        self.ADD_CONDITION_TO_LABEL = False
 class AlyssaCoyneUMAP2FigureConfig(FigureConfig):
     def __init__(self):
         super().__init__()

@@ -53,17 +53,20 @@ def plot_distances_plots(distances:pd.DataFrame, config_data:DatasetConfig, conf
     plot_clustermap(distances, saveroot, config_data, config_plot, metric=metric)
     plot_bubble_plot(distances, saveroot, config_data, config_plot, metric=metric)
 
-def plot_combined_effect_sizes_barplots(combined_effects_df, batch_effects_df,saveroot:str,config_plot:PlotConfig):
+def plot_combined_effect_sizes_barplots(combined_effects_df, single_effects_df,saveroot:str,config_plot:PlotConfig, combine_on='batch'):
     
     for (baseline, pert), cur_df_combined in combined_effects_df.groupby(['baseline','pert']):
         if saveroot:
             savepath = os.path.join(saveroot, f'{pert}_vs_{baseline}_barplot')
-        cur_df_batch = batch_effects_df[(batch_effects_df.baseline==baseline)&(batch_effects_df.pert==pert)]
-        __plot_barplot(cur_df_combined, baseline, pert, savepath, config_plot, cur_df_batch)
+        cur_df_single = single_effects_df[(single_effects_df.baseline==baseline)&(single_effects_df.pert==pert)]
+        __plot_barplot(cur_df_combined, baseline, pert, savepath, config_plot, cur_df_single,
+                       combine_on=combine_on)
         savepath = savepath.replace('barplot','forestplot')
-        __plot_forest_plot(cur_df_combined, baseline, pert, savepath, config_plot, cur_df_batch, config_plot.FIGSIZE)
+        __plot_forest_plot(cur_df_combined, baseline, pert, savepath, config_plot, cur_df_single, config_plot.FIGSIZE,
+                           combine_on=combine_on)
 
-def __plot_barplot(combined_effects_df, baseline, pert, savepath, config_plot, cur_df_batch):
+def __plot_barplot(combined_effects_df, baseline, pert, savepath, config_plot, cur_df_single,
+                   combine_on = 'batch'):
     for pval_col in ['pvalue','p_heterogeneity']:
         combined_effects_df[pval_col] = combined_effects_df[pval_col].replace(0, 1e-300)  # avoid log(0)
         _, adj_pvals, _, _ = multipletests(combined_effects_df[pval_col], method='fdr_bh')
@@ -94,19 +97,19 @@ def __plot_barplot(combined_effects_df, baseline, pert, savepath, config_plot, c
         Line2D([0], [0], color='blue', lw=0, marker='*', label='adj p-heterogeneity'),
     ]
 
-    # Add the separate batch effect sizes
+    # Add the separate effect sizes
     marker_order = combined_effects_df['marker']
-    cur_df_batch['marker'] = pd.Categorical(cur_df_batch['marker'], categories=marker_order, ordered=True)
-    cur_df_batch = cur_df_batch.sort_values('marker')
+    cur_df_single['marker'] = pd.Categorical(cur_df_single['marker'], categories=marker_order, ordered=True)
+    cur_df_single = cur_df_single.sort_values('marker')
 
-    batches = natsort.natsorted(cur_df_batch['batch'].unique())
-    colors = cm.get_cmap('tab10', len(batches))
+    combine_on_values = natsort.natsorted(cur_df_single[combine_on].unique())
+    colors = cm.get_cmap('tab10', len(combine_on_values))
 
-    for i, batch in enumerate(batches):
-        df_batch = cur_df_batch[cur_df_batch['batch'] == batch]
-        ax.plot(df_batch['marker'], df_batch['effect_size'],
-                linestyle='None', marker='.', color=colors(i), markersize=3, label=batch)
-        legend_elements.append(Line2D([0], [0], marker='.', color=colors(i), lw=0, label=f'{batch}'))
+    for i, combine_on_value in enumerate(combine_on_values):
+        df_single = cur_df_single[cur_df_single[combine_on] == combine_on_value]
+        ax.plot(df_single['marker'], df_single['effect_size'],
+                linestyle='None', marker='.', color=colors(i), markersize=3, label=combine_on_value)
+        legend_elements.append(Line2D([0], [0], marker='.', color=colors(i), lw=0, label=f'{combine_on_value}'))
 
     # Aesthetics
     name_key=config_plot.MAPPINGS_ALIAS_KEY
@@ -126,18 +129,13 @@ def __plot_barplot(combined_effects_df, baseline, pert, savepath, config_plot, c
         plt.show()
     return
 
-def __plot_forest_plot(combined_effects_df, baseline, pert, savepath, config_plot, cur_df_batch, figsize=(5, 7)):
-    for pval_col in ['pvalue','p_heterogeneity']:
-        combined_effects_df[pval_col] = combined_effects_df[pval_col].replace(0, 1e-300)  # avoid log(0)
-        _, adj_pvals, _, _ = multipletests(combined_effects_df[pval_col], method='fdr_bh')
-        combined_effects_df[f'adj_{pval_col}'] = adj_pvals
-        combined_effects_df[f'stars_{pval_col}'] = combined_effects_df[f'adj_{pval_col}'].apply(__convert_pvalue_to_asterisks)
-    
+def __plot_forest_plot(combined_effects_df, baseline, pert, savepath, config_plot, cur_df_single, figsize=(5, 7),
+                       combine_on='batch'):    
     combined_effects_df = combined_effects_df.sort_values('combined_effect', ascending=True).reset_index(drop=True)
 
     fig, ax = plt.subplots(figsize=figsize)
-    logging.info(f'figsize:{figsize}')
-    for marker_index, row in combined_effects_df.iterrows():
+
+    for _, row in combined_effects_df.iterrows():
         ax.errorbar(
             x=row["combined_effect"], y=row['marker'], fmt='o', #y=marker_index
             xerr=[[row["combined_effect"] - row["ci_low"]], 
@@ -149,16 +147,16 @@ def __plot_forest_plot(combined_effects_df, baseline, pert, savepath, config_plo
            markersize=6, linestyle='None'),]
 
     marker_order = combined_effects_df['marker']
-    cur_df_batch['marker'] = pd.Categorical(cur_df_batch['marker'], categories=marker_order, ordered=True)
-    cur_df_batch = cur_df_batch.sort_values('marker',ascending=True)
-    batches = natsort.natsorted(cur_df_batch['batch'].unique())
-    colors = cm.get_cmap('tab10', len(batches))
+    cur_df_single['marker'] = pd.Categorical(cur_df_single['marker'], categories=marker_order, ordered=True)
+    cur_df_single = cur_df_single.sort_values('marker',ascending=True)
+    combine_on_values = natsort.natsorted(cur_df_single[combine_on].unique())
+    colors = cm.get_cmap('tab10', len(combine_on_values))
 
-    for i, batch in enumerate(batches):
-        df_batch = cur_df_batch[cur_df_batch['batch'] == batch]
-        ax.plot(df_batch['effect_size'],df_batch['marker'],
-                linestyle='None', marker='.', color=colors(i), markersize=3, label=batch)
-        legend_elements.append(Line2D([0], [0], marker='.', color=colors(i), lw=0, label=f'{batch}'))
+    for i, combine_on_value in enumerate(combine_on_values):
+        df_single = cur_df_single[cur_df_single[combine_on] == combine_on_value]
+        ax.plot(df_single['effect_size'],df_single['marker'],
+                linestyle='None', marker='.', color=colors(i), markersize=3, label=combine_on_value)
+        legend_elements.append(Line2D([0], [0], marker='.', color=colors(i), lw=0, label=f'{combine_on_value}'))
 
     # Aesthetics
     name_key=config_plot.MAPPINGS_ALIAS_KEY
@@ -172,8 +170,6 @@ def __plot_forest_plot(combined_effects_df, baseline, pert, savepath, config_plo
     ax.set_title(f'{config_plot.COLOR_MAPPINGS_CELL_LINE_CONDITION[pert][name_key]} vs {config_plot.COLOR_MAPPINGS_CELL_LINE_CONDITION[baseline][name_key]}')
 
     ax.legend(handles=legend_elements, bbox_to_anchor = (1.02,0.9), loc='lower left', frameon=False)
-
-    # plt.tight_layout()
     
     if savepath:
         save_plot(fig, savepath, dpi=300, save_eps=True)
@@ -181,6 +177,50 @@ def __plot_forest_plot(combined_effects_df, baseline, pert, savepath, config_plo
         plt.show()
     return
 
+def plot_multiplex_forestplot(combined_effects_df,cur_df_single, savepath, config_plot, figsize=(5, 7),
+                       combine_on='batch'):
+    combined_effects_df = combined_effects_df.sort_values('combined_effect', ascending=True).reset_index(drop=True)
+
+    fig, ax = plt.subplots(figsize=figsize)
+    for _, row in combined_effects_df.iterrows():
+        ax.errorbar(
+            x=row["combined_effect"], y=row['pert'], fmt='o',
+            xerr=[[row["combined_effect"] - row["ci_low"]], 
+                  [row["ci_upp"] - row["combined_effect"]]],
+            color='black', capsize=3, lw=1)
+
+    legend_elements = [
+    Line2D([0], [0], marker='o', color='black', label='Combined effect',
+           markersize=6, linestyle='None'),]
+
+    pert_order = combined_effects_df['pert']
+    cur_df_single['pert'] = pd.Categorical(cur_df_single['pert'], categories=pert_order, ordered=True)
+    cur_df_single = cur_df_single.sort_values('pert',ascending=True)
+    combine_on_values = natsort.natsorted(cur_df_single[combine_on].unique())
+    colors = cm.get_cmap('tab10', len(combine_on_values))
+
+    for i, combine_on_value in enumerate(combine_on_values):
+        df_single = cur_df_single[cur_df_single[combine_on] == combine_on_value]
+        ax.plot(df_single['effect_size'],df_single['pert'],
+                linestyle='None', marker='.', color=colors(i), markersize=3, label=combine_on_value)
+        legend_elements.append(Line2D([0], [0], marker='.', color=colors(i), lw=0, label=f'{combine_on_value}'))
+
+    # Aesthetics
+    name_key=config_plot.MAPPINGS_ALIAS_KEY
+    pert_name_color_dict = config_plot.COLOR_MAPPINGS_CELL_LINE_CONDITION
+    y_ticklabels = [pert_name_color_dict[pert][name_key] if pert_name_color_dict else pert for pert in combined_effects_df['pert']]
+    ax.set_yticks(range(len(combined_effects_df)))
+    ax.set_yticklabels(y_ticklabels)#, ha='right')
+    ax.axvline(0, color="gray", linestyle="--", zorder=0, lw=0.5)
+    ax.set_xlabel("Effect Size (Log2FC)")
+
+    ax.legend(handles=legend_elements, bbox_to_anchor = (1.02,0.9), loc='lower left', frameon=False)
+    
+    if savepath:
+        save_plot(fig, savepath, dpi=300, save_eps=True)
+    else:
+        plt.show()
+    return
 def plot_barplot_alyssa_old(effects_df, savepath, config_plot):
     effects_df['pvalue'] = effects_df['pvalue'].replace(0, 1e-300)  # avoid log(0)
     _, adj_pvals, _, _ = multipletests(effects_df['pvalue'], method='fdr_bh')

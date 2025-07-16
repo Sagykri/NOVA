@@ -19,3 +19,4 @@ class EffectConfig(EmbeddingsConfig):
         self.BASELINE_PERTURB:Dict[int:List[int]] = None # Used for Alyssa's data. for example: {'WT_Untreated':['WT_stress']}
 
         self.MIN_REQUIRED:int = 500
+        self.N_BOOT:int = 1000

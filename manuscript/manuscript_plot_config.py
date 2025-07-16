@@ -223,3 +223,4 @@ class DistancesAlyssaCoynePlotConfig(PlotConfig):
         super().__init__()
 
         self.COLOR_MAPPINGS_CELL_LINE_CONDITION = self.COLOR_MAPPINGS_ALYSSA
+        self.FIGSIZE = (5,7)

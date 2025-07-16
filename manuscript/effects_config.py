@@ -96,7 +96,7 @@ class Day18EffectConfig(EffectConfig): ## need to be defined with baseline and p
         
         self.EXPERIMENT_TYPE = 'neurons_d18'    
         self.MARKERS = list(PlotConfig().COLOR_MAPPINGS_MARKERS.keys())
-        self.MARKERS_TO_EXCLUDE = ['TIA1','DAPI']       
+        self.MARKERS_TO_EXCLUDE = ['TIA1','DAPI']        
 
 class AlyssaCoyneEffectConfig(EffectConfig):
     def __init__(self):
@@ -110,6 +110,7 @@ class AlyssaCoyneEffectConfig(EffectConfig):
                                                        ['sALSPositiveCytoTDP43','sALSNegativeCytoTDP43','c9orf72ALSPatients']]}
         self.MARKERS_TO_EXCLUDE = ['MERGED']
         self.MIN_REQUIRED = 200 
+        self.N_BOOT = 100 
 
 class AlyssaCoyneNEWEffectConfig(EffectConfig):
     def __init__(self):
@@ -117,12 +118,16 @@ class AlyssaCoyneNEWEffectConfig(EffectConfig):
 
         self.INPUT_FOLDERS = ["batch1"]
         
-        self.EXPERIMENT_TYPE = 'AlyssaCoyne'    
-        self.BASELINE_PERTURB = {f'Ctrl#{i}':[f'{cell_line}#{i}_Untreated' 
-                                              for cell_line in ['C9','SALSNegative','SALSPositive']] 
-                                              for i in range(1,4)}
-        self.MARKERS_TO_EXCLUDE = ['MERGED']
-        # self.MIN_REQUIRED = 200
+        self.EXPERIMENT_TYPE = 'AlyssaCoyne_new'    
+        self.BASELINE_PERTURB = {'Ctrl-EDi022_Untreated':
+                                 ['C9-CS2YNL_Untreated','SALSPositive-CS2FN3_Untreated','SALSNegative-CS0ANK_Untreated'],
+                                 'Ctrl-EDi029_Untreated':
+                                 ['C9-CS7VCZ_Untreated','SALSPositive-CS4ZCD_Untreated','SALSNegative-CS0JPP_Untreated'],
+                                 'Ctrl-EDi037_Untreated':
+                                 ['C9-CS8RFT_Untreated','SALSPositive-CS7TN6_Untreated','SALSNegative-CS6ZU8_Untreated']}
+        self.MARKERS_TO_EXCLUDE = []
+        self.MIN_REQUIRED = 50
+        self.N_BOOT = 100 
 
 class dNLSNewEffectConfig(EffectConfig):
     def __init__(self):
@@ -144,3 +149,22 @@ class iAstrocytesEffectConfig(EffectConfig):
         self.EXPERIMENT_TYPE = 'iAstrocytes_Tile146'    
         self.BASELINE_PERTURB = {'WT_Untreated':['C9_Untreated']}
         self.MIN_REQUIRED = 200 
+
+class NeuronsMultiplexEffectConfig(EffectConfig):
+    def __init__(self):
+        super().__init__()
+
+        self.INPUT_FOLDERS =  [f"batch{i}" for i in [1,2,3,7,8,9,10]]
+        self.EXPERIMENT_TYPE = 'neuronsDay8_new'    
+        
+        self.BASELINE_PERTURB = {'WT_Untreated':['FUSHomozygous_Untreated',
+                                                 'FUSHeterozygous_Untreated',
+                                                 'FUSRevertant_Untreated',
+                                                 'TDP43_Untreated',
+                                                 'OPTN_Untreated',
+                                                 'TBK1_Untreated']}
+        self.CELL_LINES = ['WT','FUSHomozygous','FUSHeterozygous','FUSRevertant',
+                           'TDP43','OPTN','TBK1']
+        self.CONDITIONS = ['Untreated']
+        self.ADD_BATCH_TO_LABEL = True
+        self.ADD_REP_TO_LABEL = False

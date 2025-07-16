@@ -90,6 +90,17 @@ class PlotConfig(PlotConfig):
             'Tubulin':{self.MAPPINGS_ALIAS_KEY:'Microtubules', self.MAPPINGS_COLOR_KEY:'gray'},
             'TIA1':{self.MAPPINGS_ALIAS_KEY:'TIA1', self.MAPPINGS_COLOR_KEY:'gray'},
 
+            'hnRNPA1': {self.MAPPINGS_ALIAS_KEY:'hnRNPA1', self.MAPPINGS_COLOR_KEY:'gray'},
+            'LaminB1': {self.MAPPINGS_ALIAS_KEY:'LaminB1', self.MAPPINGS_COLOR_KEY:'gray'},
+            'Nup153': {self.MAPPINGS_ALIAS_KEY:'Nup153', self.MAPPINGS_COLOR_KEY:'gray'},
+            'POM121': {self.MAPPINGS_ALIAS_KEY:'POM121', self.MAPPINGS_COLOR_KEY:'gray'},
+            'Calnexin': {self.MAPPINGS_ALIAS_KEY:'Calnexin', self.MAPPINGS_COLOR_KEY:'gray'},
+            'EEA1': {self.MAPPINGS_ALIAS_KEY:'EEA1', self.MAPPINGS_COLOR_KEY:'gray'},
+            'hnRNPA2B1': {self.MAPPINGS_ALIAS_KEY:'hnRNPA2B1', self.MAPPINGS_COLOR_KEY:'gray'},
+            'Lamp1': {self.MAPPINGS_ALIAS_KEY:'Lysosome', self.MAPPINGS_COLOR_KEY:'gray'},
+            'Nup62': {self.MAPPINGS_ALIAS_KEY:'Nup62', self.MAPPINGS_COLOR_KEY:'gray'},
+            'Nup98': {self.MAPPINGS_ALIAS_KEY:'Nup98', self.MAPPINGS_COLOR_KEY:'gray'},
+
         }
         self.COLOR_MAPPINGS_CONDITION_AND_ALS: Dict[str, Dict[str,str]] = {
             'WT_stress':{self.MAPPINGS_ALIAS_KEY: 'Wild-Type + Stress',self.MAPPINGS_COLOR_KEY: '#F7810F'},
@@ -135,10 +146,29 @@ class PlotConfig(PlotConfig):
             'c9orf72ALSPatients_rep2':{self.MAPPINGS_ALIAS_KEY:'2', self.MAPPINGS_COLOR_KEY:'#bc2a33'},
             'c9orf72ALSPatients_rep3':{self.MAPPINGS_ALIAS_KEY:'3', self.MAPPINGS_COLOR_KEY:'#8d1f26'},
 
+            'Ctrl':{self.MAPPINGS_ALIAS_KEY: 'Controls',self.MAPPINGS_COLOR_KEY: '#58cfdf'},
+            'SALSPositive':{self.MAPPINGS_ALIAS_KEY:'sALS Positive TDP-43', self.MAPPINGS_COLOR_KEY:'#f6ce55'},
+            'SALSNegative':{self.MAPPINGS_ALIAS_KEY:'sALS Negative TDP-43', self.MAPPINGS_COLOR_KEY:'#3ce23c'},
+            'C9':{self.MAPPINGS_ALIAS_KEY:'c9orf72', self.MAPPINGS_COLOR_KEY:'#eb3440'},
+
         }
         self.COLOR_MAPPINGS_ALYSSA['Controls'] = self.COLOR_MAPPINGS_ALYSSA['Controls_Untreated']
         self.COLOR_MAPPINGS_ALYSSA['sALSPositiveCytoTDP43'] = self.COLOR_MAPPINGS_ALYSSA['sALSPositiveCytoTDP43_Untreated']
         self.COLOR_MAPPINGS_ALYSSA['sALSNegativeCytoTDP43'] = self.COLOR_MAPPINGS_ALYSSA['sALSNegativeCytoTDP43_Untreated']
         self.COLOR_MAPPINGS_ALYSSA['c9orf72ALSPatients'] = self.COLOR_MAPPINGS_ALYSSA['c9orf72ALSPatients_Untreated']
+
+      
+        self.COLOR_MAPPINGS_ALYSSA['Ctrl-EDi022'] = self.COLOR_MAPPINGS_ALYSSA['Ctrl']
+        self.COLOR_MAPPINGS_ALYSSA['Ctrl-EDi029'] = self.COLOR_MAPPINGS_ALYSSA['Ctrl']
+        self.COLOR_MAPPINGS_ALYSSA['Ctrl-EDi037'] = self.COLOR_MAPPINGS_ALYSSA['Ctrl']
+        self.COLOR_MAPPINGS_ALYSSA['SALSPositive-CS7TN6'] = self.COLOR_MAPPINGS_ALYSSA['SALSPositive']
+        self.COLOR_MAPPINGS_ALYSSA['SALSPositive-CS2FN3'] = self.COLOR_MAPPINGS_ALYSSA['SALSPositive']
+        self.COLOR_MAPPINGS_ALYSSA['SALSPositive-CS4ZCD'] = self.COLOR_MAPPINGS_ALYSSA['SALSPositive']
+        self.COLOR_MAPPINGS_ALYSSA['SALSNegative-CS0JPP'] = self.COLOR_MAPPINGS_ALYSSA['SALSNegative']
+        self.COLOR_MAPPINGS_ALYSSA['SALSNegative-CS0ANK'] = self.COLOR_MAPPINGS_ALYSSA['SALSNegative']
+        self.COLOR_MAPPINGS_ALYSSA['SALSNegative-CS6ZU8'] = self.COLOR_MAPPINGS_ALYSSA['SALSNegative']
+        self.COLOR_MAPPINGS_ALYSSA['C9-CS7VCZ'] = self.COLOR_MAPPINGS_ALYSSA['C9']
+        self.COLOR_MAPPINGS_ALYSSA['C9-CS8RFT'] = self.COLOR_MAPPINGS_ALYSSA['C9']
+        self.COLOR_MAPPINGS_ALYSSA['C9-CS2YNL'] = self.COLOR_MAPPINGS_ALYSSA['C9']
 
         self.COLOR_MAPPINGS = self.COLOR_MAPPINGS_ALS

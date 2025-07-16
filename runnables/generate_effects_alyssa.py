@@ -19,11 +19,8 @@ def generate_effects(output_folder_path:str, config_path_data:str )->None:
     logging.info(f"[Generate effects]")
     embeddings, labels, _ = load_embeddings(output_folder_path, config_data)
     d = AnalyzerEffectsAlyssaOLD(config_data, output_folder_path)
-    d.calculate(embeddings, labels)
-    d.save()
-
-    #TODO: add the run of the NEW data (AnalyzerEffectsAlyssaNEW)
-        
+    d.calculate(embeddings, labels,n_boot=config_data.N_BOOT)
+    d.save()        
 
 if __name__ == "__main__":
     print("Starting generating effects...")
