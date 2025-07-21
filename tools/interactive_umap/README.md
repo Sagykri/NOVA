@@ -75,6 +75,24 @@ Once your notebook environment is ready, proceed with the instructions in the ne
 
 *Note: The notebook includes further instructions and explanations for how to set the parameters when running this cell. Please follow the guidance provided within the notebook as you proceed.*
 
+---
+
+### ⚠️ UI not displaying?
+
+If the interactive UI does not render (e.g., you only see `VBox(...)` printed), run the following commands in a new cell:
+
+```bash
+!pip install widgetsnbextension --user
+!jupyter nbextension install --py widgetsnbextension --user
+!jupyter nbextension enable --py widgetsnbextension --user
+```
+
+Then:
+1. Restart the kernel  
+2. Refresh the notebook page  
+3. Delete the cell with the install commands  
+4. Continue running the notebook as usual
+
 ## Workflow: Using the Interactive UMAP Tool
 
 ### Step 1: Selecting Data Paths
