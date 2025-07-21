@@ -333,19 +333,11 @@ class PlotConfig(PlotConfig):
             'TDP--43_stress': {self.MAPPINGS_ALIAS_KEY: 'TDP-43 Stress', self.MAPPINGS_COLOR_KEY: '#C75D6A'}
         }
 
-        # self.COLOR_MAPPINGS_IASTROCYTES: Dict[str, Dict[str, str]] = {
-        #     'DAPI': {self.MAPPINGS_ALIAS_KEY: 'Nucleus', self.MAPPINGS_COLOR_KEY: '#AFBDFF'},
-        #     'ARL13B': {self.MAPPINGS_ALIAS_KEY: 'ARL13B', self.MAPPINGS_COLOR_KEY: '#F7810F'},
-        #     'PML': {self.MAPPINGS_ALIAS_KEY: 'PML Bodies', self.MAPPINGS_COLOR_KEY: '#37AFD7'},
-        #     'Vimentin': {self.MAPPINGS_ALIAS_KEY: 'Vimentin', self.MAPPINGS_COLOR_KEY: '#AB7A5B'},
-        #     'WDR49': {self.MAPPINGS_ALIAS_KEY: 'WDR49', self.MAPPINGS_COLOR_KEY: '#78491C'},
-        #     'Calreticulin': {self.MAPPINGS_ALIAS_KEY: 'ER', self.MAPPINGS_COLOR_KEY: '#C8C512'},
-        #     'TDP43': {self.MAPPINGS_ALIAS_KEY: 'TDP-43 granules', self.MAPPINGS_COLOR_KEY: '#FF98BB'},
-        # }
+        
         self.COLOR_MAPPINGS_IASTROCYTES = {**self.COLOR_MAPPINGS_MARKERS} 
         self.COLOR_MAPPINGS_IASTROCYTES.update({
             'ARL13B': {self.MAPPINGS_ALIAS_KEY: 'ARL13B', self.MAPPINGS_COLOR_KEY: '#F7810F'},
-            'Vimentin': {self.MAPPINGS_ALIAS_KEY: 'Vimentin', self.MAPPINGS_COLOR_KEY: '#AB7A5B'},
+            'Vimentin': {self.MAPPINGS_ALIAS_KEY: 'Vimentin', self.MAPPINGS_COLOR_KEY: '#800020'},
             'WDR49': {self.MAPPINGS_ALIAS_KEY: 'WDR49', self.MAPPINGS_COLOR_KEY: '#78491C'},
         })
 

@@ -1312,12 +1312,21 @@ class iAstrocytesUMAP0CellLinesFigureConfig(FigureConfig):
         """        
         self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "batch1")]
 
-        self.EXPERIMENT_TYPE = 'iAstrocytes'    
+        self.EXPERIMENT_TYPE = 'iAstrocytes_Tile146'    
         self.MARKERS_TO_EXCLUDE = []
         self.SHOW_ARI = True
         self.ARI_LABELS_FUNC = MapLabelsFunction.CELL_LINES.name
         self.ADD_LINE_TO_LABEL = True
         self.ADD_REP_TO_LABEL=False   
+
+class iAstrocytesUMAP0CellLinesFigureConfigByRep(iAstrocytesUMAP0CellLinesFigureConfig):
+    def __init__(self):
+        super().__init__()
+        """UMAP0 of single markers - Cell lines - color by rep
+        """      
+        self.ARI_LABELS_FUNC = MapLabelsFunction.REPS.name
+        self.ADD_LINE_TO_LABEL = False  
+        self.ADD_REP_TO_LABEL=True   
 
 class iAstrocytesUMAP1WTFigureConfig(FigureConfig):
     def __init__(self):
@@ -1328,8 +1337,8 @@ class iAstrocytesUMAP1WTFigureConfig(FigureConfig):
 
         self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "batch1")]
 
-        self.EXPERIMENT_TYPE = 'iAstrocytes'    
-        self.MARKERS_TO_EXCLUDE = ['DAPI'] 
+        self.EXPERIMENT_TYPE = 'iAstrocytes_Tile146'    
+        self.MARKERS_TO_EXCLUDE = [] 
         self.CELL_LINES = ['WT']
         
         # Decide if to show ARI metric on the UMAP
@@ -1345,8 +1354,8 @@ class iAstrocytesUMAP1C9FigureConfig(FigureConfig):
 
         self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "batch1")]
 
-        self.EXPERIMENT_TYPE = 'iAstrocytes'    
-        self.MARKERS_TO_EXCLUDE = ['DAPI'] 
+        self.EXPERIMENT_TYPE = 'iAstrocytes_Tile146'    
+        self.MARKERS_TO_EXCLUDE = [] 
         self.CELL_LINES = ['C9']
         
         # Decide if to show ARI metric on the UMAP
@@ -1359,7 +1368,7 @@ class UMAP2iAstrocytesCellLinesFigureConfig(FigureConfig):
         """UMAP2 multiplex of WT vs c9
         """
         self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "batch1")]
-        self.EXPERIMENT_TYPE = 'iAstrocytes'   
+        self.EXPERIMENT_TYPE = 'iAstrocytes_Tile146'   
         self.MARKERS_TO_EXCLUDE = [] 
         self.CONDITIONS = ['Untreated']
         self.SHOW_ARI = True
@@ -1372,7 +1381,7 @@ class iAstrocytesDistancesALSFigureConfig(FigureConfig):
         super().__init__()
         self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "batch1")]
 
-        self.EXPERIMENT_TYPE = 'iAstrocytes'    
+        self.EXPERIMENT_TYPE = 'iAstrocytes_Tile146'    
         self.MARKERS_TO_EXCLUDE = []
         self.BASELINE_CELL_LINE_CONDITION = "WT_Untreated"
         self.CONDITIONS = ['Untreated']
