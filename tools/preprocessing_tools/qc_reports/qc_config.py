@@ -1,7 +1,9 @@
 import pandas as pd
 import seaborn as sns
 import numpy as np
-
+import natsort
+import matplotlib.colors as mcolors
+from collections import defaultdict
 # TODO: Pretify this
 
 # regular neurons
@@ -466,7 +468,10 @@ np_expected_dapi_raw = 100*len(np_panels.columns)
 
 
 ### Alyssa Coyne data
-AC_panels = pd.DataFrame([['DCP1A'],['Map2'],['TDP43'],['DAPI']], columns=['A'],
+AC_panels = pd.DataFrame([['DCP1A'],
+                          ['Map2'],
+                          ['TDP43'],
+                          ['DAPI']], columns=['A'],
             index=['Cy5', 'mCherry', 'GFP','DAPI'])
 
 AC_markers = ['DCP1A','Map2','TDP43','DAPI']
@@ -549,3 +554,105 @@ new_d8_line_colors = {
 new_d8_lines_order = line_colors.keys()
 new_d8_custom_palette = [line_colors[line] for line in lines_order] + [colorblind_palette[7]]
 new_d8_expected_dapi_raw = 250*12
+
+new_d8_panels = pd.DataFrame([['G3BP1','NONO','SQSTM1','PSD95','NEMO','GM130','NCL','LSM14A', 'TDP43', 'ANXA11', 'PEX14', 'mitotracker'],
+             ['FMRP','SON','KIF5A', 'CLTC', 'DCP1A', 'Calreticulin', 'FUS', 'HNRNPA1', 'PML', 'LAMP1', 'SNCA', 'TIA1'],
+             ['PURA','CD41','Tubulin', 'Phalloidin',np.nan, np.nan, np.nan, np.nan, np.nan, np.nan, np.nan,'TOMM20'],
+             ['DAPI']*12], columns=['A','B','C','D','E','F','G','H','I','J','K','L'],
+            index=['Cy5', 'mCherry', 'GFP','DAPI'])
+new_d8_markers = ['G3BP1','NONO','SQSTM1','PSD95','NEMO','GM130','NCL','LSM14A', 'TDP43', 'ANXA11', 'PEX14', 'mitotracker',
+                                 'FMRP','SON','KIF5A', 'CLTC', 'DCP1A', 'Calreticulin', 'FUS', 'HNRNPA1', 'PML', 'LAMP1', 'SNCA', 'TIA1',
+                                 'PURA','CD41','Tubulin', 'Phalloidin', 'TOMM20', 'DAPI']
+
+new_d8_marker_info = pd.DataFrame([[['Cy5']]*12 + [['mCherry']]*12 + [['GFP']]*5,
+                          [['A'],['B'],['C'],['D'],['E'],['F'],['G'],['H'],['I'],['J'],['K'],['L'],
+                          ['A'],['B'],['C'],['D'],['E'],['F'],['G'],['H'],['I'],['J'],['K'],['L'],
+                          ['A'],['B'],['C'],['D'],['L']]], index=['Antibody','panel'],
+                         columns = ['G3BP1','NONO','SQSTM1','PSD95','NEMO','GM130','NCL', 'LSM14A', 'TDP43', 'ANXA11', 'PEX14', 'mitotracker',
+                                 'FMRP','SON','KIF5A', 'CLTC', 'DCP1A', 'Calreticulin', 'FUS', 'HNRNPA1', 'PML', 'LAMP1', 'SNCA', 'TIA1',
+                                 'PURA','CD41','Tubulin', 'Phalloidin', 'TOMM20']).T  #order here is important - taken from Lena's sheet
+new_d8_cell_lines = ['FUSHomozygous', 'TDP43', 'TBK1', 'WT', 'FUSRevertant','OPTN', 'FUSHeterozygous', 'SCNA']
+new_d8_cell_lines_to_cond = {'FUSHomozygous':['Untreated'], 'TDP43':['Untreated'], 'TBK1':['Untreated'],
+                      'WT':['Untreated','stress'], 'FUSRevertant':['Untreated'],
+                      'OPTN':['Untreated'], 'FUSHeterozygous':['Untreated'],'SNCA':['Untreated']}
+new_d8_cell_lines_for_disp = {'FUSHomozygous_Untreated':'FUSHomozygous', 'TDP43_Untreated':'TDP43', 
+                       'TBK1_Untreated':'TBK1', 'WT_stress':'WT stress', 'WT_Untreated':'WT Untreated',
+                        'FUSRevertant_Untreated':'FUSRevertant',
+                        'OPTN_Untreated':'OPTN', 'FUSHeterozygous_Untreated':'FUSHeterozygous','SNCA_Untreated':'SNCA'}
+new_d8_reps = ['rep1','rep2']
+new_d8_colorblind_palette = sns.color_palette('colorblind')
+new_d8_line_colors = {
+    'FUSHeterozygous': colorblind_palette[0],
+    'FUSHomozygous': colorblind_palette[1],
+    'FUSRevertant': colorblind_palette[2],
+    'OPTN': colorblind_palette[8],
+    'SNCA': colorblind_palette[4],
+    'TBK1': colorblind_palette[5],
+    'TDP43': colorblind_palette[6],
+    'WT Untreated': colorblind_palette[9],
+    'WT stress': colorblind_palette[3]
+}
+new_d8_lines_order = line_colors.keys()
+new_d8_custom_palette = [line_colors[line] for line in lines_order] + [colorblind_palette[7]]
+new_d8_expected_dapi_raw = 250*12
+
+## AC NEW DATA
+
+AC_panels_new = pd.DataFrame([['TDP43', 'LaminB1', 'G3BP1', 'FUS', 'TIA1', 'SCNA', 'SQSTM1', 'NEMO', 'GM130', 'NONO', 'hnRNPA1', 'hnRNPA2B1'],
+                            ['Map2', 'Nup62', 'PURA', 'CD41', 'Nup98', 'Nup153', 'PSD95', 'Phalloidin', np.nan, np.nan, np.nan, np.nan],
+                            ['DCP1A', 'POM121', 'KIF5A', 'FMRP', 'TOMM20', 'ANXA11', 'Lamp1', 'NCL', 'Calreticulin', 'CLTC', 'EEA1', 'Calnexin'],
+                            ['DAPI']*12], columns=['A','B','C','D','E','F','G','H','I','J','K','L'],
+            index=['Cy5', 'mCherry', 'GFP','DAPI'])
+
+AC_reps_new = ['rep1', 'rep2']
+
+AC_marker_info_new = pd.DataFrame([[['Cy5']]*12 + [['mCherry']]*8 + [['GFP']]*12,
+                          [['A'],['B'],['C'],['D'],['E'],['F'],['G'],['H'],['I'],['J'],['K'],['L'],
+                          ['A'],['B'],['C'],['D'],['E'],['F'],['G'],['H'],
+                          ['A'],['B'],['C'],['D'],['E'],['F'],['G'],['H'],['I'],['J'],['K'],['L']]], index=['Antibody','panel'],
+                         columns = ['TDP43', 'LaminB1', 'G3BP1', 'FUS', 'TIA1', 'SCNA', 'SQSTM1', 'NEMO', 'GM130', 'NONO', 'hnRNPA1', 'hnRNPA2B1',
+                         'Map2', 'Nup62', 'PURA', 'CD41', 'Nup98', 'Nup153', 'PSD95', 'Phalloidin',
+                         'DCP1A', 'POM121', 'KIF5A', 'FMRP', 'TOMM20', 'ANXA11', 'Lamp1', 'NCL', 'Calreticulin', 'CLTC', 'EEA1', 'Calnexin'
+                         ]).T  #order here is important - taken from Lena's sheet
+
+AC_markers_new = ['ANXA11','CD41','DCP1A','FUS','hnRNPA1','LaminB1','NCL','Nup153','POM121','SCNA','TIA1',
+                  'Calnexin','CLTC','EEA1','G3BP1','hnRNPA2B1','Lamp1','NEMO','Nup62','PSD95','SQSTM1','TOMM20',
+                  'Calreticulin','DAPI','FMRP','GM130','KIF5A','Map2','NONO','Nup98','PURA','TDP43','Phalloidin']
+
+AC_cell_lines_new = ['C9-CS2YNL','C9-CS8RFT','Ctrl-EDi029','SALSNegative-CS0ANK','SALSNegative-CS6ZU8',
+                    'SALSPositive-CS4ZCD','C9-CS7VCZ','Ctrl-EDi022','Ctrl-EDi037','SALSNegative-CS0JPP',
+                    'SALSPositive-CS2FN3','SALSPositive-CS7TN6']
+
+AC_cell_lines_to_cond_new = {cell_line:['Untreated'] for cell_line in AC_cell_lines_new}
+
+AC_cell_lines_for_disp_new = {f'{cell_line}_Untreated':cell_line.replace('-','\n') for cell_line in AC_cell_lines_new} 
+
+group_order = ['C9', 'Ctrl', 'SALSNegative', 'SALSPositive']
+group_to_lines = defaultdict(list)
+for cl in AC_cell_lines_new:
+    for group in group_order:
+        if cl.startswith(group):
+            group_to_lines[group].append(cl)
+            break
+
+base_colors = sns.color_palette('colorblind', len(group_order))
+group_to_color = dict(zip(group_order, base_colors))
+
+shade_factors = [0.8, 0.6, 0.4]
+
+# Build color dictionary
+AC_line_colors_new = {}
+for group in group_order:
+    base = group_to_color[group]
+    lines = group_to_lines[group]
+    for i, cl in enumerate(lines):
+        factor = shade_factors[i % 3]
+        shade = tuple(c * factor + (1 - factor) for c in base)  # blend toward white
+        AC_line_colors_new[cl] = shade
+
+AC_colorblind_palette_new = sns.color_palette('colorblind', n_colors=len(AC_cell_lines_new))
+
+AC_lines_order_new = natsort.natsorted(AC_line_colors_new.keys())
+AC_custom_palette_new = [AC_line_colors_new[line] for line in AC_lines_order_new]
+
+AC_expected_dapi_raw_new = 5*12
