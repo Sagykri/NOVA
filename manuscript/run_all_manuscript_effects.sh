@@ -60,13 +60,13 @@ effects_configs=./manuscript/effects_config
 
 
 # ##### new dNLS #####
-# $NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_effects \
-# -a $finetunedModel_MLPHead_acrossBatches_B56789_80pct_frozen $effects_configs/dNLSNewEffectConfig -q short -j effect_dnlsNew -m 60000
+$NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_effects \
+-a $finetunedModel_MLPHead_acrossBatches_B56789_80pct_frozen $effects_configs/dNLSNewEffectConfig_CLEAN -q short -j effect_dnlsNew -m 60000
 
 # $NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_effects_alyssa \
 # -a $finetunedModel_MLPHead_acrossBatches_B56789_80pct_frozen $effects_configs/iAstrocytesEffectConfig -q short -j effect_iAstrocytes
 
 
 #### Multiplex ####
-$NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_effects_multiplex \
--a $finetunedModel_MLPHead_acrossBatches_B56789_80pct_frozen $effects_configs/NeuronsMultiplexEffectConfig -q short -j effect_multi -m 100000
+# $NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_effects_multiplex \
+# -a $finetunedModel_MLPHead_acrossBatches_B56789_80pct_frozen $effects_configs/NeuronsMultiplexEffectConfig -q short -j effect_multi -m 100000

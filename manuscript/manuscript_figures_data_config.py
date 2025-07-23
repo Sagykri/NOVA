@@ -277,6 +277,11 @@ class dNLSNewEffectsFigureConfig(FigureConfig):
         self.MARKERS = list(PlotConfig().COLOR_MAPPINGS_MARKERS.keys())
         self.BASELINE_PERTURB = {'dNLS_Untreated':['dNLS_DOX']}
 
+class dNLSNewEffectsFigureConfig_CLEAN(dNLSNewEffectsFigureConfig):
+    def __init__(self):
+        super().__init__()
+        self.EXPERIMENT_TYPE = 'dNLSCLEAN'
+
 class NeuronsEffectsFigureConfig(FigureConfig):
     def __init__(self):
         super().__init__()

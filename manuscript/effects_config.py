@@ -140,6 +140,14 @@ class dNLSNewEffectConfig(EffectConfig):
         self.MARKERS = list(PlotConfig().COLOR_MAPPINGS_MARKERS.keys())
 
 
+class dNLSNewEffectConfig_CLEAN(dNLSNewEffectConfig):
+    def __init__(self):
+        super().__init__()
+        self.EXPERIMENT_TYPE = 'dNLSCLEAN'
+
+        self.MIN_REQUIRED:int = 200
+        self.N_BOOT:int = 1000
+
 class iAstrocytesEffectConfig(EffectConfig):
     def __init__(self):
         super().__init__()

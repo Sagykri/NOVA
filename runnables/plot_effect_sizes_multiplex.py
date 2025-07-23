@@ -9,7 +9,7 @@ print(f"NOVA_HOME: {os.getenv('NOVA_HOME')}")
 import logging
 
 from src.common.utils import load_config_file, save_config
-from src.figures.distances_plotting import plot_multiplex_forestplot
+from src.figures.effect_size_plotting import plot_multiplex_forestplot
 from src.datasets.dataset_config import DatasetConfig
 from src.figures.plot_config import PlotConfig
 

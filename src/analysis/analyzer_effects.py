@@ -11,6 +11,7 @@ import numpy as np
 from typing import Tuple
 import statsmodels.stats.meta_analysis as smm
 from scipy.stats import norm, chi2
+from statsmodels.stats.multitest import multipletests
 
 from src.datasets.dataset_config import DatasetConfig
 from src.datasets.label_utils import get_batches_from_input_folders
@@ -76,6 +77,8 @@ class AnalyzerEffects(Analyzer):
         embeddings_dim = embeddings.shape[1]
         batch_effects_df = self._calculate_all_effects(embeddings_df, embeddings_dim, n_boot)
         combined_effects_df = self._combine_effects(batch_effects_df)
+        self._correct_for_multiple_hypothesis(combined_effects_df)
+
         self.features = combined_effects_df, batch_effects_df
 
         return combined_effects_df, batch_effects_df
@@ -124,6 +127,19 @@ class AnalyzerEffects(Analyzer):
             - The variance of the effect
         """
         pass
+
+    def _correct_for_multiple_hypothesis(self, combined_effects_df: pd.DataFrame) -> None:
+        """Correct p-values for multiple hypothesis testing. In-place adding columns to the dataframe:
+            - 'adj_pvalue': adjusted p-values for 'pvalue' column
+            - 'adj_p_heterogeneity': adjusted p-values for 'p_heterogeneity' column 
+        Args:
+            combined_effects_df (pd.DataFrame): The input dataframe with columns for adjusted pvalues: 
+            'adj_pvalue', 'adj_p_heterogeneity'.
+        """
+        for pval_col in ['pvalue','p_heterogeneity']:
+            combined_effects_df[pval_col] = combined_effects_df[pval_col].replace(0, 1e-300)  # avoid log(0)
+            _, adj_pvals, _, _ = multipletests(combined_effects_df[pval_col], method='fdr_bh')
+            combined_effects_df[f'adj_{pval_col}'] = adj_pvals
 
     def _combine_effects(self, batch_effects: pd.DataFrame, alt: str = "greater", 
                      effect_type: str = 'random') -> pd.DataFrame:
