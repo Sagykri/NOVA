@@ -9,11 +9,11 @@ print(f"NOVA_HOME: {os.getenv('NOVA_HOME')}")
 import logging
 
 from src.common.utils import load_config_file, save_config
-from src.figures.effect_size_plotting import plot_combined_effect_sizes_barplots
+from src.figures.effect_size_plotting import plot_multiplex_forestplot
 from src.datasets.dataset_config import DatasetConfig
 from src.figures.plot_config import PlotConfig
 
-from src.analysis.analyzer_effects_dist_ratio import AnalyzerEffectsDistRatio
+from src.analysis.analyzer_effects_multiplex import AnalyzerEffectsMultiplex
 
 
 def plot_effect_sizes(output_folder_path:str, config_path_data:str, config_path_plot:str)->None:
@@ -22,21 +22,16 @@ def plot_effect_sizes(output_folder_path:str, config_path_data:str, config_path_
     logging.info("[Plot effect sizes]")
     config_plot:PlotConfig = load_config_file(config_path_plot, 'plot')
     
-    for baseline in config_data.BASELINE_PERTURB.keys():
-        for pert in config_data.BASELINE_PERTURB[baseline]:
-            config_data_copy = copy.deepcopy(config_data)
-            config_data_copy.BASELINE = baseline
-            config_data_copy.PERTURBATION = pert
-            analyzer_distances = AnalyzerEffectsDistRatio(config_data_copy, output_folder_path)
-            analyzer_distances.load()
-            plot_output_folder_path = analyzer_distances.get_saving_folder(feature_type='effects')
+    analyzer_distances = AnalyzerEffectsMultiplex(config_data, output_folder_path)
+    analyzer_distances.load()
+    plot_output_folder_path = analyzer_distances.get_saving_folder(feature_type='effects_multiplex')
 
-            if plot_output_folder_path:
-                os.makedirs(plot_output_folder_path, exist_ok=True)
-                save_config(config_data_copy, plot_output_folder_path)
-                save_config(config_plot, plot_output_folder_path)
-            
-            plot_combined_effect_sizes_barplots(*analyzer_distances.features, plot_output_folder_path, config_plot)
+    if plot_output_folder_path:
+        os.makedirs(plot_output_folder_path, exist_ok=True)
+        save_config(config_data, plot_output_folder_path)
+        save_config(config_plot, plot_output_folder_path)
+    
+    plot_multiplex_forestplot(*analyzer_distances.features, plot_output_folder_path, config_plot)
                 
 if __name__ == "__main__":
     print("Starting plotting distances...")

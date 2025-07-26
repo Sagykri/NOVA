@@ -8,15 +8,15 @@ import logging
 
 from src.analysis.analyzer_effects import AnalyzerEffects
 from src.datasets.dataset_config import DatasetConfig
-class AnalyzerEffectsMeanDiff(AnalyzerEffects):
+class AnalyzerEffectsDistRatio(AnalyzerEffects):
     def __init__(self, data_config: DatasetConfig, output_folder_path:str):
         super().__init__(data_config, output_folder_path)  
 
     def _compute_effect(self, group_baseline: np.ndarray[float], 
                         group_pert: np.ndarray[float], n_boot:int=1000)->Tuple[float,float]:
-        """Compute the effect size (Cohen's d) and its estimated variance between baseline and 
-        perturbed groups. The effect is computed as the standardized difference in distances 
-        to the baseline centroid, on the log-transformd embeddings.
+        """Compute the effect size (Log2FC) and its estimated variance between baseline and 
+        perturbed groups. The effect is computed as the log2 of the ratio between distances 
+        to the baseline medoid.
 
         Args:
         group_baseline (np.ndarray[float]): Embeddings for the baseline group. 
@@ -26,14 +26,12 @@ class AnalyzerEffectsMeanDiff(AnalyzerEffects):
 
         Returns:
             Tuple[float, float]: 
-            - Effect size (Cohen's d): Standardized difference in mean distance to the 
-                baseline centroid.
+            - Effect size: Log2FC between median distances to the 
+                baseline medoid.
             - Variance of the effect size estimated via bootstrap.
-        """       
-        group_baseline = np.log1p(group_baseline)
-        group_pert = np.log1p(group_pert)
+        """
         effect_size = self._compute_effect_size_baseline_distance(group_baseline[np.newaxis, ...], group_pert[np.newaxis, ...])[0]
-    
+        logging.info(f'effect size: {effect_size}')
         # bootstrap variance
         effect_size_var = self._bootstrap_effect_size_variance(group_baseline, group_pert, self._compute_effect_size_baseline_distance,
                                                                n_boot=n_boot)
@@ -50,12 +48,12 @@ class AnalyzerEffectsMeanDiff(AnalyzerEffects):
     def _compute_effect_size_baseline_distance(group_baseline:np.ndarray[float], 
                                                group_pert:np.ndarray[float])->np.ndarray[float]:
         """
-        Computes Cohen's d effect size between two groups based on distances to the baseline centroid.
+        Computes Log2FC effect size between two groups based on distances to the baseline medoid.
 
         This function assumes each input is a batch of bootstrap replicates (n_boot, n_samples, features).
-        For each replicate, it computes the centroid of the baseline group, calculates distances of 
-        both baseline and perturbed samples to that centroid, and then computes the standardized 
-        difference in their mean distances (Cohen's d).
+        For each replicate, it computes the medoid of the baseline group, calculates distances of 
+        both baseline and perturbed samples to that medoid, and then computes the ratio between 
+        their median distances. Eventually, apply Log2 on the ratio.
 
         Args:
             group_baseline (np.ndarray): Array of shape (n_boot, n_samples_baseline, n_features),
@@ -64,24 +62,18 @@ class AnalyzerEffectsMeanDiff(AnalyzerEffects):
                 representing bootstrap replicates of perturbed group embeddings.
 
         Returns:
-            np.ndarray: Array of shape (n_boot,), containing the Cohen's d effect size 
+            np.ndarray: Array of shape (n_boot,), containing the effect size 
             for each bootstrap replicate.
         """
-        centroid_baseline = np.mean(group_baseline, axis=1, keepdims=True)  # (n_boot, 1, features)
+        centroid_baseline = np.median(group_baseline, axis=1, keepdims=True)
         # Distances to centroid for each bootstrap sample
         dists_baseline = np.linalg.norm(group_baseline - centroid_baseline, axis=2)  # (n_boot, n_baseline)
-        dists_pert = np.linalg.norm(group_pert - centroid_baseline, axis=2)          # (n_boot, n_pert)
-        std_baseline = dists_baseline.std(axis=1, ddof=1)  # (n_boot,)
-        std_pert = dists_pert.std(axis=1, ddof=1)          # (n_boot,)
+        dists_pert = np.linalg.norm(group_pert - centroid_baseline, axis=2)         # (n_boot, n_pert)
 
-        n_baseline = group_baseline.shape[1]
-        n_pert = group_pert.shape[1]
-        pooled_std = np.sqrt(((n_baseline - 1) * std_baseline**2 + (n_pert - 1) * std_pert**2) / (n_baseline + n_pert - 2))
-
-        mean_dist_baseline = dists_baseline.mean(axis=1)  # (n_boot,)
-        mean_dist_pert = dists_pert.mean(axis=1)          # (n_boot,)
-
-        effect_sizes = (mean_dist_pert - mean_dist_baseline) / pooled_std  # (n_boot,)
+        median_dist_baseline = np.median(dists_baseline,axis=1)  # (n_boot,)
+        median_dist_pert = np.median(dists_pert,axis=1)          # (n_boot,)
+        
+        effect_sizes = np.log2(median_dist_pert / median_dist_baseline)
         return effect_sizes
     
     @staticmethod

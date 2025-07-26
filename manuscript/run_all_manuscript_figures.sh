@@ -8,6 +8,7 @@ cellprofiler=$vit_models/cell_profiler
 data_configs=./manuscript/manuscript_figures_data_config
 plot_configs=./manuscript/manuscript_plot_config
 
+finetunedModel_MLPHead_acrossBatches_B56789_80pct_frozen=/home/projects/hornsteinlab/Collaboration/MOmaps_Sagy/NOVA/outputs/vit_models_local/finetunedModel_MLPHead_acrossBatches_B56789_80pct_frozen
 # # #######################
 # # # Figure 1
 # # # #######################
@@ -181,27 +182,25 @@ plot_configs=./manuscript/manuscript_plot_config
 
 ########## ALYSSA ################
 
-# $NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/plot_distances_bubble -m 1000 \
-# -a $finetune_model $data_configs/AlyssaCoyneDistancesFigureConfig $plot_configs/DistancesAlyssaCoynePlotConfig -q short -j alyssa_dist
+# $NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/plot_effect_sizes_alyssa -m 1000 \
+# -a $finetunedModel_MLPHead_acrossBatches_B56789_80pct_frozen $data_configs/AlyssaCoyneEffectsFigureConfig $plot_configs/DistancesAlyssaCoynePlotConfig -q short -j alyssa_dist
 
-# $NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_umaps_and_plot -m 5000 \
-# -a $finetune_model $data_configs/AlyssaCoyneUMAP0FigureConfig $plot_configs/UMAP0AlyssaCoyneColorByGroupPlotConfig -q short -j umap0_alyssa
-
-
-# $NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/plot_effect_sizes -m 1000 -a \
-# $finetune_model $data_configs/dNLSNewEffectsFigureConfig  $plot_configs/DistancesdNLSPlotConfig -q short -j dnls_dist
-
-
-finetunedModel_MLPHead_frozen=/home/projects/hornsteinlab/Collaboration/MOmaps_Sagy/NOVA/outputs/vit_models_local/finetunedModel_MLPHead_frozen
+# $NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/plot_effect_sizes_alyssa_new -m 1000 \
+# -a $finetunedModel_MLPHead_acrossBatches_B56789_80pct_frozen $data_configs/AlyssaCoyneNEWEffectsFigureConfig $plot_configs/DistancesAlyssaCoynePlotConfig -q short -j alyssa_dist
 
 # ####### new dnls ###########
 $NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/plot_effect_sizes -m 1000 -a \
-$finetunedModel_MLPHead_frozen $data_configs/dNLSNewEffectsFigureConfig  $plot_configs/DistancesdNLSPlotConfig -q short -j dnls_new
-
-# ##### dnls old ########
-# $NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/plot_effect_sizes -m 1000 -a \
-# $finetunedModel_MLPHead_frozen $data_configs/dNLSEffectsFigureConfig  $plot_configs/DistancesdNLSPlotConfig -q short -j dnls
+$finetunedModel_MLPHead_acrossBatches_B56789_80pct_frozen $data_configs/dNLSNewEffectsFigureConfig_CLEAN  $plot_configs/DistancesdNLSPlotConfig -q short -j dnls_new
 
 ##### neurons ########
 # $NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/plot_effect_sizes -m 1000 -a \
-# $finetunedModel_MLPHead_frozen $data_configs/NeuronsEffectsFigureConfig  $plot_configs/DistancesNeuronsALSPlotConfig -q short -j dists
+# $finetunedModel_MLPHead_acrossBatches_B56789_80pct_frozen $data_configs/NeuronsEffectsFigureConfig  $plot_configs/DistancesNeuronsALSPlotConfig -q short -j effect_sizes
+
+# $NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/plot_effect_sizes_multiplex -m 1000 -a \
+# $finetunedModel_MLPHead_acrossBatches_B56789_80pct_frozen $data_configs/NeuronsEffectsFigureConfig  $plot_configs/DistancesNeuronsALSPlotConfig -q short -j effect_sizes
+
+
+
+
+# $NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_umaps_and_plot -m 5000 \
+# -a $finetunedModel_MLPHead_acrossBatches_B56789_80pct_frozen $data_configs/AlyssaCoyneNEWUMAP0FigureConfig $plot_configs/UMAP0AlyssaCoyneColorByGroupPlotConfig -q short -j umap0_alyssa
