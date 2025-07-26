@@ -20,7 +20,7 @@ def compare_models(pretrained:Module, finetuned:Module, comparison_func: Callabl
     results = {}
     
     for name_p, param_p in pretrained.model.named_parameters():
-        if name_p in ['head.bias', 'head.weight'] and skip_head:
+        if 'head.' in name_p and skip_head:
             # Skip the head since we replaced it
             continue
         if not param_p.requires_grad:
