@@ -8,6 +8,7 @@ print(f"NOVA_HOME: {os.getenv('NOVA_HOME')}")
 
 import logging
 import torch
+import numpy as np
 
 from src.common.utils import get_class, load_config_file
 from src.models.architectures.model_config import ModelConfig
@@ -46,7 +47,12 @@ def __train(model_config_path:str, trainer_config_path:str, dataset_config_path:
     logging.info("Initializing the dataloaders")
     assert dataset_config.SPLIT_DATA, "SPLIT_DATA must be set to true"
     dataloader_train, dataloader_val, data_loader_test = init_dataloaders_with_config(trainer_config, dataset_config)
-    
+
+    if model_config.OUTPUT_DIM is None:
+        logging.info("Setting the model output dim to the number of classes in the dataset")
+        model_config.OUTPUT_DIM = len(np.unique(dataloader_train.dataset.y))
+        logging.info(f"Model output dim: {model_config.OUTPUT_DIM}")
+
     logging.info("Creating the NOVA model")
     nova_model = NOVAModel(model_config)
     
