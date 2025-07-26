@@ -25,3 +25,5 @@ class ModelConfig(BaseConfig):
         # The size of the model's output 
         self.OUTPUT_DIM:int = None
         
+        self.IS_MLP_HEAD:bool = True
+        

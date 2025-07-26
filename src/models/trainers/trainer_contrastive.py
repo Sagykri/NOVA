@@ -25,7 +25,11 @@ class TrainerContrastive(TrainerBase):
         super().__init__(trainer_config, nova_model)
         
         self.negative_count:int = get_if_exists(self.trainer_config, 'NEGATIVE_COUNT', 5, verbose=True)
-        
+        self.across_batches:bool = get_if_exists(self.trainer_config, 'ACROSS_BATCHES', False, verbose=True)
+
+        logging.info(f"Negative count: {self.negative_count}, Across batches: {self.across_batches}")
+        print(f"Negative count: {self.negative_count}, Across batches: {self.across_batches}")
+
         self.loss_infoNCE:InfoNCE = InfoNCE(negative_mode = 'paired')
         
     def loss(self, embeddings:torch.Tensor, anchor_idx:List[int], positive_idx:List[int], negative_idx:List[int])->float:
@@ -112,11 +116,20 @@ class TrainerContrastive(TrainerBase):
         positive_marker = anchor.marker
         positive_batch = anchor.batch
         positive_cell_line_cond = anchor.cell_line_cond
+        ####### !!!!!!! Positives across batches !!! #########
+        # logging.warning(f"!!!!!!! Positives across batches !!!")
 
-        positives = [i for i, lbl in enumerate(labels_dicts) if lbl.marker == positive_marker \
-                and lbl.cell_line_cond == positive_cell_line_cond \
-                and lbl.batch == positive_batch \
-                and lbl.index != anchor.index]
+
+        if self.across_batches:
+            positives = [i for i, lbl in enumerate(labels_dicts) if lbl.marker == positive_marker \
+                    and lbl.cell_line_cond == positive_cell_line_cond \
+                    and lbl.index != anchor.index]
+        else:
+            positives = [i for i, lbl in enumerate(labels_dicts) if lbl.marker == positive_marker \
+                    and lbl.cell_line_cond == positive_cell_line_cond \
+                    and lbl.batch == positive_batch \
+                    and lbl.index != anchor.index]
+            
         return positives
         
     def __get_negatives(self, anchor:LabelInfo, labels_dicts: List[LabelInfo])->List[int]:
@@ -133,11 +146,19 @@ class TrainerContrastive(TrainerBase):
         """
         # 
         
+
+        ####### !!!!!!! Negatives across batches !!! #########
+        # logging.warning(f"!!!!!!! Negatives across batches !!!")
         negative_marker = anchor.marker
         negative_batch = anchor.batch
-        negatives = [i for i, lbl in enumerate(labels_dicts) if lbl.marker == negative_marker \
-                and lbl.batch == negative_batch \
+
+        if self.across_batches:
+            negatives = [i for i, lbl in enumerate(labels_dicts) if lbl.marker == negative_marker \
                 and lbl.cell_line_cond != anchor.cell_line_cond]
+        else:
+            negatives = [i for i, lbl in enumerate(labels_dicts) if lbl.marker == negative_marker \
+                    and lbl.batch == negative_batch \
+                    and lbl.cell_line_cond != anchor.cell_line_cond]
 
         return negatives
 

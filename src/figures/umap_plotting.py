@@ -251,8 +251,8 @@ def __plot_umap_embeddings(umap_embeddings: np.ndarray[float],
         ax = __get_metrics_figure(ari_score, ax=gs_bottom)
     
     fig.tight_layout()
-    save_plot_data(umap_embeddings, label_data, config_data, config_plot, paths, savepath+"_plot_data.pkl")
     if savepath:
+        save_plot_data(umap_embeddings, label_data, config_data, config_plot, paths, savepath+"_plot_data.pkl")
         save_plot(fig, savepath, dpi, save_eps=True)
     else:
         plt.show()
