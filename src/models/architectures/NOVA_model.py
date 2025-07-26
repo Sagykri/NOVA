@@ -10,6 +10,7 @@ import torch.nn.functional as F
 
 sys.path.insert(1, os.getenv("NOVA_HOME"))
 
+from src.common.utils import get_if_exists
 from src.models.utils.checkpoint_info import CheckpointInfo
 from src.datasets.dataset_config import DatasetConfig
 from src.models.architectures.model_config import ModelConfig
@@ -142,7 +143,10 @@ class NOVAModel():
             vision_transformer.VisionTransformer: An initialized vit model
         """
         vit_version = self.model_config.VIT_VERSION
-        
+        is_MLP_head = get_if_exists(self.model_config, 'IS_MLP_HEAD', False)
+
+        logging.info(f"Creating Vision Transformer with version: {vit_version}, MLP head: {is_MLP_head}")
+
         if vit_version == 'base':
             create_vit = vision_transformer.vit_base
         elif vit_version == 'small':
@@ -156,7 +160,8 @@ class NOVAModel():
                 img_size=[self.model_config.IMAGE_SIZE],
                 patch_size=self.model_config.PATCH_SIZE,
                 in_chans=self.model_config.NUM_CHANNELS,
-                num_classes=self.model_config.OUTPUT_DIM
+                num_classes=self.model_config.OUTPUT_DIM,
+                is_MLP_head=is_MLP_head,
         )
         
         return vit
