@@ -10,7 +10,7 @@ import pandas as pd
 import numpy as np
 from typing import Tuple
 import statsmodels.stats.meta_analysis as smm
-from scipy.stats import norm, chi2
+from scipy.stats import norm, chi2, t
 from statsmodels.stats.multitest import multipletests
 
 from src.datasets.dataset_config import DatasetConfig
@@ -191,9 +191,7 @@ class AnalyzerEffects(Analyzer):
             ci_low = effect_row["ci_low"]
             ci_upp = effect_row["ci_upp"]
 
-            from scipy.stats import t
-            k = len(marker_df)
-            df = k-2
+            df = len(marker_df) - 2 # degrees of freedom
             t_crit = t.ppf(0.975, df)
             pred_se = np.sqrt(combined_se**2 + tau2)
 

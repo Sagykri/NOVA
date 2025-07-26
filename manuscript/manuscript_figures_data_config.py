@@ -442,13 +442,7 @@ class AlyssaCoyneNEWUMAP0FigureConfig(FigureConfig):
 
         self.INPUT_FOLDERS = ["batch1"]
       
-        self.EXPERIMENT_TYPE = 'AlyssaCoyne_new'    
-        # self.CELL_LINES = ['Controls','sALSPositiveCytoTDP43', 
-        #                    'sALSNegativeCytoTDP43','c9orf72ALSPatients']
-        # self.MARKERS_TO_EXCLUDE = ['MERGED']
-        # Decide if to show ARI metric on the UMAP
-        # self.SHOW_ARI = True
-        # self.ARI_LABELS_FUNC = MapLabelsFunction.CELL_LINES.name
+        self.EXPERIMENT_TYPE = 'AlyssaCoyne_new'
         self.ADD_REP_TO_LABEL=False
         self.ADD_BATCH_TO_LABEL=False
         self.ADD_CONDITION_TO_LABEL = False
