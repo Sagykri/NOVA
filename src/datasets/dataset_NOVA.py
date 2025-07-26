@@ -60,7 +60,7 @@ class DatasetNOVA(DatasetBase):
         image_paths = np.asarray(image_paths)
         labels = np.asarray(labels).reshape(-1, 1)
 
-        logging.info(f"{len(image_paths)} files processed, {labels.shape[0]} labels generated")
+        logging.info(f"{len(image_paths)} files processed, {labels.shape[0]} labels generated; {len(np.unique(labels))} unique labels found.")
 
         return image_paths, labels
 
