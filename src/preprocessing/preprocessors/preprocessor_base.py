@@ -6,7 +6,7 @@ from pathlib import Path
 import re
 import sys
 from abc import ABC, abstractmethod
-from typing import Dict, List, Union
+from typing import Dict, List, Union, Tuple
 import cv2
 import numpy as np
 from cellpose import models
@@ -14,6 +14,8 @@ import pandas as pd
 from shapely import affinity , make_valid
 from shapely.geometry import box ,Polygon
 import cellpose
+from skimage.filters import threshold_otsu
+from scipy.ndimage import label
 
 
 from skimage import transform
@@ -159,6 +161,7 @@ class Preprocessor(ABC):
         paths = nuclues_paths + markers_paths
         
         images_groups = self.__get_grouped_images_for_paths(paths)
+
         processed_images = {}
         for group_id, images_group in images_groups.items():
             processed_image = self._process_images_group(group_id, images_group)
@@ -234,7 +237,7 @@ class Preprocessor(ABC):
         Get the indexes of valid tiles 
         
         Args:
-            nucleus_image (np.ndarray): The nucleus imageת
+            nucleus_image (np.ndarray): The nucleus image
             return_masked_tiles (bool): Whether to return the masked tiles or not
 
         Returns:
@@ -261,15 +264,17 @@ class Preprocessor(ABC):
         # Select only tiles with passed nuclues 
         valid_tiles_indexes = np.where([self.__is_valid_tile(masked_tile,dict_matches, whole_polygons = whole_polygons , 
                                                                         ix=ix)
-                                                   for ix, masked_tile in enumerate(nuclei_mask_tiled)])
+                                                   for ix, masked_tile in enumerate(nuclei_mask_tiled)])[0]
 
-        valid_tiles_indexes = valid_tiles_indexes[0]
+        # Filter out empty tiles or tiles with dead cells based on pixel intensities
+        nuclei_tiled = crop_image_to_tiles(nucleus_image, self.preprocessing_config.TILE_INTERMEDIATE_SHAPE)
+        _, valid_tiles_indexes = self.__process_and_filter_tiles(nuclei_tiled, valid_tiles_indexes, is_nucleus_tile=True)
 
         if return_masked_tiles:
             return valid_tiles_indexes , nuclei_mask_tiled
         return valid_tiles_indexes
 
-    def _get_image(self, path: str) -> Union[np.ndarray , None]:
+    def _get_valid_site_image(self, path: str) -> Union[np.ndarray , None]:
         """
         Load and preprocess the image from the given path.
 
@@ -309,7 +314,8 @@ class Preprocessor(ABC):
             save_folder_path (str): The path to the folder where to save the files
         """
         
-        processed_images = self._process_images_group(group_id, images_group)
+        processed_images = self._process_images_group(group_id, images_group, save_folder_path) # 220725
+
         
         if processed_images is None or len(processed_images) == 0:
             logging.warning("No valid processed images!")
@@ -325,8 +331,7 @@ class Preprocessor(ABC):
                 np.save(f, processed_image)
                 logging.info(f"Saved to {save_path}")
 
-
-    def _process_images_group(self, group_id: str, images_group: Dict[str, str]) -> Dict[str, np.ndarray ]:
+    def _process_images_group(self, group_id: str, images_group: Dict[str, str], save_folder_path:str) -> Dict[str, np.ndarray ]:
         """Process the given group of images by processing the nuclues, the markers, filtering invalid tiles and stacking each processed marker
         with the processed nucleus
 
@@ -340,12 +345,20 @@ class Preprocessor(ABC):
                 Key: The path to the raw file
                 Value: The processed valid tiles
         """        
-        
         processed_images: Dict[str, np.ndarray ] = {}
+        
+        logging.info(f"Processing group {group_id}")
+
+        self.__filter_already_processed_files_inplace(images_group, save_folder_path)
+
+        if len(images_group) == 0:
+            logging.warning(f"[{group_id}] No images to process. All files already exist in {save_folder_path}")
+            return
+
         nucleus_path = images_group[self.__NUCLEUS_MARKER_NAME]
         logging.info(f"[{group_id}] Processing {self.__NUCLEUS_MARKER_NAME}: {nucleus_path}")
         
-        processed_nucleus = self._get_image(nucleus_path)
+        processed_nucleus = self._get_valid_site_image(nucleus_path)
         if processed_nucleus is None: return 
         
         # Get valid tile indexes for the nucleus image
@@ -355,34 +368,293 @@ class Preprocessor(ABC):
         if len(valid_tiles_indexes) == 0: 
             logging.warning(f"[{group_id}] No valid tiles were found for nucleus image: {nucleus_path}")
             return
-                
-        # Process each marker image in the same plate as the current nucleus
-        for marker_name, marker_path in images_group.items():
+                        
+        markers = self.__sort_markers(images_group)
 
-            processed_marker = self._get_image(marker_path)
+        panel_has_valid_markers = False
+        # In case DAPI is the only marker analyzed or in case there is an already processed image from the group, don't test for other valid markers in the panel
+        if markers == [self.__NUCLEUS_MARKER_NAME] or self.__has_valid_processed_markers_in_panel(images_group, save_folder_path):
+            panel_has_valid_markers = True
 
+        # For being able to filter out DAPI in case all panel markers are invalid, DAPI must be last
+        for marker_name in markers: 
+            marker_path = images_group[marker_name]
+            logging.info(f"[{group_id}] Processing marker: {marker_name} from path: {marker_path}")
+
+            # If we don't have valid markers in the panel, don't process/save DAPI
+            if marker_name == self.__NUCLEUS_MARKER_NAME and not panel_has_valid_markers:
+                    logging.warning(f"[{group_id}] No valid markers were found in this panel. Skipping also DAPI.")
+                    break
+
+            processed_marker = self._get_valid_site_image(marker_path)
             if processed_marker is None: continue
-            if marker_name != self.__NUCLEUS_MARKER_NAME:
-                self.logging_df.log_marker(valid_tiles_indexes, marker_path)
             
             # Pair marker and nucleus images
             image_pair = np.stack([processed_marker, processed_nucleus], axis=-1)
 
             # Crop to tiles and take the valid ones
             image_pair_tiled = crop_image_to_tiles(image_pair, self.preprocessing_config.TILE_INTERMEDIATE_SHAPE)
-            image_pair_valid_tiles = image_pair_tiled[valid_tiles_indexes]
+
+            # Process and filter tiles based on variance and intensity
+            image_pair_processed_valid_tiles, valid_tiles_indexes = self.__process_and_filter_tiles(image_pair_tiled, valid_tiles_indexes)
             
-            # Resize the tile to be TILE_SHAPE
-            image_pair_valid_tiles = [transform.resize(tile, self.preprocessing_config.TILE_SHAPE, anti_aliasing=True) for tile in image_pair_valid_tiles]
-            image_pair_valid_tiles = np.stack(image_pair_valid_tiles)
+            if marker_name != self.__NUCLEUS_MARKER_NAME:
+                self.logging_df.log_marker(valid_tiles_indexes, marker_path)
+
+            # If no valid tiles were found, don't save this marker
+            if len(image_pair_processed_valid_tiles) == 0: 
+                logging.warning(f"[{group_id}, {marker_name}] No valid tiles were found for marker image: {marker_path}")
+                continue
             
-            processed_images[marker_path] = image_pair_valid_tiles
+            processed_images[marker_path] = image_pair_processed_valid_tiles
+
+            # Flag that we have at least one valid marker in the panel
+            panel_has_valid_markers = True
             
         __shapes =  {m: v.shape for m, v in processed_images.items()}
         logging.info(f"[{group_id}] Shape of processed images: {__shapes}")
             
         return processed_images
-    
+        
+    def __has_valid_processed_markers_in_panel(self, images_group: Dict[str, str], save_folder_path:str) -> bool:
+        """
+        Check if the panel has valid processed markers by checking if the processed files exist in the save folder.
+        Args:
+            images_group (Dict[str, str]): Mapping of marker names to paths.
+            save_folder_path (str): The path to the folder where processed files are saved.
+        Returns:    
+            bool: True if the panel has valid processed markers, False otherwise.
+        """
+        panel_has_valid_processed_markers = any(
+            os.path.exists(os.path.join(save_folder_path, Preprocessor.raw2processed_path(m_path)))
+            for (m_name, m_path) in images_group.items() if m_name != self.__NUCLEUS_MARKER_NAME
+        )
+
+        return panel_has_valid_processed_markers
+
+    def __process_and_filter_tiles(self, tiles:List[np.ndarray], valid_tiles_indexes:List[int], is_nucleus_tile:bool=False) -> Tuple[np.ndarray, np.ndarray]:
+        """
+        Filters out invalid tiles from the image pair and processes them.
+        This method resizes the tiles to the expected shape and applies intensity rescaling.
+        It also checks if the target tile is empty or contains dead cells based on intensity and variance thresholds.
+        
+        Args:
+            tiles (List[np.ndarray]): List of tiled images for the marker and nucleus.
+            valid_tiles_indexes (List[int]): List of indexes of valid tiles.
+            is_nucleus_tile (bool): Flag indicating if the tiles are for the nucleus marker.
+        
+        Returns:    
+            Tuple[np.ndarray, np.ndarray]: 
+                - Processed valid tiles of the image pair.
+                - Valid tiles indexes after filtering.
+        """
+        if len(valid_tiles_indexes) == 0:
+            return np.array([]), valid_tiles_indexes
+        
+        image_pair_valid_tiles = []
+        valid_tiles_indexes = valid_tiles_indexes.tolist()
+        is_empty_tile_function = self.__is_empty_tile_dapi if is_nucleus_tile else self.__is_empty_tile_target
+
+        for i, tile in enumerate(tiles):
+            if i not in valid_tiles_indexes:
+                continue
+
+            # Resize the tile to be TILE_SHAPE
+            tile = transform.resize(tile, self.preprocessing_config.TILE_SHAPE, anti_aliasing=True)
+            tile_rescaled = self.__apply_rescale_intensity_to_multi_channel_tile(tile)
+
+            if is_empty_tile_function(tile[...,0], tile_rescaled[...,0])[0]:
+                valid_tiles_indexes.remove(i)
+                continue
+
+            image_pair_valid_tiles.append(tile_rescaled)
+        
+        valid_tiles_indexes = np.asarray(valid_tiles_indexes)
+        
+        if len(image_pair_valid_tiles) == 0:
+            return np.array([]), valid_tiles_indexes
+
+        image_pair_valid_tiles = np.stack(image_pair_valid_tiles)
+
+        return image_pair_valid_tiles, valid_tiles_indexes
+
+    def __sort_markers(self, images_group: Dict[str, str]) -> List[str]:
+        """
+        Sorts marker names so the nucleus marker is last.
+
+        Args:
+            images_group (Dict[str, str]): Mapping of marker names to paths.
+
+        Returns:
+            List[str]: Sorted list of marker names.
+        """
+        return sorted(images_group, key=lambda k: (k == self.__NUCLEUS_MARKER_NAME, k))
+
+    def __filter_already_processed_files_inplace(self, images_group: Dict[str, str], save_folder_path:str) -> None:
+        """
+        Filter out already processed files in the images group by checking if the processed file exists.
+        If a processed file exists, it is removed from the images group to avoid reprocessing.
+        
+        Args:
+            images_group (Dict[str, str]): Mapping of marker names to paths.
+            save_folder_path (str): The path to the folder where processed files are saved.
+        
+        Returns:
+            None: The function modifies the images_group in place.
+        """
+        has_unprocessed_marker_in_group = False
+
+        markers = self.__sort_markers(images_group)
+        logging.info(f"Markers in the group: {markers}")
+
+        for marker_name in markers:
+            # If we have unprocessed marker in the group, return and don't filter out (i.e. do process) DAPI
+            if has_unprocessed_marker_in_group and marker_name == self.__NUCLEUS_MARKER_NAME:
+                return
+
+            raw_path = images_group[marker_name]
+            
+            save_path = os.path.join(save_folder_path, Preprocessor.raw2processed_path(raw_path))
+            
+            # If the processed file does not exist, turn the flag to True
+            if not os.path.exists(save_path):
+                has_unprocessed_marker_in_group = True
+                continue
+
+            # If the processed file exists, remove it from the group to avoid processing it again
+            logging.info(f"Skipping existing file: {save_path}")
+            images_group.pop(marker_name)
+
+    def __is_contains_dead_cells(self, dapi_rescaled:np.ndarray, intensity_threshold=0.95)-> bool:
+        """Check if the DAPI image contains dead cells based on intensity and size thresholds.
+        Parameters:
+            dapi_rescaled: 2D numpy array of DAPI image, rescaled to [0, 1] range.
+            intensity_threshold (optional): float, threshold for median intensity of the blob. (Default is 0.95)
+        Returns:
+            bool: True if dead cells are detected, False otherwise."""
+
+        def __is_blob_touching_edge(blob_mask: np.ndarray) -> bool:
+            """
+            Returns True if any part of the blob (binary mask) touches the image edge.
+            
+            Parameters:
+                blob_mask: 2D boolean or integer array (True where blob is present)
+                
+            Returns:
+                bool: True if the blob touches any border (top, bottom, left, right)
+            """
+            rows, cols = np.where(blob_mask)
+            nrows, ncols = blob_mask.shape
+            touches_top    = (rows == 0).any()
+            touches_bottom = (rows == nrows - 1).any()
+            touches_left   = (cols == 0).any()
+            touches_right  = (cols == ncols - 1).any()
+            return touches_top or touches_bottom or touches_left or touches_right
+
+        # Separate between background and foreground using Otsu's method
+        otsu_thresh = threshold_otsu(dapi_rescaled)
+        dapi_mask = dapi_rescaled > otsu_thresh
+
+        # Detect connected components in the binary mask (0 is background)
+        labeled, ncomponents = label(dapi_mask)
+        
+        for i in range(1, ncomponents + 1): # 0 is the background
+            blob_mask = (labeled == i)
+            dapi_masked = dapi_rescaled[blob_mask]
+
+            blob_variance = dapi_masked.var()
+            blob_size = blob_mask.sum()
+            blob_median = np.median(dapi_masked)
+            
+            # Check for intensity and size thresholds
+            if blob_median >= intensity_threshold or (not __is_blob_touching_edge(blob_mask) and blob_size <= self.preprocessing_config.MIN_ALIVE_NUCLEI_AREA):
+                return  True
+                
+        return False
+
+    def __is_empty_tile_dapi(self, dapi:np.ndarray, dapi_scaled:np.ndarray)-> Tuple[bool, Union[str, None]]:
+        """
+        Check if the DAPI image channel is empty or contains dead cells based on max intensity and variance thresholds.
+        
+        Parameters:
+            dapi: 2D numpy array of the DAPI image channel.
+            dapi_scaled: 2D numpy array of the rescaled DAPI image channel.
+        
+        Returns:
+            bool: True if the DAPI image channel is empty, False otherwise.
+            str: Optional reason for being empty.
+        """
+        
+        result, cause = self.__is_empty_tile(dapi, dapi_scaled,\
+                                             max_intensity_threshold=self.preprocessing_config.MAX_INTENSITY_THRESHOLD_NUCLEI,\
+                                             variance_threshold=self.preprocessing_config.VARIANCE_THRESHOLD_NUCLEI)
+        if result:
+            return True, f'[DAPI] {cause}'
+
+        if self.__is_contains_dead_cells(dapi_scaled):
+            return True, "Contains dead cells"
+
+        return False, None
+
+    def __is_empty_tile_target(self, target:np.ndarray, target_scaled:np.ndarray)-> Tuple[bool, Union[str, None]]:
+        """ Check if the target image channel is empty based on max intensity and variance thresholds.
+        Parameters:
+            target: 2D numpy array of the target image channel.
+            target_scaled: 2D numpy array of the rescaled target image channel.
+        Returns:
+            bool: True if the target image channel is empty, False otherwise.
+            str: Optional reason for being empty."""
+        result, cause = self.__is_empty_tile(target, target_scaled,\
+                                             max_intensity_threshold=self.preprocessing_config.MAX_INTENSITY_THRESHOLD_TARGET,\
+                                             variance_threshold=self.preprocessing_config.VARIANCE_THRESHOLD_TARGET)
+
+        if cause is not None:
+            cause = f'[Target] {cause}'
+
+        return result, cause
+
+    def __is_empty_tile(self, image_channel:np.ndarray, image_channel_rescaled:np.ndarray, max_intensity_threshold:float,  variance_threshold:float) -> Tuple[bool, Union[str, None]]:
+        """ Check if the image channel is empty based on max intensity and variance thresholds.
+        Parameters:
+            image_channel: 2D numpy array of the image channel.
+            image_channel_rescaled: 2D numpy array of the rescaled image channel.
+            max_intensity_threshold: float, threshold for maximum intensity.
+            variance_threshold: float, threshold for variance.
+        Returns:
+            bool: True if the image channel is empty, False otherwise.
+            str: Optional reason for being empty."""
+
+        image_channel_max_intensity = round(image_channel.max(), 4)
+        if image_channel_max_intensity <= max_intensity_threshold:
+            return True, f"Invalid max intensity: {image_channel_max_intensity} <= {max_intensity_threshold}"
+        
+        image_channel_rescaled_variance = round(image_channel_rescaled.var(), 4)
+        if image_channel_rescaled_variance <= variance_threshold:
+            return True, f"Invalid variance: {image_channel_rescaled_variance} <= {variance_threshold}"
+
+        return False, None
+
+    def __apply_rescale_intensity_to_multi_channel_tile(self, tile: np.ndarray) -> np.ndarray:
+        """
+        Apply rescale_intensity to each channel of the given tile.
+
+        Parameters:
+        - tile: np.ndarray of shape (H, W, C)
+
+        Returns:
+        - np.ndarray of same shape as tile with function applied per channel (H,W,C)
+        """
+        H, W, C = tile.shape
+        result = np.empty_like(tile)
+
+        for c in range(C):
+            result[...,c] = rescale_intensity(tile[...,c],
+                                                lower_bound=self.preprocessing_config.RESCALE_INTENSITY['LOWER_BOUND'],\
+                                                upper_bound=self.preprocessing_config.RESCALE_INTENSITY['UPPER_BOUND'])
+
+        return result
+
+
     def __filter_intersecting_with_outer_frame(self, whole_polygons: List[Polygon], image_shape: tuple) -> List[Polygon]:
         """
         Filter out whole_polygons that intersect with the outer frame of the image.
@@ -407,25 +679,25 @@ class Preprocessor(ABC):
     
     def __match_part_with_whole_pols(self ,nuclei_mask_tiled , whole_polygons) -> Dict :
         """
-    Matches nuclei polygons extracted from tiled masks to corresponding whole-image polygons.
+        Matches nuclei polygons extracted from tiled masks to corresponding whole-image polygons.
 
-    Each tile in the image , which contains one/few nuclei, and the goal is to match these
-    partial tile-based polygons to their corresponding complete polygon in the whole image.
+        Each tile in the image , which contains one/few nuclei, and the goal is to match these
+        partial tile-based polygons to their corresponding complete polygon in the whole image.
 
-    The function does the following:
-    - Iterates over each tile and extracts part-polygons from it.
-    - Translates each part-polygon to the global coordinate space based on its tile location.
-    - For each part-polygon, checks if its representative point lies inside any full polygon.
-    - If a match is found - it appends the match index. If no match is found, it appends `None`.
+        The function does the following:
+        - Iterates over each tile and extracts part-polygons from it.
+        - Translates each part-polygon to the global coordinate space based on its tile location.
+        - For each part-polygon, checks if its representative point lies inside any full polygon.
+        - If a match is found - it appends the match index. If no match is found, it appends `None`.
 
-    Args:
-        nuclei_mask_tiled (List[np.ndarray]): List of binary mask tiles containing nuclei segmentations.
-        whole_polygons (List[shapely.geometry.Polygon]): List of full polygons in the complete image space.
+        Args:
+            nuclei_mask_tiled (List[np.ndarray]): List of binary mask tiles containing nuclei segmentations.
+            whole_polygons (List[shapely.geometry.Polygon]): List of full polygons in the complete image space.
 
-    Returns:
-        dict_matches (Dict[int, List[int | None]]): A dictionary mapping each tile index to a list of matched
-                                                    whole polygon indices, or None if no match was found.
-    """
+        Returns:
+            dict_matches (Dict[int, List[int | None]]): A dictionary mapping each tile index to a list of matched
+                                                        whole polygon indices, or None if no match was found.
+        """
         
         dict_matches = defaultdict(list)
 

@@ -336,6 +336,13 @@ RESCALE_INTENSITY = {
 # The path to the file holding the focus boundries for each marker
 MARKERS_FOCUS_BOUNDRIES_PATH:Union[None,str] 
 
+# Threshold for filtering out empty tiles or tiles with dead cells
+self.MAX_INTENSITY_THRESHOLD_TARGET:float # Before rescale intenisty
+self.VARIANCE_THRESHOLD_TARGET:float # After rescale intenisty
+self.MAX_INTENSITY_THRESHOLD_NUCLEI:float # Before rescale intenisty
+self.VARIANCE_THRESHOLD_NUCLEI:float # After rescale intenisty
+self.MIN_ALIVE_NUCLEI_AREA: int # Minimum area of a nuclei to be considered alive (in pixels)
+
 # Which markers to include
 MARKERS:Union[None, List[List]]
 
