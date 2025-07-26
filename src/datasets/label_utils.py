@@ -22,9 +22,9 @@ BATCH_IDX = 3
 REP_IDX = 4
 
 class LabelInfo:
-    """Holds all the needed info on the label for generating pairs for the contrastive loss
+    """Holds all the needed info on the label
     """
-    def __init__(self, label:str, index:int, dataset_config:DatasetConfig):
+    def __init__(self, label:str, dataset_config:DatasetConfig, index:int=-1):
         __labels_np = np.asarray([label])
         self.batch:str = get_batches_from_labels(__labels_np, dataset_config)[0]
         self.cell_line_cond:str = get_cell_lines_conditions_from_labels(__labels_np, dataset_config)[0]
@@ -53,6 +53,15 @@ def get_cell_lines_conditions_from_labels(labels: np.ndarray[str], dataset_confi
     cell_line_conditions = get_parts_from_labels(labels=labels, indices=(CELL_LINE_IDX,condition_idx+1))
     return cell_line_conditions
 
+def get_cell_lines_conditions_batch_reps_from_labels(labels: np.ndarray[str], dataset_config:DatasetConfig) -> np.ndarray[str]:
+    if not dataset_config.ADD_LINE_TO_LABEL:
+        logging.warning(f'DatasetConfig.ADD_LINE_TO_LABEL is FALSE, cannot extract cell lines from labels!')
+        return None
+    if not dataset_config.ADD_CONDITION_TO_LABEL:
+        logging.warning(f'DatasetConfig.ADD_CONDITION_TO_LABEL is FALSE, cannot extract conditions from labels!')
+        return None
+    result = get_parts_from_labels(labels=labels, indices=(CELL_LINE_IDX,None))
+    return result
 
 def get_cell_lines_from_labels(labels: np.ndarray[str], dataset_config:DatasetConfig) -> np.ndarray[str]:
     if not dataset_config.ADD_LINE_TO_LABEL:
@@ -152,7 +161,11 @@ def edit_label_by_config(label:str, dataset_config:DatasetConfig)->str:
     label_parts = label.split('_')
     label_parts_new = [label_parts[0]]
     if dataset_config.ADD_LINE_TO_LABEL:
-        label_parts_new.append(label_parts[CELL_LINE_IDX])
+        cell_line = label_parts[CELL_LINE_IDX]
+        remove_patient_id = get_if_exists(dataset_config, 'REMOVE_PATIENT_ID_FROM_CELL_LINE', False)
+        if remove_patient_id:
+            cell_line = cell_line.split('-')[0]
+        label_parts_new.append(cell_line)
     if dataset_config.ADD_CONDITION_TO_LABEL:
         label_parts_new.append(label_parts[CONDITION_IDX])
     if dataset_config.ADD_BATCH_TO_LABEL:
@@ -171,15 +184,28 @@ def remove_markers(labels:np.ndarray[str], dataset_config:DatasetConfig)->np.nda
     _, rest_of_labels = split_markers_from_labels(labels, dataset_config)
     return rest_of_labels
 
+def remove_patient_id_from_cell_line_multiplex(labels:np.ndarray[str], dataset_config:DatasetConfig)->np.ndarray[str]:
+    cell_lines_with_patient_id = get_cell_lines_from_multiplex_labels(labels, dataset_config)
+
+    print(f'Removing patient ID from cell lines: {cell_lines_with_patient_id}')
+
+    cell_lines = np.array([cell_line.split('-')[0] for cell_line in cell_lines_with_patient_id])
+
+    print(f'Cell lines after removing patient ID: {cell_lines}')
+
+    return cell_lines
+
 class MapLabelsFunction(Enum):
     MARKERS = (get_markers_from_labels,)
     CONDITIONS = (get_conditions_from_labels,)
     CELL_LINES = (get_cell_lines_from_labels,)
     CELL_LINES_CONDITIONS = (get_cell_lines_conditions_from_labels,)
     REPS = (get_reps_from_labels,)
+    CELL_LINES_CONDITIONS_BATCH_REPS = (get_cell_lines_conditions_batch_reps_from_labels),
     MULTIPLEX_CONDITIONS = (get_conditions_from_multiplex_labels,)
     MULTIPLEX_CELL_LINES = (get_cell_lines_from_multiplex_labels,)
     MULTIPLEX_CELL_LINES_CONDITIONS = (get_cell_lines_conditions_from_multiplex_labels,)
+    MULTIPLEX_REMOVE_PATIENT_ID_FROM_CELL_LINE = (remove_patient_id_from_cell_line_multiplex, )
     REMOVE_MARKER = (remove_markers,)
     OPENCELL = (opencell_map,)
 
