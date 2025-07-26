@@ -20,7 +20,13 @@ def generate_embeddings_with_model(outputs_folder_path:str, config_path_data:str
     chkp_path = os.path.join(outputs_folder_path, CHECKPOINTS_FOLDERNAME, CHECKPOINT_BEST_FILENAME)
     model = NOVAModel.load_from_checkpoint(chkp_path)
 
-    embeddings, labels, paths = generate_embeddings(model, config_data, batch_size=batch_size, on_hidden_outputs=True, on_normalized_output=True)
+    on_hidden_outputs = True
+    on_normalized_output = True
+    logging.info(f"on_hidden_outputs: {on_hidden_outputs}, on_normalized_output: {on_normalized_output}")
+
+    embeddings, labels, paths = generate_embeddings(model, config_data, batch_size=batch_size, on_hidden_outputs=on_hidden_outputs, on_normalized_output=on_normalized_output)
+    logging.info(f"len(embeddings): {len(embeddings)}, len(labels): {len(labels)}, len(paths): {len(paths)}")
+    
     save_embeddings(embeddings, labels, paths, config_data, outputs_folder_path)
 
 if __name__ == "__main__":
@@ -43,6 +49,7 @@ if __name__ == "__main__":
                 raise ValueError("Invalid batch size, must be integer")
         else:
             batch_size = 700
+            
         generate_embeddings_with_model(outputs_folder_path, config_path_data, batch_size)
         
     except Exception as e:
