@@ -35,6 +35,7 @@ class AnalyzerEffectsMultiplex(AnalyzerEffectsDistRatio):
         embeddings_dim = embeddings.shape[1]
         effects_df = self._calculate_all_effects(embeddings_df, baseline_perturb_dict, embeddings_dim, n_boot)
         combined_effects_df = self._combine_effects(effects_df)
+        self._correct_for_multiple_hypothesis(combined_effects_df)
 
         self.features = combined_effects_df, effects_df
 

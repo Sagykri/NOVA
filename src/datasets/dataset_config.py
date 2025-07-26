@@ -18,7 +18,7 @@ class DatasetConfig(BaseConfig):
         # Which markers to include
         self.MARKERS:List[str]            = None
         # Which markers to exclude
-        self.MARKERS_TO_EXCLUDE:List[str] = [] 
+        self.MARKERS_TO_EXCLUDE:List[str] = ['CD41'] 
         # Cell lines to include
         self.CELL_LINES:List[str]         = None
         # Conditions to include
