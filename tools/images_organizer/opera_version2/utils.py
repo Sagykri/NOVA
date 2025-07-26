@@ -11,12 +11,19 @@ class Utils():
         
     def __get_cell_line_and_condition_and_rep_by_index(self, row_col, raise_on_missing_index=True):
         assert self.config.KEY_CELL_LINES in self.config.CONFIG, f"Could not find '{self.config.KEY_CELL_LINES}' in config"
+        reps = self.config.CONFIG[self.config.KEY_REPS] # Added 010625
+
         for cell_line in self.config.CONFIG[self.config.KEY_CELL_LINES].keys():
             conditions = self.config.CONFIG[self.config.KEY_CELL_LINES][cell_line]
             for condition in conditions:
                 rngs = self.config.CONFIG[self.config.KEY_CELL_LINES][cell_line][condition]
                 for rep_index, rng in enumerate(rngs):
-                    rep = self.config.CONFIG[self.config.KEY_REPS][rep_index]
+                    # Added 010625
+                    if len(reps) < rep_index + 1:
+                        logging.warning(f"[{cell_line} {condition}] Rep index {rep_index} not found in reps: {reps}. Skipping.")
+                        continue
+                    ###
+                    rep = reps[rep_index]
                     # Changed 190324
                     row, col = row_col
                     if int(row) == rng[0] and int(col) == rng[1]:
@@ -82,7 +89,7 @@ class Utils():
             return
         
         logging.info(f"Creating folder: {path}")
-        os.makedirs(path)
+        os.makedirs(path, exist_ok=True)
         
     def __get_dst_path(self, batch, rep, panel, condition, cell_line, marker, file_name):
         return os.path.join(self.config.DST_ROOT_PATH,batch,cell_line, panel, condition, rep, marker, f"{self.config.FILENAME_POSTFIX}{file_name}")
@@ -128,7 +135,7 @@ class Utils():
         # Changed! 190324
         coord, info = file.split('-')
         r, c = coord[1:3], coord[4:6]
-        ch = info[:4]
+        ch = info[:3]
         return ch, (r,c)
 
 
@@ -167,17 +174,23 @@ class Utils():
         if logging_path is None:
             logging_path = self.config.LOGGING_PATH
         
+        if not os.path.exists(logging_path):
+            os.makedirs(logging_path)
+
         timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
 
         # Append the timestamp to the file name
-        log_file_name = f"log_{timestamp}.txt"
+        log_file_name = f"log_{timestamp}_J{os.getenv('LSB_JOBID')}.log"
+        path = os.path.join(logging_path, log_file_name)
         logging.basicConfig(level=logging.INFO,
-                            format="%(asctime)s %(levelname)s %(message)s",
-                            datefmt="%Y-%m-%d %H:%M:%S",
-                            handlers=[
-                                logging.FileHandler(os.path.join(logging_path,log_file_name)),
-                                logging.StreamHandler()
-                            ])
+                        format="%(asctime)s %(levelname)s: %(message)s",
+                        datefmt="%Y-%m-%d %H:%M:%S",
+                        handlers=[
+                            logging.FileHandler(path),
+                            logging.StreamHandler()
+                        ])
+        
+        logging.info("Init logging")
         
     def init_folders(self, folder):
         folder_path = os.path.join(self.config.SRC_ROOT_PATH, folder)
@@ -227,13 +240,15 @@ class Utils():
                 file_name = f
                 dst_path = self.__get_dst_path(batch, matched_rep, panel, matched_condition, matched_cell_line, matched_marker, file_name)
                 src_path = os.path.join(folder_path, f)
-                    
+                
                 if cut_files:
                     dst_path_full = shutil.move(src_path, dst_path)
                 else:
                     dst_path_full = shutil.copy2(src_path, dst_path)
+                
                 n_copied += 1
                 logging.info(f"[{os.path.join(folder_path, f)}] {src_path} {'moved' if cut_files else 'copied'} to {dst_path_full}")
+                print(f"[{os.path.join(folder_path, f)}] {src_path} {'moved' if cut_files else 'copied'} to {dst_path_full}")
                     
             except Exception as e:
                 logging.error(e, exc_info=True)
