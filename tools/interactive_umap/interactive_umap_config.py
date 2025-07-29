@@ -110,7 +110,7 @@ new_data_layout = np.array([
 ## DeltaNLS new ##
 config_dNLS_new = {
     'paths':{
-    'umaps_folder' : f'{new_finetuned_figures_path}/dNLS/UMAPs',
+    'umaps_folder' : f'{new_finetuned_figures_path}/dNLSCLEAN/UMAPs',
     'csv_path' : f'{nova_home}{preprocessing_path}/ManuscriptFinalData_80pct/dNLS_new/brenner/raw_metrics030625_all.csv',
     'images_dir' : [f'{nova_home}{raw_images_path}/OPERA_dNLS_6_batches_NOVA_sorted/batch1/',
                     f'{nova_home}{raw_images_path}/OPERA_dNLS_6_batches_NOVA_sorted/batch2/',
