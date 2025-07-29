@@ -1,6 +1,7 @@
 
 from abc import abstractmethod
 
+from collections import Counter
 import logging
 import sys
 import os
@@ -242,25 +243,37 @@ class DatasetBase(torch.utils.data.Dataset):
             Tuple[np.ndarray, np.ndarray, np.ndarray]: Indexes for the training, validation, and test sets.
         """
         
-        X_indexes, y = np.arange(len(self.X_paths)), self.y
+        X_indexes, y = np.arange(len(self.y)), self.y.reshape(-1,)
         train_size = self.dataset_config.TRAIN_PCT
         random_state = self.dataset_config.SEED
         shuffle = self.dataset_config.SHUFFLE
-    
+
+        X_indexes_multi, singleton_indexes = self.__handle_singleton_labels(X_indexes, y)
+        
         # First, split the data in training and remaining dataset
         logging.info(f"Split data by set (train/val/test): {train_size}")
-        train_indexes, temp_indexes = train_test_split(X_indexes, 
+        train_indexes, temp_indexes = train_test_split(X_indexes_multi, 
                                                         train_size=train_size,
                                                         random_state=random_state,
                                                         shuffle=shuffle,
-                                                        stratify=y)
+                                                        stratify=y[X_indexes_multi])
+
+        if len(singleton_indexes) > 0:
+            logging.info(f"Adding {len(singleton_indexes)} singleton labels to the train set")
+            train_indexes = np.concatenate([train_indexes, singleton_indexes])
+
+        temp_indexes_multi, singleton_indexes = self.__handle_singleton_labels(temp_indexes, y[temp_indexes])
 
         # The valid and test size to be equal (that is 50% of remaining data)
-        val_indexes, test_indexes = train_test_split(temp_indexes,
+        val_indexes, test_indexes = train_test_split(temp_indexes_multi,
                                                         test_size=0.5,
                                                         random_state=random_state,
                                                         shuffle=shuffle,
-                                                        stratify=y[temp_indexes])
+                                                        stratify=y[temp_indexes_multi])
+        
+        if len(singleton_indexes) > 0:
+            logging.info(f"Adding {len(singleton_indexes)} singleton labels to the val set")
+            val_indexes = np.concatenate([val_indexes, singleton_indexes])
         
         logging.info(f"Train set: {len(train_indexes)}, Validation set: {len(val_indexes)}, Test set: {len(test_indexes)}")
         
@@ -271,3 +284,30 @@ class DatasetBase(torch.utils.data.Dataset):
         """Abstract method: Load the paths to the data files
         """
         pass
+
+    def __handle_singleton_labels(self, X_indexes:np.ndarray, y:np.ndarray)->Tuple[np.ndarray, np.ndarray]:
+        """Handle singleton labels by adding them to the training set
+
+        Args:
+            X_indexes (np.ndarray): The indexes of the data
+            y (np.ndarray): The labels
+
+        Returns:
+            Tuple[np.ndarray, np.ndarray]: 
+                - The indexes of the data that are not singleton labels
+                - The indexes of the singleton labels
+        """
+        # Get the counts of each label
+        label_counts = Counter(y)
+        
+        # Find singleton labels (labels that appear only once)
+        is_singleton = np.array([label_counts[label] == 1 for label in y])
+
+        if not np.any(is_singleton):
+            return X_indexes, np.asarray([])
+        
+        logging.info(f"Found {np.sum(is_singleton)} singleton labels {np.unique(y[is_singleton])}")
+
+        multi_indexes, singleton_indexes =  X_indexes[~is_singleton], X_indexes[is_singleton]
+
+        return multi_indexes, singleton_indexes

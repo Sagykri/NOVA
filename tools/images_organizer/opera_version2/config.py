@@ -8,7 +8,7 @@ class Config():
     def __init__(self):
         super().__init__()
 
-        self.LOGGING_PATH = os.path.join('tools', 'images_organizer', 'opera_version2', 'logs')
+        self.LOGGING_PATH = os.path.join('tools', 'images_organizer', 'opera_version2', 'logs', 'newINDI')
         self.KEY_CELL_LINES = "cell_lines"
         self.KEY_MARKERS_ALIAS_ORDERED = "markers_alias_ordered"
         self.KEY_MARKERS = "markers"
@@ -28,10 +28,11 @@ class Config():
         #####################################
 
         # Path to source folder (root)
-        self.SRC_ROOT_PATH = "/home/projects/hornsteinlab/Collaboration/MOmaps/input/images/raw/Opera18Days/"
+        # self.SRC_ROOT_PATH = "/home/projects/hornsteinlab/Collaboration/MOmaps/input/images/raw/Opera18Days/"
+        self.SRC_ROOT_PATH = "/home/projects/hornsteinlab/Collaboration/NOVA/input/images/raw/OPERA_indi_unsorted/"
 
         # Path to destination folder (root)
-        self.DST_ROOT_PATH = "/home/projects/hornsteinlab/Collaboration/MOmaps/input/images/raw/Opera18Days_sorted/"
+        self.DST_ROOT_PATH = "/home/projects/hornsteinlab/Collaboration/NOVA/input/images/raw/OPERA_indi_sorted/"
 
         # Names of folders to handle
         # - For selecting all folders in SRC_ROOT_PATH - set FOLDERS to None or delete the assignment 

@@ -8,7 +8,71 @@ import re
 import numpy as np
 from src.preprocessing.preprocessing_utils import rescale_intensity, fit_image_shape
 
+import matplotlib.pyplot as plt
+import matplotlib.patches as patches
+from matplotlib.colors import LinearSegmentedColormap
+
 # Utility functions
+
+def __set_cmap_two_channel_tile():
+    colors = [(0, 'black'), (1, 'red')] # 0 represents the start (black), 1 represents the end (red)
+    cmap_black_to_red = LinearSegmentedColormap.from_list("BlackToRed", colors)
+    colors = [(0, 'black'), (1, 'royalblue')] # 0 represents the start (black), 1 represents the end (red)
+    cmap_black_to_blue = LinearSegmentedColormap.from_list("BlackToBlue", colors)
+
+    colors = {'MARKER': cmap_black_to_red, 'DAPI': cmap_black_to_blue}
+
+    return colors
+
+def show_processed_tile(full_path):
+    def pretty(ax):
+        ax.spines['top'].set_visible(False)
+        ax.spines['right'].set_visible(False)
+        ax.spines['bottom'].set_visible(False)
+        ax.spines['left'].set_visible(False)
+        ax.tick_params(left=False, bottom=False, labelleft=False, labelbottom=False)
+
+    # Setting the colors
+    colors = __set_cmap_two_channel_tile()
+
+    _,_,_,_,_,_,_,_,_,_,_, batch, cell_line, cond, marker_name, filename, tile_index = full_path.split(os.sep)
+    tile_index = int(tile_index)
+
+    # Load the processed numpy tile
+    path = full_path.rsplit(os.sep,1)[0]
+    all_tiles = np.load(path)
+    
+    tile = all_tiles[tile_index]
+    
+    # Extract channels
+    dapi_img = tile[:,:,1]
+    marker_img = tile[:,:,0]
+
+    fig, axs = plt.subplots(1,2, figsize=(2,2))
+    axs=axs.flatten()
+    plt.subplots_adjust(hspace=0)  # Adjust vertical spacing between rows
+
+    imgs_to_show = [dapi_img, marker_img]
+    for i,layer in enumerate(imgs_to_show):
+        ax=axs[i]
+        # Note to vmin vmax!! important 
+        ax.imshow(layer, 
+                    cmap=colors['MARKER'] if i%2 else colors['DAPI'], 
+                    vmax=1, vmin=0)
+        pretty(ax)
+
+    title = f'{batch} {cell_line} {cond} {filename} tile:{tile_index}\n'
+
+    axs[0].set_ylabel("DAPI")
+    axs[1].set_ylabel(marker_name)
+    axs[1].yaxis.set_label_position('right')         # move label to right
+    axs[1].yaxis.tick_right()                        # move ticks to right
+
+    plt.tight_layout()
+    
+    plt.title(title,y=1.05, fontsize=10)
+
+    plt.show()
 
 def show_images(
     df: pd.DataFrame, 

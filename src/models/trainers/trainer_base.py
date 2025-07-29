@@ -270,17 +270,21 @@ class TrainerBase():
         assert os.path.exists(self.pretrained_model_path), f"The path to the pretrained model isn't exists ({self.pretrained_model_path})"
         
         logging.info(f"Loading pretrained model ({self.pretrained_model_path})")
-        pretrained_model = NOVAModel.load_from_checkpoint(self.pretrained_model_path).model
-        
-        # Modifying the head's output dim 
-        pretrained_model_out_dim = pretrained_model.head.out_features
-        model_out_dim = self.nova_model.model_config.OUTPUT_DIM
-        if pretrained_model_out_dim != model_out_dim:
-            logging.info(f"Changing the head output dim from {pretrained_model_out_dim} to {model_out_dim}")
-            pretrained_model.head = torch.nn.Linear(pretrained_model.head.in_features, model_out_dim)
-        
-        # Set the modified pretrained model to be the starting point for our model
-        self.nova_model.model = pretrained_model
+        pretrained_model = NOVAModel.load_from_checkpoint(self.pretrained_model_path)
+
+        # Load the pretrained state_dict
+        pretrained_dict = pretrained_model.model.state_dict()
+
+        # Filter out keys related to the head
+        filtered_dict = {k: v for k, v in pretrained_dict.items() if not k.startswith('head.')}
+
+        # Load model’s state dict and update with the filtered pretrained weights
+        model_dict = self.nova_model.model.state_dict()
+        model_dict.update(filtered_dict)
+
+        # 4. Load the updated dict
+        self.nova_model.model.load_state_dict(model_dict)
+
         logging.info(f"The updated head is: {self.nova_model.model.head}")
         
     def __try_freeze_layers(self, layers_to_freeze:List[str]):

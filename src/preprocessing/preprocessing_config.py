@@ -60,6 +60,14 @@ class PreprocessingConfig(BaseConfig):
         
         # The path to the file holding the focus boundries for each marker
         self.MARKERS_FOCUS_BOUNDRIES_PATH:Union[None,str] = None
+
+        # Threshold for filtering out empty tiles or tiles with dead cells  
+        self.MAX_INTENSITY_THRESHOLD_TARGET:float = 0.2 # Before rescale intenisty
+        self.VARIANCE_THRESHOLD_TARGET:float = 0.0001 # After rescale intenisty
+        self.MAX_INTENSITY_THRESHOLD_NUCLEI:float = 0.2 # Before rescale intenisty
+        self.VARIANCE_THRESHOLD_NUCLEI:float = 0.03 # After rescale intenisty
+        self.MIN_ALIVE_NUCLEI_AREA: int = 800 # Minimum area of a nuclei to be considered alive (in pixels)
+
             
         # Which markers to include
         self.MARKERS:Union[None, List[List]]            = None

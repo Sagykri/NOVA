@@ -84,6 +84,28 @@ config_d18 = {
     'name': 'Day18'
 }
 
+## iAstrocytes_Tile146 ##
+config_iAstrocytes = {
+    'paths':{
+    'umaps_folder' : "/home/projects/hornsteinlab/Collaboration/MOmaps_Sagy/NOVA/outputs/vit_models_local/finetunedModel_MLPHead_acrossBatches_B56789_80pct_frozen/figures/iAstrocytes_Tile146/UMAPs/",
+    'csv_path' : f'{nova_home}{preprocessing_path}/iAstrocytes/brenner/raw_metrics110625.csv',
+    'images_dir' : [f'{nova_home}{raw_images_path}/John/iAstrocytes/ordered/',]
+    },
+    'layouts': None,
+    'name': 'iAstrocytes_Tile146'
+}
+
+## Alyssa_new ##
+config_Alyssa_new = {
+    'paths':{
+    'umaps_folder' : "/home/projects/hornsteinlab/Collaboration/MOmaps_Sagy/NOVA/outputs/vit_models_local/finetunedModel_MLPHead_acrossBatches_B56789_80pct_frozen/figures/AlyssaCoyne_new/UMAPs/",
+    'csv_path' : '',
+    'images_dir' : [f'{nova_home}{raw_images_path}/AlyssaCoyne_new_sorted/',]
+    },
+    'layouts': None,
+    'name': 'Alyssa_new'
+}
+
 ##########################
 ## New data d8 and dNLS ##
 ##########################

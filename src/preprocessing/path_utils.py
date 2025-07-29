@@ -85,6 +85,17 @@ def get_raw_marker(path:Union[str, Path])->str:
     """
     return __get_part(path, raw_parts.marker_part_indx)
 
+def get_processed_batch(path:Union[str, Path])->str:
+    """Get the cell line from a given path to the processed data
+
+    Args:
+        path (Union[str, Path]): The path
+
+    Returns:
+        str: The cell line
+    """
+    return __get_part(path, processed_parts.batch_part_index)
+
 def get_processed_cell_line(path:Union[str, Path])->str:
     """Get the cell line from a given path to the processed data
 

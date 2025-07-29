@@ -4,7 +4,7 @@ import pandas as pd
 import numpy as np
 import sys
 
-sys.path.insert(1, os.getenv("MOMAPS_HOME"))
+sys.path.insert(1, os.getenv("NOVA_HOME"))
 from tools.images_organizer.opera_version2.utils import Utils
 from src.common.utils import get_class
 
@@ -44,8 +44,10 @@ def main():
         n_total_str = ""
     
     logging.info(f"{n_copied}{n_total_str} files were copied from {utils_obj.config.SRC_ROOT_PATH} to {utils_obj.config.DST_ROOT_PATH}")
+    print(f"{n_copied}{n_total_str} files were copied from {utils_obj.config.SRC_ROOT_PATH} to {utils_obj.config.DST_ROOT_PATH}")
 
-logging.info(f"Finished successfully!")
+    logging.info(f"Finished successfully!")
+    print("DONE")
     
 if __name__ == "__main__":
     main()
