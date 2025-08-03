@@ -164,7 +164,6 @@ class InteractiveUMAPPipeline:
         self.mix_groups_box, self.mix_groups_checkbox = labeled_checkbox('Mix Groups', 'Shuffle and plot instead of plotting each group on top of each other', 
                                                                          value=True)
 
-        # self.recolor_box, self.recolor_checkbox = labeled_checkbox('Recolor by Brenner','Recolor points based on Brenner scores (if available)', value=False)
         # Recolor checkbox
         self.recolor_checkbox = widgets.Checkbox(
             value=False,
@@ -186,7 +185,6 @@ class InteractiveUMAPPipeline:
 
         self.recolor_checkbox.observe(toggle_dropdown, names='value')
 
-        # You can group and display them in your GUI like:
         self.recolor_box = widgets.VBox([
             self.recolor_checkbox,
             self.recolor_dropdown
