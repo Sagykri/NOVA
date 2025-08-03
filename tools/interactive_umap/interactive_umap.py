@@ -38,7 +38,7 @@ class InteractiveUMAPPipeline:
         self.dispose()
         # --- General setup ---
         self.filter_checkboxes = {}  # Stores dynamically generated filter checkboxes
-        self.advanced_filter_dropdowns = {}  # Stores advanced filter dropdowns, e.g. 'Cell_Line_Condition', 'Panel', 'Marker'
+        self.advanced_filter_dropdowns = {}  # Stores advanced filter dropdowns, e.g. 'Cell_Line_Condition', 'Panel', 'Marker', 'Cell_Line_Rep'
         self.selected_indices_global = []  # Stores the selected point indices from rectangle selection
         self.rect_selector = None  # Persistent RectangleSelector object for UMAP plot
         
@@ -161,8 +161,35 @@ class InteractiveUMAPPipeline:
 
         # --- Additional plot controls ---
         self.pickle_status_label = widgets.HTML()
-        self.mix_groups_box, self.mix_groups_checkbox = labeled_checkbox('Mix Groups', 'Shuffle and plot instead of plotting each group on top of each other', value=True)
-        self.recolor_box, self.recolor_checkbox = labeled_checkbox('Recolor by Brenner','Recolor points based on Brenner scores (if available)', value=False)
+        self.mix_groups_box, self.mix_groups_checkbox = labeled_checkbox('Mix Groups', 'Shuffle and plot instead of plotting each group on top of each other', 
+                                                                         value=True)
+
+        # Recolor checkbox
+        self.recolor_checkbox = widgets.Checkbox(
+            value=False,
+            description='Recolor points',
+            indent=False,
+        )
+
+        # Dropdown for recolor mode
+        self.recolor_dropdown = widgets.Dropdown(
+            options=['Brenner', 'Rep'],
+            value='Brenner',
+            description='By:',
+            disabled=True  # initially disabled
+        )
+
+        # Enable dropdown only when checkbox is checked
+        def toggle_dropdown(change):
+            self.recolor_dropdown.disabled = not change['new']
+
+        self.recolor_checkbox.observe(toggle_dropdown, names='value')
+
+        self.recolor_box = widgets.VBox([
+            self.recolor_checkbox,
+            self.recolor_dropdown
+        ]) 
+        
         self.dilute_slider = widgets.SelectionSlider(
             options=[1, 2, 3, 4, 5, 10, 15, 20, 25, 50, 75, 100],
             value=1,
@@ -391,7 +418,7 @@ class InteractiveUMAPPipeline:
                 return  # Stop execution if file doesn't exist
 
             self.umap_embeddings, self.label_data, self.config_data, self.config_plot, self.df_umap_tiles = load_and_process_data(
-                self.umaps_dir_widget.text_input.value, pickle_file_path, self.df_brenner)
+                self.umaps_dir_widget.text_input.value.strip(), pickle_file_path, self.df_brenner)
             
             self.apply_dilution() 
      
@@ -441,12 +468,15 @@ class InteractiveUMAPPipeline:
         label1, _ = make_dropdown(self.df_umap_tiles['Cell_Line_Condition'], "CellLine + Condition", "Cell_Line_Condition")
         label2, _ = make_dropdown(self.df_umap_tiles['Panel'], "Panel", "Panel")
         label3, _ = make_dropdown(self.df_umap_tiles['Marker'], "Marker", "Marker")
+        label4, _ = make_dropdown(self.df_umap_tiles['Cell_Line_Rep'], "CellLine + Rep", "Cell_Line_Rep")
 
         inner = widgets.VBox([
             widgets.HTML("<span style='font-size:11px;'>Hold Ctrl to select/deselect multiple</span>"),
             label1, self.advanced_filter_dropdowns["Cell_Line_Condition"],
             label2, self.advanced_filter_dropdowns["Panel"],
-            label3, self.advanced_filter_dropdowns["Marker"]
+            label3, self.advanced_filter_dropdowns["Marker"],
+            label4, self.advanced_filter_dropdowns["Cell_Line_Rep"],
+
         ])
 
         acc = widgets.Accordion(children=[inner])
@@ -489,7 +519,7 @@ class InteractiveUMAPPipeline:
             cleaned_values = [v.split(' (')[0] for v in values]
 
             mask &= self.df_umap_tiles[column].apply(
-                lambda x: any(str(x).startswith(prefix) for prefix in cleaned_values)
+                lambda x: str(x) in cleaned_values
             )
         # Apply mask to all data
         self.umap_embeddings_filt = self.umap_embeddings[mask]
@@ -571,7 +601,8 @@ class InteractiveUMAPPipeline:
 
         param_lines.append("filters:\n" + filter_str)
         param_lines.append(f"MIX_GROUPS: {True if self.mix_groups_checkbox.value else False}")
-        param_lines.append(f"RECOLOR_BY_BRENNER: {True if self.recolor_checkbox.value else False}")
+        param_lines.append(f"RECOLOR_BY_BRENNER: {True if (self.recolor_checkbox.value)&(self.recolor_dropdown.value == 'Brenner') else False}")
+        param_lines.append(f"RECOLOR_BY_REP: {True if (self.recolor_checkbox.value)&(self.recolor_dropdown.value == 'Rep') else False}")
         param_lines.append(f"BRENNER_bins: {self.bins_slider.value}")
         param_lines.append(f"DILUTE: {self.dilute_slider.value}")
         param_lines.append(f"Selected Points: {len(self.selected_indices_global)}")
@@ -885,7 +916,8 @@ class InteractiveUMAPPipeline:
         df_umap_tiles = self.df_umap_tiles_filt.copy() if self.df_umap_tiles_filt is not None else self.df_umap_tiles.copy()
         umap_embeddings = self.umap_embeddings_filt.copy() if self.umap_embeddings_filt is not None else self.umap_embeddings.copy()
         label_data = self.label_data_filt.copy() if self.label_data_filt is not None else self.label_data.copy()
-        RECOLOR_BY_BRENNER=self.recolor_checkbox.value
+        RECOLOR_BY_BRENNER=(self.recolor_checkbox.value)&(self.recolor_dropdown.value == 'Brenner')
+        RECOLOR_BY_REP=(self.recolor_checkbox.value)&(self.recolor_dropdown.value == 'Rep')
         dilute=self.dilute_slider.value
         bins=self.bins_slider.value
 
@@ -919,6 +951,12 @@ class InteractiveUMAPPipeline:
                     print("❌ Recoloring by Brenner score is not possible for Multiplexed Embeddings.")
                 else:
                     print("❌ Please specify the correct Brenner csv path to enable recoloring by Brenner score.")
+            elif RECOLOR_BY_REP:
+                if 'Rep' in df_umap_tiles.columns:
+                    df_umap_tiles["Color"], rep_color_map = set_colors_by_reps(df_umap_tiles['Rep'])
+                    colors_dict = {idx: row.Color for idx, row in df_umap_tiles.iterrows()}
+                else:
+                    print("❌ Recoloring by Rep is not possible for this dataset. Please check the UMAP metadata.")
 
         name_key, color_key = self.config_plot['MAPPINGS_ALIAS_KEY'], self.config_plot['MAPPINGS_COLOR_KEY']
         marker_size, alpha = self.config_plot['SIZE'], self.config_plot['ALPHA']
@@ -937,6 +975,8 @@ class InteractiveUMAPPipeline:
         for group in unique_groups:
             group_indices = np.where(label_data == group)[0]
             if RECOLOR_BY_BRENNER and (df_umap_tiles is not None) and ("Target_Sharpness_Brenner" in df_umap_tiles.columns) and not (df_umap_tiles["Target_Sharpness_Brenner"].isna().all()):
+                rgba_colors = [colors_dict.get(idx, "#000000") for idx in original_indices[group_indices]]
+            elif RECOLOR_BY_REP and (df_umap_tiles is not None) and ('Rep' in df_umap_tiles.columns):
                 rgba_colors = [colors_dict.get(idx, "#000000") for idx in original_indices[group_indices]]
             else:
                 base_color = name_color_dict[group][color_key]
@@ -1013,27 +1053,12 @@ class InteractiveUMAPPipeline:
 
         if RECOLOR_BY_BRENNER:
             if (self.df_brenner is not None) and ("Target_Sharpness_Brenner" in df_umap_tiles.columns) and not (df_umap_tiles["Target_Sharpness_Brenner"].isna().all()):
-                # Create colorbar
-                norm = mcolors.BoundaryNorm(percentiles, cmap.N)
-                sm = plt.cm.ScalarMappable(cmap=cmap, norm=norm)
-                sm.set_array([])
-                cbar = plt.colorbar(sm, ax=ax, ticks=percentiles, fraction=0.046, pad=0.04)
-                cbar.ax.set_yticklabels([
-                    f'{int(p)} ({round(q)}%)' for p, q in zip(percentiles, np.linspace(0, 100, len(percentiles)))
-                ])
-                cbar.ax.tick_params(labelsize=6) 
-                cbar.set_label('Target Sharpness (Brenner Score)', fontsize=8)
-                if df_umap_tiles["Target_Sharpness_Brenner"].isna().any():
-                    # Add a small square below the colorbar for NaN 
-                    ax.figure.text(
-                        0.92, 0.1, "NaN", ha='center', fontsize=7
-                    )
-                    ax.figure.patches.extend([
-                        mpatches.Rectangle(
-                            (0.905, 0.08), 0.03, 0.02, transform=ax.figure.transFigure,
-                            facecolor='black', edgecolor='none'
-                        )
-                    ])
+                self.add_brenner_colorbar(ax, percentiles, cmap) ## Add Brenner colorbar
+                
+        elif RECOLOR_BY_REP:
+            if "Rep" in df_umap_tiles.columns:
+                self.add_rep_colorbar(ax, rep_color_map) ## Add Rep legend
+
         else:
             if mix_groups:
                 # Manually create handles and labels
@@ -1069,3 +1094,54 @@ class InteractiveUMAPPipeline:
         """Ask glibc to return free heap pages to the OS."""
         libc = ctypes.CDLL("libc.so.6")
         libc.malloc_trim(0)
+
+
+    def add_brenner_colorbar(self, ax, percentiles, cmap):
+        """Adds a colorbar for Brenner scores to the UMAP plot."""
+        # Create colorbar
+        norm = mcolors.BoundaryNorm(percentiles, cmap.N)
+        sm = plt.cm.ScalarMappable(cmap=cmap, norm=norm)
+        sm.set_array([])
+        cbar = plt.colorbar(sm, ax=ax, ticks=percentiles, fraction=0.046, pad=0.04)
+        cbar.ax.set_yticklabels([
+            f'{int(p)} ({round(q)}%)' for p, q in zip(percentiles, np.linspace(0, 100, len(percentiles)))
+        ])
+        cbar.ax.tick_params(labelsize=6) 
+        cbar.set_label('Target Sharpness (Brenner Score)', fontsize=8)
+        if self.df_umap_tiles["Target_Sharpness_Brenner"].isna().any():
+            # Add a small square below the colorbar for NaN 
+            ax.figure.text(
+                0.92, 0.1, "NaN", ha='center', fontsize=7
+            )
+            ax.figure.patches.extend([
+                mpatches.Rectangle(
+                    (0.905, 0.08), 0.03, 0.02, transform=ax.figure.transFigure,
+                    facecolor='black', edgecolor='none'
+                )
+            ])
+
+    def add_rep_colorbar(self, ax, rep_color_map):
+        """Add legend for rep colors"""
+        handles = []
+        for rep, color in rep_color_map.items():
+            patch = mpatches.Patch(color=color, label=str(rep))
+            handles.append(patch)
+
+        ax.legend(
+            handles=handles,
+            title="Rep",
+            title_fontsize=8,
+            fontsize=6,
+            loc='center left',
+            bbox_to_anchor=(1.01, 0.5),
+            borderaxespad=0.
+        )
+
+        if self.df_umap_tiles["Rep"].isna().any():
+            ax.figure.text(0.92, 0.1, "NaN", ha='center', fontsize=7)
+            ax.figure.patches.extend([
+                mpatches.Rectangle(
+                    (0.905, 0.08), 0.03, 0.02, transform=ax.figure.transFigure,
+                    facecolor='black', edgecolor='none'
+                )
+            ])
