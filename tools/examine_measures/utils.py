@@ -2,7 +2,7 @@ import time
 import numpy as np
 import pandas as pd
 import torch
-
+from scipy.stats import spearmanr, pearsonr
 
 def compute_block_distances(X1: torch.Tensor,
                             X2: torch.Tensor,
@@ -200,3 +200,62 @@ def summarize_times(df: pd.DataFrame) -> None:
     print(f"Max stats_time_s:  {max_stats:.3f}s")
     print(f"Total stats_time_s:{total_stats:.3f}s")
     print(f"Mean stats_time: {mean_stats_time:.3f}s")
+
+def merge_batches_by_key(dfs, names, key_cols=('label1', 'label2'), value_col='p50'):
+    """
+    Merge a list of DataFrames on key_cols, renaming value_col in each with its corresponding name.
+    
+    Returns:
+        - merged DataFrame
+        - list of renamed value column names
+    """
+    merged = dfs[0][[*key_cols, value_col]].rename(columns={value_col: f"{value_col}_{names[0]}"})
+    for df, name in zip(dfs[1:], names[1:]):
+        merged = merged.merge(
+            df[[*key_cols, value_col]].rename(columns={value_col: f"{value_col}_{name}"}),
+            on=list(key_cols),
+            how="inner"
+        )
+    value_cols = [f"{value_col}_{n}" for n in names]
+    return merged, value_cols
+
+def correlate_columns(df, cols, method='spearman'):
+    """
+    Compute correlation and p-value matrices for specified columns.
+
+    Returns:
+        - correlation DataFrame
+        - p-value DataFrame
+    """
+    data = df[cols].to_numpy()
+
+    if method == 'spearman':
+        corr_mat, pval_mat = spearmanr(data, axis=0)
+    elif method == 'pearson':
+        corr_mat = np.corrcoef(data, rowvar=False)
+        pval_mat = np.ones_like(corr_mat)
+        for i in range(len(cols)):
+            for j in range(i+1, len(cols)):
+                r, p = pearsonr(data[:, i], data[:, j])
+                corr_mat[i, j] = corr_mat[j, i] = r
+                pval_mat[i, j] = pval_mat[j, i] = p
+                pval_mat[i, i] = pval_mat[j, j] = 0.0
+    else:
+        raise ValueError(f"Unsupported method: {method}")
+
+    return pd.DataFrame(corr_mat, index=cols, columns=cols), pd.DataFrame(pval_mat, index=cols, columns=cols)
+
+def get_base_label(label: str) -> str:
+    ## Get the base label by removing the last part after the last underscore
+    ## This assumes labels are formatted as "base_rep" 
+    ## e.g. "DAPI_rep1" -> "DAPI"
+    return ('_').join(label.split('_')[0:-1])
+
+def get_base_to_reps(labels):
+    base_to_reps = {}
+    unique_labels = np.unique(labels)
+    # Group labels by base name
+    for label in unique_labels:
+        base = get_base_label(label)
+        base_to_reps.setdefault(base, []).append(label)
+    return base_to_reps

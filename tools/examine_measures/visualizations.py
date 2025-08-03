@@ -6,6 +6,16 @@ import seaborn as sns
 from scipy.cluster.hierarchy import linkage
 import networkx as nx
 import warnings
+from matplotlib.lines import Line2D
+from matplotlib.patches import Rectangle
+
+plt.rcParams.update({
+        'figure.dpi': 100,
+        'font.family': 'serif',
+        'font.size': 10,
+        'axes.titlesize': 12,
+        'axes.titleweight': 'bold',
+    })
   
 def plot_umap(embeddings_umap, labels):
     labels = np.asarray(labels)
@@ -43,30 +53,57 @@ def plot_umap(embeddings_umap, labels):
     plt.tight_layout()
     plt.show()
 
-def plot_custom_boxplot(summary_df, med_col = "p50", q1_col = "p25", q3_col = "p75"):
-    # Sort by median
+def plot_custom_boxplot(summary_df,
+                      med_col="p50",
+                      q1_col="p25",
+                      q3_col="p75",
+                      lw=1.5,
+                      width=0.6):
+    # sort by median
     summary_df = summary_df.sort_values(by=med_col).reset_index(drop=True)
-    plt.figure()
-    for i, row in summary_df.iterrows():
-        # Box
-        plt.plot([i, i], [row[q1_col], row[q3_col]], color='black', linewidth=10)
 
-        # Median
-        plt.plot([i - 0.2, i + 0.2], [row[med_col], row[med_col]], color='red', linewidth=2)
+    # build stats list
+    stats = []
+    for row in summary_df.itertuples(index=False):
+        stats.append({
+            "label":  f"{row.label1} vs {row.label2}",
+            "med":    getattr(row, med_col),
+            "q1":     getattr(row, q1_col),
+            "q3":     getattr(row, q3_col),
+            "whislo": row.lower_whisker,
+            "whishi": row.upper_whisker,
+            "fliers": []
+        })
 
-        # Whiskers
-        plt.plot([i, i], [row["lower_whisker"], row[q1_col]], color='black', linewidth=2)
-        plt.plot([i, i], [row[q3_col], row["upper_whisker"]], color='black', linewidth=2)
+    fig, ax = plt.subplots(figsize=(max(8, len(stats)*0.3), 6))
+    ax.set_axisbelow(True)
+    ax.grid(axis="y", linestyle="--", alpha=0.4)
 
-        # Whisker caps
-        plt.plot([i - 0.1, i + 0.1], [row["lower_whisker"], row["lower_whisker"]], color='black')
-        plt.plot([i - 0.1, i + 0.1], [row["upper_whisker"], row["upper_whisker"]], color='black')
+    ax.bxp(
+        stats,
+        patch_artist=True,         
+        widths=width,
+        showmeans=False,
+        showfliers=False,
+        whiskerprops=dict(color="black", linewidth=lw),
+        capprops    =dict(color="black", linewidth=lw),
+        boxprops    =dict(facecolor="lightgray",
+                          edgecolor="black",
+                          linewidth=lw,
+                          alpha=0.7),
+        medianprops =dict(color="red", linewidth=lw),
+    )
 
-    plt.xticks(ticks=range(len(summary_df)), 
-               labels=[f"{l1} vs {l2}" for l1, l2 in zip(summary_df['label1'], summary_df['label2'])], 
-               rotation=45, ha='right')
-    plt.ylabel("Distance")
-    plt.title("Custom Box Plot of Pairwise Distances")
+    # tidy up
+    ax.spines["top"].set_visible(False)
+    ax.spines["right"].set_visible(False)
+    ax.set_xticklabels([s["label"] for s in stats],
+                       rotation=90, fontsize=8)
+    for tick, row in zip(ax.get_xticklabels(), summary_df.itertuples(index=False)):
+        if row.label1 == row.label2:
+            tick.set_fontweight("bold")
+    ax.set_ylabel("Distance")
+    ax.set_title("Pairwise Distance Distribution")
     plt.tight_layout()
     plt.show()
 
@@ -75,10 +112,12 @@ def plot_label_clustermap(df: pd.DataFrame,
                           method: str = "average",
                           cmap: str = "viridis",
                           figsize: tuple = (10,10),
+                          highlight_thresh: float = None,
                           save_path: str = None):
     """
     Build a symmetric distance matrix from df[['label1','label2',metric_col]],
-    cluster it, and draw a seaborn clustermap.
+    cluster it, and draw a seaborn clustermap, and (if highlight_thresh is set)
+    draw a red box around any cell with value ≤ highlight_thresh.
     """
     labels = sorted(set(df['label1']) | set(df['label2']))
     dist_mat = pd.DataFrame(np.nan, index=labels, columns=labels)
@@ -96,24 +135,39 @@ def plot_label_clustermap(df: pd.DataFrame,
                         cmap=cmap,
                         figsize=figsize)
     cg.fig.suptitle(f"Clustered heatmap ({metric_col})", y=1.02)
+    # Highlight low‑distance cells
+    if highlight_thresh is not None:
+        # Map original matrix indices to clustered heatmap positions
+        order = cg.dendrogram_row.reordered_ind
+        inv_map = {orig: new for new, orig in enumerate(order)}
+        ax = cg.ax_heatmap
+        data = dist_mat.values
+        n = data.shape[0]
+        for i in range(n):
+            for j in range(n):
+                if data[i, j] <= highlight_thresh:
+                    yi, xi = inv_map[i], inv_map[j]
+                    ax.add_patch(Rectangle((xi, yi), 1, 1,
+                                           fill=False,
+                                           edgecolor='red',
+                                           linewidth=1))
     if save_path:
         cg.savefig(save_path, bbox_inches='tight')
 
-def plot_thresholded_network(df: pd.DataFrame,
+def plot_network1(df: pd.DataFrame,
                              metric_col: str = "p50",
                              threshold: float = None,
                              top_k: int = None,
                              figsize: tuple = (12,12),
                              node_size: int = 400,
                              edge_cmap: str = "coolwarm",
-                             cluster_map: dict = None,
-                             save_path: str = None):
+                             save_path: str = None,
+                            method = 'spring'):
     """
     Build a graph whose nodes are labels and whose edges connect pairs
     with metric_col <= threshold (or keep only top_k smallest distances).
     Draw with edge widths proportional to closeness.
 
-    Optional cluster_map: { node_label -> cluster_id } for per‑cluster node colors.
     """
     if (threshold is None) == (top_k is None):
         raise ValueError("Specify exactly one of threshold or top_k")
@@ -132,22 +186,19 @@ def plot_thresholded_network(df: pd.DataFrame,
     for _, row in edges.iterrows():
         G.add_edge(row['label1'], row['label2'], weight=row[metric_col])
 
-    # 3) Layout: more repulsion & iterations
-    pos = nx.spring_layout(G, seed=42, k=0.8, iterations=300)
-
-    # 4) Node colors: by cluster if provided, else uniform
-    if cluster_map:
-        # map each node to its cluster color
-        clusters = np.array([cluster_map.get(n, -1) for n in G.nodes()])
-        # assign each unique cluster an integer color index
-        _, labels_idx = np.unique(clusters, return_inverse=True)
-        node_colors = labels_idx
-        cmap_nodes = plt.get_cmap("tab20")
+    # 3) Layout
+    if method == 'spring':
+        print('spring')
+        pos = nx.spring_layout(G, seed=42, k=0.8, iterations=300)
     else:
-        node_colors = "lightblue"
-        cmap_nodes = None
+        print('kamada')
+        pos = nx.kamada_kawai_layout(G, weight='length', scale=1.0, center=(0,0))
 
-    # 5) Compute edge widths & colors as before
+    # 4) Node colors
+    node_colors = "lightblue"
+    cmap_nodes = None
+
+    # 5) Compute edge widths and colors as before
     weights = np.array([G[u][v]['weight'] for u,v in G.edges()])
     inv = (weights.max() - weights) + 0.1*weights.max()
     widths = inv / inv.max() * 6
@@ -193,6 +244,118 @@ def plot_thresholded_network(df: pd.DataFrame,
         fig.savefig(save_path, bbox_inches='tight')
     plt.show()
 
+def plot_cluster_proximity_network(df_stats,
+                                   metric='p50',
+                                   intra_metric='p50',
+                                   threshold=None,
+                                   top_k=None,
+                                   figsize=(10, 10),
+                                   min_node_size=200,
+                                   max_node_size=1000,
+                                   cmap_name='viridis',
+                                   edge_width=2,
+                                   layout_method='kamada_kawai'):
+    """
+    Visualise cluster proximity for publication:
+
+    - Node size proportional to the intra‑cluster median value (intra_metric).
+    - Edge colour and transparency proportional to the inter‑cluster median (metric),
+      with closer clusters rendered in darker, more opaque hues.
+    - Node positions computed to respect median distances via specified layout.
+    - Optionally retain only edges below a threshold or the top_k closest pairs.
+    """
+    intra_df = df_stats[df_stats.label1 == df_stats.label2].set_index('label1')
+    inter_df = df_stats[df_stats.label1 != df_stats.label2].copy()
+
+    if threshold is not None:
+        inter_df = inter_df[inter_df[metric] <= threshold]
+    elif top_k is not None:
+        inter_df = inter_df.nsmallest(top_k, metric)
+
+    G = nx.Graph()
+    G.add_nodes_from(intra_df.index)
+    for _, row in inter_df.iterrows():
+        a, b = row['label1'], row['label2']
+        d = row[metric]
+        G.add_edge(a, b, length=d, median=d)
+
+    intra_vals = np.array([intra_df.loc[n, intra_metric] for n in G.nodes()])
+    norm_intra = (intra_vals - intra_vals.min()) / (intra_vals.ptp() + 1e-6)
+    node_sizes = norm_intra * (max_node_size - min_node_size) + min_node_size
+
+    medians = np.array([G[u][v]['median'] for u, v in G.edges()])
+    norm_med = (medians - medians.min()) / (medians.ptp() + 1e-6)
+    cmap = plt.get_cmap(cmap_name)
+    edge_colors = cmap(norm_med)
+    edge_alphas = 1.0 - norm_med
+
+    if layout_method == 'spring':
+        pos = nx.spring_layout(G, weight='length', seed=42, k=0.8, iterations=300)
+    else:
+        pos = nx.kamada_kawai_layout(G, weight='length', scale=1.0, center=(0,0))
+
+    fig, ax = plt.subplots(figsize=figsize)
+    nx.draw_networkx_nodes(G, pos,
+                           node_size=node_sizes,
+                           node_color='lightsteelblue',
+                           edgecolors='black',
+                           linewidths=0.5,
+                           ax=ax)
+    for (u, v), col, alpha in zip(G.edges(), edge_colors, edge_alphas):
+        ax.plot([pos[u][0], pos[v][0]],
+                [pos[u][1], pos[v][1]],
+                color=col, alpha=alpha, linewidth=edge_width)
+    nx.draw_networkx_labels(G, pos, font_size=9, font_family='serif', ax=ax)
+
+    sm = plt.cm.ScalarMappable(cmap=cmap,
+                               norm=plt.Normalize(vmin=medians.min(),
+                                                  vmax=medians.max()))
+    sm.set_array([])
+    # cbar = fig.colorbar(sm, ax=ax, shrink=0.7, pad=0.01)
+    cbar = fig.colorbar(sm, ax=ax, orientation='horizontal', pad=0.03, fraction=0.05)
+    cbar.set_label(metric, family='serif')
+
+    # Legend for node sizes (intra-cluster medians)
+    sample_vals = np.percentile(intra_vals, [0, 50, 100])
+    sample_sizes = ((sample_vals - intra_vals.min()) / (intra_vals.ptp() + 1e-6)
+                   * (max_node_size - min_node_size) + min_node_size)
+    handles = [
+        Line2D([0], [0],
+               marker='o',
+               color='lightsteelblue',
+               markeredgecolor='black',
+               markersize=np.sqrt(sz),
+               linewidth=0)
+        for sz in sample_sizes
+    ]
+    labels = [f"{val:.2f}" for val in sample_vals]
+    legend = ax.legend(
+        handles, labels,
+        title="Intra‑cluster median",
+        frameon=True,
+        framealpha=0.9,
+        loc='center left',
+        bbox_to_anchor=(1.05, 0.5)
+    )
+    legend.get_frame().set_edgecolor('black')
+    legend.get_frame().set_linewidth(0.5)
+
+    if threshold is not None:
+        title = f"Clusters with {metric} ≤ {threshold:.3g}"
+    elif top_k is not None:
+        title = f"Top {top_k} Closest Cluster Pairs"
+    else:
+        title = "Cluster Proximity Network"
+    ax.set_title(title, family='serif')
+    x_vals = [p[0] for p in pos.values()]
+    y_vals = [p[1] for p in pos.values()]
+    ax.set_xlim(min(x_vals) - 0.15, max(x_vals) + 0.15)
+    ax.set_ylim(min(y_vals) - 0.15, max(y_vals) + 0.15)
+
+    ax.axis('off')
+    plt.tight_layout()
+    plt.show()
+
 def compare_euclidean_cosine(df_euclid: pd.DataFrame,
                      df_cosine: pd.DataFrame,
                      column: str):
@@ -227,4 +390,185 @@ def compare_euclidean_cosine(df_euclid: pd.DataFrame,
     min_val = min(cmp.min())
     max_val = max(cmp.max())
     plt.plot([min_val, max_val], [min_val, max_val], linestyle='--')
+    plt.show()
+
+def plot_dist_histogram(df, metric='p50', bins=30):
+    """
+    Plot overlaid histograms of intra‑ and inter‑cluster medians with a light grid.
+    """
+    intra = df[df.label1 == df.label2][metric]
+    inter = df[df.label1 != df.label2][metric]
+
+    plt.figure(figsize=(6, 4))
+    plt.hist(inter, bins=bins, alpha=0.5, label='inter‑cluster')
+    plt.hist(intra, bins=bins, alpha=0.5, label='intra‑cluster')
+    plt.grid(alpha=0.3, linestyle='--')
+    plt.title('Median Distance Distribution')
+    plt.xlabel(metric)
+    plt.ylabel('Count')
+    plt.legend()
+    plt.tight_layout()
+    plt.show()
+
+def plot_p50_across_batches(df, metric_prefix='p50_'):
+    """
+    For each unique (label1, label2) pair in df, plots a bar chart of
+    all the columns starting with `metric_prefix`.
+    
+    Parameters
+    ----------
+    df : pandas.DataFrame
+        Must contain 'label1', 'label2' and columns like 'p50_batch1', 'p50_batch2', ...
+    metric_prefix : str
+        Prefix of the metric columns to plot (default 'p50_').
+    """
+    # 1) find all batch‐columns
+    p50_cols = [c for c in df.columns if c.startswith(metric_prefix)]
+    # extract the batch identifiers (e.g. 'batch1', 'batch2', ...)
+    batches = [c[len(metric_prefix):] for c in p50_cols]
+
+    # 2) loop over each pair
+    pairs = df[['label1','label2']].drop_duplicates()
+    for l1, l2 in pairs.values:
+        row = df[(df.label1 == l1) & (df.label2 == l2)]
+        if row.empty:
+            continue
+        values = row.iloc[0][p50_cols].values.astype(float)
+
+        # 3) plot
+        fig, ax = plt.subplots(figsize=(6,4))
+        ax.bar(batches, values, color='steelblue', edgecolor='black')
+        plt.title(f"Median Distances: {l1} vs {l2}", family='serif')
+        plt.xlabel("Batch", family='serif')
+        plt.ylabel("Median Distance", family='serif')
+        plt.xticks(rotation=45, ha='right')
+        ymin, ymax = values.min(), values.max()
+        ax.set_ylim(ymin*0.95, ymax*1.05)
+        plt.tight_layout()
+        plt.show()
+
+def plot_boxplot_all_pairs(df, metric_prefix='p50_', figsize=(12,6)):
+    """
+    Create a box plot showing the distribution of p50 values 
+    across batches for each (label1, label2) pair, sorted by median ascending.
+    Bold-face the labels where label1 == label2.
+    """
+    # Identify batch columns and melt
+    p50_cols = [c for c in df.columns if c.startswith(metric_prefix)]
+    df_long = df.melt(
+        id_vars=['label1', 'label2'],
+        value_vars=p50_cols,
+        var_name='batch',
+        value_name='p50'
+    )
+    df_long['pair'] = df_long['label1'] + ' vs ' + df_long['label2']
+    
+    # Compute median per pair and sort
+    medians = df_long.groupby('pair')['p50'].median()
+    order = medians.sort_values().index.tolist()
+    
+    # Plot
+    fig, ax = plt.subplots(figsize=figsize)
+    sns.boxplot(
+        data=df_long,
+        x='pair',
+        y='p50',
+        order=order,
+        palette='pastel',
+        ax=ax
+    )
+    ax.set_xticklabels([
+        lbl if lbl.split(' vs ')[0] != lbl.split(' vs ')[1]
+        else lbl.replace(lbl, lbl, 1)  # placeholder
+        for lbl in order
+    ], rotation=45, ha='right')
+    
+    # Bold intra‐cluster labels
+    for label in ax.get_xticklabels():
+        text = label.get_text()
+        l1, l2 = text.split(' vs ')
+        if l1 == l2:
+            label.set_fontweight('bold')
+    
+    ax.set_xlabel('Label Pair')
+    ax.set_ylabel('Median Distance (p50)')
+    ax.set_title('Distribution of Median Distances Across Batches')
+    plt.tight_layout()
+    plt.show()
+
+def plot_correlation_heatmap(corr_df, method="spearman", figsize=(6, 5), cmap="viridis"):
+    """
+    Plots a heatmap of the correlation matrix with annotations.
+
+    Args:
+        corr_df (pd.DataFrame): The correlation matrix.
+        method (str): Correlation method name to use in the colorbar label and title.
+        figsize (tuple): Size of the figure.
+        cmap (str): Matplotlib colormap to use.
+    """
+    plt.figure(figsize=figsize)
+    sns.heatmap(
+        corr_df,
+        annot=True, fmt=".2f", cmap=cmap,
+        cbar_kws=dict(label=method)
+    )
+    plt.xticks(rotation=45, ha="right")
+    plt.yticks(rotation=0)
+    title = f"Pairwise {method} correlations of p50"
+    plt.title(title)
+    plt.tight_layout()
+    plt.show()
+
+def plot_pval_heatmap(pval_matrix, labels, title="Correlation p-values", figsize=(8,6), cmap='Reds'):
+    plt.figure(figsize=figsize)
+    mask = np.triu(np.ones_like(pval_matrix, dtype=bool))
+    sns.heatmap(pval_matrix, xticklabels=labels, yticklabels=labels, 
+                mask=mask, cmap=cmap, annot=True, fmt=".2g", 
+                cbar_kws={"label": "p-value"}, square=True)
+    plt.title(title)
+    plt.xticks(rotation=45, ha="right")
+    plt.yticks(rotation=0)
+    plt.tight_layout()
+    plt.show()
+
+def plot_replicate_bars(df, metric='p50', figsize=(14,6), pad_frac=0.05):
+    def base(label): 
+        return "_".join(label.split("_")[:-1])
+
+    df2 = df.copy()
+    df2['group']   = df2['label1'].map(base)
+    df2['rep1']    = df2['label1'].str.split('_').str[-1]
+    df2['rep2']    = df2['label2'].str.split('_').str[-1]
+    df2 = df2[df2['group'] == df2['label2'].map(base)]
+    df2['rep_pair'] = df2.apply(lambda r: f"{r.rep1}-{r.rep2}", axis=1)
+
+    # Define palette and hue order
+    palette = {
+        'rep1-rep1': "#FFD1BA",   # light peach
+        'rep2-rep2': "#FFD1BA",   # same peach
+        'rep1-rep2': "#D35400"    # rich burnt orange
+    }
+    hue_order = ['rep1-rep1', 'rep2-rep2', 'rep1-rep2']
+
+    vmin, vmax = df2[metric].min(), df2[metric].max()
+    pad = (vmax - vmin) * pad_frac
+
+    plt.figure(figsize=figsize)
+    ax = sns.barplot(
+        data=df2,
+        x='group', y=metric,
+        hue='rep_pair',
+        hue_order=hue_order,
+        palette=palette,
+        edgecolor='black',
+        linewidth=0.5,
+        dodge=True
+    )
+    ax.set_ylim(vmin - pad, vmax + pad)
+    ax.set_xticklabels(ax.get_xticklabels(), rotation=45, ha='right')
+    ax.set_xlabel("Group")
+    ax.set_ylabel(f"Median Distance ({metric})")
+    ax.set_title("Intra- vs Inter-Replicate Distances", weight='bold')
+    ax.legend(title="Replicate Pair", loc='upper right')
+    plt.tight_layout()
     plt.show()
