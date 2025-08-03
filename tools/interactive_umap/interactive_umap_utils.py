@@ -32,7 +32,7 @@ def load_and_process_data(umaps_dir, path_to_umap, df_brenner=None, print_valida
     
     # Regex pattern to extract Batch, Condition, Rep, Raw Image Name, Panel, Cell Line, and Tile
     pattern = re.compile(
-    r".*/([Bb]atch\d+)/([^/]+)/([^/]+)/([^/]+)/"                # Batch / Cell_Line / Condition / Marker
+        r".*/((?:[Bb]atch\d+_?)+)/([^/]+)/([^/]+)/([^/]+)/"# Batch / Cell_Line / Condition / Marker
         r"(rep\d+)_([^/]*_panel(\w+)_.*)_processed\.npy/(\d+)"      # Rep / Image_Name, Panel, Tile
     )
 
@@ -88,6 +88,7 @@ def load_and_process_data(umaps_dir, path_to_umap, df_brenner=None, print_valida
         except:
             print('No FOV information in image name')
     df_umap_tiles["Cell_Line_Condition"] = df_umap_tiles["CellLine"] + "__" + df_umap_tiles["Condition"]
+    df_umap_tiles["Cell_Line_Rep"] = df_umap_tiles["CellLine"] + "__" + df_umap_tiles["Rep"]
 
     if print_validations:
         print('Validations')
@@ -110,6 +111,16 @@ def set_colors_by_brenners(sharpness_values, bins=10):
         return plt.cm.Blues(0.2 + 0.8 * (bin_idx / (bins - 1)))  # Avoid very light colors
     
     return [get_blue_shade(val) for val in sharpness_values], percentiles, plt.cm.Blues
+
+def set_colors_by_reps(rep_values):
+    unique_reps = sorted(rep_values.dropna().unique())
+    cmap = plt.get_cmap('tab10') if len(unique_reps) <= 10 else plt.get_cmap('tab20')
+
+    rep_to_color = {rep: cmap(i % cmap.N) for i, rep in enumerate(unique_reps)}
+    colors = rep_values.map(rep_to_color).colors = rep_values.map(rep_to_color)
+    colors = colors.apply(lambda c: c if pd.notnull(c) else (0.2, 0.2, 0.2, 0.8))# fallback color for NaN
+
+    return colors.tolist(), rep_to_color
 
 def construct_target_path(df, index, df_site_meta):
     row = df.iloc[index]
@@ -398,7 +409,8 @@ def extract_umap_data(base_dir):
 
     # Regex to extract metadata from folder names
     folder_pattern = re.compile(
-        r"(?i)batch(?P<batch>\d+)_.*?(?P<rep>all_reps|rep\d+)_"
+        r"(?i)(?P<batch>(?:batch\d+)(?:_batch\d+)*)_"
+        r".*?(?P<rep>all_reps|rep\d+)_"
         r"(?P<cell_line>.+?)_"  # non-greedy
         r"(?P<condition>Untreated|stress|all_conditions)_"
         r"(?P<markers>.+?)_(?:colored_by|coloring)_(?P<coloring>.+)"
