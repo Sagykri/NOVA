@@ -572,3 +572,72 @@ def plot_replicate_bars(df, metric='p50', figsize=(14,6), pad_frac=0.05):
     ax.legend(title="Replicate Pair", loc='upper right')
     plt.tight_layout()
     plt.show()
+
+def plot_replicate_boxes(df, figsize=(14,6), pad_frac=0.05):
+    def base(label): 
+        return "_".join(label.split("_")[:-1])
+
+    df2 = df.copy()
+    df2['group'] = df2['label1'].map(base)
+    df2['rep1']  = df2['label1'].str.split('_').str[-1]
+    df2['rep2']  = df2['label2'].str.split('_').str[-1]
+    df2 = df2[df2['group'] == df2['label2'].map(base)]
+    df2['rep_pair'] = df2.apply(lambda r: f"{r.rep1}-{r.rep2}", axis=1)
+
+    # Colors
+    palette = {
+        'rep1-rep1': "#FFD1BA",
+        'rep2-rep2': "#FFD1BA",
+        'rep1-rep2': "#D35400"
+    }
+    hue_order = ['rep1-rep1', 'rep2-rep2', 'rep1-rep2']
+    rep_offset = {'rep1-rep1': -0.25, 'rep2-rep2': 0.0, 'rep1-rep2': 0.25}
+
+    groups = sorted(df2['group'].unique())
+    x_positions = {g: i for i, g in enumerate(groups)}
+
+    vmin = df2['lower_whisker'].min()
+    vmax = df2['upper_whisker'].max()
+    pad = (vmax - vmin) * pad_frac
+
+    fig, ax = plt.subplots(figsize=figsize)
+
+    for _, row in df2.iterrows():
+        group = row['group']
+        x_base = x_positions[group]
+        offset = rep_offset.get(row['rep_pair'], 0)
+        x = x_base + offset
+        color = palette.get(row['rep_pair'], 'gray')
+
+        # Draw box (p25 to p75)
+        box = patches.Rectangle(
+            (x - 0.1, row['p25']),
+            0.2,
+            row['p75'] - row['p25'],
+            facecolor=color,
+            edgecolor='black',
+            linewidth=0.8
+        )
+        ax.add_patch(box)
+
+        # Draw median
+        ax.plot([x - 0.1, x + 0.1], [row['p50'], row['p50']], color='black', linewidth=1.2)
+
+        # Draw whiskers
+        ax.plot([x, x], [row['lower_whisker'], row['p25']], color='black', linewidth=0.8)
+        ax.plot([x, x], [row['p75'], row['upper_whisker']], color='black', linewidth=0.8)
+
+    ax.set_xticks(range(len(groups)))
+    ax.set_xticklabels(groups, rotation=45, ha='right')
+    ax.set_xlim(-0.5, len(groups) - 0.5)
+    ax.set_ylim(vmin - pad, vmax + pad)
+    ax.set_ylabel("Distance")
+    ax.set_title("Intra- vs Inter-Replicate Distance Box Summary", weight='bold')
+
+    # Create legend
+    for label, color in palette.items():
+        ax.plot([], [], color=color, label=label, linewidth=8)
+    ax.legend(title="Replicate Pair")
+
+    plt.tight_layout()
+    plt.show()
