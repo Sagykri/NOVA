@@ -98,6 +98,26 @@ class Day18EffectConfig(EffectConfig): ## need to be defined with baseline and p
         self.MARKERS = list(PlotConfig().COLOR_MAPPINGS_MARKERS.keys())
         self.MARKERS_TO_EXCLUDE = ['TIA1','DAPI']        
 
+class AlyssaCoyneDistancesConfig(EffectConfig):
+    def __init__(self):
+        super().__init__()
+
+        self.EXPERIMENT_TYPE = 'AlyssaCoyne'    
+        self.INPUT_FOLDERS = ["batch1"]
+        self.MARKERS_TO_EXCLUDE = ['MERGED']
+        self.CONDITIONS = ['Untreated']
+        
+        
+        self.BASELINE_PERTURB = {'Controls_Untreated':[f'{cell_line}_Untreated'
+                                                       for cell_line in 
+                                                       ['sALSPositiveCytoTDP43','sALSNegativeCytoTDP43','c9orf72ALSPatients']]}
+
+        #self.MIN_REQUIRED = 200 
+        #self.N_BOOT = 100 
+
+        self.ADD_REP_TO_LABEL = True
+        self.ADD_BATCH_TO_LABEL = True
+
 class AlyssaCoyneEffectConfig(EffectConfig):
     def __init__(self):
         super().__init__()

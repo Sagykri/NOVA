@@ -9,6 +9,11 @@ import warnings
 from matplotlib.lines import Line2D
 from matplotlib.patches import Rectangle
 
+# Added by Nancy
+from itertools import combinations
+from matplotlib.cm import get_cmap
+
+
 plt.rcParams.update({
         'figure.dpi': 100,
         'font.family': 'serif',
@@ -121,14 +126,17 @@ def plot_label_clustermap(df: pd.DataFrame,
     """
     labels = sorted(set(df['label1']) | set(df['label2']))
     dist_mat = pd.DataFrame(np.nan, index=labels, columns=labels)
-
+    
     # Fill both off‐diag and diag entries from your df
     for _, row in df.iterrows():
         i, j = row['label1'], row['label2']
         v = row[metric_col]
+        # Nancy's comment: note, this uses the last value and DOES NOT aggregate values from same i,j
         dist_mat.loc[i, j] = v
         dist_mat.loc[j, i] = v
 
+    #dist_mat = dist_mat.fillna(0) # Added by Nancy - to support diff number of reps in each cell line
+    
     link = linkage(dist_mat.values, method=method)
     cg = sns.clustermap(dist_mat,
                         row_linkage=link, col_linkage=link,
@@ -572,6 +580,82 @@ def plot_replicate_bars(df, metric='p50', figsize=(14,6), pad_frac=0.05):
     ax.legend(title="Replicate Pair", loc='upper right')
     plt.tight_layout()
     plt.show()
+    
+# Added by Nancy - to support more than 2 reps automatically
+def plot_replicate_bars_extended(df, metric='p50', figsize=(5, 4), pad_frac=0.05):
+    def base(label): 
+        return "_".join(label.split("_")[:-1])
+
+    df2 = df.copy()
+    df2['group'] = df2['label1'].map(base)
+    df2 = df2[df2['group'] == df2['label2'].map(base)]
+
+    df2['rep1'] = df2['label1'].str.split('_').str[-1]
+    df2['rep2'] = df2['label2'].str.split('_').str[-1]
+
+    # Assign self or replicate pair labels
+    df2['rep_pair'] = df2.apply(
+        lambda r: f'self_{r["rep1"]}' if r['label1'] == r['label2'] else '-'.join(sorted([r['rep1'], r['rep2']])),
+        axis=1
+    )
+
+    # Generate palette
+    rep_pairs = sorted(df2['rep_pair'].unique())
+    cmap = get_cmap("Set2")
+    palette = {pair: cmap(i % cmap.N) for i, pair in enumerate(rep_pairs)}
+    for pair in rep_pairs:
+        if pair.startswith('self_'):
+            palette[pair] = 'black'
+
+    vmin, vmax = df2[metric].min(), df2[metric].max()
+    pad = (vmax - vmin) * pad_frac
+
+    groups = sorted(df2['group'].unique())
+    n_rows = len(groups)
+
+    fig, axes = plt.subplots(
+        nrows=n_rows,
+        figsize=(figsize[0] * 1.8, figsize[1] * n_rows),
+        sharey=True
+    )
+
+    if n_rows == 1:
+        axes = [axes]
+
+    for ax, group in zip(axes, groups):
+        sub_df = df2[df2['group'] == group]
+        sns.barplot(
+            data=sub_df,
+            x='rep_pair',
+            hue='rep_pair',
+            y=metric,
+            palette=palette,
+            edgecolor='black',
+            linewidth=0.5,
+            ax=ax,
+            legend=False
+        )
+        ax.set_title(group, loc='left', fontsize=11, weight='bold')
+        ax.set_ylim(vmin - pad, vmax + pad)
+        ax.grid(axis='y', linestyle='--', linewidth=0.3)
+        ax.set_xlabel("")  # hide x-axis label per subplot
+        ax.set_ylabel("")  # optional: hide y-axis label
+        plt.setp(ax.get_xticklabels(), rotation=90)
+
+
+    axes[-1].set_xlabel("Replicate Pair")
+    axes[n_rows // 2].set_ylabel(f"Median Distance ({metric})")
+
+    handles, labels = axes[0].get_legend_handles_labels()
+    fig.legend(handles, labels, title="Replicate Pair", loc='upper right', bbox_to_anchor=(1.02, 1))
+    fig.suptitle("Intra- vs Inter-Replicate Distances", fontsize=14, weight='bold', y=1.02)
+    plt.tight_layout()
+    plt.show()
+
+
+
+
+
 
 def plot_replicate_boxes(df, figsize=(14,6), pad_frac=0.05):
     def base(label): 
