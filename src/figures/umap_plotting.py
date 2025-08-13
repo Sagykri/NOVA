@@ -21,6 +21,8 @@ import matplotlib.colors as mcolors
 import matplotlib
 from matplotlib import font_manager as fm
 
+
+
 fm.fontManager.addfont(FONT_PATH)
 matplotlib.rcParams['font.family'] = 'Arial'
 
@@ -56,11 +58,6 @@ def plot_umap(umap_embeddings: np.ndarray[float], labels: np.ndarray[str], confi
             logging.info(f"[plot_umap]: Marker: {marker}")
             indices = np.where(np.char.startswith(labels.astype(str), f"{marker}_"))[0]
             logging.info(f"[plot_umap]: {len(indices)} indexes have been selected")
-
-            if marker == 'DAPI':
-                np.random.seed(config_plot.SEED)
-                indices = np.random.choice(indices, size=int(len(indices) * 0.25), replace=False)
-                logging.info(f"[plot_umap]: {len(indices)} indexes have been selected after DAPI downsample")
 
             if len(indices) == 0:
                 logging.info(f"[plot_umap] No data for marker {marker}, skipping.")
@@ -289,8 +286,7 @@ def __format_UMAP_legend(ax:Axes, marker_size: int, handles=None, labels=None) -
     if handles is None or labels is None:
         handles, labels = ax.get_legend_handles_labels()
     handle_dict = dict(zip(labels, handles))  # Remove duplicates while maintaining order
-    handles, labels = list(handle_dict.values()), list(handle_dict.keys())  # Extract back into lists
-
+    labels, handles = __sort_items(handle_dict)
     leg = ax.legend(handles, labels, prop={'size': 6},
                     bbox_to_anchor=(1, 1), loc='upper left',
                     ncol=1 + len(labels) // 26, frameon=False)
@@ -298,3 +294,19 @@ def __format_UMAP_legend(ax:Axes, marker_size: int, handles=None, labels=None) -
         handle.set_alpha(1)
         if hasattr(handle, "set_sizes"):  # Only scatter handles
             handle.set_sizes([max(6, marker_size)])
+
+def __sort_items(handle_dict):
+    import re
+    # Sort by alpha, then number only if number is at the end
+    def sort_key(item):
+        label, _ = item
+        match = re.match(r'^(.*?)(\d+)$', label)
+        if match:
+            prefix, number = match.groups()
+            return (prefix.lower(), int(number))
+        return (label.lower(),)
+
+    items = list(handle_dict.items())
+    items.sort(key=sort_key)
+    # Unpack the sorted items back to handles and labels
+    return zip(*items)

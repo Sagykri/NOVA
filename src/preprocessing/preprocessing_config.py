@@ -67,6 +67,7 @@ class PreprocessingConfig(BaseConfig):
         self.MAX_INTENSITY_THRESHOLD_NUCLEI:float = 0.2 # Before rescale intenisty
         self.VARIANCE_THRESHOLD_NUCLEI:float = 0.03 # After rescale intenisty
         self.MIN_ALIVE_NUCLEI_AREA: int = 800 # Minimum area of a nuclei to be considered alive (in pixels)
+        self.MIN_MEDIAN_INTENSITY_NUCLEI_BLOB_THRESHOLD = 0.95 # Minimum median intensity of a nuclei blob to be considered dead (between 0 and 1)
 
             
         # Which markers to include
