@@ -84,24 +84,26 @@ class PlotConfig(PlotConfig):
             'Map2':{self.MAPPINGS_ALIAS_KEY:'Neuronal marker', self.MAPPINGS_COLOR_KEY:'gray'},
             # 'TDP43N':{self.MAPPINGS_ALIAS_KEY:'TDP43 granules 2', self.MAPPINGS_COLOR_KEY:'#06A0E9'}
 
-            'LSM14A':{self.MAPPINGS_ALIAS_KEY:'P-bodies #2', self.MAPPINGS_COLOR_KEY:'gray'},
-            'SON':{self.MAPPINGS_ALIAS_KEY:'Nuclear Speckles', self.MAPPINGS_COLOR_KEY:'gray'},
-            'HNRNPA1':{self.MAPPINGS_ALIAS_KEY:'hnRNP complex #2', self.MAPPINGS_COLOR_KEY:'gray'},
-            'Tubulin':{self.MAPPINGS_ALIAS_KEY:'Microtubules', self.MAPPINGS_COLOR_KEY:'gray'},
-            'TIA1':{self.MAPPINGS_ALIAS_KEY:'TIA1', self.MAPPINGS_COLOR_KEY:'gray'},
+            'LSM14A':{self.MAPPINGS_ALIAS_KEY:'P-bodies #2', self.MAPPINGS_COLOR_KEY:"#B91EC4"},
+            'SON':{self.MAPPINGS_ALIAS_KEY:'Nuclear Speckles', self.MAPPINGS_COLOR_KEY:"#EC5F5F"},
+            'HNRNPA1':{self.MAPPINGS_ALIAS_KEY:'hnRNP complex #2', self.MAPPINGS_COLOR_KEY:"#033A7A"},
+            'Tubulin':{self.MAPPINGS_ALIAS_KEY:'Microtubules', self.MAPPINGS_COLOR_KEY:"#00D612"},
+            'TIA1':{self.MAPPINGS_ALIAS_KEY:'TIA1', self.MAPPINGS_COLOR_KEY:"#BB00E0"},
 
-            'hnRNPA1': {self.MAPPINGS_ALIAS_KEY:'hnRNPA1', self.MAPPINGS_COLOR_KEY:'gray'},
-            'LaminB1': {self.MAPPINGS_ALIAS_KEY:'LaminB1', self.MAPPINGS_COLOR_KEY:'gray'},
-            'Nup153': {self.MAPPINGS_ALIAS_KEY:'Nup153', self.MAPPINGS_COLOR_KEY:'gray'},
-            'POM121': {self.MAPPINGS_ALIAS_KEY:'POM121', self.MAPPINGS_COLOR_KEY:'gray'},
-            'Calnexin': {self.MAPPINGS_ALIAS_KEY:'Calnexin', self.MAPPINGS_COLOR_KEY:'gray'},
-            'EEA1': {self.MAPPINGS_ALIAS_KEY:'EEA1', self.MAPPINGS_COLOR_KEY:'gray'},
-            'hnRNPA2B1': {self.MAPPINGS_ALIAS_KEY:'hnRNPA2B1', self.MAPPINGS_COLOR_KEY:'gray'},
-            'Lamp1': {self.MAPPINGS_ALIAS_KEY:'Lysosome', self.MAPPINGS_COLOR_KEY:'gray'},
-            'Nup62': {self.MAPPINGS_ALIAS_KEY:'Nup62', self.MAPPINGS_COLOR_KEY:'gray'},
-            'Nup98': {self.MAPPINGS_ALIAS_KEY:'Nup98', self.MAPPINGS_COLOR_KEY:'gray'},
+            'Nup153': {self.MAPPINGS_ALIAS_KEY:'Nup153', self.MAPPINGS_COLOR_KEY:"#0F8500"},
+            'POM121': {self.MAPPINGS_ALIAS_KEY:'POM121', self.MAPPINGS_COLOR_KEY:"#FF6F00"},
+            'Calnexin': {self.MAPPINGS_ALIAS_KEY:'Calnexin', self.MAPPINGS_COLOR_KEY:"#FFB300"},
+            'EEA1': {self.MAPPINGS_ALIAS_KEY:'EEA1', self.MAPPINGS_COLOR_KEY:"#FF8F00"},
+            'hnRNPA2B1': {self.MAPPINGS_ALIAS_KEY:'hnRNPA2B1', self.MAPPINGS_COLOR_KEY:"#FF3D00"},
+            'Nup62': {self.MAPPINGS_ALIAS_KEY:'Nup62', self.MAPPINGS_COLOR_KEY:'#FFB6C1'},
+            'Nup98': {self.MAPPINGS_ALIAS_KEY:'Nup98', self.MAPPINGS_COLOR_KEY:'#FF69B4'},
 
         }
+
+        self.COLOR_MAPPINGS_MARKERS['hnRNPA1'] = self.COLOR_MAPPINGS_MARKERS['HNRNPA1']
+        self.COLOR_MAPPINGS_MARKERS['LaminB1'] = self.COLOR_MAPPINGS_MARKERS['LAMP1']
+
+
         self.COLOR_MAPPINGS_CONDITION_AND_ALS: Dict[str, Dict[str,str]] = {
             'WT_stress':{self.MAPPINGS_ALIAS_KEY: 'Wild-Type + Stress',self.MAPPINGS_COLOR_KEY: '#F7810F'},
             'WT_Untreated':{self.MAPPINGS_ALIAS_KEY:'Wild-Type', self.MAPPINGS_COLOR_KEY:'#37AFD7'},

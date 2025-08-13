@@ -5,8 +5,7 @@ import logging
 import matplotlib.pyplot as plt
 import numpy as np
 import cv2
-import cellpose
-from cellpose import models
+
 from shapely.geometry import Polygon 
 from shapely import make_valid
 import skimage.exposure
@@ -92,7 +91,7 @@ def is_image_focused(img:np.ndarray , thresholds:Tuple[float, float]):
 
 def get_nuclei_segmentations(
     img: np.ndarray, 
-    cellpose_model:models.Cellpose=None,
+    cellpose_model = None,
     diameter: float = 60.0, 
     cellprob_threshold: float = 0.0, 
     flow_threshold: float = 0.4, 
@@ -112,13 +111,14 @@ def get_nuclei_segmentations(
     Returns:
         masks (np.ndarray): The mask of segmented nuclei.
     """
-
+    import cellpose
+    
     # Sharpen the image for easier segmentation
     sharpening_filter = np.array([[-1,-1,-1], [-1,25,-1], [-1,-1,-1]])
     img = cv2.filter2D(img, -1, sharpening_filter)
     
     # Segment the image using the model
-    model = cellpose_model if cellpose_model is not None else models.Cellpose(gpu=True, model_type='nuclei')
+    model = cellpose_model if cellpose_model is not None else cellpose.models.Cellpose(gpu=True, model_type='nuclei')
     masks, flows, _, _ = model.eval(
         img, 
         diameter=diameter, 
@@ -207,6 +207,7 @@ def extract_polygons_from_mask(mask:np.ndarray )->List[Polygon]:
     Returns:
         List[Polygon]: The list of object within the given mask as polygons
     """
+    import cellpose
     polygons = [Polygon(xy_to_tuple(o)) for o in cellpose.utils.outlines_list(mask)]
     
     ## Validate polygons

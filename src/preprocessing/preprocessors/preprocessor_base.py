@@ -13,7 +13,7 @@ from cellpose import models
 import pandas as pd
 from shapely import affinity , make_valid
 from shapely.geometry import box ,Polygon
-import cellpose
+
 from skimage.filters import threshold_otsu
 from scipy.ndimage import label
 

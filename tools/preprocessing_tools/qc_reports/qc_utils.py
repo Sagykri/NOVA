@@ -256,7 +256,6 @@ def log_files_qc(LOGS_PATH, batches=None, only_wt_cond = True, filename_split='_
     df['site_whole_cells_counts_sum'] = df['whole_cells_counts'].apply(get_array_sum)
     df['cells_counts_list']=df['cells_counts'].apply(convert_to_list)
     
-    print(f'\nPAY ATTENTION!!!! df.site_num: {df.site_num[:1].values[0]}, can be defined using filename_split & site_location')
     return df.sort_values(by=['batch'])
 
 def create_folder_structure(folder_type, markers,cell_lines_to_cond, reps, panels, cell_lines_to_reps = None):
@@ -364,10 +363,17 @@ def plot_filtering_heatmap(filtered, extra_index, xlabel='', figsize=(5,5), seco
             ax2.set_ylabel('')  # Hide the y-axis label
         plt.show()
         
+        # Two bar plots with sum for each cell line 
         if show_sum:
+            
+            if p.shape[0]>150:
+                figsize_bar_plot = (10,26)
+            else:
+                figsize_bar_plot = (10,16)
+                
             p['Total'] = p.sum(axis=1)
             p.loc['Total'] = p.sum(axis=0)
-            fig, axs = plt.subplots(ncols=2, figsize= (10,6), dpi=150)
+            fig, axs = plt.subplots(nrows=2, ncols=1, figsize=figsize_bar_plot, dpi=150, gridspec_kw={'height_ratios': [3, 1]})
             marker_total = p[['Total']].drop(index='Total')
             marker_total.index = [f"{idx[0]}, {idx[1]}" for idx in marker_total.index]
 
@@ -394,7 +400,6 @@ def plot_filtering_heatmap(filtered, extra_index, xlabel='', figsize=(5,5), seco
 def add_empty_lines(df, batches, line_colors, panels, reps, to_ignore=None, markers=None):
     has_marker = 'marker' in df.columns
     use_markers = markers if markers is not None else (df['marker'].unique() if has_marker else [None])
-
     for batch in batches:
         for cell_line_cond in line_colors.keys():
             for panel in panels.columns:
@@ -434,6 +439,7 @@ def add_empty_lines(df, batches, line_colors, panels, reps, to_ignore=None, mark
                                 new_row['marker'] = marker
                             # new_row_df = pd.DataFrame([new_row])
                             df = pd.concat([df, pd.DataFrame([new_row])], ignore_index=True)
+    
     return df
 
 
@@ -1201,7 +1207,7 @@ def plot_hm_combine_batches(df,  batches, reps, rows, columns, vmin=1, vmax=4):
 
 def show_site_survival_dapi_brenner(df_dapi, batches, line_colors, panels, reps, figsize=(5,5), vmax=100,to_ignore=None):
     dapi_filter_by_brenner = df_dapi.groupby(['batch','cell_line_cond','panel','rep']).index.count().reset_index()
-    dapi_filter_by_brenner=add_empty_lines(dapi_filter_by_brenner, batches, line_colors, panels, reps, to_ignore)
+    dapi_filter_by_brenner = add_empty_lines(dapi_filter_by_brenner, batches, line_colors, panels, reps, to_ignore)
     dapi_filter_by_brenner.sort_values(by=['batch','cell_line_cond','panel','rep'], inplace=True)
     dapi_filter_by_brenner.reset_index(inplace=True, drop=True)
     plot_filtering_heatmap(dapi_filter_by_brenner, extra_index='panel',
