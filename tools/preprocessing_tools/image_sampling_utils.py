@@ -61,6 +61,7 @@ def sample_image_names_per_marker(input_data_dir, sample_size=1, raw=False):
     """
     try:
         # This will hold the full path of n images (n is defined by "sample_size") of the marker
+        
         filenames = random.sample(sorted(os.listdir(input_data_dir)), sample_size)
         logging.info(f"\nsample_image_names_per_marker: {input_data_dir}. {sample_size} images per marker.")
     except ValueError:
@@ -120,6 +121,7 @@ def sample_images_all_markers(cell_line_path=None, sample_size_per_markers=1, nu
         marker_subfolder = find_marker_folders(cell_line_path, depth=depth, exclude_DAPI=exclude_DAPI)
         # Sample n markers, and for each marker, sample k images (where n=num_markers and k=sample_size_per_markers)
         for marker_folder in marker_subfolder:
+            
             if not os.path.isdir(marker_folder):
                 continue
             if markers_to_include:
@@ -131,6 +133,7 @@ def sample_images_all_markers(cell_line_path=None, sample_size_per_markers=1, nu
                 if (n_images<sample_size_per_markers):
                     if 'DAPI' in marker_folder and not raw:
                         sample_size_per_markers *= num_markers
+                    
                     sampled_marker_images = sample_image_names_per_marker(marker_folder,
                                                                           sample_size=sample_size_per_markers, 
                                                                           raw=raw)
@@ -168,6 +171,7 @@ def sample_images_all_markers_all_lines(input_dir_batch=None, _sample_size_per_m
 
         else:
             for cond in os.listdir(cell_line_path):
+                
                 cond_cell_line_path = os.path.join(cell_line_path, cond)
                 paths = sample_images_all_markers(cond_cell_line_path, sample_size_per_markers=_sample_size_per_markers, 
                                         num_markers=_num_markers, depth=1, raw=raw, exclude_DAPI=exclude_DAPI, markers_to_include=markers_to_include)

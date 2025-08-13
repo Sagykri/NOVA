@@ -109,6 +109,11 @@ class AlyssaPreprocessingConfig_B1(PreprocessingConfig):
         self.TILE_INTERMEDIATE_SHAPE = (146,146)
         self.EXPECTED_IMAGE_SHAPE = (1022,1022)
 
+        
+        self.MIN_ALIVE_NUCLEI_AREA: int = -1
+
+        self.MARKERS_TO_EXCLUDE = ['MERGED']
+
 ###      
 ## new Alyssa
 ##
@@ -128,21 +133,11 @@ class AlyssaPreprocessingConfig_New_B1_woBrenner(PreprocessingConfig):
         self.TILE_INTERMEDIATE_SHAPE = (146,146)
         self.EXPECTED_IMAGE_SHAPE = (1022,1022)
 
-class AlyssaPreprocessingConfig_New_B1(PreprocessingConfig):
-    def __init__(self):
-        super().__init__()
-        
-        self.INPUT_FOLDERS = [os.path.join(self.RAW_FOLDER_ROOT, 'AlyssaCoyne_new_sorted', 'batch1')]
-        self.PROCESSED_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "ManuscriptFinalData_80pct", "AlyssaCoyne_new",'batch1')]
-        self.OUTPUTS_FOLDER = os.path.join(self.OUTPUTS_FOLDER, "preprocessing", "ManuscriptFinalData_80pct", "AlyssaCoyne_new", "batch1")
-        self.PREPROCESSOR_CLASS_PATH = os.path.join("src", "preprocessing", "preprocessors", "preprocessor_spd", "SPDPreprocessor")
-        self.RESCALE_INTENSITY = {
-          'LOWER_BOUND': 0,
-          'UPPER_BOUND': 100,
-        }
-        self.MARKERS_FOCUS_BOUNDRIES_PATH =  os.path.join(os.getenv("NOVA_HOME"), 'manuscript', 'markers_focus_boundries', 'markers_focus_boundries_Coyne110525.csv')
-        self.TILE_INTERMEDIATE_SHAPE = (146,146)
-        self.EXPECTED_IMAGE_SHAPE = (1022,1022)
+        self.MIN_MEDIAN_INTENSITY_NUCLEI_BLOB_THRESHOLD = 0.8
+        self.MIN_ALIVE_NUCLEI_AREA = -1  # No minimum alive nuclei area for this dataset
+
+        self.MARKERS_TO_EXCLUDE = ['CD41']
+
 ####
 # new dNLS
 ####

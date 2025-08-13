@@ -144,6 +144,7 @@ def __plot_forest_plot(combined_effects_df, baseline, pert, savepath, config_plo
 
 def plot_multiplex_forestplot(combined_effects_df,cur_df_single, savepath, config_plot, figsize=(5, 7),
                        combine_on='batch'):
+    
     combined_effects_df = combined_effects_df.sort_values('combined_effect', ascending=True).reset_index(drop=True)
 
     fig, ax = plt.subplots(figsize=figsize)
@@ -182,6 +183,7 @@ def plot_multiplex_forestplot(combined_effects_df,cur_df_single, savepath, confi
     ax.legend(handles=legend_elements, bbox_to_anchor = (1.02,0.9), loc='lower left', frameon=False)
     
     if savepath:
+        savepath = os.path.join(savepath, f'SM_batches_forest')
         save_plot(fig, savepath, dpi=300, save_eps=True)
     else:
         plt.show()

@@ -13,7 +13,7 @@ from cellpose import models
 import pandas as pd
 from shapely import affinity , make_valid
 from shapely.geometry import box ,Polygon
-import cellpose
+
 from skimage.filters import threshold_otsu
 from scipy.ndimage import label
 
@@ -591,7 +591,7 @@ class Preprocessor(ABC):
         if result:
             return True, f'[DAPI] {cause}'
 
-        if self.__is_contains_dead_cells(dapi_scaled):
+        if self.__is_contains_dead_cells(dapi_scaled, intensity_threshold=self.preprocessing_config.MIN_MEDIAN_INTENSITY_NUCLEI_BLOB_THRESHOLD):
             return True, "Contains dead cells"
 
         return False, None
