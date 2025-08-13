@@ -1,0 +1,13 @@
+### CellProfiler Python Package Version 4.2.6 (python 3.9) ### 
+
+HOW TO CREATE THE CONDA ENV? (DO IT ONCE)
+ml miniconda
+conda create -n cellprofiler_426 python=3.9
+conda activate cellprofiler_426
+conda install -c conda-forge -c bioconda cellprofiler=4.2.6
+
+
+
+LOAD THIS ENV IN EVERY LOGIN/RUN
+ml miniconda
+conda activate cellprofiler_426
