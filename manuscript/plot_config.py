@@ -87,8 +87,8 @@ class PlotConfig(PlotConfig):
             'LSM14A':{self.MAPPINGS_ALIAS_KEY:'P-bodies #2', self.MAPPINGS_COLOR_KEY:"#B91EC4"},
             'SON':{self.MAPPINGS_ALIAS_KEY:'Nuclear Speckles', self.MAPPINGS_COLOR_KEY:"#EC5F5F"},
             'HNRNPA1':{self.MAPPINGS_ALIAS_KEY:'hnRNP complex #2', self.MAPPINGS_COLOR_KEY:"#033A7A"},
-            'Tubulin':{self.MAPPINGS_ALIAS_KEY:'Microtubules', self.MAPPINGS_COLOR_KEY:"#00D612"},
-            'TIA1':{self.MAPPINGS_ALIAS_KEY:'TIA1', self.MAPPINGS_COLOR_KEY:"#BB00E0"},
+            'Tubulin':{self.MAPPINGS_ALIAS_KEY:'Microtubule', self.MAPPINGS_COLOR_KEY:"#00D612"},
+            'TIA1':{self.MAPPINGS_ALIAS_KEY:'TIA1 granules', self.MAPPINGS_COLOR_KEY:"#BB00E0"},
 
             'Nup153': {self.MAPPINGS_ALIAS_KEY:'Nup153', self.MAPPINGS_COLOR_KEY:"#0F8500"},
             'POM121': {self.MAPPINGS_ALIAS_KEY:'POM121', self.MAPPINGS_COLOR_KEY:"#FF6F00"},
@@ -102,6 +102,13 @@ class PlotConfig(PlotConfig):
 
         self.COLOR_MAPPINGS_MARKERS['hnRNPA1'] = self.COLOR_MAPPINGS_MARKERS['HNRNPA1']
         self.COLOR_MAPPINGS_MARKERS['LaminB1'] = self.COLOR_MAPPINGS_MARKERS['LAMP1']
+
+        # NIH
+        self.COLOR_MAPPINGS_MARKERS['ANAX11'] = self.COLOR_MAPPINGS_MARKERS['ANXA11']
+        self.COLOR_MAPPINGS_MARKERS['MitoTracker'] = self.COLOR_MAPPINGS_MARKERS['mitotracker']
+        self.COLOR_MAPPINGS_MARKERS['P54'] = self.COLOR_MAPPINGS_MARKERS['NONO']
+        self.COLOR_MAPPINGS_MARKERS['TUJ1'] = {self.MAPPINGS_ALIAS_KEY:'Microtubule', self.MAPPINGS_COLOR_KEY:"#65FF72"}
+        ##
 
 
         self.COLOR_MAPPINGS_CONDITION_AND_ALS: Dict[str, Dict[str,str]] = {
@@ -161,7 +168,7 @@ class PlotConfig(PlotConfig):
             'SALSPositive-CS4ZCD':{self.MAPPINGS_ALIAS_KEY:'sALS+ (CS4ZCD)', self.MAPPINGS_COLOR_KEY:'#cdac47'},
             'SALSNegative-CS0JPP':{self.MAPPINGS_ALIAS_KEY:'sALS- (CS0JPP)', self.MAPPINGS_COLOR_KEY:'#3ce23c'},
             'SALSNegative-CS0ANK':{self.MAPPINGS_ALIAS_KEY:'sALS- (CS0ANK)', self.MAPPINGS_COLOR_KEY:'#1e711e'},
-            'SALSNegative-CS6ZU8':{self.MAPPINGS_ALIAS_KEY:'sALS- (CS6ZU8)', self.MAPPINGS_COLOR_KEY:'#1e711e'},
+            'SALSNegative-CS6ZU8':{self.MAPPINGS_ALIAS_KEY:'sALS- (CS6ZU8)', self.MAPPINGS_COLOR_KEY:'#469E46'},
             'C9-CS7VCZ':{self.MAPPINGS_ALIAS_KEY:'C9 (CS7VCZ)', self.MAPPINGS_COLOR_KEY:'#eb3440'},
             'C9-CS8RFT':{self.MAPPINGS_ALIAS_KEY:'C9 (CS8RFT)', self.MAPPINGS_COLOR_KEY:'#bc2a33'},
             'C9-CS2YNL':{self.MAPPINGS_ALIAS_KEY:'C9 (CS2YNL)', self.MAPPINGS_COLOR_KEY:'#8d1f26'},

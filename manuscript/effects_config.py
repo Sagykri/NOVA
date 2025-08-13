@@ -9,10 +9,17 @@ class NeuronsEffectConfig(EffectConfig):
     def __init__(self):
         super().__init__()
 
+        self.INPUT_FOLDERS =  [f"batch{i}" for i in [1,2,3,7,8,9]]
+        
+        self.EXPERIMENT_TYPE = 'neuronsDay8_new'  
+
+class NeuronsEffectConfig_with_B10(EffectConfig):
+    def __init__(self):
+        super().__init__()
+
         self.INPUT_FOLDERS =  [f"batch{i}" for i in [1,2,3,7,8,9,10]]
         
         self.EXPERIMENT_TYPE = 'neuronsDay8_new'    
-        self.MARKERS_TO_EXCLUDE = ['DAPI']
 
 class NeuronsEffectWTBaselineConfig(NeuronsEffectConfig):
     def __init__(self):
@@ -126,24 +133,18 @@ class AlyssaCoyneNEWEffectConfig(EffectConfig):
                                  'Ctrl-EDi037_Untreated':
                                  ['C9-CS8RFT_Untreated','SALSPositive-CS7TN6_Untreated','SALSNegative-CS6ZU8_Untreated']}
         self.MARKERS_TO_EXCLUDE = []
-        self.MIN_REQUIRED = 50
+        self.MIN_REQUIRED = 40 #50
         self.N_BOOT = 100 
+
 
 class dNLSNewEffectConfig(EffectConfig):
     def __init__(self):
         super().__init__()
         self.INPUT_FOLDERS = [f"batch{i}" for i in range(1,7)]
         self.EXPERIMENT_TYPE = 'dNLS'
-        self.MARKERS_TO_EXCLUDE = ['DAPI']
         self.BASELINE = 'dNLS_Untreated'
         self.PERTURBATION = 'dNLS_DOX'
         self.MARKERS = list(PlotConfig().COLOR_MAPPINGS_MARKERS.keys())
-
-
-class dNLSNewEffectConfig_CLEAN(dNLSNewEffectConfig):
-    def __init__(self):
-        super().__init__()
-        self.EXPERIMENT_TYPE = 'dNLSCLEAN'
 
         self.MIN_REQUIRED:int = 200
         self.N_BOOT:int = 1000
@@ -162,7 +163,8 @@ class NeuronsMultiplexEffectConfig(EffectConfig):
     def __init__(self):
         super().__init__()
 
-        self.INPUT_FOLDERS =  [f"batch{i}" for i in [1,2,3,7,8,9,10]]
+        self.INPUT_FOLDERS =  [f"batch{i}" for i in [1,2,3,7,8,9]]
+        
         self.EXPERIMENT_TYPE = 'neuronsDay8_new'    
         
         self.BASELINE_PERTURB = {'WT_Untreated':['FUSHomozygous_Untreated',
@@ -176,3 +178,4 @@ class NeuronsMultiplexEffectConfig(EffectConfig):
         self.CONDITIONS = ['Untreated']
         self.ADD_BATCH_TO_LABEL = True
         self.ADD_REP_TO_LABEL = False
+        self.MIN_REQUIRED = 200 

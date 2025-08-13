@@ -5,6 +5,7 @@ sys.path.insert(1, os.getenv("NOVA_HOME"))
 from src.figures.figures_config import FigureConfig
 from manuscript.plot_config import PlotConfig
 from src.datasets.label_utils import MapLabelsFunction
+
 ############################################################
 # Figure 1
 ############################################################ 
@@ -90,6 +91,7 @@ class NeuronsUMAP1B9WithoutDapiFigureConfig(FigureConfig):
         # Decide if to show ARI metric on the UMAP
         self.SHOW_ARI = True
         self.ADD_REP_TO_LABEL = False
+
 ############################################################
 # Figure 2 
 ############################################################
@@ -282,21 +284,6 @@ class dNLSNewEffectsFigureConfig_CLEAN(dNLSNewEffectsFigureConfig):
         super().__init__()
         self.EXPERIMENT_TYPE = 'dNLSCLEAN'
 
-class NeuronsEffectsFigureConfig(FigureConfig):
-    def __init__(self):
-        super().__init__()
-        self.INPUT_FOLDERS = [f"batch{i}" for i in [1,2,3,7,8,9,10]]
-        
-        self.EXPERIMENT_TYPE = 'neuronsDay8_new'
-        self.MARKERS_TO_EXCLUDE = ['DAPI']
-        self.ADD_BATCH_TO_LABEL = True
-        self.ADD_REP_TO_LABEL = True
-        self.BASELINE_PERTURB = {'WT_Untreated': 
-                                 [f'{cell_line}_Untreated' for cell_line in 
-                                  ['FUSHeterozygous','FUSHomozygous','FUSRevertant','OPTN','TDP43','TBK1']]+ ['WT_stress'],
-                                 'FUSRevertant_Untreated':
-                                 [f'{cell_line}_Untreated' for cell_line in 
-                                  ['FUSHeterozygous','FUSHomozygous','WT','OPTN','TDP43','TBK1']]}
 
 ############################################################
 # Figure 3 - supp
@@ -351,7 +338,6 @@ class NeuronsUMAP0ALSFigureConfig(FigureConfig):
         self.SHOW_ARI = True
         self.ADD_REP_TO_LABEL=False
 
-
 class NeuronsUMAP0ALSB9FUSFigureConfig(NeuronsUMAP0ALSFigureConfig):
     def __init__(self):
         super().__init__()
@@ -367,7 +353,6 @@ class NeuronsUMAP0ALSB9DCP1AFigureConfig(NeuronsUMAP0ALSFigureConfig):
         self.INPUT_FOLDERS = ["batch9"]
         self.CELL_LINES = ['WT','TBK1','TDP43','FUSHomozygous']
         self.MARKERS = ['DCP1A']
-
 
 class NeuronsUMAP0ALSB9ANXA11FigureConfig(NeuronsUMAP0ALSFigureConfig):
     def __init__(self):
@@ -418,7 +403,6 @@ class AlyssaCoyneNEWEffectsFigureConfig(FigureConfig):
                                  'Ctrl-EDi037_Untreated':
                                  ['C9-CS8RFT_Untreated','SALSPositive-CS7TN6_Untreated','SALSNegative-CS6ZU8_Untreated']}
 
-
 class AlyssaCoyneUMAP0FigureConfig(FigureConfig):
     def __init__(self):
         super().__init__()
@@ -446,6 +430,7 @@ class AlyssaCoyneNEWUMAP0FigureConfig(FigureConfig):
         self.ADD_REP_TO_LABEL=False
         self.ADD_BATCH_TO_LABEL=False
         self.ADD_CONDITION_TO_LABEL = False
+
 class AlyssaCoyneUMAP2FigureConfig(FigureConfig):
     def __init__(self):
         super().__init__()
@@ -552,9 +537,7 @@ class NeuronsUMAP2ALSB6FigureConfig(NeuronsUMAP2ALSFigureConfig):
         super().__init__()
 
         self.INPUT_FOLDERS = ["batch6"]
-
-
-      
+   
 class NeuronsUMAP2ALSB6_without_fus_marker_FigureConfig(NeuronsUMAP2ALSB6FigureConfig):
     def __init__(self):
         super().__init__()
@@ -573,6 +556,7 @@ class NeuronsUMAP2ALSB9ALSLines_wo_fusFigureConfig(NeuronsUMAP2ALSB9FigureConfig
         self.MARKERS_TO_EXCLUDE = ['TIA1','FUS']
         self.CELL_LINES = ['WT','TDP43','FUSHomozygous',
                            'TBK1','SCNA','OPTN']
+
 class NeuronsUMAP2ALSB6ALSLinesWOSNCAFigureConfig(NeuronsUMAP2ALSB6FigureConfig):
     def __init__(self):
         super().__init__()
@@ -633,6 +617,7 @@ class CellPaintingNeuronsUMAP2ALSB9ALSLinesFigureConfig(NeuronsUMAP2ALSB9ALSLine
         self.MARKERS_TO_EXCLUDE = ['TDP43','NONO','ANXA11','LAMP1','FUS','PEX14',
                                    'DCP1A','CD41','SQSTM1','PML','SCNA','SNCA','NEMO',
                                    'PSD95','KIF5A','CLTC','TOMM20','PURA','G3BP1','FMRP']
+
 class NeuronsUMAP2ALSD18B1FigureConfig(FigureConfig):
     def __init__(self):
         super().__init__()
@@ -735,7 +720,6 @@ class NeuronsUMAP0ALS_TDP43_B9FigureConfig(NeuronsUMAP0ALSB9FigureConfig):
 
         self.CELL_LINES = ['WT','TDP43']
 
-
 class NeuronsUMAP0ALSB6FUSFigureConfig(NeuronsUMAP0ALSFigureConfig):
     def __init__(self):
         super().__init__()
@@ -743,6 +727,7 @@ class NeuronsUMAP0ALSB6FUSFigureConfig(NeuronsUMAP0ALSFigureConfig):
         self.INPUT_FOLDERS = ["batch6"]
         self.CELL_LINES = ['WT','FUSHomozygous','FUSHeterozygous','FUSRevertant']
         self.MARKERS = ['FUS']
+
 class NeuronsUMAP0ALSB6DCP1AFigureConfig(NeuronsUMAP0ALSFigureConfig):
     def __init__(self):
         super().__init__()
@@ -750,6 +735,7 @@ class NeuronsUMAP0ALSB6DCP1AFigureConfig(NeuronsUMAP0ALSFigureConfig):
         self.INPUT_FOLDERS = ["batch6"]
         self.CELL_LINES = ['WT','TBK1','TDP43','FUSHomozygous']
         self.MARKERS = ['DCP1A']
+
 class NeuronsUMAP0ALSB6ANXA11FigureConfig(NeuronsUMAP0ALSFigureConfig):
     def __init__(self):
         super().__init__()
@@ -765,6 +751,7 @@ class NeuronsUMAP0ALSB6TDP43FigureConfig(NeuronsUMAP0ALSFigureConfig):
         self.INPUT_FOLDERS = ["batch6"]
         self.CELL_LINES = ['WT','OPTN','TBK1','FUSHomozygous','TDP43']
         self.MARKERS = ['TDP43']
+
 class NeuronsUMAP0ALSB6CLTCFigureConfig(NeuronsUMAP0ALSFigureConfig):
     def __init__(self):
         super().__init__()
@@ -772,6 +759,7 @@ class NeuronsUMAP0ALSB6CLTCFigureConfig(NeuronsUMAP0ALSFigureConfig):
         self.INPUT_FOLDERS = ["batch6"]
         self.CELL_LINES = ['WT','OPTN','TBK1']
         self.MARKERS = ['CLTC']
+
 class NeuronsUMAP0ALSB6FigureConfig(FigureConfig):
     def __init__(self):
         super().__init__()
@@ -822,7 +810,6 @@ class NeuronsUMAP0ALS_TDP43_B6FigureConfig(NeuronsUMAP0ALSB6FigureConfig):
         super().__init__()
 
         self.CELL_LINES = ['WT','TDP43']
-
 
 class NeuronsDistancesALSWith45FigureConfig(FigureConfig):
     def __init__(self):
@@ -894,6 +881,7 @@ class NeuronsUMAP0ALS_FUSHomozygous_B69FigureConfig(NeuronsUMAP0ALSB6FigureConfi
         self.INPUT_FOLDERS = ['batch6','batch9']
         self.CELL_LINES = ['WT','FUSHomozygous']
         self.ADD_BATCH_TO_LABEL = False
+
 class NeuronsUMAP0ALS_FUSHeterozygous_B69FigureConfig(NeuronsUMAP0ALSB6FigureConfig):
     def __init__(self):
         super().__init__()
@@ -934,9 +922,6 @@ class NeuronsUMAP0ALS_TDP43_B69FigureConfig(NeuronsUMAP0ALSB6FigureConfig):
 
         self.CELL_LINES = ['WT','TDP43']
 
-
-
-
 class NeuronsUMAP0ALSFUSFigureConfig(NeuronsUMAP0ALSFigureConfig):
     def __init__(self):
         super().__init__()
@@ -948,3 +933,30 @@ class NeuronsUMAP0ALSFUSFigureConfig(NeuronsUMAP0ALSFigureConfig):
         self.SHOW_ARI = False
 
 
+class NeuronsEffectsFigureConfig(FigureConfig):
+    def __init__(self):
+        super().__init__()
+        self.INPUT_FOLDERS = [f"batch{i}" for i in [1,2,3,7,8,9]]
+        
+        self.EXPERIMENT_TYPE = 'neuronsDay8_new'
+        self.ADD_BATCH_TO_LABEL = True
+        self.ADD_REP_TO_LABEL = True
+        self.BASELINE_PERTURB = {'WT_Untreated': 
+                                 [f'{cell_line}_Untreated' for cell_line in 
+                                  ['FUSHeterozygous','FUSHomozygous','FUSRevertant','OPTN','TDP43','TBK1']],
+                                 'FUSRevertant_Untreated':
+                                 [f'{cell_line}_Untreated' for cell_line in 
+                                  ['FUSHeterozygous','FUSHomozygous','WT']]}
+        
+class NeuronsMultiplexedEffectsFigureConfig(FigureConfig):
+    def __init__(self):
+        super().__init__()
+        self.INPUT_FOLDERS = [f"batch{i}" for i in [1,2,3,7,8,9]]
+        
+        self.EXPERIMENT_TYPE = 'neuronsDay8_new'
+        self.MARKERS_TO_EXCLUDE = ['CD41']
+        self.ADD_BATCH_TO_LABEL = True
+        self.ADD_REP_TO_LABEL = True
+        self.BASELINE_PERTURB = {'WT_Untreated': 
+                                 [f'{cell_line}_Untreated' for cell_line in 
+                                  ['FUSHeterozygous','FUSHomozygous','FUSRevertant','OPTN','TDP43','TBK1']]}
