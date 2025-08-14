@@ -8,9 +8,12 @@ import numpy as np
 import logging
 import torch
 from sklearn.model_selection import train_test_split
+import copy
+import gc
 
 from src.common.utils import get_if_exists
 from src.datasets.data_loader import get_dataloader
+from src.analysis.analyzer_multiplex_markers import AnalyzerMultiplexMarkers
 from src.datasets.dataset_NOVA import DatasetNOVA
 from src.datasets.dataset_config import DatasetConfig
 from src.models.architectures.NOVA_model import NOVAModel
@@ -107,8 +110,7 @@ def generate_multiplexed_embeddings(model_output_folder:str,
             - paths: Concatenated array of paths corresponding to the embeddings. 
     """
                                     
-    from src.analysis.analyzer_multiplex_markers import AnalyzerMultiplexMarkers
-    import gc
+    
 
     input_folders = get_if_exists(config_data, 'INPUT_FOLDERS', None)
     assert input_folders is not None, "[load_multiplexed_embeddings] INPUT_FOLDERS can't be None"
@@ -118,6 +120,9 @@ def generate_multiplexed_embeddings(model_output_folder:str,
 
     batches = get_batches_from_input_folders(input_folders)
 
+    # Cloning to avoid modifying the original config
+    config_data = copy.deepcopy(config_data)
+                                    
     if config_data.SPLIT_DATA:
         data_set_types = ['trainset','valset','testset']
     else:
@@ -136,7 +141,6 @@ def generate_multiplexed_embeddings(model_output_folder:str,
             logging.info(f"[generate_multiplexed_embeddings] starting on {batch}...")
 
             # load single-marker embeddings of current batch and set_type
-            # TODO: Clone the config data before modifying it
             config_data.INPUT_FOLDERS = [batch]
             config_data.SETS = [set_type]
             curr_embeddings, curr_labels, curr_paths = load_embeddings(model_output_folder, config_data, multiplex=False)
