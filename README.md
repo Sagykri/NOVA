@@ -120,6 +120,28 @@ $NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_embeddings -g -m 20000
 ```
 <br/>
 
+<br/>
+
+### Generate Multiplex Embeddings
+Once you have a trained model **and pre-generated single-marker embeddings** (check above), you may proceed to generate multiplex embeddings for downstream analysis.  
+To generate multiplex embeddings you need to run the following:
+
+```bash
+python $NOVA_HOME/runnables/generate_multiplexed_embeddings.py *ABSOLUTE_PATH_TO_OUTPUTS_FOLDER* *RELATIVE_PATH_TO_DATA_CONFIG*
+```
+
+For example:
+```bash
+python $NOVA_HOME/runnables/generate_multiplexed_embeddings.py $NOVA_HOME/outputs/vit_models/finetuned_model ./manuscript/embeddings_config/EmbeddingsDatasetConfig
+```
+
+On WEXAC:
+```bash
+$NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_multiplexed_embeddings -g -m 20000 -b 10 -a $NOVA_HOME/outputs/vit_models/finetuned_model ./manuscript/embeddings_config/AlyssaEmbeddingsDatasetConfig -q short-gpu -j generate_multiplexed_embeddings
+```
+
+<br/>
+
 ### Generate UMAPs
 Once you have saved embeddngs, you may generate UMAPs for them following this command:
 
