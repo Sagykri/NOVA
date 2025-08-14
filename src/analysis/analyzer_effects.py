@@ -137,6 +137,9 @@ class AnalyzerEffects(Analyzer):
             'adj_pvalue', 'adj_p_heterogeneity'.
         """
         for pval_col in ['pvalue','p_heterogeneity']:
+            if pval_col not in combined_effects_df.columns:
+                continue
+
             combined_effects_df[pval_col] = combined_effects_df[pval_col].replace(0, 1e-300)  # avoid log(0)
             _, adj_pvals, _, _ = multipletests(combined_effects_df[pval_col], method='fdr_bh')
             combined_effects_df[f'adj_{pval_col}'] = adj_pvals
