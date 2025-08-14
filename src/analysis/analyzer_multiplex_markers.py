@@ -11,8 +11,9 @@ import numpy as np
 import pandas as pd
 from typing import Dict, Tuple
 from tqdm import tqdm
+from src.analysis.analyzer import Analyzer
 
-class AnalyzerMultiplexMarkers():
+class AnalyzerMultiplexMarkers(Analyzer):
     """Analyzer class is used to analyze the embeddings of a model.
     It's three main methods are:
     1. calculate(): to calculate the wanted features from the embeddings, such as UMAP or distances.
@@ -34,6 +35,8 @@ class AnalyzerMultiplexMarkers():
         """
         self.__set_params(data_config, output_folder_path)
         self.features:np.ndarray = None
+        self.labels:np.ndarray = None
+        self.paths:np.ndarray = None
 
     def __set_params(self, data_config: DatasetConfig, output_folder_path:str)->None:
         """Extracting params from the configuration
@@ -61,6 +64,9 @@ class AnalyzerMultiplexMarkers():
         logging.info(f"[AnalyzerMultiplexMarkers.calculate] Embeddings shape: {embeddings.shape}, Labels shape: {labels.shape}")
         df = self.__format_embeddings_to_df(embeddings, labels, paths)
         multiplexed_embeddings, multiplexed_labels, multiplexed_paths = self.__get_multiplexed_embeddings(df)
+        self.features = multiplexed_embeddings
+        self.labels = multiplexed_labels
+        self.paths = multiplexed_paths
         logging.info(f"[AnalyzerMultiplexMarkers.calculate] Multiplexed embeddings shape: {multiplexed_embeddings.shape}, Labels shape: {multiplexed_labels.shape}, Paths shape: {multiplexed_paths.shape}")
 
         return multiplexed_embeddings, multiplexed_labels, multiplexed_paths
