@@ -37,22 +37,22 @@ class LabelInfo:
         self.rep:str = get_reps_from_labels(__labels_np, dataset_config)[0]
         self.index:int = index
 
-def get_rep_idx(dataset_config, multiplex):
+def get_rep_idx(dataset_config:DatasetConfig, multiplex:bool)->int:
     rep_idx = REP_IDX_MULTIPLEX if multiplex else REP_IDX
     return rep_idx - int(not dataset_config.ADD_CONDITION_TO_LABEL) \
                     - int(not dataset_config.ADD_LINE_TO_LABEL) \
                     - int(not dataset_config.ADD_BATCH_TO_LABEL)
 
-def get_condition_idx(dataset_config, multiplex):
+def get_condition_idx(dataset_config:DatasetConfig, multiplex:bool)->int:
     condition_idx = CONDITION_IDX_MULTIPLEX if multiplex else CONDITION_IDX
     return condition_idx - int(not dataset_config.ADD_LINE_TO_LABEL)
 
-def get_batch_idx(dataset_config, multiplex):
+def get_batch_idx(dataset_config:DatasetConfig, multiplex:bool)->int:
     batch_idx = BATCH_IDX_MULTIPLEX if multiplex else BATCH_IDX
     return batch_idx - int(not dataset_config.ADD_CONDITION_TO_LABEL) \
                      - int(not dataset_config.ADD_LINE_TO_LABEL)
 
-def get_cell_line_idx(dataset_config, multiplex):
+def get_cell_line_idx(dataset_config:DatasetConfig, multiplex:bool)->int:
     return CELL_LINE_IDX_MULTIPLEX if multiplex else CELL_LINE_IDX
 
 
@@ -227,22 +227,22 @@ def remove_patient_id_from_cell_line_multiplex(labels:np.ndarray[str], dataset_c
 
 
 # --- Picklable wrappers for MULTIPLEX functions ---
-def multiplex_reps(labels, dataset_config):
+def multiplex_reps(labels:np.ndarray[str], dataset_config:DatasetConfig)-> np.ndarray[str]:
     return get_reps_from_labels(labels, dataset_config, multiplex=True)
 
-def multiplex_conditions(labels, dataset_config):
+def multiplex_conditions(labels:np.ndarray[str], dataset_config:DatasetConfig)-> np.ndarray[str]:
     return get_conditions_from_labels(labels, dataset_config, multiplex=True)
 
-def multiplex_cell_lines(labels, dataset_config):
+def multiplex_cell_lines(labels:np.ndarray[str], dataset_config:DatasetConfig)-> np.ndarray[str]:
     return get_cell_lines_from_labels(labels, dataset_config, multiplex=True)
 
-def multiplex_batches(labels, dataset_config):
+def multiplex_batches(labels:np.ndarray[str], dataset_config:DatasetConfig)-> np.ndarray[str]:
     return get_batches_from_labels(labels, dataset_config, multiplex=True)    
 
-def multiplex_cell_lines_conditions(labels, dataset_config):
+def multiplex_cell_lines_conditions(labels:np.ndarray[str], dataset_config:DatasetConfig)-> np.ndarray[str]:
     return get_cell_lines_conditions_from_labels(labels, dataset_config, multiplex=True)
 
-def multiplex_cell_lines_condition_batches(labels, dataset_config):
+def multiplex_cell_lines_condition_batches(labels:np.ndarray[str], dataset_config:DatasetConfig)-> np.ndarray[str]:
     return get_cell_lines_condition_batches_from_labels(labels, dataset_config, multiplex=True)
 
 
