@@ -12,19 +12,15 @@ Welcome to the official repository for **NOVA**, a deep learning framework desig
   - [Introduction](#introduction)
   - [Installation](#installation)
   - [Download files](#download-files)
-    - [Download the model](#download-the-model)
-    - [Download the images](#download-the-images)
+    - [Download The Model](#download-the-model)
+    - [Download The Images](#download-the-images)
   - [Usage](#usage)
-    - [Preprocessing the data](#preprocess-the-data)
+    - [Preprocess the data](#preprocess-the-data)
     - [Train a model](#train-a-model)
     - [Generate Embeddings](#generate-embeddings)
     - [Generate UMAPs](#generate-umaps)
     - [Generate distances plots](#generate-distances-plots)
       - [Calculate distances](#calculate-distances)
-      - [Generate plots](#generate-plots)
-        - [Boxplots](#boxplots)
-        - [Bubbleplots](#bubbleplots)
-    - [Train a model](#train-a-model)
   - [Data](#data)
   - [Configuration files](#configuration-files)
       - [Base Config](#base-config)
@@ -79,7 +75,7 @@ For example:
 python $NOVA_HOME/runnables/preprocessing /manuscript/dataset_config/OpenCellTrainDatasetConfig
 ```
 
-For WEXAC:
+For LSF:
 ```bash
 $NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/preprocessing -g -m 20000 -b 10 -j preprocess -a ./manuscript/dataset_config/OpenCellTrainDatasetConfig
 ```
@@ -94,7 +90,7 @@ For example:
 python $NOVA_HOME/runnables/train ./manuscript/model_config/ClassificationModelConfig /manuscript/trainer_config/ClassificationTrainerConfig  /manuscript/dataset_config/OpenCellTrainDatasetConfig
 ```
 
-For WEXAC:
+For LSF:
 ```bash
 $NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/train -g -m 40000 -b 44 -j train -a ./manuscript/model_config/ClassificationModelConfig ./manuscript/trainer_config/ClassificationTrainerConfig  ./manuscript/dataset_config/OpenCellTrainDatasetConfig
 ```
@@ -114,7 +110,7 @@ For example:
 python $NOVA_HOME/runnables/generate_embeddings $NOVA_HOME/outputs/vit_models/finetuned_model ./manuscript/embeddings_config/EmbeddingsDatasetConfig
 ```
 
-On WEXAC:
+On LSF:
 ```bash
 $NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_embeddings -g -m 20000 -b 10 -a $NOVA_HOME/outputs/vit_models/finetuned_model ./manuscript/embeddings_config/AlyssaEmbeddingsDatasetConfig -q short-gpu -j generate_embeddings
 ```
@@ -132,7 +128,7 @@ For example:
 python $NOVA_HOME/runnables/generate_umaps_and_plot $NOVA_HOME/vit_models/finetuned_model ./manuscript/manuscript_figures_data_config/NeuronsUMAP0StressB6FigureConfig ./manuscript/manuscript_plot_config/UMAP0StressPlotConfig
 ```
 
-On WEXAC:
+On LSF:
 ```bash
 $NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_umaps_and_plot -m 5000 -a  $NOVA_HOME/vit_models/finetuned_model ./manuscript/manuscript_figures_data_config/NeuronsUMAP0StressB6FigureConfig ./manuscript/manuscript_plot_config/UMAP0StressPlotConfig -q short -j generate_umap
 ```
@@ -144,51 +140,23 @@ For generating distances plots you should first calculate the distances.
 #### Calculate distances
 For calculating distance you should run the following:
 ```bash
-python $NOVA_HOME/runnables/generate_distances *ABSOLUTE_PATH_TO_MODEL_FOLDER* *RELATIVE_PATH_TO_DISTANCE_CONFIG_CLASS*
+python $NOVA_HOME/runnables/calculate_distances.py *ABSOLUTE_PATH_TO_MODEL_FOLDER* *RELATIVE_PATH_TO_FIGURES_CONFIG_CLASS* [rep_effect] [multiplexed] [detailed]
 ```
+Optional Flags:
+* rep_effect - Calculate distances between reps
+* detailed – Adds extra statistics to the distance summary (Increases runtime).
+* multiplexed – Use this if the data is multiplexed (UMAP2).
+Order doesn't matter.
+If you want to leave both flags as False, simply omit them from the command.
 For example:
 ```bash
-python $NOVA_HOME/runnables/generate_distances $NOVA_HOME/outputs/vit_models/finetuned_model ./manuscript/distances_config/DistanceConfig 
+python $NOVA_HOME/runnables/calculate_distances.py $NOVA_HOME/outputs/vit_models/finetuned_model manuscript/manuscript_figures_data_config_80pct/newNeuronsD8FigureConfig_UMAP1_B9 multiplexed detailed 
 ```
-On WEXAC:
+On LSF:
 ```bash
-$NOVA_HOME/bash_commands/run_py.sh $NOVA_HOME/src/runables/generate_distances -a $NOVA_HOME/outputs/vit_models/finetuned_model ./manuscript/distances_config/NeuronsDistanceConfig -j dist_neurons
+$NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/calculate_distances -g -m 50000 -b 50 -j cal_dist -a $NOVA_HOME/outputs/vit_models/finetuned_model manuscript/manuscript_figures_data_config_80pct/newNeuronsD8FigureConfig_UMAP1_B9 multiplexed detailed
 ```
 <br/>
-
-#### Generate plots
-Once you have the distances calculated, you may plot them with the following plot types:
-
-##### Boxplots
-```bash
-python $NOVA_HOME/runnables/plot_distances_boxplots *ABSOLUTE_PATH_TO_MODEL_FOLDER* *RELATIVE_PATH_TO_FIGURES_CONFIG_CLASS* *RELATIVE_PATH_TO_PLOT_CONFIG_CLASS*
-```
-
-For example:
-```bash
-python $NOVA_HOME/runnables/plot_distances_boxplots $NOVA_HOME/outputs/vit_models/finetuned_model ./manuscript/manuscript_figures_data_config/DistancesFigureConfig ./manuscript/manuscript_plot_config/DistancesPlotConfig
-```
-
-For WEXAC:
-```bash
-$NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/plot_distances_boxplots -m 1000 -a $NOVA_HOME/outputs/vit_models/finetuned_model ./manuscript/manuscript_figures_data_config/DistancesFigureConfig ./manuscript//manuscript_plot_config/DistancesPlotConfig -q short -j boxplots
-```
-
-##### Bubbleplots
-```bash
-python $NOVA_HOME/runnables/plot_distances_bubble *ABSOLUTE_PATH_TO_MODEL_FOLDER* *RELATIVE_PATH_TO_FIGURES_CONFIG_CLASS* *RELATIVE_PATH_TO_PLOT_CONFIG_CLASS*
-```
-
-For example:
-```bash
-python $NOVA_HOME/runnables/plot_distances_bubble $NOVA_HOME/outputs/vit_models/finetuned_model ./manuscript/manuscript_figures_data_config/DistancesFigureConfig ./manuscript/manuscript_plot_config/DistancesPlotConfig
-```
-
-For WEXAC:
-```bash
-$NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/plot_distances_bubble -m 1000 -a $NOVA_HOME/outputs/vit_models/finetuned_model ./manuscript/manuscript_figures_data_config/DistancesFigureConfig ./manuscript/manuscript_plot_config/DistancesPlotConfig -q short -j boxplots
-```
-
 
 
 ## Data
