@@ -167,7 +167,7 @@ def plot_multiplex_forestplot(combined_effects_df,cur_df_single, savepath, confi
 
     for i, combine_on_value in enumerate(combine_on_values):
         df_single = cur_df_single[cur_df_single[combine_on] == combine_on_value]
-        ax.plot(df_single['effect_size'],df_single['pert'],
+        ax.plot(df_single['effect_size'].to_numpy(),df_single['pert'].to_numpy(),
                 linestyle='None', marker='.', color=colors(i), markersize=3, label=combine_on_value)
         legend_elements.append(Line2D([0], [0], marker='.', color=colors(i), lw=0, label=f'{combine_on_value}'))
 
