@@ -56,6 +56,12 @@ class NeuronsEffectWTBaselineTBK1Config(NeuronsEffectWTBaselineConfig):
         super().__init__()
         self.PERTURBATION = 'TBK1_Untreated'
 
+class NeuronsEffectWTBaselineSNCAConfig(NeuronsEffectWTBaselineConfig):
+    def __init__(self):
+        super().__init__()
+        self.INPUT_FOLDERS =  [f"batch{i}" for i in [8,9]]
+        self.PERTURBATION = 'SNCA_Untreated'
+
 class NeuronsEffectWTBaselineStressConfig(NeuronsEffectWTBaselineConfig):
     def __init__(self):
         super().__init__()
@@ -95,6 +101,14 @@ class NeuronsEffectFUSRevBaselineTBK1Config(NeuronsEffectFUSRevBaselineConfig):
     def __init__(self):
         super().__init__()
         self.PERTURBATION = 'TBK1_Untreated'
+
+class NeuronsEffectFUSRevBaselineSNCAConfig(NeuronsEffectFUSRevBaselineConfig):
+    def __init__(self):
+        super().__init__()
+        self.INPUT_FOLDERS =  [f"batch{i}" for i in [8,9]]
+        self.PERTURBATION = 'SNCA_Untreated'
+
+
 class Day18EffectConfig(EffectConfig): ## need to be defined with baseline and perturbation if wanting to use this data
     def __init__(self):
         super().__init__()
@@ -140,11 +154,10 @@ class AlyssaCoyneNEWEffectConfig(EffectConfig):
 class dNLSNewEffectConfig(EffectConfig):
     def __init__(self):
         super().__init__()
-        self.INPUT_FOLDERS = [f"batch{i}" for i in range(1,7)]
+        self.INPUT_FOLDERS = ["batch1", 'batch2', 'batch4', 'batch5', 'batch6']
         self.EXPERIMENT_TYPE = 'dNLS'
         self.BASELINE = 'dNLS_Untreated'
         self.PERTURBATION = 'dNLS_DOX'
-        self.MARKERS = list(PlotConfig().COLOR_MAPPINGS_MARKERS.keys())
 
         self.MIN_REQUIRED:int = 200
         self.N_BOOT:int = 1000
@@ -179,3 +192,48 @@ class NeuronsMultiplexEffectConfig(EffectConfig):
         self.ADD_BATCH_TO_LABEL = True
         self.ADD_REP_TO_LABEL = False
         self.MIN_REQUIRED = 200 
+
+class NeuronsMultiplexEffectConfig_WithSNCA(NeuronsMultiplexEffectConfig):
+    def __init__(self):
+        super().__init__()
+
+        self.INPUT_FOLDERS =  [f"batch{i}" for i in [8,9]]
+        
+        self.BASELINE_PERTURB['WT_Untreated'] = self.BASELINE_PERTURB['WT_Untreated'] + ['SNCA_Untreated']
+
+        self.CELL_LINES = self.CELL_LINES + ['SNCA']
+
+class dNLSMultiplexEffectConfig(EffectConfig):
+    def __init__(self):
+        super().__init__()
+
+        self.INPUT_FOLDERS =  [f"batch{i}" for i in [1,2,4,5,6]]
+        
+        self.EXPERIMENT_TYPE = 'dNLS'    
+        
+        self.BASELINE_PERTURB = {'dNLS_Untreated':['dNLS_DOX']}
+        self.CELL_LINES = ['dNLS']
+        self.ADD_BATCH_TO_LABEL = True
+        self.ADD_REP_TO_LABEL = False
+        self.MIN_REQUIRED = 40 # after testing number of multiplexed labels across batches
+        self.N_BOOT = 100 # Since the min_requires is low
+
+class dNLSMultiplexEffectConfig_NBoot1000(dNLSMultiplexEffectConfig):
+    def __init__(self):
+        super().__init__()
+
+        self.N_BOOT = 1000 # Since the min_requires is low
+
+class NIHMultiplexEffectConfig(EffectConfig):
+    def __init__(self):
+        super().__init__()
+
+        self.INPUT_FOLDERS =  [f"batch{i}" for i in [1,2,3]]
+        
+        self.EXPERIMENT_TYPE = 'NIH'    
+        
+        self.BASELINE_PERTURB = {'WT_Untreated':['WT_stress']}
+        self.CELL_LINES = ['WT']
+        self.ADD_BATCH_TO_LABEL = True
+        self.ADD_REP_TO_LABEL = False
+        self.MIN_REQUIRED = 200 # after testing number of multiplexed labels across batches

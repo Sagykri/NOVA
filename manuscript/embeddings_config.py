@@ -12,7 +12,6 @@ class EmbeddingsDay8NewDatasetConfig(EmbeddingsConfig):
         self.INPUT_FOLDERS = None
         self.SPLIT_DATA = False
         self.EXPERIMENT_TYPE = 'neuronsDay8_new'
-        self.MARKERS_TO_EXCLUDE = None
         self.ADD_BATCH_TO_LABEL = True
         self.ADD_REP_TO_LABEL = True
 
@@ -57,7 +56,60 @@ class EmbeddingsDay8B9DatasetConfig(EmbeddingsDay8NewDatasetConfig):
 
         self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "ManuscriptFinalData_80pct", "neuronsDay8_new", f) for f in 
                         ["batch9"]]
+
+# Multiplexed 
+class EmbeddingsDay8NewDatasetConfig_Multiplexed(EmbeddingsDay8NewDatasetConfig):
+    def __init__(self):
+        super().__init__()
+
+        self.CELL_LINES = ['WT', 'FUSHomozygous', 'FUSHeterozygous', 'FUSRevertant',
+                           'TDP43', 'OPTN', 'TBK1'] 
+        self.CONDITIONS = ['Untreated']
+
+        self.ADD_BATCH_TO_LABEL = True # For knowing which batch folder to create
+        self.ADD_REP_TO_LABEL = False
+
+class EmbeddingsDay8B1DatasetConfig_Multiplexed(EmbeddingsDay8NewDatasetConfig_Multiplexed):
+    def __init__(self):
+        super().__init__()
+
+        self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "ManuscriptFinalData_80pct", "neuronsDay8_new", f) for f in 
+                        ["batch1"]]
         
+class EmbeddingsDay8B2DatasetConfig_Multiplexed(EmbeddingsDay8NewDatasetConfig_Multiplexed):
+    def __init__(self):
+        super().__init__()
+
+        self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "ManuscriptFinalData_80pct", "neuronsDay8_new", f) for f in 
+                        ["batch2"]]
+
+class EmbeddingsDay8B3DatasetConfig_Multiplexed(EmbeddingsDay8NewDatasetConfig_Multiplexed):
+    def __init__(self):
+        super().__init__()
+
+        self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "ManuscriptFinalData_80pct", "neuronsDay8_new", f) for f in 
+                        ["batch3"]]
+        
+class EmbeddingsDay8B7DatasetConfig_Multiplexed(EmbeddingsDay8NewDatasetConfig_Multiplexed):
+    def __init__(self):
+        super().__init__()
+
+        self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "ManuscriptFinalData_80pct", "neuronsDay8_new", f) for f in 
+                        ["batch7"]]
+
+class EmbeddingsDay8B8DatasetConfig_Multiplexed(EmbeddingsDay8NewDatasetConfig_Multiplexed):
+    def __init__(self):
+        super().__init__()
+
+        self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "ManuscriptFinalData_80pct", "neuronsDay8_new", f) for f in 
+                        ["batch8"]]
+        
+class EmbeddingsDay8B9DatasetConfig_Multiplexed(EmbeddingsDay8NewDatasetConfig_Multiplexed):
+    def __init__(self):
+        super().__init__()
+
+        self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "ManuscriptFinalData_80pct", "neuronsDay8_new", f) for f in 
+                        ["batch9"]]
 
 
 # AlyssaCoyne (pilot)
@@ -95,7 +147,6 @@ class EmbeddingsNewdNLSDatasetConfig(EmbeddingsConfig):
         
         self.SPLIT_DATA = False
         self.EXPERIMENT_TYPE = 'dNLS'
-        self.MARKERS_TO_EXCLUDE = []
         self.ADD_BATCH_TO_LABEL = True
         self.ADD_REP_TO_LABEL = True
 
@@ -141,6 +192,55 @@ class EmbeddingsNewdNLSB6DatasetConfig(EmbeddingsNewdNLSDatasetConfig):
         self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "ManuscriptFinalData_80pct", "dNLS", f) for f in 
                         ["batch6"]]
 
+## Multiplexed  ##
+class EmbeddingsNewdNLSDatasetConfig_Multiplexed(EmbeddingsNewdNLSDatasetConfig):
+    def __init__(self):
+        super().__init__()
+        self.CELL_LINES = ['dNLS']
+        self.ADD_BATCH_TO_LABEL = True # For knowing which batch folder to create 
+        self.ADD_REP_TO_LABEL = False
+
+class EmbeddingsNewdNLSB1DatasetConfig_Multiplexed(EmbeddingsNewdNLSDatasetConfig_Multiplexed):
+    def __init__(self):
+        super().__init__()
+
+        self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "ManuscriptFinalData_80pct", "dNLS", f) for f in 
+                        ["batch1"]]
+
+class EmbeddingsNewdNLSB2DatasetConfig_Multiplexed(EmbeddingsNewdNLSDatasetConfig_Multiplexed):
+    def __init__(self):
+        super().__init__()
+
+        self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "ManuscriptFinalData_80pct", "dNLS", f) for f in 
+                        ["batch2"]]
+
+class EmbeddingsNewdNLSB3DatasetConfig_Multiplexed(EmbeddingsNewdNLSDatasetConfig_Multiplexed):
+    def __init__(self):
+        super().__init__()
+
+        self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "ManuscriptFinalData_80pct", "dNLS", f) for f in 
+                        ["batch3"]]
+
+class EmbeddingsNewdNLSB4DatasetConfig_Multiplexed(EmbeddingsNewdNLSDatasetConfig_Multiplexed):
+    def __init__(self):
+        super().__init__()
+
+        self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "ManuscriptFinalData_80pct", "dNLS", f) for f in 
+                        ["batch4"]]
+
+class EmbeddingsNewdNLSB5DatasetConfig_Multiplexed(EmbeddingsNewdNLSDatasetConfig_Multiplexed):
+    def __init__(self):
+        super().__init__()
+
+        self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "ManuscriptFinalData_80pct", "dNLS", f) for f in 
+                        ["batch5"]]
+
+class EmbeddingsNewdNLSB6DatasetConfig_Multiplexed(EmbeddingsNewdNLSDatasetConfig_Multiplexed):
+    def __init__(self):
+        super().__init__()
+
+        self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "ManuscriptFinalData_80pct", "dNLS", f) for f in 
+                        ["batch6"]]
 
 ### NIH ##
 
@@ -204,6 +304,35 @@ class EmbeddingsNIHDatasetConfig_WT_B3(EmbeddingsNIHDatasetConfig_WT):
         self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "ManuscriptFinalData_80pct", "NIH", f) for f in 
                         ["batch3"]]
 
+
+# MULTIPLEXED #
+class EmbeddingsNIHDatasetConfig_WT_Multiplexed(EmbeddingsNIHDatasetConfig_WT):
+    def __init__(self):
+        super().__init__()
+
+        self.ADD_BATCH_TO_LABEL = True # For knowing which batch folder to create
+        self.ADD_REP_TO_LABEL = False
+
+class EmbeddingsNIHDatasetConfig_WT_B1_Multiplexed(EmbeddingsNIHDatasetConfig_WT_Multiplexed):
+    def __init__(self):
+        super().__init__()
+
+        self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "ManuscriptFinalData_80pct", "NIH", f) for f in 
+                        ["batch1"]]
+
+class EmbeddingsNIHDatasetConfig_WT_B2_Multiplexed(EmbeddingsNIHDatasetConfig_WT_Multiplexed):
+    def __init__(self):
+        super().__init__()
+
+        self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "ManuscriptFinalData_80pct", "NIH", f) for f in 
+                        ["batch2"]]
+
+class EmbeddingsNIHDatasetConfig_WT_B3_Multiplexed(EmbeddingsNIHDatasetConfig_WT_Multiplexed):
+    def __init__(self):
+        super().__init__()
+
+        self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "ManuscriptFinalData_80pct", "NIH", f) for f in 
+                        ["batch3"]]
 
 ## NeuronsDay18 ##
 class EmbeddingsDay18B1DatasetConfig(EmbeddingsConfig):

@@ -151,16 +151,11 @@ class AnalyzerEffectsMultiplex(AnalyzerEffectsDistRatio):
         os.makedirs(feature_folder_path, exist_ok=True)
         
         input_folders = get_batches_from_input_folders(self.data_config.INPUT_FOLDERS)
-        reps = self.data_config.REPS if self.data_config.REPS else ['all_reps']
-        markers = get_if_exists(self.data_config, 'MARKERS', None)
-        if markers is not None and len(markers)<=3:
-            title = f"{'_'.join(input_folders)}_{'_'.join(reps)}_{'_'.join(markers)}"
-        else:
-            excluded_markers = list(self.data_config.MARKERS_TO_EXCLUDE) if self.data_config.MARKERS_TO_EXCLUDE else ["all_markers"]
-            if excluded_markers != ['all_markers']:
-                excluded_markers.insert(0,"without")
-            title = f"{'_'.join(input_folders)}_{'_'.join(reps)}_{'_'.join(excluded_markers)}"
+        cell_lines = self.data_config.CELL_LINES if self.data_config.CELL_LINES else ["all_cell_lines"]
+        conditions = self.data_config.CONDITIONS if self.data_config.CONDITIONS else ["all_conditions"]
+        title = f"{'_'.join(input_folders)}_{'_'.join(cell_lines)}_{'_'.join(conditions)}"
         saveroot = os.path.join(feature_folder_path,f'{title}')
+        
         return saveroot
     
     def _get_baseline_perturb_dict(self) -> Dict[str, list[str]]:
