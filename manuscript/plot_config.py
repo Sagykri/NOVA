@@ -13,7 +13,7 @@ class PlotConfig(PlotConfig):
         super().__init__()
 
         # Set the size of the dots
-        self.SIZE = 30
+        self.SIZE = 5
         # Set the alpha of the dots (0=max opacity, 1=no opacity)
         self.ALPHA = 0.7
         

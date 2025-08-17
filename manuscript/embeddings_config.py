@@ -58,12 +58,7 @@ class EmbeddingsDay8B9DatasetConfig(EmbeddingsDay8NewDatasetConfig):
         self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "ManuscriptFinalData_80pct", "neuronsDay8_new", f) for f in 
                         ["batch9"]]
         
-class EmbeddingsDay8B10DatasetConfig(EmbeddingsDay8NewDatasetConfig):
-    def __init__(self):
-        super().__init__()
 
-        self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "ManuscriptFinalData_80pct", "neuronsDay8_new", f) for f in 
-                        ["batch10"]]
 
 # AlyssaCoyne (pilot)
 class EmbeddingsAlyssaCoyneDatasetConfig(EmbeddingsConfig):
@@ -176,6 +171,33 @@ class EmbeddingsNIHDatasetConfig_B2(EmbeddingsNIHDatasetConfig):
                         ["batch2"]]
 
 class EmbeddingsNIHDatasetConfig_B3(EmbeddingsNIHDatasetConfig):
+    def __init__(self):
+        super().__init__()
+
+        self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "ManuscriptFinalData_80pct", "NIH", f) for f in 
+                        ["batch3"]]
+
+class EmbeddingsNIHDatasetConfig_WT(EmbeddingsNIHDatasetConfig):
+    def __init__(self):
+        super().__init__()
+
+        self.CELL_LINES = ['WT']
+
+class EmbeddingsNIHDatasetConfig_WT_B1(EmbeddingsNIHDatasetConfig_WT):
+    def __init__(self):
+        super().__init__()
+
+        self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "ManuscriptFinalData_80pct", "NIH", f) for f in 
+                        ["batch1"]]
+
+class EmbeddingsNIHDatasetConfig_WT_B2(EmbeddingsNIHDatasetConfig_WT):
+    def __init__(self):
+        super().__init__()
+
+        self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "ManuscriptFinalData_80pct", "NIH", f) for f in 
+                        ["batch2"]]
+
+class EmbeddingsNIHDatasetConfig_WT_B3(EmbeddingsNIHDatasetConfig_WT):
     def __init__(self):
         super().__init__()
 
