@@ -8,6 +8,7 @@ import networkx as nx
 import warnings
 from matplotlib.lines import Line2D
 from matplotlib.patches import Rectangle
+from scipy.spatial.distance import squareform
 
 # Added by Nancy
 from itertools import combinations
@@ -101,7 +102,8 @@ def plot_label_clustermap(df: pd.DataFrame,
 
     #dist_mat = dist_mat.fillna(0) # Added by Nancy - to support diff number of reps in each cell line
     
-    link = linkage(dist_mat.values, method=method)
+    condensed_dist = squareform(dist_mat.values, checks=False)
+    link = linkage(condensed_dist, method=method)
     cg = sns.clustermap(dist_mat,
                         row_linkage=link, col_linkage=link,
                         cmap=cmap,
