@@ -3,8 +3,8 @@ echo "NOVA_HOME:" $NOVA_HOME
 vit_models=/home/projects/hornsteinlab/Collaboration/NOVA/outputs/vit_models
 
 models_path=(
-    # $vit_models/pretrained_model
-    $vit_models/finetunedModel_MLPHead_acrossBatches_B56789_80pct_frozen
+    $vit_models/pretrained_model
+    # $vit_models/finetunedModel_MLPHead_acrossBatches_B56789_80pct_frozen
 )
 
 
@@ -40,6 +40,25 @@ for model_path in "${models_path[@]}"; do
 
     # $NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_umaps_and_plot -m 10000 \
     # -a $model_path $data_configs/newDNLSUMAP0B6DatasetConfig $plot_configs/UMAP0dNLSPlotConfig -q short -j umap0_new_dnls_b6
+
+    ## Only TDP43 marker
+    # $NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_umaps_and_plot -m 30000 \
+    # -a $model_path $data_configs/newDNLSUMAP0DatasetConfig_TDP43_woB3 $plot_configs/UMAP0dNLSPlotConfig -q short -j umap0_new_dnls_TDP43
+
+    # $NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_umaps_and_plot -m 10000 \
+    # -a $model_path $data_configs/newDNLSUMAP0B1DatasetConfig_TDP43 $plot_configs/UMAP0dNLSPlotConfig -q short -j umap0_new_dnls_b1_TDP43
+
+    # $NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_umaps_and_plot -m 10000 \
+    # -a $model_path $data_configs/newDNLSUMAP0B2DatasetConfig_TDP43 $plot_configs/UMAP0dNLSPlotConfig -q short -j umap0_new_dnls_b2_TDP43
+
+    # $NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_umaps_and_plot -m 30000 \
+    # -a $model_path $data_configs/newDNLSUMAP0B4DatasetConfig_TDP43 $plot_configs/UMAP0dNLSPlotConfig -q short -j umap0_new_dnls_b4_TDP43
+
+    # $NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_umaps_and_plot -m 50000 \
+    # -a $model_path $data_configs/newDNLSUMAP0B5DatasetConfig_TDP43 $plot_configs/UMAP0dNLSPlotConfig -q short -j umap0_new_dnls_b5_TDP43
+
+    # $NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_umaps_and_plot -m 10000 \
+    # -a $model_path $data_configs/newDNLSUMAP0B6DatasetConfig_TDP43 $plot_configs/UMAP0dNLSPlotConfig -q short -j umap0_new_dnls_b6_TDP43
 
     # # Umap1 WT Untreated
     # $NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_umaps_and_plot -m 50000 \
@@ -92,10 +111,13 @@ for model_path in "${models_path[@]}"; do
 
     # ### Effect size
     # $NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/plot_effect_sizes -m 1000 -a \
-    # $model_path $data_configs/dNLSNewEffectsFigureConfig  $plot_configs/DistancesdNLSPlotConfig -q short -j dnls_new
+    # $model_path $data_configs/dNLSEffectsFigureConfig  $plot_configs/DistancesdNLSPlotConfig -q short -j dnls_new
     
+    $NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/plot_effect_sizes -m 1000 -a \
+    $model_path $data_configs/dNLSEffectsFigureConfig_woB3  $plot_configs/DistancesdNLSPlotConfig -q short -j dnls_new
+
     # $NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/plot_effect_sizes_multiplex -m 3000 -a \
-    # $model_path $data_configs/dNLSNewEffectsFigureConfig_Multiplexed_WoB3  $plot_configs/DistancesdNLSPlotConfig -q short -j effect_multi_dNLS_plot
+    # $model_path $data_configs/dNLSEffectsFigureConfig_Multiplexed_WoB3  $plot_configs/DistancesdNLSPlotConfig -q short -j effect_multi_dNLS_plot
 
 
     ###############
@@ -545,8 +567,8 @@ for model_path in "${models_path[@]}"; do
     # $NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/plot_effect_sizes -m 1000 -a \
     # $model_path $data_configs/NeuronsEffectsFigureConfig  $plot_configs/DistancesNeuronsALSPlotConfig -q short -j effect_sizes
 
-    $NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/plot_effect_sizes -m 1000 -a \
-    $model_path $data_configs/NeuronsEffectsFigureConfig_SNCA  $plot_configs/DistancesNeuronsALSPlotConfig -q short -j effect_sizes_SNCA
+    # $NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/plot_effect_sizes -m 1000 -a \
+    # $model_path $data_configs/NeuronsEffectsFigureConfig_SNCA  $plot_configs/DistancesNeuronsALSPlotConfig -q short -j effect_sizes_SNCA
     
 
     # $NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/plot_effect_sizes_multiplex -m 3000 -a \
@@ -707,6 +729,19 @@ for model_path in "${models_path[@]}"; do
 
     # $NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_umaps_and_plot -m 20000 \
     # -a $model_path $data_configs/NIH_UMAP0_Stress_DatasetConfig_B3 $plot_configs/UMAP0StressPlotConfig -q short -j u0_NIH1_stress_B3
+
+    ### Only Positive controls
+    # $NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_umaps_and_plot -m 20000 \
+    # -a $model_path $data_configs/NIH_UMAP0_Stress_DatasetConfig_PositiveControls $plot_configs/UMAP0StressPlotConfig -q short -j u0_NIH1_stress
+
+    # $NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_umaps_and_plot -m 20000 \
+    # -a $model_path $data_configs/NIH_UMAP0_Stress_DatasetConfig_PositiveControls_B1 $plot_configs/UMAP0StressPlotConfig -q short -j u0_NIH1_stress_pc_B1
+
+    # $NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_umaps_and_plot -m 20000 \
+    # -a $model_path $data_configs/NIH_UMAP0_Stress_DatasetConfig_PositiveControls_B2 $plot_configs/UMAP0StressPlotConfig -q short -j u0_NIH1_stress_pc_B2
+
+    # $NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_umaps_and_plot -m 20000 \
+    # -a $model_path $data_configs/NIH_UMAP0_Stress_DatasetConfig_PositiveControls_B3 $plot_configs/UMAP0StressPlotConfig -q short -j u0_NIH1_stress_pc_B3
 
     # # umap0 FUS
     # $NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_umaps_and_plot -m 30000 \

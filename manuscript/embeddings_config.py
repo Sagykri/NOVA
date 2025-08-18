@@ -103,6 +103,12 @@ class EmbeddingsDay8B8DatasetConfig_Multiplexed(EmbeddingsDay8NewDatasetConfig_M
 
         self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "ManuscriptFinalData_80pct", "neuronsDay8_new", f) for f in 
                         ["batch8"]]
+
+class EmbeddingsDay8B8DatasetConfig_withSNCA_Multiplexed(EmbeddingsDay8B8DatasetConfig_Multiplexed):
+    def __init__(self):
+        super().__init__()
+
+        self.CELL_LINES = self.CELL_LINES + ['SNCA']
         
 class EmbeddingsDay8B9DatasetConfig_Multiplexed(EmbeddingsDay8NewDatasetConfig_Multiplexed):
     def __init__(self):
@@ -111,6 +117,11 @@ class EmbeddingsDay8B9DatasetConfig_Multiplexed(EmbeddingsDay8NewDatasetConfig_M
         self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "ManuscriptFinalData_80pct", "neuronsDay8_new", f) for f in 
                         ["batch9"]]
 
+class EmbeddingsDay8B9DatasetConfig_withSNCA_Multiplexed(EmbeddingsDay8B9DatasetConfig_Multiplexed):
+    def __init__(self):
+        super().__init__()
+
+        self.CELL_LINES = self.CELL_LINES + ['SNCA']
 
 # AlyssaCoyne (pilot)
 class EmbeddingsAlyssaCoyneDatasetConfig(EmbeddingsConfig):
