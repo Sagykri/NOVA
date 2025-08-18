@@ -317,7 +317,7 @@ class newNeuronsD8FigureConfig_UMAP1(FigureConfig):
          
         self.INPUT_FOLDERS = ['batch1', 'batch2', 'batch3', 'batch7', 'batch8', 'batch9']
         
-        self.EXPERIMENT_TYPE = 'neuronsDay8_new'#'neuronsDay8_new'    
+        self.EXPERIMENT_TYPE = 'neuronsDay8_new'    
         self.CELL_LINES = ['WT']
         self.CONDITIONS = ['Untreated']
         
@@ -1726,6 +1726,13 @@ class newDNLSUMAP0DatasetConfig_Hits(newDNLSUMAP0DatasetConfig):
         self.INPUT_FOLDERS = ["batch1", "batch2", "batch3", "batch4", "batch5", "batch6"]
         self.MARKERS = ['TDP43', 'DCP1A', 'LSM14A']
 
+class newDNLSUMAP0DatasetConfig_TDP43_woB3(newDNLSUMAP0DatasetConfig):
+    def __init__(self):
+        super().__init__()
+
+        self.INPUT_FOLDERS = ["batch1", "batch2", "batch4", "batch5", "batch6"]
+        self.MARKERS = ['TDP43']
+
 class newDNLSUMAP0DatasetConfig_Hits_With_WT(newDNLSUMAP0DatasetConfig_Hits):
     def __init__(self):
         super().__init__()
@@ -1738,11 +1745,23 @@ class newDNLSUMAP0B1DatasetConfig(newDNLSUMAP0DatasetConfig):
 
         self.INPUT_FOLDERS = ["batch1"]
 
+class newDNLSUMAP0B1DatasetConfig_TDP43(newDNLSUMAP0B1DatasetConfig):
+    def __init__(self):
+        super().__init__()
+
+        self.MARKERS = ['TDP43']
+
 class newDNLSUMAP0B2DatasetConfig(newDNLSUMAP0DatasetConfig):
     def __init__(self):
         super().__init__()
 
         self.INPUT_FOLDERS = ["batch2"]
+
+class newDNLSUMAP0B2DatasetConfig_TDP43(newDNLSUMAP0B2DatasetConfig):
+    def __init__(self):
+        super().__init__()
+
+        self.MARKERS = ['TDP43']
 
 class newDNLSUMAP0B3DatasetConfig(newDNLSUMAP0DatasetConfig):
     def __init__(self):
@@ -1761,8 +1780,6 @@ class newDNLSUMAP0B4DatasetConfig_TDP43(newDNLSUMAP0B4DatasetConfig):
         super().__init__()
 
         self.MARKERS = ['TDP43']
-        self.ADD_REP_TO_LABEL = False
-        self.ARI_LABELS_FUNC = None
 
 class newDNLSUMAP0B5DatasetConfig(newDNLSUMAP0DatasetConfig):
     def __init__(self):
@@ -1776,14 +1793,18 @@ class newDNLSUMAP0B5DatasetConfig_TDP43(newDNLSUMAP0B5DatasetConfig):
         super().__init__()
 
         self.MARKERS = ['TDP43']
-        self.ADD_REP_TO_LABEL = False
-        self.ARI_LABELS_FUNC = None
 
 class newDNLSUMAP0B6DatasetConfig(newDNLSUMAP0DatasetConfig):
     def __init__(self):
         super().__init__()
 
         self.INPUT_FOLDERS = ["batch6"]
+
+class newDNLSUMAP0B6DatasetConfig_TDP43(newDNLSUMAP0B6DatasetConfig):
+    def __init__(self):
+        super().__init__()
+
+        self.MARKERS = ['TDP43']
 
 class newDNLSUMAP0DatasetConfig_WithWT(newDNLSUMAP0DatasetConfig):
     def __init__(self):
@@ -1904,7 +1925,7 @@ class newDNLSFigureConfig_UMAP2_B6(newDNLSFigureConfig_UMAP2):
 
 
 ## Effect size
-class dNLSNewEffectsFigureConfig(FigureConfig):
+class dNLSEffectsFigureConfig(FigureConfig):
     def __init__(self):
         super().__init__()
         self.INPUT_FOLDERS = [f"batch{i}" for i in range(1,7)]
@@ -1915,8 +1936,12 @@ class dNLSNewEffectsFigureConfig(FigureConfig):
 
         self.CELL_LINES = ['dNLS']
 
+class dNLSEffectsFigureConfig_woB3(dNLSEffectsFigureConfig):
+    def __init__(self):
+        super().__init__()
+        self.INPUT_FOLDERS = [f"batch{i}" for i in [1,2,4,5,6]]
 
-class dNLSNewEffectsFigureConfig_Multiplexed_WoB3(dNLSNewEffectsFigureConfig):
+class dNLSEffectsFigureConfig_Multiplexed_WoB3(dNLSEffectsFigureConfig):
     def __init__(self):
         super().__init__()
         self.INPUT_FOLDERS = [f"batch{i}" for i in [1,2,4,5,6]]
@@ -1994,6 +2019,28 @@ class NIH_UMAP0_Stress_DatasetConfig_B2(NIH_UMAP0_Stress_DatasetConfig):
         self.INPUT_FOLDERS = ["batch2"]
 
 class NIH_UMAP0_Stress_DatasetConfig_B3(NIH_UMAP0_Stress_DatasetConfig):
+    def __init__(self):
+        super().__init__()
+        self.INPUT_FOLDERS = ["batch3"]
+
+## Only positive controls
+class NIH_UMAP0_Stress_DatasetConfig_PositiveControls(NIH_UMAP0_Stress_DatasetConfig):
+    def __init__(self):
+        super().__init__()
+
+        self.MARKERS = ['G3BP1', 'FMRP', 'PURA']
+
+class NIH_UMAP0_Stress_DatasetConfig_PositiveControls_B1(NIH_UMAP0_Stress_DatasetConfig_PositiveControls):
+    def __init__(self):
+        super().__init__()
+        self.INPUT_FOLDERS = ["batch1"]
+
+class NIH_UMAP0_Stress_DatasetConfig_PositiveControls_B2(NIH_UMAP0_Stress_DatasetConfig_PositiveControls):
+    def __init__(self):
+        super().__init__()
+        self.INPUT_FOLDERS = ["batch2"]
+
+class NIH_UMAP0_Stress_DatasetConfig_PositiveControls_B3(NIH_UMAP0_Stress_DatasetConfig_PositiveControls):
     def __init__(self):
         super().__init__()
         self.INPUT_FOLDERS = ["batch3"]

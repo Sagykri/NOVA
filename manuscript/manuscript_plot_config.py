@@ -9,13 +9,7 @@ class UMAP1PlotConfig(PlotConfig):
     def __init__(self):
         super().__init__()
         
-        self.ORDERED_MARKER_NAMES = ["DAPI", 'FUS','PEX14','ANXA11','NONO',
-                                     'GM130','TDP43','Calreticulin','Phalloidin',
-                                     'TOMM20','mitotracker', 'CLTC','PURA',
-                                    'SCNA','SNCA', 'KIF5A','SQSTM1',
-                                    'CD41','G3BP1', 'FMRP', 'NCL', 
-                                    'LAMP1', 'PML', 'DCP1A','PSD95', 
-                                      'NEMO']
+        self.ORDERED_MARKER_NAMES = None
     
         # Set the size of the dots
         self.SIZE = 1

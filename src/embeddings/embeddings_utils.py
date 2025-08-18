@@ -151,8 +151,7 @@ def generate_multiplexed_embeddings(model_output_folder:str,
             logging.info(f"[generate_multiplexed_embeddings] loaded {len(curr_labels)} single-marker embeddings")
 
             # create multiple-embedding of current batch
-            output_folder_path = os.path.join(model_output_folder, "embeddings", experiment_type, 'multiplexed', batch)
-            analyzer_multiplex_markers = AnalyzerMultiplexMarkers(config_data, output_folder_path)
+            analyzer_multiplex_markers = AnalyzerMultiplexMarkers(config_data, model_output_folder)
             multiplexed_embeddings, multiplexed_labels, multiplexed_paths = \
                 analyzer_multiplex_markers.calculate(curr_embeddings, curr_labels, curr_paths)
             del curr_embeddings
