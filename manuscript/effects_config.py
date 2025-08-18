@@ -199,9 +199,15 @@ class NeuronsMultiplexEffectConfig_WithSNCA(NeuronsMultiplexEffectConfig):
 
         self.INPUT_FOLDERS =  [f"batch{i}" for i in [8,9]]
         
-        self.BASELINE_PERTURB['WT_Untreated'] = self.BASELINE_PERTURB['WT_Untreated'] + ['SNCA_Untreated']
-
-        self.CELL_LINES = self.CELL_LINES + ['SNCA']
+        self.BASELINE_PERTURB = {'WT_Untreated':['FUSHomozygous_Untreated',
+                                                 'FUSHeterozygous_Untreated',
+                                                 'FUSRevertant_Untreated',
+                                                 'TDP43_Untreated',
+                                                 'OPTN_Untreated',
+                                                 'TBK1_Untreated',
+                                                 'SNCA_Untreated']}
+        self.CELL_LINES = ['WT','FUSHomozygous','FUSHeterozygous','FUSRevertant',
+                           'TDP43','OPTN','TBK1', 'SNCA']
 
 class dNLSMultiplexEffectConfig(EffectConfig):
     def __init__(self):
@@ -216,13 +222,7 @@ class dNLSMultiplexEffectConfig(EffectConfig):
         self.ADD_BATCH_TO_LABEL = True
         self.ADD_REP_TO_LABEL = False
         self.MIN_REQUIRED = 40 # after testing number of multiplexed labels across batches
-        self.N_BOOT = 100 # Since the min_requires is low
-
-class dNLSMultiplexEffectConfig_NBoot1000(dNLSMultiplexEffectConfig):
-    def __init__(self):
-        super().__init__()
-
-        self.N_BOOT = 1000 # Since the min_requires is low
+        self.N_BOOT = 1000
 
 class NIHMultiplexEffectConfig(EffectConfig):
     def __init__(self):

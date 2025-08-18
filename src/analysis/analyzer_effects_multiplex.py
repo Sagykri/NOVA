@@ -151,9 +151,11 @@ class AnalyzerEffectsMultiplex(AnalyzerEffectsDistRatio):
         os.makedirs(feature_folder_path, exist_ok=True)
         
         input_folders = get_batches_from_input_folders(self.data_config.INPUT_FOLDERS)
-        cell_lines = self.data_config.CELL_LINES if self.data_config.CELL_LINES else ["all_cell_lines"]
-        conditions = self.data_config.CONDITIONS if self.data_config.CONDITIONS else ["all_conditions"]
-        title = f"{'_'.join(input_folders)}_{'_'.join(cell_lines)}_{'_'.join(conditions)}"
+        
+        baseline_pertrub_dict = self._get_baseline_perturb_dict()
+        # Flat the baseline-perturbation dictionary to get all unique cell lines and conditions
+        cell_lines_conditions = np.unique([*baseline_pertrub_dict.keys(), *np.concatenate(list(baseline_pertrub_dict.values()))]) 
+        title = f"{'_'.join(input_folders)}_{'_'.join(cell_lines_conditions)}"
         saveroot = os.path.join(feature_folder_path,f'{title}')
         
         return saveroot
