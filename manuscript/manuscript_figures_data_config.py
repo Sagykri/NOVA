@@ -1630,11 +1630,16 @@ class NeuronsEffectsFigureConfig(FigureConfig):
                                  [f'{cell_line}_Untreated' for cell_line in 
                                   ['FUSHeterozygous','FUSHomozygous','WT']]}
 
-class NeuronsEffectsFigureConfig_wo_DAPI(NeuronsEffectsFigureConfig):
+class NeuronsEffectsFigureConfig_SNCA(FigureConfig):
     def __init__(self):
         super().__init__()
-        self.MARKERS_TO_EXCLUDE = self.MARKERS_TO_EXCLUDE + ['DAPI']
-
+        self.INPUT_FOLDERS = [f"batch{i}" for i in [8,9]]
+        
+        self.EXPERIMENT_TYPE = 'neuronsDay8_new'
+        self.ADD_BATCH_TO_LABEL = True
+        self.ADD_REP_TO_LABEL = True
+        self.BASELINE_PERTURB = {'WT_Untreated': ['SNCA_Untreated'],
+                                 'FUSRevertant_Untreated': ['SNCA_Untreated']}
         
 class NeuronsMultiplexedEffectsFigureConfig(FigureConfig):
     def __init__(self):
@@ -1642,14 +1647,11 @@ class NeuronsMultiplexedEffectsFigureConfig(FigureConfig):
         self.INPUT_FOLDERS = [f"batch{i}" for i in [1,2,3,7,8,9]]
         
         self.EXPERIMENT_TYPE = 'neuronsDay8_new'
-        self.MARKERS_TO_EXCLUDE = ['CD41']
         self.ADD_BATCH_TO_LABEL = True
         self.ADD_REP_TO_LABEL = False
         self.BASELINE_PERTURB = {'WT_Untreated': 
                                  [f'{cell_line}_Untreated' for cell_line in 
                                   ['FUSHeterozygous','FUSHomozygous','FUSRevertant','OPTN','TDP43','TBK1']]}
-
-
 
 ##########
 # New dNLS
@@ -1908,17 +1910,13 @@ class dNLSNewEffectsFigureConfig(FigureConfig):
         self.INPUT_FOLDERS = [f"batch{i}" for i in range(1,7)]
         
         self.EXPERIMENT_TYPE = 'dNLS'
-        self.MARKERS_TO_EXCLUDE = self.MARKERS_TO_EXCLUDE + ['DAPI']
         self.MARKERS = list(PlotConfig().COLOR_MAPPINGS_MARKERS.keys())
         self.BASELINE_PERTURB = {'dNLS_Untreated':['dNLS_DOX']}
 
-class dNLSNewEffectsFigureConfig_with_DAPI(dNLSNewEffectsFigureConfig):
-    def __init__(self):
-        super().__init__()
+        self.CELL_LINES = ['dNLS']
 
-        self.MARKERS_TO_EXCLUDE = ['CD41']
 
-class dNLSNewEffectsFigureConfig_Multiplexed_WoB3(dNLSNewEffectsFigureConfig_with_DAPI):
+class dNLSNewEffectsFigureConfig_Multiplexed_WoB3(dNLSNewEffectsFigureConfig):
     def __init__(self):
         super().__init__()
         self.INPUT_FOLDERS = [f"batch{i}" for i in [1,2,4,5,6]]

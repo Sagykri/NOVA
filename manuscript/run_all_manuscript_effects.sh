@@ -27,8 +27,8 @@ effects_configs=./manuscript/effects_config
 # $NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_effects \
 # -a $finetunedModel_MLPHead_acrossBatches_B56789_80pct_frozen $effects_configs/NeuronsEffectWTBaselineTBK1Config -q short -j effects_WT_TBK1 -m 250000
 
-$NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_effects \
--a $finetunedModel_MLPHead_acrossBatches_B56789_80pct_frozen $effects_configs/NeuronsEffectWTBaselineSNCAConfig -q short -j effects_WT_SNCA -m 250000
+# $NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_effects \
+# -a $finetunedModel_MLPHead_acrossBatches_B56789_80pct_frozen $effects_configs/NeuronsEffectWTBaselineSNCAConfig -q short -j effects_WT_SNCA -m 250000
 
 # $NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_effects \
 # -a $finetunedModel_MLPHead_acrossBatches_B56789_80pct_frozen $effects_configs/NeuronsEffectWTBaselineStressConfig -q short -j effects_WT_Stress -m 250000
@@ -51,8 +51,8 @@ $NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_effects \
 # $NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_effects \
 # -a $finetunedModel_MLPHead_acrossBatches_B56789_80pct_frozen $effects_configs/NeuronsEffectFUSRevBaselineTBK1Config -q short -j effects_FUSRev_TBK1 -m 250000
 
-$NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_effects \
--a $finetunedModel_MLPHead_acrossBatches_B56789_80pct_frozen $effects_configs/NeuronsEffectFUSRevBaselineSNCAConfig -q short -j effects_FUSRev_SNCA -m 250000
+# $NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_effects \
+# -a $finetunedModel_MLPHead_acrossBatches_B56789_80pct_frozen $effects_configs/NeuronsEffectFUSRevBaselineSNCAConfig -q short -j effects_FUSRev_SNCA -m 250000
 
 # ### Alyssa OLD###
 # $NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_effects_alyssa \
@@ -79,8 +79,8 @@ $NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_effects \
 # -a $finetunedModel_MLPHead_acrossBatches_B56789_80pct_frozen $effects_configs/NeuronsMultiplexEffectConfig -q short -j effect_multi_d8 -m 200000
 
 
-# $NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_effects_multiplex \
-# -a $finetunedModel_MLPHead_acrossBatches_B56789_80pct_frozen $effects_configs/NeuronsMultiplexEffectConfig_WithSNCA -q short -j effect_multi_d8_withSNCA -m 200000
+$NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_effects_multiplex \
+-a $finetunedModel_MLPHead_acrossBatches_B56789_80pct_frozen $effects_configs/NeuronsMultiplexEffectConfig_WithSNCA -q short -j effect_multi_d8_withSNCA -m 200000
 
 # dNLS 
 # $NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_effects_multiplex \
