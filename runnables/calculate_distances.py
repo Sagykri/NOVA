@@ -25,10 +25,10 @@ def parse_args(argv):
         dict: Parsed values.
     """
     if len(argv) < 3:
-        raise ValueError("Usage: calculate_distances.py <model_outputs_folder> <config_path_data> [rep_effect] [multiplexed] [detailed_stats] [normalize] ([] optional)")
+        raise ValueError("Usage: calculate_distances.py <embeddings_folder> <config_path_data> [rep_effect] [multiplexed] [detailed_stats] [normalize] ([] optional)")
 
     return {
-        'model_outputs_folder' : sys.argv[1],
+        'embeddings_folder' : sys.argv[1],
         'config_path_data' : sys.argv[2],
         'ref_effect': True if "ref_effect" in sys.argv else False,
         'multiplexed': True if "multiplexed" in sys.argv else False,
