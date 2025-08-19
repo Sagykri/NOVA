@@ -660,7 +660,7 @@ def plot_replicate_boxes(df, figsize=(14,6), pad_frac=0.05):
         color = palette.get(row['rep_pair'], 'gray')
 
         # Draw box (p25 to p75)
-        box = patches.Rectangle(
+        box = Rectangle(
             (x - 0.1, row['p25']),
             0.2,
             row['p75'] - row['p25'],
