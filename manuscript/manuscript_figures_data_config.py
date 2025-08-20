@@ -1066,6 +1066,24 @@ class newNeuronsD8FigureConfig_FUSLines_UMAP0_B10(newNeuronsD8FigureConfig_FUSLi
          
         self.INPUT_FOLDERS = ['batch10']
 
+class newNeuronsD8FigureConfig_WT_vs_FUSLines_FUSMarker(FigureConfig):
+    def __init__(self):
+        super().__init__()
+        
+        """UMAP0 of WT untreated
+        """
+
+         
+        self.INPUT_FOLDERS = ['batch1']
+        
+        self.EXPERIMENT_TYPE = 'neuronsDay8_new'    
+        self.CELL_LINES = ['WT', 'FUSRevertant']
+        self.CONDITIONS = ['Untreated']
+        self.MARKERS = ['FUS']
+        
+        self.ADD_REP_TO_LABEL = False
+        self.ADD_BATCH_TO_LABEL = True
+
 # UMAP2
 class newNeuronsD8FigureConfig_UMAP2(FigureConfig):
     def __init__(self):
@@ -1653,6 +1671,18 @@ class NeuronsMultiplexedEffectsFigureConfig(FigureConfig):
                                  [f'{cell_line}_Untreated' for cell_line in 
                                   ['FUSHeterozygous','FUSHomozygous','FUSRevertant','OPTN','TDP43','TBK1']]}
 
+class NeuronsMultiplexedEffectsFigureConfig_withSNCA(FigureConfig):
+    def __init__(self):
+        super().__init__()
+        self.INPUT_FOLDERS = [f"batch{i}" for i in [8,9]]
+        
+        self.EXPERIMENT_TYPE = 'neuronsDay8_new'
+        self.ADD_BATCH_TO_LABEL = True
+        self.ADD_REP_TO_LABEL = False
+        self.BASELINE_PERTURB = {'WT_Untreated': 
+                                 [f'{cell_line}_Untreated' for cell_line in 
+                                  ['FUSHeterozygous','FUSHomozygous','FUSRevertant','OPTN','TDP43','TBK1', 'SNCA']]}
+
 ##########
 # New dNLS
 ###########
@@ -1683,10 +1713,6 @@ class newDNLSUntreatedUMAP1DatasetConfig_B2(newDNLSUntreatedUMAP1DatasetConfig):
         super().__init__()
         self.INPUT_FOLDERS = ["batch2"]
 
-class newDNLSUntreatedUMAP1DatasetConfig_B3(newDNLSUntreatedUMAP1DatasetConfig):
-    def __init__(self):
-        super().__init__()
-        self.INPUT_FOLDERS = ["batch3"]
 
 class newDNLSUntreatedUMAP1DatasetConfig_B4(newDNLSUntreatedUMAP1DatasetConfig):
     def __init__(self):
@@ -1762,12 +1788,6 @@ class newDNLSUMAP0B2DatasetConfig_TDP43(newDNLSUMAP0B2DatasetConfig):
         super().__init__()
 
         self.MARKERS = ['TDP43']
-
-class newDNLSUMAP0B3DatasetConfig(newDNLSUMAP0DatasetConfig):
-    def __init__(self):
-        super().__init__()
-
-        self.INPUT_FOLDERS = ["batch3"]
 
 class newDNLSUMAP0B4DatasetConfig(newDNLSUMAP0DatasetConfig):
     def __init__(self):
@@ -1856,21 +1876,6 @@ class newDNLSFigureConfig_UMAP2(FigureConfig):
         super().__init__()
 
          
-        self.INPUT_FOLDERS = ['batch1', 'batch2', 'batch3', 'batch4', 'batch5', 'batch6']
-        
-        self.EXPERIMENT_TYPE = 'dNLS' #'dNLS'  
-        self.CELL_LINES = ['dNLS']
-        
-        # Decide if to show ARI metric on the UMAP
-        self.SHOW_ARI = False#True
-        self.ADD_REP_TO_LABEL=False
-        self.ADD_BATCH_TO_LABEL = False
-
-class newDNLSFigureConfig_Wo_B3_UMAP2(FigureConfig):
-    def __init__(self):
-        super().__init__()
-
-         
         self.INPUT_FOLDERS = ['batch1', 'batch2', 'batch4', 'batch5', 'batch6']
         
         self.EXPERIMENT_TYPE = 'dNLS' #'dNLS'  
@@ -1895,13 +1900,6 @@ class newDNLSFigureConfig_UMAP2_B2(newDNLSFigureConfig_UMAP2):
          
         self.INPUT_FOLDERS = ['batch2']
 
-class newDNLSFigureConfig_UMAP2_B3(newDNLSFigureConfig_UMAP2):
-    def __init__(self):
-        super().__init__()
-
-         
-        self.INPUT_FOLDERS = ['batch3']
-
 class newDNLSFigureConfig_UMAP2_B4(newDNLSFigureConfig_UMAP2):
     def __init__(self):
         super().__init__()
@@ -1925,26 +1923,21 @@ class newDNLSFigureConfig_UMAP2_B6(newDNLSFigureConfig_UMAP2):
 
 
 ## Effect size
+
 class dNLSEffectsFigureConfig(FigureConfig):
     def __init__(self):
         super().__init__()
-        self.INPUT_FOLDERS = [f"batch{i}" for i in range(1,7)]
-        
+        self.INPUT_FOLDERS = [f"batch{i}" for i in [1,2,4,5,6]]
+
         self.EXPERIMENT_TYPE = 'dNLS'
         self.MARKERS = list(PlotConfig().COLOR_MAPPINGS_MARKERS.keys())
         self.BASELINE_PERTURB = {'dNLS_Untreated':['dNLS_DOX']}
 
         self.CELL_LINES = ['dNLS']
 
-class dNLSEffectsFigureConfig_woB3(dNLSEffectsFigureConfig):
+class dNLSEffectsFigureConfig_Multiplexed(dNLSEffectsFigureConfig):
     def __init__(self):
         super().__init__()
-        self.INPUT_FOLDERS = [f"batch{i}" for i in [1,2,4,5,6]]
-
-class dNLSEffectsFigureConfig_Multiplexed_WoB3(dNLSEffectsFigureConfig):
-    def __init__(self):
-        super().__init__()
-        self.INPUT_FOLDERS = [f"batch{i}" for i in [1,2,4,5,6]]
 
         self.ADD_BATCH_TO_LABEL = True
         self.ADD_REP_TO_LABEL = False

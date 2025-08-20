@@ -9,62 +9,13 @@ models_path=(
 
 embeddings_configs=./manuscript/embeddings_config
 
-# ##################
-# # pretrained_model
-# ##################
-
-# # ### OpenCell
-# $NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_embeddings -g -m 30000 -b 10 \
-# -a $pretrained_model $embeddings_configs/EmbeddingsOpenCellDatasetConfig 300 -q short-gpu -j emb_pretrain_opencell
-
-# ### U2OS
-# $NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_embeddings -g -m 20000 -b 10 \
-# -a $pretrained_model $embeddings_configs/EmbeddingsU2OSDatasetConfig -q short-gpu -j emb_pretrain_U2OS
-
-### Neurons d8
-# $NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_embeddings -g -m 20000 -b 10 \
-# -a $pretrained_model $embeddings_configs/EmbeddingsB4DatasetConfig -q short-gpu -j emb_b4_pretrained
-
-# $NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_embeddings -g -m 20000 -b 10 \
-# -a $pretrained_model $embeddings_configs/EmbeddingsB5DatasetConfig -q short-gpu -j emb_b5_pretrained
-
-# $NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_embeddings -g -m 20000 -b 10 \
-# -a $pretrained_model $embeddings_configs/EmbeddingsB78PretrainDatasetConfig -q short-gpu -j emb_pretrain_b78
-
-# $NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_embeddings -g -m 20000 -b 10 \
-# -a $pretrained_model $embeddings_configs/EmbeddingsB6DatasetConfig -q short-gpu -j emb_pretrain_b6
-
-# $NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_embeddings -g -m 20000 -b 10 \
-# -a $pretrained_model $embeddings_configs/EmbeddingsB9DatasetConfig -q short-gpu -j emb_pretrain_b9
-
-# $NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_embeddings -g -m 20000 -b 10 \
-# -a $pretrained_model $embeddings_configs/EmbeddingsdNLSB3DatasetConfig -q short-gpu -j emb_pretrain_dnls3
-
-# $NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_embeddings -g -m 20000 -b 10 \
-# -a $pretrained_model $embeddings_configs/EmbeddingsdNLSB4DatasetConfig -q short-gpu -j emb_pretrain_dnls4
-
-# $NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_embeddings -g -m 20000 -b 10 \
-# -a $pretrained_model $embeddings_configs/EmbeddingsdNLSB5DatasetConfig -q short-gpu -j emb_pretrain_dnls5
-
-# $NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_embeddings -g -m 20000 -b 10 \
-# -a $pretrained_model $embeddings_configs/EmbeddingsAlyssaCoyneDatasetConfig -q short-gpu -j emb_pretrain_alyssa
-
-##################
-# finetuned_model
-##################
-
-# ### OpenCell
-# $NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_embeddings -g -m 30000 -b 10 \
-# -a $finetuned_model $embeddings_configs/EmbeddingsOpenCellFineTuneDatasetConfig 300 -q short-gpu -j emb_opencell
-
-### U2OS
-# $NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_embeddings -g -m 20000 -b 10 \
-# -a $finetuned_model $embeddings_configs/EmbeddingsU2OSDatasetConfig -q short-gpu -j emb_U2OS
-
-### Neurons d8
 
 for model_path in "${models_path[@]}"; do
     model_name=$(basename "$model_path")
+
+    # OpenCell
+    $NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_embeddings -g -m 40000 -b 10 \
+    -a $model_path $embeddings_configs/EmbeddingsOpenCellDatasetConfig -q short-gpu -j emb_opencell
 
     # neurons d8 - NEW 
     # $NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_embeddings -g -m 40000 -b 10 \
@@ -105,14 +56,14 @@ for model_path in "${models_path[@]}"; do
     # $NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_multiplexed_embeddings -g -m 20000 -b 10 \
     # -a $model_path $embeddings_configs/EmbeddingsDay8B8DatasetConfig_Multiplexed -q short-gpu -j emb_mul_d8New_B8
 
-    $NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_multiplexed_embeddings -g -m 20000 -b 10 \
-    -a $model_path $embeddings_configs/EmbeddingsDay8B8DatasetConfig_withSNCA_Multiplexed -q short-gpu -j emb_mul_d8New_withSNCA_B8
+    # $NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_multiplexed_embeddings -g -m 20000 -b 10 \
+    # -a $model_path $embeddings_configs/EmbeddingsDay8B8DatasetConfig_withSNCA_Multiplexed -q short-gpu -j emb_mul_d8New_withSNCA_B8
 
     # $NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_multiplexed_embeddings -g -m 20000 -b 10 \
     # -a $model_path $embeddings_configs/EmbeddingsDay8B9DatasetConfig_Multiplexed -q short-gpu -j emb_mul_d8New_B9
 
-    $NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_multiplexed_embeddings -g -m 20000 -b 10 \
-    -a $model_path $embeddings_configs/EmbeddingsDay8B9DatasetConfig_withSNCA_Multiplexed -q short-gpu -j emb_mul_d8New_withSNCA_B9
+    # $NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_multiplexed_embeddings -g -m 20000 -b 10 \
+    # -a $model_path $embeddings_configs/EmbeddingsDay8B9DatasetConfig_withSNCA_Multiplexed -q short-gpu -j emb_mul_d8New_withSNCA_B9
 
     # # ## Neurons d18
     # $NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_embeddings -g -m 20000 -b 10 \
@@ -141,9 +92,6 @@ for model_path in "${models_path[@]}"; do
 
     # $NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_embeddings -g -m 20000 -b 10 \
     # -a $model_path $embeddings_configs/EmbeddingsNewdNLSB2DatasetConfig -q short-gpu -j emb_new_dnls2
-
-    # $NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_embeddings -g -m 20000 -b 10 \
-    # -a $model_path $embeddings_configs/EmbeddingsNewdNLSB3DatasetConfig -q short-gpu -j emb_new_dnls3
 
     # $NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_embeddings -g -m 50000 -b 10 \
     # -a $model_path $embeddings_configs/EmbeddingsNewdNLSB4DatasetConfig -q short-gpu -j emb_new_dnls4
@@ -209,8 +157,6 @@ done
 # $NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_embeddings -g -m 20000 -b 10 \
 # -a $finetuned_model $embeddings_configs/EmbeddingsNewdNLSB2DatasetConfig -q short-gpu -j emb_new_dnls2
 
-# $NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_embeddings -g -m 20000 -b 10 \
-# -a $finetuned_model $embeddings_configs/EmbeddingsNewdNLSB3DatasetConfig -q short-gpu -j emb_new_dnls3
 
 # $NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_embeddings -g -m 20000 -b 10 \
 # -a $finetuned_model $embeddings_configs/EmbeddingsNewdNLSB4DatasetConfig -q short-gpu -j emb_new_dnls4
