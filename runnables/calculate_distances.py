@@ -1,7 +1,6 @@
 import logging
 import os
 import sys
-from embeddings.embeddings_config import EmbeddingsConfig
 import numpy as np
 import time
 import pandas as pd
@@ -10,6 +9,7 @@ import pandas as pd
 sys.path.insert(1, os.getenv("NOVA_HOME"))
 print(f"NOVA_HOME: {os.getenv('NOVA_HOME')}")
 
+from src.embeddings.embeddings_config import EmbeddingsConfig
 from src.common.utils import load_config_file
 from src.embeddings.embeddings_utils import load_embeddings
 from src.analysis.analyzer_distances import AnalyzerDistances
@@ -25,12 +25,12 @@ def parse_args(argv):
         dict: Parsed values.
     """
     if len(argv) < 3:
-        raise ValueError("Usage: calculate_distances.py <model_outputs_folder> <config_path_data> [rep_effect] [multiplexed] [detailed_stats] ([] optional)")
+        raise ValueError("Usage: calculate_distances.py <embeddings_folder> <config_path_data> [rep_effect] [multiplexed] [detailed_stats] ([] optional)")
 
     return {
-        'model_outputs_folder' : sys.argv[1],
+        'embeddings_folder' : sys.argv[1],
         'config_path_data' : sys.argv[2],
-        'ref_effect': True if "ref_effect" in sys.argv else False,
+        'rep_effect': True if "rep_effect" in sys.argv else False,
         'multiplexed': True if "multiplexed" in sys.argv else False,
         'detailed_stats': True if "detailed" in sys.argv else False,
     }
@@ -46,10 +46,13 @@ def generate_distances(
     # Load config and embeddings
     config_data:EmbeddingsConfig = load_config_file(config_path_data, 'data')
     config_data.OUTPUTS_FOLDER = model_outputs_folder
+    if rep_effect:
+        detailed_stats= True  # If rep_effect is enabled, detailed stats are also enabled
+        config_data.ADD_REP_TO_LABEL = True # Force adding rep to label for distance calculation
     embeddings, labels, _ = load_embeddings(model_outputs_folder, config_data)
 
     logging.info(f"[Calculate distances]")
-    d = AnalyzerDistances(config_data, output_folder_path, rep_effect, multiplexed, detailed_stats, metric)
+    d = AnalyzerDistances(config_data, model_outputs_folder, rep_effect, multiplexed, detailed_stats, metric)
     d.calculate(embeddings, labels)
     d.save()
     
@@ -64,7 +67,7 @@ if __name__ == "__main__":
 
         config_path_data = args['config_path_data']
         model_outputs_folder = args['embeddings_folder']
-        rep_effect = args['ref_effect'] # optional flag: True if "ref_effect" in sys.argv else False
+        rep_effect = args['rep_effect'] # optional flag: True if "rep_effect" in sys.argv else False
         multiplexed = args['multiplexed'] # optional flag: True if "multiplexed" in sys.argv else False
         detailed_stats = args['detailed_stats'] # optional flag: True if "detailed" in sys.argv else False
         metric = "euclidean"  # Default metric
