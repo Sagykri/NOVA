@@ -116,6 +116,9 @@ class AnalyzerDistances(Analyzer):
 
         df_stats = pd.concat(all_dfs, ignore_index=True)
 
+        df_stats = self.__add_rep_and_label_to_df(df_stats)
+        df_stats['rep_effect'] = df_stats.apply(lambda row: self.__detect_suspected_rep_effect(row, df_stats), axis=1)
+
         self.features = df_stats
         return self.features 
 
@@ -145,3 +148,80 @@ class AnalyzerDistances(Analyzer):
         path = os.path.join(output_folder_path, filename)
 
         return path
+    
+    def __add_rep_and_label_to_df(self, df:pd.DataFrame)->pd.DataFrame:
+        # extract the numeric replicate from each label column
+        df['rep1'] = df['label1'].str.extract(r'_rep(\d+)$').astype(int)
+        df['rep2'] = df['label2'].str.extract(r'_rep(\d+)$').astype(int)
+        # strip the “_repN” suffix to get the common label
+        df['label'] = df['label1'].str.replace(r'_rep\d+$', '', regex=True)
+        cols = ['rep1', 'rep2', 'label'] + [c for c in df.columns if c not in ('rep1','rep2','label')]
+        return df[cols]
+    
+    def __detect_suspected_rep_effect(self, row, df, dist='p50', delta_frac=0.1):
+        """
+        Detect replicate effects by comparing inter-replicate distances to intra-replicate baselines.
+        
+        Parameters:
+        -----------
+        row : pd.Series
+            Row containing 'label', 'rep1', 'rep2' and distance percentiles
+        df : pd.DataFrame
+            Full dataframe with all replicate comparisons
+        dist : str
+            Distance column to use (default 'p50')
+        delta_frac : float
+            Fraction of IQR to add as threshold (default 0.1)
+        
+        Returns:
+        --------
+        bool, str, or None
+            True/False if rep effect detected/not detected
+            'missing_rep' if one replicate is missing
+            'imbalanced' if inter group has 100x more data than the intra groups
+            None for same-replicate comparisons
+        """
+        
+        # Skip same-replicate comparisons
+        if row.rep1 == row.rep2:
+            return None
+        
+        # Get intra-replicate distances for rep1 (rep1 vs rep1)
+        intra1 = df[
+            (df.label == row.label) &
+            (df.rep1 == row.rep1) &
+            (df.rep2 == row.rep1)
+        ]
+        
+        # Get intra-replicate distances for rep2 (rep2 vs rep2)  
+        intra2 = df[
+            (df.label == row.label) &
+            (df.rep1 == row.rep2) &
+            (df.rep2 == row.rep2)
+        ]
+        
+        # Check if either replicate is missing
+        if intra1.empty or intra2.empty:
+            return 'missing_rep'
+        
+        # Validate exactly one row per replicate before taking .iloc[0]
+        if len(intra1) != 1 or len(intra2) != 1:
+            return 'validation_error'
+        
+        intra1 = intra1.iloc[0]
+        intra2 = intra2.iloc[0]
+        
+        # Get the inter-replicate distance value
+        inter_val = row[dist]
+        
+        # Check for imbalanced groups (100x difference)
+        if intra1['total_pairs'] >= 100 * row['total_pairs'] or intra2['total_pairs'] >= 100 * row['total_pairs']:
+            return 'imbalanced'
+        
+        # Adaptive deltas based on IQR
+        delta1 = delta_frac * (intra1['p75'] - intra1['p25'])
+        delta2 = delta_frac * (intra2['p75'] - intra2['p25'])
+        intra1_thresh = intra1[dist] + delta1
+        intra2_thresh = intra2[dist] + delta2
+        
+        return inter_val > max(intra1_thresh, intra2_thresh)

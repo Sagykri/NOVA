@@ -30,7 +30,7 @@ def parse_args(argv):
     return {
         'embeddings_folder' : sys.argv[1],
         'config_path_data' : sys.argv[2],
-        'ref_effect': True if "ref_effect" in sys.argv else False,
+        'rep_effect': True if "rep_effect" in sys.argv else False,
         'multiplexed': True if "multiplexed" in sys.argv else False,
         'detailed_stats': True if "detailed" in sys.argv else False,
         'normalize': True if "normalize" in sys.argv else False,
@@ -53,6 +53,9 @@ def generate_distances(
         Model outputs folder:{model_outputs_folder}, Multiplexed:{multiplexed}, Detailed stats:{detailed_stats}")
 
     logging.info(f"[Load embeddings] Loading embeddings from {model_outputs_folder}")
+    if rep_effect:
+        detailed_stats= True  # If rep_effect is enabled, detailed stats are also enabled
+        config_data.ADD_REP_TO_LABEL = True # Force adding rep to label for distance calculation
     embeddings, labels, _ = load_embeddings(model_outputs_folder, config_data)
 
     logging.info(f"[Calculate distances]")
@@ -72,7 +75,8 @@ if __name__ == "__main__":
 
         model_outputs_folder = args['model_outputs_folder']
         config_path_data = args['config_path_data']
-        rep_effect = args['ref_effect'] # optional flag: True if "ref_effect" in sys.argv else False
+        model_outputs_folder = args['embeddings_folder']
+        rep_effect = args['rep_effect'] # optional flag: True if "rep_effect" in sys.argv else False
         multiplexed = args['multiplexed'] # optional flag: True if "multiplexed" in sys.argv else False
         detailed_stats = args['detailed_stats'] # optional flag: True if "detailed" in sys.argv else False
         metric = "euclidean"  # Default metric
