@@ -89,16 +89,12 @@ for model_path in "${models_path[@]}"; do
     # -a $model_path $effects_configs/NeuronsMultiplexEffectConfig -q short -j effect_multi_d8 -m 200000
 
 
-    $NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_effects_multiplex \
-    -a $model_path $effects_configs/NeuronsMultiplexEffectConfig_WithSNCA -q short -j effect_multi_d8_withSNCA -m 200000
+    # $NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_effects_multiplex \
+    # -a $model_path $effects_configs/NeuronsMultiplexEffectConfig_WithSNCA -q short -j effect_multi_d8_withSNCA -m 200000
 
     # dNLS 
     # $NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_effects_multiplex \
     # -a $model_path $effects_configs/dNLSMultiplexEffectConfig -q short -j effect_multi_dNLS -m 200000
-
-
-    # $NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_effects_multiplex \
-    # -a $model_path $effects_configs/dNLSMultiplexEffectConfig_NBoot1000 -q short -j effect_multi_dNLS -m 200000
 
     # # NIH
     # $NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_effects_multiplex \

@@ -4,6 +4,20 @@ sys.path.insert(1, os.getenv("NOVA_HOME"))
 
 from src.embeddings.embeddings_config import EmbeddingsConfig
 
+# OpenCell #
+class EmbeddingsOpenCellDatasetConfig(EmbeddingsConfig):
+    def __init__(self):
+        super().__init__()
+
+        self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "ManuscriptFinalData_80pct", f) for f in 
+                        ["OpenCell"]]
+        self.SPLIT_DATA = True
+        self.ADD_BATCH_TO_LABEL = True
+        self.ADD_REP_TO_LABEL = True
+        self.CELL_LINES = ['WT']
+        self.CONDITIONS = ['Untreated']
+        self.EXPERIMENT_TYPE = 'Opencell'
+
 ### Neurons Day 8 NEW ###
 class EmbeddingsDay8NewDatasetConfig(EmbeddingsConfig):
     def __init__(self):
@@ -175,13 +189,6 @@ class EmbeddingsNewdNLSB2DatasetConfig(EmbeddingsNewdNLSDatasetConfig):
         self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "ManuscriptFinalData_80pct", "dNLS", f) for f in 
                         ["batch2"]]
 
-class EmbeddingsNewdNLSB3DatasetConfig(EmbeddingsNewdNLSDatasetConfig):
-    def __init__(self):
-        super().__init__()
-
-        self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "ManuscriptFinalData_80pct", "dNLS", f) for f in 
-                        ["batch3"]]
-
 class EmbeddingsNewdNLSB4DatasetConfig(EmbeddingsNewdNLSDatasetConfig):
     def __init__(self):
         super().__init__()
@@ -224,13 +231,6 @@ class EmbeddingsNewdNLSB2DatasetConfig_Multiplexed(EmbeddingsNewdNLSDatasetConfi
 
         self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "ManuscriptFinalData_80pct", "dNLS", f) for f in 
                         ["batch2"]]
-
-class EmbeddingsNewdNLSB3DatasetConfig_Multiplexed(EmbeddingsNewdNLSDatasetConfig_Multiplexed):
-    def __init__(self):
-        super().__init__()
-
-        self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "ManuscriptFinalData_80pct", "dNLS", f) for f in 
-                        ["batch3"]]
 
 class EmbeddingsNewdNLSB4DatasetConfig_Multiplexed(EmbeddingsNewdNLSDatasetConfig_Multiplexed):
     def __init__(self):

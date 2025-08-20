@@ -183,10 +183,10 @@ def edit_label_by_config(label:str, dataset_config:DatasetConfig, multiplex:bool
     label_parts = label.split('_')
     label_parts_new = [] if multiplex else [label_parts[0]]
 
-    cell_line_idx = get_cell_line_idx(dataset_config, multiplex)
-    condition_idx = get_condition_idx(dataset_config, multiplex)
-    batch_idx = get_batch_idx(dataset_config, multiplex)
-    rep_idx = get_rep_idx(dataset_config, multiplex)
+    cell_line_idx = CELL_LINE_IDX_MULTIPLEX if multiplex else CELL_LINE_IDX
+    condition_idx = CONDITION_IDX_MULTIPLEX if multiplex else CONDITION_IDX
+    batch_idx = BATCH_IDX_MULTIPLEX if multiplex else BATCH_IDX
+    rep_idx = REP_IDX_MULTIPLEX if multiplex else REP_IDX
 
     if dataset_config.ADD_LINE_TO_LABEL:
         cell_line = label_parts[cell_line_idx]
