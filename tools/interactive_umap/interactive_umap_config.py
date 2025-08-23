@@ -37,7 +37,7 @@ raw_images_path = f"/input/images/raw"
 figures_path = f"/outputs/vit_models/finetuned_model/figures"
 preprocessing_path = f"/outputs/preprocessing"
 
-new_finetuned_figures_path = f"/home/projects/hornsteinlab/Collaboration/MOmaps_Sagy/NOVA/outputs/vit_models_local/finetunedModel_MLPHead_acrossBatches_B56789_80pct_frozen/figures"
+new_finetuned_figures_path = f"/home/projects/hornsteinlab/Collaboration/NOVA/outputs/vit_models/finetunedModel_MLPHead_acrossBatches_B56789_80pct_frozen/figures"
 
 ## Day 8 Neurons ##
 config_d8 = {
@@ -54,7 +54,7 @@ config_d8 = {
 ## Alyssa  ##
 config_alyssa = {
     'paths':{
-    'umaps_folder' : f'{momaps_home}{figures_path}/AlyssaCoyne_7tiles_iu/UMAPs/',
+    'umaps_folder' : f'{new_finetuned_figures_path}/AlyssaCoyne/UMAPs/',
     'csv_path' : None,
     'images_dir' : [f'{nova_home}{raw_images_path}/AlyssaCoyne/MOmaps_iPSC_patients_TDP43_PB_CoyneLab/',]
     },
@@ -87,7 +87,7 @@ config_d18 = {
 ## iAstrocytes_Tile146 ##
 config_iAstrocytes = {
     'paths':{
-    'umaps_folder' : "/home/projects/hornsteinlab/Collaboration/MOmaps_Sagy/NOVA/outputs/vit_models_local/finetunedModel_MLPHead_acrossBatches_B56789_80pct_frozen/figures/iAstrocytes_Tile146/UMAPs/",
+    'umaps_folder' : f"{new_finetuned_figures_path}/iAstrocytes_Tile146/UMAPs/",
     'csv_path' : f'{nova_home}{preprocessing_path}/iAstrocytes/brenner/raw_metrics110625.csv',
     'images_dir' : [f'{nova_home}{raw_images_path}/John/iAstrocytes/ordered/',]
     },
@@ -98,7 +98,7 @@ config_iAstrocytes = {
 ## Alyssa_new ##
 config_Alyssa_new = {
     'paths':{
-    'umaps_folder' : "/home/projects/hornsteinlab/Collaboration/MOmaps_Sagy/NOVA/outputs/vit_models_local/finetunedModel_MLPHead_acrossBatches_B56789_80pct_frozen/figures/AlyssaCoyne_new/UMAPs/",
+    'umaps_folder' : f"{new_finetuned_figures_path}/AlyssaCoyne_new/UMAPs/",
     'csv_path' : '',
     'images_dir' : [f'{nova_home}{raw_images_path}/AlyssaCoyne_new_sorted/',]
     },
@@ -160,6 +160,23 @@ config_d8_new = {
     },
     'layouts': new_data_layout,
     'name': 'neuronsDay8_new'
+}
+
+config_NIH = {
+    'paths':{
+    'umaps_folder' : f'{new_finetuned_figures_path}/NIH/UMAPs',
+    'csv_path' : f'{nova_home}{preprocessing_path}/NIH/brenner/raw_metrics020125_all.csv',
+    'images_dir' : [f'{nova_home}{raw_images_path}/NIH/indi-image-pilot-20241128/batch1/',
+                    f'{nova_home}{raw_images_path}/NIH/indi-image-pilot-20241128/batch2/',
+                    f'{nova_home}{raw_images_path}/NIH/indi-image-pilot-20241128/batch3/',
+                    f'{nova_home}{raw_images_path}/NIH/indi-image-pilot-20241128/batch4/',
+                    f'{nova_home}{raw_images_path}/NIH/indi-image-pilot-20241128/batch5/',
+                    f'{nova_home}{raw_images_path}/NIH/indi-image-pilot-20241128/batch6/',
+                    f'{nova_home}{raw_images_path}/NIH/indi-image-pilot-20241128/batch7/',
+                    f'{nova_home}{raw_images_path}/NIH/indi-image-pilot-20241128/batch8/',]
+    },
+    'layouts': None,
+    'name': 'NIH'
 }
 
 ############

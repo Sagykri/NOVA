@@ -18,6 +18,7 @@ Welcome to the official repository for **NOVA**, a deep learning framework desig
     - [Preprocess the data](#preprocess-the-data)
     - [Train a model](#train-a-model)
     - [Generate Embeddings](#generate-embeddings)
+    - [Generate Multiplex Embeddings](#generate-multiplex-embeddings)
     - [Generate UMAPs](#generate-umaps)
     - [Generate distances plots](#generate-distances-plots)
       - [Calculate distances](#calculate-distances)
@@ -162,12 +163,13 @@ For generating distances plots you should first calculate the distances.
 #### Calculate distances
 For calculating distance you should run the following:
 ```bash
-python $NOVA_HOME/runnables/calculate_distances.py *ABSOLUTE_PATH_TO_MODEL_FOLDER* *RELATIVE_PATH_TO_FIGURES_CONFIG_CLASS* [rep_effect] [multiplexed] [detailed]
+python $NOVA_HOME/runnables/calculate_distances.py *ABSOLUTE_PATH_TO_MODEL_FOLDER* *RELATIVE_PATH_TO_FIGURES_CONFIG_CLASS* [rep_effect] [multiplexed] [detailed] [normalize]
 ```
 Optional Flags:
 * rep_effect - Calculate distances between reps
 * detailed – Adds extra statistics to the distance summary (Increases runtime).
 * multiplexed – Use this if the data is multiplexed (UMAP2).
+* normalize - Normalize the embeddings with l2 norm
 Order doesn't matter.
 If you want to leave both flags as False, simply omit them from the command.
 For example:
