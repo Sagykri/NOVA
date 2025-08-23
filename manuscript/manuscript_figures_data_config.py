@@ -6,6 +6,21 @@ from src.figures.figures_config import FigureConfig
 from manuscript.plot_config import PlotConfig
 from src.datasets.label_utils import MapLabelsFunction
 
+## Opencell ##
+class OpencellFigureConfig_UMAP1(FigureConfig):
+    def __init__(self):
+        super().__init__()
+
+        self.INPUT_FOLDERS = ['batch1']
+        
+        self.EXPERIMENT_TYPE = 'Opencell'    
+        self.CELL_LINES = ['WT']
+        self.CONDITIONS = ['Untreated']
+        
+        # Decide if to show ARI metric on the UMAP
+        self.SHOW_ARI = False #True
+        self.ADD_REP_TO_LABEL = False
+        self.ADD_BATCH_TO_LABEL = False
 
 ################
 ## New Alyssa
@@ -1074,15 +1089,136 @@ class newNeuronsD8FigureConfig_WT_vs_FUSLines_FUSMarker(FigureConfig):
         """
 
          
-        self.INPUT_FOLDERS = ['batch1']
+        self.INPUT_FOLDERS = None
         
         self.EXPERIMENT_TYPE = 'neuronsDay8_new'    
-        self.CELL_LINES = ['WT', 'FUSRevertant']
+        self.CELL_LINES = ['WT', 'FUSRevertant', 'FUSHeterozygous', 'FUSHomozygous']
         self.CONDITIONS = ['Untreated']
         self.MARKERS = ['FUS']
         
         self.ADD_REP_TO_LABEL = False
         self.ADD_BATCH_TO_LABEL = True
+
+class newNeuronsD8FigureConfig_WT_vs_FUSLines_FUSMarker_RepEffect(FigureConfig):
+    def __init__(self):
+        super().__init__()
+        
+        """UMAP0 of WT untreated
+        """
+        self.ADD_REP_TO_LABEL = True
+
+class newNeuronsD8FigureConfig_WT_vs_FUSLines_FUSMarker_B1(newNeuronsD8FigureConfig_WT_vs_FUSLines_FUSMarker):
+    def __init__(self):
+        super().__init__()
+        
+        """UMAP0 of WT untreated
+        """
+
+         
+        self.INPUT_FOLDERS = ['batch1']
+
+class newNeuronsD8FigureConfig_WT_vs_FUSLines_FUSMarker_RepEffect_B1(newNeuronsD8FigureConfig_WT_vs_FUSLines_FUSMarker_B1):
+    def __init__(self):
+        super().__init__()
+        
+        """UMAP0 of WT untreated
+        """
+        self.ADD_REP_TO_LABEL = True
+
+class newNeuronsD8FigureConfig_WT_vs_FUSLines_FUSMarker_B2(newNeuronsD8FigureConfig_WT_vs_FUSLines_FUSMarker):
+    def __init__(self):
+        super().__init__()
+        
+        """UMAP0 of WT untreated
+        """
+
+         
+        self.INPUT_FOLDERS = ['batch2']
+
+class newNeuronsD8FigureConfig_WT_vs_FUSLines_FUSMarker_RepEffect_B2(newNeuronsD8FigureConfig_WT_vs_FUSLines_FUSMarker_B2):
+    def __init__(self):
+        super().__init__()
+        
+        """UMAP0 of WT untreated
+        """
+        self.ADD_REP_TO_LABEL = True
+
+class newNeuronsD8FigureConfig_WT_vs_FUSLines_FUSMarker_B3(newNeuronsD8FigureConfig_WT_vs_FUSLines_FUSMarker):
+    def __init__(self):
+        super().__init__()
+        
+        """UMAP0 of WT untreated
+        """
+
+         
+        self.INPUT_FOLDERS = ['batch3']
+
+class newNeuronsD8FigureConfig_WT_vs_FUSLines_FUSMarker_RepEffect_B3(newNeuronsD8FigureConfig_WT_vs_FUSLines_FUSMarker_B3):
+    def __init__(self):
+        super().__init__()
+        
+        """UMAP0 of WT untreated
+        """
+        self.ADD_REP_TO_LABEL = True
+
+
+class newNeuronsD8FigureConfig_WT_vs_FUSLines_FUSMarker_B7(newNeuronsD8FigureConfig_WT_vs_FUSLines_FUSMarker):
+    def __init__(self):
+        super().__init__()
+        
+        """UMAP0 of WT untreated
+        """
+
+         
+        self.INPUT_FOLDERS = ['batch7']
+
+class newNeuronsD8FigureConfig_WT_vs_FUSLines_FUSMarker_RepEffect_B7(newNeuronsD8FigureConfig_WT_vs_FUSLines_FUSMarker_B7):
+    def __init__(self):
+        super().__init__()
+        
+        """UMAP0 of WT untreated
+        """
+        self.ADD_REP_TO_LABEL = True
+
+
+class newNeuronsD8FigureConfig_WT_vs_FUSLines_FUSMarker_B8(newNeuronsD8FigureConfig_WT_vs_FUSLines_FUSMarker):
+    def __init__(self):
+        super().__init__()
+        
+        """UMAP0 of WT untreated
+        """
+
+         
+        self.INPUT_FOLDERS = ['batch8']
+
+class newNeuronsD8FigureConfig_WT_vs_FUSLines_FUSMarker_RepEffect_B8(newNeuronsD8FigureConfig_WT_vs_FUSLines_FUSMarker_B8):
+    def __init__(self):
+        super().__init__()
+        
+        """UMAP0 of WT untreated
+        """
+        self.ADD_REP_TO_LABEL = True
+
+
+class newNeuronsD8FigureConfig_WT_vs_FUSLines_FUSMarker_B9(newNeuronsD8FigureConfig_WT_vs_FUSLines_FUSMarker):
+    def __init__(self):
+        super().__init__()
+        
+        """UMAP0 of WT untreated
+        """
+
+         
+        self.INPUT_FOLDERS = ['batch9']
+
+class newNeuronsD8FigureConfig_WT_vs_FUSLines_FUSMarker_RepEffect_B9(newNeuronsD8FigureConfig_WT_vs_FUSLines_FUSMarker_B9):
+    def __init__(self):
+        super().__init__()
+        
+        """UMAP0 of WT untreated
+        """
+        self.ADD_REP_TO_LABEL = True
+
+
 
 # UMAP2
 class newNeuronsD8FigureConfig_UMAP2(FigureConfig):

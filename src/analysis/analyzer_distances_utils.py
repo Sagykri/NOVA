@@ -3,6 +3,7 @@ import numpy as np
 import pandas as pd
 import torch
 from scipy.stats import spearmanr, pearsonr
+import torch.nn.functional as F
 
 def compute_block_distances(X1: torch.Tensor,
                             X2: torch.Tensor,
@@ -88,7 +89,8 @@ def compute_label_pair_distances_stats(embeddings: np.ndarray,
                                        labels: np.ndarray,
                                        metric: str = 'euclidean',
                                        full_stats: bool = False,
-                                       percentile_perc: list = [5, 10, 25, 50, 75, 90, 95]) -> pd.DataFrame:
+                                       percentile_perc: list = [5, 10, 25, 50, 75, 90, 95],
+                                       normalize_emb:bool=False) -> pd.DataFrame:
     """
     Compute distance statistics for every pair of labels.
     If full_stats=False, only median (p50) is computed for faster runtime.
@@ -98,13 +100,17 @@ def compute_label_pair_distances_stats(embeddings: np.ndarray,
         dist_time_s, stats_time_s, p50 (and other percentiles if requested).
     """
     # Validate metric
-    if metric not in ('euclidean', 'cosine'):
+    if metric not in ('euclidean'):
         print(f"Metric '{metric}' not recognized; using default 'euclidean'")
         metric = 'euclidean'
 
     # Select compute device
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     emb = torch.from_numpy(embeddings).float().to(device)
+
+    if normalize_emb:
+        # Normalize embeddings if requested
+        emb = F.normalize(emb, dim=-1)
 
     unique_labels = np.unique(labels)
     results = []

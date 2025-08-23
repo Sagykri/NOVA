@@ -9,8 +9,8 @@ class EmbeddingsOpenCellDatasetConfig(EmbeddingsConfig):
     def __init__(self):
         super().__init__()
 
-        self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "ManuscriptFinalData_80pct", f) for f in 
-                        ["OpenCell"]]
+        self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "ManuscriptFinalData_80pct", "OpenCell", f) for f in 
+                        ["batch1"]]
         self.SPLIT_DATA = True
         self.ADD_BATCH_TO_LABEL = True
         self.ADD_REP_TO_LABEL = True
@@ -70,6 +70,49 @@ class EmbeddingsDay8B9DatasetConfig(EmbeddingsDay8NewDatasetConfig):
 
         self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "ManuscriptFinalData_80pct", "neuronsDay8_new", f) for f in 
                         ["batch9"]]
+
+## Only FUS Lines FUS Marker ##
+class EmbeddingsDay8B1DatasetConfig_FUS(EmbeddingsDay8B1DatasetConfig):
+    def __init__(self):
+        super().__init__()
+
+        self.MARKERS = ['FUS']
+        self.CELL_LINES = ['WT', 'FUSHomozygous', 'FUSHeterozygous', 'FUSRevertant']
+
+class EmbeddingsDay8B2DatasetConfig_FUS(EmbeddingsDay8B2DatasetConfig):
+    def __init__(self):
+        super().__init__()
+
+        self.MARKERS = ['FUS']
+        self.CELL_LINES = ['WT', 'FUSHomozygous', 'FUSHeterozygous', 'FUSRevertant']
+
+class EmbeddingsDay8B3DatasetConfig_FUS(EmbeddingsDay8B3DatasetConfig):
+    def __init__(self):
+        super().__init__()
+
+        self.MARKERS = ['FUS']
+        self.CELL_LINES = ['WT', 'FUSHomozygous', 'FUSHeterozygous', 'FUSRevertant']
+
+class EmbeddingsDay8B7DatasetConfig_FUS(EmbeddingsDay8B7DatasetConfig):
+    def __init__(self):
+        super().__init__()
+
+        self.MARKERS = ['FUS']
+        self.CELL_LINES = ['WT', 'FUSHomozygous', 'FUSHeterozygous', 'FUSRevertant']
+
+class EmbeddingsDay8B8DatasetConfig_FUS(EmbeddingsDay8B8DatasetConfig):
+    def __init__(self):
+        super().__init__()
+
+        self.MARKERS = ['FUS']
+        self.CELL_LINES = ['WT', 'FUSHomozygous', 'FUSHeterozygous', 'FUSRevertant']
+
+class EmbeddingsDay8B9DatasetConfig_FUS(EmbeddingsDay8B9DatasetConfig):
+    def __init__(self):
+        super().__init__()
+
+        self.MARKERS = ['FUS']
+        self.CELL_LINES = ['WT', 'FUSHomozygous', 'FUSHeterozygous', 'FUSRevertant']
 
 # Multiplexed 
 class EmbeddingsDay8NewDatasetConfig_Multiplexed(EmbeddingsDay8NewDatasetConfig):
@@ -136,6 +179,55 @@ class EmbeddingsDay8B9DatasetConfig_withSNCA_Multiplexed(EmbeddingsDay8B9Dataset
         super().__init__()
 
         self.CELL_LINES = self.CELL_LINES + ['SNCA']
+
+# wo FUS marker
+class EmbeddingsDay8NewDatasetConfig_Multiplexed_wo_FUSMarker(EmbeddingsDay8NewDatasetConfig_Multiplexed):
+    def __init__(self):
+        super().__init__()
+
+        self.MARKERS_TO_EXCLUDE = self.MARKERS_TO_EXCLUDE + ['FUS']
+
+class EmbeddingsDay8B1DatasetConfig_Multiplexed_wo_FUSMarker(EmbeddingsDay8NewDatasetConfig_Multiplexed_wo_FUSMarker):
+    def __init__(self):
+        super().__init__()
+
+        self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "ManuscriptFinalData_80pct", "neuronsDay8_new", f) for f in 
+                        ["batch1"]]
+        
+class EmbeddingsDay8B2DatasetConfig_Multiplexed_wo_FUSMarker(EmbeddingsDay8NewDatasetConfig_Multiplexed_wo_FUSMarker):
+    def __init__(self):
+        super().__init__()
+
+        self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "ManuscriptFinalData_80pct", "neuronsDay8_new", f) for f in 
+                        ["batch2"]]
+
+class EmbeddingsDay8B3DatasetConfig_Multiplexed_wo_FUSMarker(EmbeddingsDay8NewDatasetConfig_Multiplexed_wo_FUSMarker):
+    def __init__(self):
+        super().__init__()
+
+        self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "ManuscriptFinalData_80pct", "neuronsDay8_new", f) for f in 
+                        ["batch3"]]
+        
+class EmbeddingsDay8B7DatasetConfig_Multiplexed_wo_FUSMarker(EmbeddingsDay8NewDatasetConfig_Multiplexed_wo_FUSMarker):
+    def __init__(self):
+        super().__init__()
+
+        self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "ManuscriptFinalData_80pct", "neuronsDay8_new", f) for f in 
+                        ["batch7"]]
+
+class EmbeddingsDay8B8DatasetConfig_Multiplexed_wo_FUSMarker(EmbeddingsDay8NewDatasetConfig_Multiplexed_wo_FUSMarker):
+    def __init__(self):
+        super().__init__()
+
+        self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "ManuscriptFinalData_80pct", "neuronsDay8_new", f) for f in 
+                        ["batch8"]]
+        
+class EmbeddingsDay8B9DatasetConfig_Multiplexed_wo_FUSMarker(EmbeddingsDay8NewDatasetConfig_Multiplexed_wo_FUSMarker):
+    def __init__(self):
+        super().__init__()
+
+        self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "ManuscriptFinalData_80pct", "neuronsDay8_new", f) for f in 
+                        ["batch9"]]
 
 # AlyssaCoyne (pilot)
 class EmbeddingsAlyssaCoyneDatasetConfig(EmbeddingsConfig):

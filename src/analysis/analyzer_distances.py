@@ -23,7 +23,8 @@ class AnalyzerDistances(Analyzer):
     2. load(): to load the calculated features that were previusly saved.
     3. save(): to save the calculated features.
     """
-    def __init__(self, data_config: DatasetConfig, output_folder_path:str, rep_effect:bool=False, multiplexed:bool=False, detailed_stats:bool=False, metric:str="euclidean"):
+    def __init__(self, data_config: DatasetConfig, output_folder_path:str, rep_effect:bool=False,
+                 multiplexed:bool=False, detailed_stats:bool=False, metric:str="euclidean", normalize_embeddings:bool=False):
         """Get an instance
 
         Args:
@@ -33,6 +34,7 @@ class AnalyzerDistances(Analyzer):
             multiplexed (bool, Optional): Whether the embeddings are multiplexed. Defaults to False.
             detailed_stats (bool, Optional): Whether to calculate detailed stats. Defaults to False.
             metric (str, Optional): The metric to use for distance calculation. Default is "euclidean"
+            normalize_embeddings (bool, Optional): Whether to normalize the embeddings before calculating distances. Defaults to False.
         """
         self.__set_params(data_config, output_folder_path)
         self.features:np.ndarray = None
@@ -41,6 +43,7 @@ class AnalyzerDistances(Analyzer):
         self.multiplexed = multiplexed
         self.detailed_stats = detailed_stats
         self.metric = metric
+        self.normalize_embeddings = normalize_embeddings
 
     def __set_params(self, data_config: DatasetConfig, output_folder_path:str)->None:
         """Extracting params from the configuration
@@ -79,7 +82,8 @@ class AnalyzerDistances(Analyzer):
                 embeddings=embeddings,
                 labels=labels,
                 metric=self.metric,
-                full_stats=self.detailed_stats  
+                full_stats=self.detailed_stats,
+                normalize_emb=self.normalize_embeddings  
             )
 
             self.features = df_stats
@@ -105,7 +109,8 @@ class AnalyzerDistances(Analyzer):
                 embeddings=embeddings_i,
                 labels=labels_i,
                 metric=self.metric,
-                full_stats=self.detailed_stats
+                full_stats=self.detailed_stats,
+                normalize_emb=self.normalize_embeddings 
             )
             all_dfs.append(df_part)
 
