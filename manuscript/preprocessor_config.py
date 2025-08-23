@@ -71,6 +71,9 @@ class NeuronsD18PreprocessingConfig_80pct(PreprocessingConfig):
         self.PREPROCESSOR_CLASS_PATH = os.path.join("src", "preprocessing", "preprocessors", "preprocessor_opera", "OperaPreprocessor")
         self.MARKERS_FOCUS_BOUNDRIES_PATH =  os.path.join(os.getenv("NOVA_HOME"), 'manuscript', 'markers_focus_boundries', 'markers_focus_boundries_opera18days_reimaged.csv')
 
+        self.VARIANCE_THRESHOLD_NUCLEI:float = 0.02 # after testing on both batches, FUS lines and WT
+        self.MARKERS_TO_EXCLUDE = ['CD41']
+
 class NeuronsD18PreprocessingConfig_80pct_B1(NeuronsD18PreprocessingConfig_80pct):
     def __init__(self):
         super().__init__()
@@ -152,6 +155,8 @@ class dNLSPreprocessingConfig_80pct(PreprocessingConfig):
         self.PREPROCESSOR_CLASS_PATH = os.path.join("src", "preprocessing", "preprocessors", "preprocessor_opera", "OperaPreprocessor")
         self.MARKERS_FOCUS_BOUNDRIES_PATH =  os.path.join(os.getenv("NOVA_HOME"), 'manuscript', 'markers_focus_boundries', 'markers_focus_boundries_operadNLS.csv')
 
+        self.MIN_ALIVE_NUCLEI_AREA = 800
+
 class dNLSPreprocessingConfig_80pct_B1(dNLSPreprocessingConfig_80pct):
     def __init__(self):
         super().__init__()
@@ -213,6 +218,8 @@ class NeuronsD8PreprocessingConfig_80pct_New(PreprocessingConfig):
         self.OUTPUTS_FOLDER = os.path.join(self.OUTPUTS_FOLDER, "preprocessing", "ManuscriptFinalData_80pct", "neuronsDay8_new")
         self.PREPROCESSOR_CLASS_PATH = os.path.join("src", "preprocessing", "preprocessors", "preprocessor_opera", "OperaPreprocessor")
         self.MARKERS_FOCUS_BOUNDRIES_PATH = os.path.join(os.getenv("NOVA_HOME"), 'manuscript', 'markers_focus_boundries', 'markers_focus_boundries_newINDI_allBatches.csv')
+
+        self.MIN_ALIVE_NUCLEI_AREA = 800
 
 class NeuronsD8PreprocessingConfig_80pct_New_B1(NeuronsD8PreprocessingConfig_80pct_New):
     def __init__(self):
