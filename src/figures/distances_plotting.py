@@ -83,7 +83,9 @@ def plot_label_clustermap(df: pd.DataFrame,
                           cmap: str = "viridis",
                           figsize: tuple = (10,10),
                           highlight_thresh: float = None,
-                          save_path: str = None):
+                          save_path: str = None,
+                          fmt: str = ".2f",
+                          text_color: str = "black"):
     """
     Build a symmetric distance matrix from df[['label1','label2',metric_col]],
     cluster it, and draw a seaborn clustermap, and (if highlight_thresh is set)
@@ -109,6 +111,24 @@ def plot_label_clustermap(df: pd.DataFrame,
                         cmap=cmap,
                         figsize=figsize)
     cg.fig.suptitle(f"Clustered heatmap ({metric_col})", y=1.02)
+    
+    # Map original matrix indices to clustered positions
+    order = cg.dendrogram_row.reordered_ind
+    inv_map = {orig: new for new, orig in enumerate(order)}
+    ax = cg.ax_heatmap
+    data = dist_mat.values
+    n = data.shape[0]
+
+    # Add text labels
+    for i in range(n):
+        for j in range(n):
+            val = data[i, j]
+            if np.isfinite(val):
+                yi, xi = inv_map[i], inv_map[j]
+                ax.text(xi + 0.5, yi + 0.5, format(val, fmt),
+                        ha='center', va='center',
+                        color=text_color, fontsize=10)
+
     # Highlight low‑distance cells
     if highlight_thresh is not None:
         # Map original matrix indices to clustered heatmap positions
