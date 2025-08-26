@@ -675,6 +675,9 @@ for model_path in "${models_path[@]}"; do
     # $NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/plot_effect_sizes_alyssa_new -m 1000 \
     # -a $model_path $data_configs/AlyssaCoyneNEWEffectsFigureConfig $plot_configs/DistancesAlyssaCoynePlotConfig -q short -j new_alyssa_dist
 
+    $NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/plot_effect_sizes_alyssa_new_multiplex -m 1000 \
+    -a $model_path $data_configs/AlyssaCoyneNEWEffectsFigureConfig_Multiplexed $plot_configs/DistancesAlyssaCoynePlotConfig -q short -j new_alyssa_dist_mul
+
 
     #############
 
@@ -782,6 +785,32 @@ for model_path in "${models_path[@]}"; do
     # $model_path $data_configs/NIHEffectsFigureConfig_Multiplexed  $plot_configs/DistancesNeuronsStressPlotConfig -q short -j effect_multi_NIH_plot
 
     ###
+
+
+    ##################
+    ## neuronsDay18 ##
+    ##################
+
+    # umap0
+    # $NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_umaps_and_plot -m 20000 \
+    # -a $model_path $data_configs/NeuronsDay18FigureConfig_UMAP0 $plot_configs/UMAP0ALSPlotConfig -q short -j umap0_d18
+
+    # $NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_umaps_and_plot -m 20000 \
+    # -a $model_path $data_configs/NeuronsDay18FigureConfig_UMAP0_B1 $plot_configs/UMAP0ALSPlotConfig -q short -j umap0_d18_b1
+
+    # $NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_umaps_and_plot -m 20000 \
+    # -a $model_path $data_configs/NeuronsDay18FigureConfig_UMAP0_B2 $plot_configs/UMAP0ALSPlotConfig -q short -j umap0_d18_b2
+
+    # umap2
+
+    # $NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_umaps_and_plot -m 20000 \
+    # -a $model_path $data_configs/NeuronsDay18FigureConfig_UMAP2 $plot_configs/UMAP2ALSPlotConfig -q short -j umap2_d18
+
+    # $NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_umaps_and_plot -m 20000 \
+    # -a $model_path $data_configs/NeuronsDay18FigureConfig_UMAP2_B1 $plot_configs/UMAP2ALSPlotConfig -q short -j umap2_d18_b1
+
+    # $NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_umaps_and_plot -m 20000 \
+    # -a $model_path $data_configs/NeuronsDay18FigureConfig_UMAP2_B2 $plot_configs/UMAP2ALSPlotConfig -q short -j umap2_d18_b2
 
 done
 # # #######################

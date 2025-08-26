@@ -191,8 +191,28 @@ class AlyssaCoyneNEWEffectConfig(EffectConfig):
                                  ['C9-CS7VCZ_Untreated','SALSPositive-CS4ZCD_Untreated','SALSNegative-CS0JPP_Untreated'],
                                  'Ctrl-EDi037_Untreated':
                                  ['C9-CS8RFT_Untreated','SALSPositive-CS7TN6_Untreated','SALSNegative-CS6ZU8_Untreated']}
-        self.MARKERS_TO_EXCLUDE = []
-        self.MIN_REQUIRED = 40 #50
+        self.MIN_REQUIRED = 40 
+        self.N_BOOT = 100 
+
+class AlyssaCoyneNEWMultiplexEffectConfig(EffectConfig):
+    def __init__(self):
+        super().__init__()
+
+        self.INPUT_FOLDERS = ["batch1"]
+        
+        self.EXPERIMENT_TYPE = 'AlyssaCoyne_new'    
+        self.BASELINE_PERTURB = {'Ctrl-EDi022_Untreated':
+                                 ['C9-CS2YNL_Untreated','SALSPositive-CS2FN3_Untreated','SALSNegative-CS0ANK_Untreated'],
+                                 'Ctrl-EDi029_Untreated':
+                                 ['C9-CS7VCZ_Untreated','SALSPositive-CS4ZCD_Untreated','SALSNegative-CS0JPP_Untreated'],
+                                 'Ctrl-EDi037_Untreated':
+                                 ['C9-CS8RFT_Untreated','SALSPositive-CS7TN6_Untreated','SALSNegative-CS6ZU8_Untreated']
+                                 }
+
+        self.ADD_BATCH_TO_LABEL = True
+        self.ADD_REP_TO_LABEL = False
+
+        self.MIN_REQUIRED = 40 # To include everyone
         self.N_BOOT = 100 
 
 ### dNLS ###

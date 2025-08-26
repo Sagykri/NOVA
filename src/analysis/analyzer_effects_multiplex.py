@@ -154,7 +154,7 @@ class AnalyzerEffectsMultiplex(AnalyzerEffectsDistRatio):
         
         baseline_pertrub_dict = self._get_baseline_perturb_dict()
         # Flat the baseline-perturbation dictionary to get all unique cell lines and conditions
-        cell_lines_conditions = np.unique([*baseline_pertrub_dict.keys(), *np.concatenate(list(baseline_pertrub_dict.values()))]) 
+        cell_lines_conditions = np.unique(list(baseline_pertrub_dict.keys()))
         title = f"{'_'.join(input_folders)}_{'_'.join(cell_lines_conditions)}"
         saveroot = os.path.join(feature_folder_path,f'{title}')
         

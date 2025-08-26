@@ -22,6 +22,37 @@ class OpencellFigureConfig_UMAP1(FigureConfig):
         self.ADD_REP_TO_LABEL = False
         self.ADD_BATCH_TO_LABEL = False
 
+###################
+## Alyssa (pilot) ##
+####################
+class AlyssaCoyneUMAP0FigureConfig(FigureConfig):
+    def __init__(self):
+        super().__init__()
+
+        self.INPUT_FOLDERS = ["batch1"]
+      
+        self.EXPERIMENT_TYPE = 'AlyssaCoyne'    
+        self.CELL_LINES = ['Controls','sALSPositiveCytoTDP43', 
+                           'sALSNegativeCytoTDP43','c9orf72ALSPatients']
+                           
+        self.ADD_REP_TO_LABEL=True
+        self.ADD_BATCH_TO_LABEL=False
+        self.ADD_CONDITION_TO_LABEL = False
+
+class AlyssaCoyneUMAP2FigureConfig(FigureConfig):
+    def __init__(self):
+        super().__init__()
+
+         
+        self.INPUT_FOLDERS = ["batch1"]
+        
+        self.EXPERIMENT_TYPE = 'AlyssaCoyne'    
+        
+        self.ADD_REP_TO_LABEL=True
+        self.ADD_BATCH_TO_LABEL = False
+        self.ADD_CONDITION_TO_LABEL = False
+
+
 ################
 ## New Alyssa
 ################
@@ -314,7 +345,20 @@ class AlyssaCoyneNEWEffectsFigureConfig(FigureConfig):
                                  'Ctrl-EDi037_Untreated':
                                  ['C9-CS8RFT_Untreated','SALSPositive-CS7TN6_Untreated','SALSNegative-CS6ZU8_Untreated']}
 
+class AlyssaCoyneNEWEffectsFigureConfig_Multiplexed(FigureConfig):
+    def __init__(self):
+        super().__init__()
 
+        self.INPUT_FOLDERS = ["batch1"]
+        
+        self.EXPERIMENT_TYPE = 'AlyssaCoyne_new'
+
+        self.BASELINE_PERTURB = {'Ctrl_Untreated':
+                                 ['C9_Untreated','SALSPositive_Untreated','SALSNegative_Untreated']
+                                 }
+
+        self.ADD_BATCH_TO_LABEL = True
+        self.ADD_REP_TO_LABEL = False
 
 #############
 ## New iNDI
@@ -1500,7 +1544,6 @@ class newNeuronsD8FigureConfig_UMAP2_Hits(FigureConfig):
         self.CELL_LINES = ['WT', 'TDP43', 'OPTN', 'TBK1', 'FUSRevertant', 'FUSHeterozygous', 'FUSHomozygous']
         
         self.MARKERS = ['Calreticulin', 'DCP1A', 'FUS', 'LAMP1', 'LSM14A', 'NCL', 'NEMO', 'NONO', 'PEX14', 'PML', 'PURA', 'SNCA', 'TIA1', 'TOMM20', 'Tubulin']
-        # OLD self.MARKERS = ['HNRNPA1', 'NEMO', 'GM130', 'DCP1A', 'PURA', 'Calreticulin', 'Tubulin', 'PSD95', 'LAMP1', 'LSM14A', 'SNCA', 'PML', 'ANXA11', 'TIA1', 'NONO', 'CLTC', 'TOMM20', 'NCL', 'mitotracker', 'PEX14', 'FUS']
         
         # Decide if to show ARI metric on the UMAP
         self.SHOW_ARI = False#True
@@ -2307,3 +2350,68 @@ class NIHEffectsFigureConfig_Multiplexed(NIHEffectsFigureConfig):
         super().__init__()
         self.ADD_BATCH_TO_LABEL = True
         self.ADD_REP_TO_LABEL = False
+
+
+###################
+## neuronsDay18 ###
+####################
+
+class NeuronsDay18FigureConfig_UMAP0(FigureConfig):
+    def __init__(self):
+        super().__init__()
+
+         
+        self.INPUT_FOLDERS = ['batch1', 'batch2']
+        
+        self.EXPERIMENT_TYPE = 'neuronsDay18'   
+        self.CELL_LINES = ['WT','FUSRevertant','FUSHeterozygous','FUSHomozygous']
+        self.CONDITIONS = ['Untreated']
+
+        self.MARKERS_TO_EXCLUDE = ['CD41']
+
+        self.ADD_REP_TO_LABEL = False
+        self.ADD_BATCH_TO_LABEL = False
+
+class NeuronsDay18FigureConfig_UMAP0_B1(NeuronsDay18FigureConfig_UMAP0):
+    def __init__(self):
+        super().__init__()
+
+         
+        self.INPUT_FOLDERS = ['batch1']
+
+class NeuronsDay18FigureConfig_UMAP0_B2(NeuronsDay18FigureConfig_UMAP0):
+    def __init__(self):
+        super().__init__()
+
+         
+        self.INPUT_FOLDERS = ['batch2']
+
+class NeuronsDay18FigureConfig_UMAP2(FigureConfig):
+    def __init__(self):
+        super().__init__()
+
+         
+        self.INPUT_FOLDERS = ['batch1', 'batch2']
+        
+        self.EXPERIMENT_TYPE = 'neuronsDay18'   
+        self.CELL_LINES = ['WT','FUSRevertant','FUSHeterozygous','FUSHomozygous']
+        self.CONDITIONS = ['Untreated']
+
+        self.MARKERS_TO_EXCLUDE = ['CD41']
+
+        self.ADD_REP_TO_LABEL=False
+        self.ADD_BATCH_TO_LABEL = False
+
+class NeuronsDay18FigureConfig_UMAP2_B1(NeuronsDay18FigureConfig_UMAP2):
+    def __init__(self):
+        super().__init__()
+
+         
+        self.INPUT_FOLDERS = ['batch1']
+
+class NeuronsDay18FigureConfig_UMAP2_B2(NeuronsDay18FigureConfig_UMAP2):
+    def __init__(self):
+        super().__init__()
+
+         
+        self.INPUT_FOLDERS = ['batch2']
