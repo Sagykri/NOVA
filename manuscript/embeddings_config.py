@@ -255,6 +255,16 @@ class EmbeddingsAlyssaCoyneNEWDatasetConfig(EmbeddingsConfig):
         self.ADD_BATCH_TO_LABEL = True
         self.ADD_REP_TO_LABEL = True
 
+## AlyssaCoye new Multiplexed ##
+class EmbeddingsAlyssaCoyneNEWDatasetConfig_Multiplexed(EmbeddingsAlyssaCoyneNEWDatasetConfig):
+    def __init__(self):
+        super().__init__()
+
+        self.ADD_BATCH_TO_LABEL = True # For knowing which batch folder to create
+        self.ADD_REP_TO_LABEL = False
+
+        self.REMOVE_PATIENT_ID_FROM_CELL_LINE = False
+
 # new dNLS
 class EmbeddingsNewdNLSDatasetConfig(EmbeddingsConfig):
     def __init__(self):

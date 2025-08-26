@@ -73,7 +73,7 @@ class PreprocessingConfig(BaseConfig):
         # Which markers to include
         self.MARKERS:Union[None, List[List]]            = None
         # Which markers to exclude
-        self.MARKERS_TO_EXCLUDE:Union[None, List[List]] = None 
+        self.MARKERS_TO_EXCLUDE:Union[None, List[List]] = ['CD41']
         # Cell lines to include
         self.CELL_LINES:Union[None, List[List]]         = None
         # Conditions to include

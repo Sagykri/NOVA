@@ -130,7 +130,7 @@ class BaseConfig():
         
         log_file_path = os.path.join(self.__LOGS_FOLDER, self.__now_str + f'_{jobid}_{username}_{jobname}.log')
         if not os.path.exists(self.__LOGS_FOLDER):
-            os.makedirs(self.__LOGS_FOLDER)
+            os.makedirs(self.__LOGS_FOLDER, exist_ok=True) # exist_ok set to True to handle multiple process trying to check and create the folder at the same time
             
         init_logging(log_file_path)
         
