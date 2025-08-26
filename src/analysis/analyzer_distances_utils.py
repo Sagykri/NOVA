@@ -22,7 +22,7 @@ def compute_block_distances(X1: torch.Tensor,
             end = min(start + block_size, n1)
             if metric == 'euclidean':
                 d = torch.cdist(X1[start:end], X2, p=2)
-            else:
+            elif metric == 'cosine':
                 d = 1 - X1[start:end] @ X2.t()
             blocks.append(d.view(-1))
     else:
@@ -100,7 +100,7 @@ def compute_label_pair_distances_stats(embeddings: np.ndarray,
         dist_time_s, stats_time_s, p50 (and other percentiles if requested).
     """
     # Validate metric
-    if metric not in ('euclidean'):
+    if metric not in ('euclidean', 'cosine'):
         print(f"Metric '{metric}' not recognized; using default 'euclidean'")
         metric = 'euclidean'
 
