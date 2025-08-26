@@ -5,7 +5,6 @@ import numpy as np
 import time
 import pandas as pd
 
-
 sys.path.insert(1, os.getenv("NOVA_HOME"))
 print(f"NOVA_HOME: {os.getenv('NOVA_HOME')}")
 
@@ -25,10 +24,10 @@ def parse_args(argv):
         dict: Parsed values.
     """
     if len(argv) < 3:
-        raise ValueError("Usage: calculate_distances.py <embeddings_folder> <config_path_data> [rep_effect] [multiplexed] [detailed_stats] [normalize] ([] optional)")
+        raise ValueError("Usage: calculate_distances.py <model_outputs_folder> <config_path_data> [rep_effect] [multiplexed] [detailed_stats] [normalize] ([] optional)")
 
     return {
-        'embeddings_folder' : sys.argv[1],
+        'model_outputs_folder' : sys.argv[1],
         'config_path_data' : sys.argv[2],
         'rep_effect': True if "rep_effect" in sys.argv else False,
         'multiplexed': True if "multiplexed" in sys.argv else False,
@@ -75,7 +74,6 @@ if __name__ == "__main__":
 
         model_outputs_folder = args['model_outputs_folder']
         config_path_data = args['config_path_data']
-        model_outputs_folder = args['embeddings_folder']
         rep_effect = args['rep_effect'] # optional flag: True if "rep_effect" in sys.argv else False
         multiplexed = args['multiplexed'] # optional flag: True if "multiplexed" in sys.argv else False
         detailed_stats = args['detailed_stats'] # optional flag: True if "detailed" in sys.argv else False
