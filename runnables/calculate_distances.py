@@ -53,7 +53,7 @@ def generate_distances(
 
     logging.info(f"[Load embeddings] Loading embeddings from {model_outputs_folder}")
     if rep_effect:
-        detailed_stats= True  # If rep_effect is enabled, detailed stats are also enabled
+        detailed_stats= True  # If rep_effect is enabled, detailed stats should also be enabled
         config_data.ADD_REP_TO_LABEL = True # Force adding rep to label for distance calculation
     embeddings, labels, _ = load_embeddings(model_outputs_folder, config_data)
 
@@ -77,7 +77,7 @@ if __name__ == "__main__":
         rep_effect = args['rep_effect'] # optional flag: True if "rep_effect" in sys.argv else False
         multiplexed = args['multiplexed'] # optional flag: True if "multiplexed" in sys.argv else False
         detailed_stats = args['detailed_stats'] # optional flag: True if "detailed" in sys.argv else False
-        metric = "euclidean"  # Default metric
+        metric = "euclidean"  # Default metric, other option is "cosine"
         normalize_embeddings = args['normalize']  # optional flag: True if "normalize" in sys.argv else False
 
         generate_distances(
