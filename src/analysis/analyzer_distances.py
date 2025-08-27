@@ -134,6 +134,18 @@ class AnalyzerDistances(Analyzer):
         
         logging.info(f"Saved distance stats to {savepath}")
 
+    def load(self)->None:
+        """
+        Load the calculated distances from a specified file.
+        """
+        loadpath = self.__get_save_path()
+        
+        logging.info(f"Loading distances from {loadpath}")
+
+        self.features = pd.read_csv(loadpath)
+
+        logging.info(f"Loaded distance stats from {loadpath}")
+
     def __get_save_path(self)->str:
         """Get the path to save the features
 
