@@ -242,7 +242,8 @@ def _append_results_csv(
     apply_pca: bool,
     pca_components: int,
     label_map,
-    macro_stats: dict,       # dict from stats_df Macro Average
+    macro_aggregated: dict,       # dict from stats_df aggregated Macro Average
+    macro_avg: dict = None        # dict from stats_df_avg Macro Average (if available)
 ):
     """Append one summary row to results_csv (create-if-missing, append-if-exists)."""
     # flatten dataset_config -> ds_* columns
@@ -262,10 +263,137 @@ def _append_results_csv(
         "apply_pca": bool(apply_pca),
         "pca_components": int(pca_components),
         "label_map_provided": label_map is not None,
-        **{f"{k}": round(float(v), 3) for k, v in macro_stats.items()},
+        **{f"{k}_aggregated": round(float(v), 3) for k, v in macro_aggregated.items()},
+        **{f"{k}_avg": round(float(v), 3) for k, v in macro_avg.items()},
     }
     header = not os.path.exists(results_csv)
     pd.DataFrame([row]).to_csv(results_csv, mode="a", header=header, index=False)
+
+def plan_folds(
+    batches,
+    test_specific_batches=None,
+    train_specific_batches=None,
+    *,
+    train_each_as_singleton=False,   # train on [b], test on others
+):
+    def _tolist(x):
+        if x is None: return []
+        return x if isinstance(x, (list, tuple)) else [x]
+
+    batches = list(batches)
+    test_specific_batches  = _tolist(test_specific_batches)
+    train_specific_batches = _tolist(train_specific_batches)
+
+    folds = []
+
+    if train_each_as_singleton:
+        base_train = train_specific_batches or batches
+        for tb in base_train:
+            others = [b for b in batches if b != tb]
+            if test_specific_batches:
+                others = [b for b in others if b in test_specific_batches]
+            if not others:
+                raise ValueError(f"No test batches when training on batch {tb}.")
+            folds.append({"train":[tb], "test":others})
+        return folds
+
+    if test_specific_batches:
+        iter_tests = test_specific_batches
+    else:
+        iter_tests = [b for b in batches if b not in train_specific_batches]
+        if train_specific_batches:
+            iter_tests = [iter_tests]  # fixed-train; test=complement
+
+    for test_batches in iter_tests:
+        test_list = test_batches if isinstance(test_batches, (list, tuple)) else [test_batches]
+        train_list = train_specific_batches or [b for b in batches if b not in test_list]
+        train_list = [b for b in train_list if b not in test_list]
+        if not train_list: raise ValueError(f"Empty train set for test {test_list}.")
+        if not test_list:  raise ValueError("Empty test set.")
+        folds.append({"train":train_list, "test":test_list})
+
+    return folds
+
+def _align_and_sum_confusions(cms, cm_classes):
+    """
+    Align per-fold confusion matrices (different class orders / missing classes)
+    and sum them into a single multiclass confusion matrix.
+    Returns: (global_cm, classes_global)
+    """
+    if not cms:
+        return None, []
+
+    # union of all class names across folds (keep deterministic order)
+    classes_global = sorted(set().union(*[set(cls) for cls in cm_classes]))
+    idx = {c: i for i, c in enumerate(classes_global)}
+    k = len(classes_global)
+    global_cm = np.zeros((k, k), dtype=int)
+
+    for cm, cls in zip(cms, cm_classes):
+        for i_true, c_true in enumerate(cls):
+            gi = idx[c_true]
+            for j_pred, c_pred in enumerate(cls):
+                gj = idx[c_pred]
+                global_cm[gi, gj] += cm[i_true, j_pred]
+    return global_cm, classes_global
+
+
+def _binary_cms_from_cm(cm):
+    """
+    Convert a KxK multiclass confusion matrix into K binary (2x2) matrices:
+    for each class i: TP, FP, FN, TN.
+    Shape: (K, 2, 2)
+    """
+    k = cm.shape[0]
+    total = cm.sum()
+    binary = np.zeros((k, 2, 2), dtype=int)
+    row_sums = cm.sum(axis=1)
+    col_sums = cm.sum(axis=0)
+    diag = np.diag(cm)
+
+    for i in range(k):
+        tp = diag[i]
+        fn = row_sums[i] - tp
+        fp = col_sums[i] - tp
+        tn = total - tp - fp - fn
+        binary[i, 1, 1] = tp
+        binary[i, 1, 0] = fn
+        binary[i, 0, 1] = fp
+        binary[i, 0, 0] = tn
+    return binary
+
+
+def _average_stats_tables(stats_tables):
+    """
+    Average a list of stats DataFrames returned by compute_multilabel_metrics.
+    Averages numeric columns per 'Label'. Non-numeric columns are ignored.
+    """
+    if not stats_tables:
+        return pd.DataFrame()
+    stats_all = pd.concat(stats_tables, ignore_index=True)
+    num_cols = [c for c in stats_all.columns if c != "Label"]
+    return stats_all.groupby("Label", as_index=False)[num_cols].mean()
+
+def _build_display_labels(label_map, classes_global):
+    """
+    Return display_labels for plotting.
+    - If label_map is given: groups original labels by mapped class index and joins with ' / '.
+    - Else: strips '_Untreated' from classes_global.
+    """
+    def _clean(x):
+        # make sure we can call .replace even if x is not a string
+        return str(x).replace('_Untreated', '')
+
+    if label_map is not None:
+        inv_map_full = defaultdict(list)
+        for k, v in label_map.items():
+            inv_map_full[v].append(_clean(k))
+        # assumes mapped indices are 0..K-1 (same as your current code)
+        display_labels = [' / '.join(inv_map_full[i]) for i in range(len(inv_map_full))]
+    else:
+        display_labels = [_clean(c) for c in classes_global]
+
+    return display_labels
 
 def run_baseline_model(
     dataset_config,                # dict with paths/loading settings for embeddings
@@ -281,6 +409,190 @@ def run_baseline_model(
     classifier_kwargs=dict(),      # extra arguments for the classifier constructor (e.g. {"max_depth":10})
     test_specific_batches=None,    # int or list: which batches to use as test folds; None = default LOOCV
     train_specific_batches=None,   # int or list: which batches to use for training; None = complement of test
+    train_each_as_singleton=False,  # if True, train on each batch individually, test on all others
+    return_proba=False,            # if True, return DataFrame of predicted probabilities along with metrics
+    calculate_auc=False,           # if True, compute ROC AUC for the predictions
+    results_csv=None               # if provided, append results to this CSV file
+):
+    accuracies = []
+    accumulated_cm = None
+    all_y_true = []; all_y_pred = [];  all_y_proba = []; fold_classes=[]
+    per_fold_stats = []
+    _cms = []; _cm_classes = []  # collect per-fold CMs + their class orders
+
+    print("Loading all batches...")
+    cache = load_all_batches(batches, dataset_config)
+    print("Batches loaded.")
+
+    test_specific_batches  = ensure_list(test_specific_batches)
+    train_specific_batches = ensure_list(train_specific_batches)
+
+    folds = plan_folds(
+        batches=batches,
+        test_specific_batches=test_specific_batches,
+        train_specific_batches=train_specific_batches,
+        train_each_as_singleton=train_each_as_singleton,  
+        )
+    
+    for fold in folds:
+        train_batches, test_batches = fold["train"], fold["test"]
+        print(f"Training on Batches: {train_batches}, Testing on: {test_batches}.")
+
+        X_train, y_train = concat_from_cache(cache, train_batches)
+        X_test,  y_test  = concat_from_cache(cache, test_batches)
+
+        # Optionally filter based on label_map
+        if label_map is not None:
+            X_train, y_train, X_test, y_test = _filter_and_remap_labels(
+                    X_train, y_train, X_test, y_test, label_map)
+
+        # Encode labels numerically
+        le = LabelEncoder()
+        y_train_mapped = le.fit_transform(y_train)
+        y_test_mapped = le.transform(y_test)
+
+        print(f"\n=== Fold (test={test_batches}) ===")
+        print("Train:", np.shape(X_train), "Labels:", np.unique(y_train_mapped))
+        print("Test:", np.shape(X_test), "Labels:", np.unique(y_test_mapped))
+        count_labels(y_train)
+
+        accuracy, cm, y_pred, y_proba = train_and_evaluate_classifier(
+            X_train, X_test, y_train_mapped, y_test_mapped,
+            balance=balance, norm=norm,
+            choose_features=choose_features, top_k=top_k,
+            apply_pca=apply_pca, pca_components=pca_components,
+            classifier_class=classifier_class, classifier_kwargs=classifier_kwargs,
+            return_proba=return_proba or calculate_auc
+        )
+        accuracies.append(accuracy)
+
+        # Collect per-fold CM and its class order (DON'T sum yet; align later)
+        _cms.append(cm)
+        _cm_classes.append(list(le.classes_))
+
+        # Confusion matrix
+        all_y_true.extend(y_test_mapped)
+        all_y_pred.extend(y_pred)
+        fold_classes.append(list(le.classes_)) # collect per-fold classes during the loop
+        all_y_proba.append(_to_numpy_proba(y_proba))
+
+        # Per-fold metrics (from this fold only)
+        bin_cms_fold = multilabel_confusion_matrix(
+            y_test_mapped, y_pred, labels=range(len(le.classes_))
+        )
+        stats_df_fold = compute_multilabel_metrics(bin_cms_fold, labels=le.classes_, overall_cm=cm)
+        per_fold_stats.append(stats_df_fold)
+        print("\n=== Evaluation Metrics ===")
+        print(stats_df_fold.to_string(index=False))
+
+    # Final summary
+    print("\n=== Overall Accuracy ===")
+    print(np.mean(accuracies), accuracies)
+
+    # Align & sum confusion matrices across folds → accumulated_cm
+    accumulated_cm, classes_global = _align_and_sum_confusions(_cms, _cm_classes)
+
+    # Labels for plot
+    display_labels = _build_display_labels(label_map, classes_global)
+    
+    # Plot
+    disp = ConfusionMatrixDisplay(confusion_matrix=accumulated_cm, display_labels=display_labels)    
+    disp.plot(xticks_rotation=90)
+    plt.title("Combined Confusion Matrix Across Batches")
+    plt.tight_layout()
+    plt.show()
+        
+    # Metrics from the aggregated confusion matrix (global)
+    binary_cms = _binary_cms_from_cm(accumulated_cm)
+    stats_df = compute_multilabel_metrics(binary_cms, classes_global, accumulated_cm)
+
+    # Also compute averaged metrics across folds (mean of per-fold tables)
+    stats_df_avg = _average_stats_tables(per_fold_stats)
+    # Ensure correct display
+    pd.set_option('display.max_columns', None)
+    pd.set_option('display.expand_frame_repr', False)
+
+    print("\n=== Evaluation Metrics (from aggregated confusion) ===")
+    print(stats_df.to_string(index=False))
+
+    if not stats_df_avg.empty:
+        print("\n=== Average Metrics Across Folds ===")
+        print(stats_df_avg.to_string(index=False))
+
+    # Macros
+    macro_aggregated = stats_df.loc[stats_df['Label'].eq('Macro Average')].drop(columns='Label').iloc[0].to_dict()
+    macro_avg = (stats_df_avg.loc[stats_df_avg['Label'].eq('Macro Average')]
+                            .drop(columns='Label').iloc[0].to_dict()) if not stats_df_avg.empty else {}
+
+    if results_csv:
+        _append_results_csv(
+            results_csv,
+            dataset_config=dataset_config,
+            batches=batches,
+            train_specific_batches=train_specific_batches,
+            test_specific_batches=test_specific_batches,
+            classifier_class=classifier_class,
+            classifier_kwargs=classifier_kwargs,
+            balance=balance,
+            norm=norm,
+            choose_features=choose_features,
+            top_k=top_k,
+            apply_pca=apply_pca,
+            pca_components=pca_components,
+            label_map=label_map,
+            macro_aggregated=macro_aggregated,
+            macro_avg= macro_avg
+        )
+
+    if calculate_auc:
+        classes_global = sorted(set().union(*fold_classes))
+        proba_all = np.vstack([_align_proba(p, cls, classes_global) for p, cls in zip(all_y_proba, fold_classes)])
+        aucs = compute_overall_auc(np.array(all_y_true), proba_all)
+    if return_proba:
+        all_y_proba = np.vstack(all_y_proba)
+        df_proba = pd.DataFrame(all_y_proba, columns=le.classes_)
+        df_proba['predicted'] = le.inverse_transform(all_y_pred)
+        df_proba['true'] = le.inverse_transform(all_y_true)
+        return df_proba, macro_aggregated, macro_avg
+    else:
+        return macro_aggregated, macro_avg
+    
+def _filter_and_remap_labels(X_train, y_train, X_test, y_test, label_map):
+    """
+    Filter samples to allowed labels and remap via label_map.
+    If label_map is None -> returns inputs unchanged.
+    """
+    if label_map is None:
+        return X_train, y_train, X_test, y_test
+
+    allowed = set(label_map.keys())
+    train_mask = np.isin(y_train, list(allowed))
+    test_mask  = np.isin(y_test,  list(allowed))
+
+    X_train, y_train = X_train[train_mask], y_train[train_mask]
+    X_test,  y_test  = X_test[test_mask],  y_test[test_mask]
+
+    y_train = np.array([label_map[l] for l in y_train])
+    y_test  = np.array([label_map[l] for l in y_test])
+
+    return X_train, y_train, X_test, y_test
+
+
+def run_baseline_model_old(
+    dataset_config,                # dict with paths/loading settings for embeddings
+    batches=[1, 2, 3, 7, 8, 9,],   # list of batch IDs to include in the experiment
+    balance=False,                 # whether to balance class distributions during training
+    norm=False,                    # whether to normalize features before training
+    choose_features=False,         # whether to select top features 
+    top_k=100,                     # number of features to keep if choose_features=True
+    apply_pca=False,               # whether to reduce dimensionality with PCA
+    pca_components=50,             # number of PCA components if apply_pca=True
+    label_map=None,                # optional mapping to merge/remap labels, e.g. {"WT":0,"KO":1}
+    classifier_class=cuMLLogisticRegression, # classifier class to use (any sklearn/cuML-compatible estimator)
+    classifier_kwargs=dict(),      # extra arguments for the classifier constructor (e.g. {"max_depth":10})
+    test_specific_batches=None,    # int or list: which batches to use as test folds; None = default LOOCV
+    train_specific_batches=None,   # int or list: which batches to use for training; None = complement of test
+    train_each_as_singleton=False,  # if True, train on each batch individually, test on all others
     return_proba=False,            # if True, return DataFrame of predicted probabilities along with metrics
     calculate_auc=False,           # if True, compute ROC AUC for the predictions
     results_csv=None               # if provided, append results to this CSV file
@@ -296,25 +608,16 @@ def run_baseline_model(
     test_specific_batches  = ensure_list(test_specific_batches)
     train_specific_batches = ensure_list(train_specific_batches)
 
-    # determine test folds
-    if test_specific_batches:
-        iter_tests = test_specific_batches
-    else:
-        # default LOOCV unless train is fixed
-        iter_tests = [b for b in batches if b not in train_specific_batches]
-        if train_specific_batches:
-            iter_tests = [iter_tests]
-
-    for test_batches in iter_tests:
-        if isinstance(test_batches, int):
-            test_batches = [test_batches]
-        # train set: explicit or complement
-        train_batches = train_specific_batches or [b for b in batches if b not in test_batches]
-        train_batches = [b for b in train_batches if b not in test_batches]  # exclude overlaps
-
+    folds = plan_folds(
+        batches=batches,
+        test_specific_batches=test_specific_batches,
+        train_specific_batches=train_specific_batches,
+        train_each_as_singleton=train_each_as_singleton,  
+        )
+    
+    for fold in folds:
+        train_batches, test_batches = fold["train"], fold["test"]
         print(f"Training on Batches: {train_batches}, Testing on: {test_batches}.")
-        if not train_batches: raise ValueError(f"Empty train set for test {test_batches}.")
-        if not test_batches: raise ValueError("Empty test set.")
 
         X_train, y_train = concat_from_cache(cache, train_batches)
         X_test,  y_test  = concat_from_cache(cache, test_batches)
@@ -334,21 +637,17 @@ def run_baseline_model(
         y_train_mapped = le.fit_transform(y_train)
         y_test_mapped = le.transform(y_test)
 
-        print(f"\n=== Batch {test_batches} ===")
+        print(f"\n=== Fold (test={test_batches}) ===")
         print("Train:", np.shape(X_train), "Labels:", np.unique(y_train_mapped))
         print("Test:", np.shape(X_test), "Labels:", np.unique(y_test_mapped))
         count_labels(y_train)
 
         accuracy, cm, y_pred, y_proba = train_and_evaluate_classifier(
             X_train, X_test, y_train_mapped, y_test_mapped,
-            balance=balance,
-            norm=norm,
-            choose_features=choose_features,
-            top_k=top_k,
-            apply_pca=apply_pca,
-            pca_components=pca_components,
-            classifier_class=classifier_class,
-            classifier_kwargs=classifier_kwargs,
+            balance=balance, norm=norm,
+            choose_features=choose_features, top_k=top_k,
+            apply_pca=apply_pca, pca_components=pca_components,
+            classifier_class=classifier_class, classifier_kwargs=classifier_kwargs,
             return_proba=return_proba or calculate_auc
         )
         accuracies.append(accuracy)
@@ -370,7 +669,8 @@ def run_baseline_model(
             inv_map_full[v].append(k.replace('_Untreated', ''))
         display_labels = [' / '.join(inv_map_full[i]) for i in range(len(inv_map_full))]
     else:
-        display_labels = [label.replace('_Untreated', '') for label in le.classes_]
+        classes_global = sorted(set().union(*fold_classes)) 
+        display_labels = [c.replace('_Untreated','') for c in classes_global]
     disp = ConfusionMatrixDisplay(confusion_matrix=accumulated_cm, display_labels=display_labels)    
     disp.plot(xticks_rotation=90)
     plt.title("Combined Confusion Matrix Across Batches")
@@ -496,16 +796,15 @@ def run_train_test_split_baseline(
     pca_components=50,
     classifier_class=cuMLLogisticRegression,
     classifier_kwargs=dict(),
-    return_proba=False  # If True, return predicted probabilities
+    return_proba=False,  # If True, return predicted probabilities
+    label_map=None
 ):
     # Load and encode
     X, y = load_batches(batches, dataset_config= dataset_config)
-    le = LabelEncoder()
-    y_encoded = le.fit_transform(y)
 
     # Split
     X_train, X_test, y_train, y_test = train_test_split(
-        X, y_encoded, test_size=0.2, random_state=42, stratify=y_encoded
+        X, y, test_size=0.2, random_state=42, stratify=y
     )
 
     print("Train dataset")
@@ -516,9 +815,18 @@ def run_train_test_split_baseline(
     print(np.shape(y_test), np.shape(X_test), np.unique(y_test))
     count_labels(y_test)
 
+    # Optionally filter based on label_map
+    if label_map is not None:
+        X_train, y_train, X_test, y_test = _filter_and_remap_labels(
+                X_train, y_train, X_test, y_test, label_map)
+    
+    le = LabelEncoder()
+    y_train_encoded = le.fit_transform(y_train)
+    y_test_encoded = le.transform(y_test)
+
     # Train and evaluate
     accuracy, cm, y_pred, y_proba = train_and_evaluate_classifier(
-        X_train, X_test, y_train, y_test,
+        X_train, X_test, y_train_encoded, y_test_encoded,
         balance=balance,
         norm=norm,
         choose_features=choose_features,
@@ -532,12 +840,12 @@ def run_train_test_split_baseline(
 
     # Only plot if not too many classes
     if len(le.classes_) <= 15:
-        plot_confusion_matrix(y_test, y_pred, le) 
+        plot_confusion_matrix(y_test_encoded, y_pred, le, shorten_labels=False if label_map else True) 
     else:
         print(f"Skipping confusion matrix plot ({len(le.classes_)} classes).")
     print(f"\nAccuracy: {accuracy:.4f}")
     # Generate list of binary confusion matrices
-    binary_cms = multilabel_confusion_matrix(y_test, y_pred, labels=range(len(le.classes_)))
+    binary_cms = multilabel_confusion_matrix(y_test_encoded, y_pred, labels=range(len(le.classes_)))
     # Compute and print stats
     stats_df = compute_multilabel_metrics(binary_cms, labels=le.classes_)
     # Ensure correct display
@@ -715,7 +1023,7 @@ def plot_cluster_label_distribution(df, row='cluster', col='label', cmap='Blues'
     return summary
 
 
-def compute_multilabel_metrics(conf_matrices, labels=None):
+def compute_multilabel_metrics(conf_matrices, labels=None, overall_cm=None):
     """
     Computes per-class and macro-averaged accuracy, sensitivity, specificity, PPV, NPV, and F1 score
     from a multilabel confusion matrix.
@@ -726,6 +1034,8 @@ def compute_multilabel_metrics(conf_matrices, labels=None):
 
     Returns:
         pd.DataFrame with per-class and overall statistics
+         If `overall_cm` (K×K) is provided, an extra 'Overall Accuracy' row is appended,
+        where Accuracy = trace(overall_cm) / overall_cm.sum(), other cells are NaN.
     """
     rows = []
 
@@ -755,6 +1065,15 @@ def compute_multilabel_metrics(conf_matrices, labels=None):
     macro_row = pd.DataFrame([['Macro Average', *macro.values.tolist()]], columns=df.columns)
 
     df = pd.concat([df, macro_row], ignore_index=True)
+
+    # Overall accuracy from the fold's K×K confusion matrix
+    if overall_cm is not None and overall_cm.size > 0 and overall_cm.sum() > 0:
+        overall_acc = float(np.trace(overall_cm) / overall_cm.sum())
+    else:
+        overall_acc = np.nan
+
+    df['Overall Accuracy'] = np.nan
+    df.loc[df['Label'].eq('Macro Average'), 'Overall Accuracy'] = overall_acc
 
     return df
 
