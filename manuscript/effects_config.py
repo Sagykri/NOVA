@@ -132,6 +132,16 @@ class NeuronsMultiplexEffectConfig(EffectConfig):
         self.ADD_REP_TO_LABEL = False
         self.MIN_REQUIRED = 200 
 
+class NeuronsMultiplexEffectConfig_FUSLines(NeuronsMultiplexEffectConfig):
+    def __init__(self):
+        super().__init__()
+        
+        self.BASELINE_PERTURB = {'WT_Untreated':['FUSHomozygous_Untreated',
+                                                 'FUSHeterozygous_Untreated',
+                                                 'FUSRevertant_Untreated']}
+        self.CELL_LINES = ['WT','FUSHomozygous','FUSHeterozygous','FUSRevertant']
+
+
 class NeuronsMultiplexEffectConfig_WithSNCA(NeuronsMultiplexEffectConfig):
     def __init__(self):
         super().__init__()
@@ -194,6 +204,13 @@ class AlyssaCoyneNEWEffectConfig(EffectConfig):
         self.MIN_REQUIRED = 40 
         self.N_BOOT = 100 
 
+class AlyssaCoyneNEWEffectConfig_Ctrl_C9(AlyssaCoyneNEWEffectConfig):
+    def __init__(self):
+        super().__init__()   
+        self.BASELINE_PERTURB = {'Ctrl-EDi022_Untreated':['C9-CS2YNL_Untreated'],
+                                 'Ctrl-EDi029_Untreated':['C9-CS7VCZ_Untreated'],
+                                 'Ctrl-EDi037_Untreated':['C9-CS8RFT_Untreated']}
+
 class AlyssaCoyneNEWMultiplexEffectConfig(EffectConfig):
     def __init__(self):
         super().__init__()
@@ -214,6 +231,15 @@ class AlyssaCoyneNEWMultiplexEffectConfig(EffectConfig):
 
         self.MIN_REQUIRED = 40 # To include everyone
         self.N_BOOT = 100 
+
+class AlyssaCoyneNEWMultiplexEffectConfig_Ctrl_C9(AlyssaCoyneNEWMultiplexEffectConfig):
+    def __init__(self):
+        super().__init__()
+   
+        self.BASELINE_PERTURB = {'Ctrl-EDi022_Untreated':['C9-CS2YNL_Untreated'],
+                                 'Ctrl-EDi029_Untreated':['C9-CS7VCZ_Untreated'],
+                                 'Ctrl-EDi037_Untreated':['C9-CS8RFT_Untreated']
+                                 }
 
 ### dNLS ###
 

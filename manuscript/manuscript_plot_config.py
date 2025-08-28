@@ -21,6 +21,8 @@ class UMAP1PlotConfig(PlotConfig):
         # umap type
         self.UMAP_TYPE = 1
 
+        self.MIX_GROUPS = True
+
 class UMAP0StressPlotConfig(PlotConfig):
     def __init__(self):
         super().__init__()
@@ -66,6 +68,15 @@ class UMAP0AlyssaCoyneColorByPatientPlotConfig(PlotConfig):
         super().__init__()
                
         self.MAP_LABELS_FUNCTION = MapLabelsFunction.REMOVE_MARKER.name
+        self.COLOR_MAPPINGS = self.COLOR_MAPPINGS_ALYSSA
+        # umap type
+        self.UMAP_TYPE = 0
+
+class UMAP0newAlyssaCoyne(PlotConfig):
+    def __init__(self):
+        super().__init__()
+               
+        self.MAP_LABELS_FUNCTION = MapLabelsFunction.CELL_LINES.name
         self.COLOR_MAPPINGS = self.COLOR_MAPPINGS_ALYSSA
         # umap type
         self.UMAP_TYPE = 0

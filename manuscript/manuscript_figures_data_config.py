@@ -39,6 +39,13 @@ class AlyssaCoyneUMAP0FigureConfig(FigureConfig):
         self.ADD_BATCH_TO_LABEL=False
         self.ADD_CONDITION_TO_LABEL = False
 
+class AlyssaCoyneUMAP0FigureConfig_Ctrl_C9(AlyssaCoyneUMAP0FigureConfig):
+    def __init__(self):
+        super().__init__()
+
+        self.CELL_LINES = ['Controls','c9orf72ALSPatients']
+                           
+
 class AlyssaCoyneUMAP2FigureConfig(FigureConfig):
     def __init__(self):
         super().__init__()
@@ -74,11 +81,25 @@ class newAlyssaFigureConfig_UMAP0_B1(FigureConfig):
         self.ADD_REP_TO_LABEL = False
         self.ADD_BATCH_TO_LABEL = False
 
+
+class newAlyssaFigureConfig_UMAP0_B1_per_patient_Ctrl_C9(newAlyssaFigureConfig_UMAP0_B1):
+    def __init__(self):
+        super().__init__()
+        
+        self.CELL_LINES = ['Ctrl-EDi022', 'Ctrl-EDi029', 'Ctrl-EDi037', 'C9-CS7VCZ', 'C9-CS8RFT', 'C9-CS2YNL'] 
+
 class newAlyssaFigureConfig_UMAP0_B1_per_gene_group(newAlyssaFigureConfig_UMAP0_B1):
     def __init__(self):
         super().__init__()
         
         self.REMOVE_PATIENT_ID_FROM_CELL_LINE = True
+
+class newAlyssaFigureConfig_UMAP0_B1_per_gene_group_Ctrl_C9(newAlyssaFigureConfig_UMAP0_B1_per_gene_group):
+    def __init__(self):
+        super().__init__()
+        
+        self.CELL_LINES = ['Ctrl', 'C9'] 
+
 
 # UMAP 1
 
@@ -313,6 +334,34 @@ class newAlyssaFigureConfig_UMAP2_B1_P3(FigureConfig):
 
         self.REMOVE_PATIENT_ID_FROM_CELL_LINE = False
 
+class newAlyssaFigureConfig_Ctrl_C9_UMAP2_B1_P1(newAlyssaFigureConfig_UMAP2_B1_P1):
+    def __init__(self):
+        super().__init__()
+
+        self.CELL_LINES = ['Ctrl-EDi022', 'C9-CS2YNL']
+        
+
+class newAlyssaFigureConfig_Ctrl_C9_UMAP2_B1_P2(newAlyssaFigureConfig_UMAP2_B1_P2):
+    def __init__(self):
+        super().__init__()
+
+        self.CELL_LINES = ['Ctrl-EDi029', 'C9-CS7VCZ']
+        
+
+class newAlyssaFigureConfig_Ctrl_C9_UMAP2_B1_P3(newAlyssaFigureConfig_UMAP2_B1_P3):
+    def __init__(self):
+        super().__init__()
+
+        self.CELL_LINES = ['Ctrl-EDi037', 'C9-CS8RFT']
+
+class newAlyssaFigureConfig_Ctrl_C9_UMAP2_B1_with_patientID(newAlyssaFigureConfig_UMAP2_B1_with_patientID):
+    def __init__(self):
+        super().__init__()
+
+        self.CELL_LINES = ['Ctrl-EDi022', 'C9-CS2YNL'] + ['Ctrl-EDi029', 'C9-CS7VCZ'] + ['Ctrl-EDi037', 'C9-CS8RFT']
+        self.ADD_CONDITION_TO_LABEL = False
+        
+
 
 class newAlyssaFigureConfig_UMAP2_4Markers_with_patientID(newAlyssaFigureConfig_UMAP2_B1_with_patientID):
     def __init__(self):
@@ -345,6 +394,13 @@ class AlyssaCoyneNEWEffectsFigureConfig(FigureConfig):
                                  'Ctrl-EDi037_Untreated':
                                  ['C9-CS8RFT_Untreated','SALSPositive-CS7TN6_Untreated','SALSNegative-CS6ZU8_Untreated']}
 
+class AlyssaCoyneNEWEffectsFigureConfig_Ctrl_C9(AlyssaCoyneNEWEffectsFigureConfig):
+    def __init__(self):
+        super().__init__()
+        self.BASELINE_PERTURB = {'Ctrl-EDi022_Untreated':['C9-CS2YNL_Untreated'],
+                                 'Ctrl-EDi029_Untreated': ['C9-CS7VCZ_Untreated'],
+                                 'Ctrl-EDi037_Untreated':['C9-CS8RFT_Untreated']}
+
 class AlyssaCoyneNEWEffectsFigureConfig_Multiplexed(FigureConfig):
     def __init__(self):
         super().__init__()
@@ -359,6 +415,13 @@ class AlyssaCoyneNEWEffectsFigureConfig_Multiplexed(FigureConfig):
 
         self.ADD_BATCH_TO_LABEL = True
         self.ADD_REP_TO_LABEL = False
+
+class AlyssaCoyneNEWEffectsFigureConfig_Ctrl_C9_Multiplexed(AlyssaCoyneNEWEffectsFigureConfig_Multiplexed):
+    def __init__(self):
+        super().__init__()
+
+        self.BASELINE_PERTURB = {'Ctrl_Untreated': ['C9_Untreated']}
+
 
 #############
 ## New iNDI
@@ -675,7 +738,7 @@ class newNeuronsD8FigureConfig_ALS_UMAP0(FigureConfig):
         """
 
          
-        self.INPUT_FOLDERS = ['batch1', 'batch2', 'batch3', 'batch7', 'batch8', 'batch9', 'batch10']
+        self.INPUT_FOLDERS = ['batch1', 'batch2', 'batch3', 'batch7', 'batch8', 'batch9']
         
         self.EXPERIMENT_TYPE = 'neuronsDay8_new' # 'neuronsDay8_new'    
         self.CONDITIONS = ['Untreated']
@@ -771,7 +834,7 @@ class newNeuronsD8FigureConfig_ALS_UMAP0_B10(newNeuronsD8FigureConfig_ALS_UMAP0)
 
 # UMAP0 - WT and ALS line
 
-# B1-10
+# B1-9
 class newNeuronsD8FigureConfig_UMAP0_allBatches_WT_TDP43(newNeuronsD8FigureConfig_ALS_UMAP0):
     def __init__(self):
         super().__init__()
@@ -1850,6 +1913,13 @@ class NeuronsMultiplexedEffectsFigureConfig(FigureConfig):
                                  [f'{cell_line}_Untreated' for cell_line in 
                                   ['FUSHeterozygous','FUSHomozygous','FUSRevertant','OPTN','TDP43','TBK1']]}
 
+class NeuronsMultiplexedEffectsFigureConfig_FUSLines(NeuronsMultiplexedEffectsFigureConfig):
+    def __init__(self):
+        super().__init__()
+        self.BASELINE_PERTURB = {'WT_Untreated': 
+                                 [f'{cell_line}_Untreated' for cell_line in 
+                                  ['FUSHeterozygous','FUSHomozygous','FUSRevertant']]}
+
 class NeuronsMultiplexedEffectsFigureConfig_withSNCA(FigureConfig):
     def __init__(self):
         super().__init__()
@@ -1928,15 +1998,9 @@ class newDNLSUMAP0DatasetConfig_Hits(newDNLSUMAP0DatasetConfig):
     def __init__(self):
         super().__init__()
 
-        self.INPUT_FOLDERS = ["batch1", "batch2", "batch3", "batch4", "batch5", "batch6"]
+        self.INPUT_FOLDERS = ["batch1", "batch2", "batch4", "batch5", "batch6"]
         self.MARKERS = ['TDP43', 'DCP1A', 'LSM14A']
 
-class newDNLSUMAP0DatasetConfig_TDP43_woB3(newDNLSUMAP0DatasetConfig):
-    def __init__(self):
-        super().__init__()
-
-        self.INPUT_FOLDERS = ["batch1", "batch2", "batch4", "batch5", "batch6"]
-        self.MARKERS = ['TDP43']
 
 class newDNLSUMAP0DatasetConfig_Hits_With_WT(newDNLSUMAP0DatasetConfig_Hits):
     def __init__(self):
@@ -2173,12 +2237,10 @@ class NIH_UMAP0_Stress_DatasetConfig(FigureConfig):
         self.ADD_BATCH_TO_LABEL = False
         self.ARI_LABELS_FUNC = MapLabelsFunction.MARKERS.name
 
-
-class NIH_UMAP0_Stress_DatasetConfig_Subset(NIH_UMAP0_Stress_DatasetConfig):
+class NIH_UMAP0_Stress_DatasetConfig_Hits(NIH_UMAP0_Stress_DatasetConfig):
     def __init__(self):
         super().__init__()
-
-        self.MARKERS = ['G3BP1', 'TIA1', 'FMRP', 'PURA']
+        self.MARKERS = ['G3BP1', 'FMRP', 'MitoTracker', 'PML', 'TOMM20', 'PURA', 'DCP1A']
 
 class NIH_UMAP0_Stress_DatasetConfig_B1(NIH_UMAP0_Stress_DatasetConfig):
     def __init__(self):
@@ -2385,6 +2447,26 @@ class NeuronsDay18FigureConfig_UMAP0_B2(NeuronsDay18FigureConfig_UMAP0):
 
          
         self.INPUT_FOLDERS = ['batch2']
+
+class NeuronsDay18FigureConfig_UMAP0_WT_vs_FUSHet(NeuronsDay18FigureConfig_UMAP0):
+    def __init__(self):
+        super().__init__()
+
+        self.CELL_LINES = ['WT','FUSHeterozygous']
+        self.MARKERS = ['HNRNPA1', 'FUS', 'PEX14']
+
+class NeuronsDay18FigureConfig_UMAP0_WT_vs_FUSHom(NeuronsDay18FigureConfig_UMAP0_WT_vs_FUSHet):
+    def __init__(self):
+        super().__init__()
+
+        self.CELL_LINES = ['WT','FUSHomozygous']
+
+class NeuronsDay18FigureConfig_UMAP0_WT_vs_TBK1(NeuronsDay18FigureConfig_UMAP0):
+    def __init__(self):
+        super().__init__()
+
+        self.CELL_LINES = ['WT','TBK1']
+        self.MARKERS = ['DCP1A']
 
 class NeuronsDay18FigureConfig_UMAP2(FigureConfig):
     def __init__(self):

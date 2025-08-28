@@ -248,6 +248,7 @@ def load_embeddings(model_output_folder:str, config_data:DatasetConfig, sample_f
 
     batches = get_batches_from_input_folders(input_folders)
     embeddings_folder = os.path.join(model_output_folder, "embeddings", experiment_type, "multiplexed" if multiplex else "")
+    logging.info(f"[load_embeddings] embeddings_folder = {embeddings_folder}")
     embeddings, labels, paths = __load_multiple_batches(batches = batches,embeddings_folder = embeddings_folder,
                                                  config_data=config_data, allow_pickle=multiplex)
     
