@@ -82,7 +82,6 @@ class PlotConfig(PlotConfig):
 
             'MERGED':{self.MAPPINGS_ALIAS_KEY:'MERGED', self.MAPPINGS_COLOR_KEY:'gray'},
             'Map2':{self.MAPPINGS_ALIAS_KEY:'Neuronal marker', self.MAPPINGS_COLOR_KEY:'gray'},
-            # 'TDP43N':{self.MAPPINGS_ALIAS_KEY:'TDP43 granules 2', self.MAPPINGS_COLOR_KEY:'#06A0E9'}
 
             'LSM14A':{self.MAPPINGS_ALIAS_KEY:'P-bodies #2', self.MAPPINGS_COLOR_KEY:"#B91EC4"},
             'SON':{self.MAPPINGS_ALIAS_KEY:'Nuclear Speckles', self.MAPPINGS_COLOR_KEY:"#EC5F5F"},

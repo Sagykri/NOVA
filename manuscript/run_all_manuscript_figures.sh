@@ -270,25 +270,6 @@ for model_path in "${models_path[@]}"; do
 	# $NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_umaps_and_plot -m 20000 \
 	# -a $model_path $data_configs/newNeuronsD8FigureConfig_UMAP0_B9_WT_FUSHom $plot_configs/UMAP0ALSPlotConfig -q short -j u0_nD8_B9_WT_FUSHom$model_name
 
-    # # B10:
-    # $NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_umaps_and_plot -m 20000 \
-	# -a $model_path $data_configs/newNeuronsD8FigureConfig_UMAP0_B10_WT_TDP43 $plot_configs/UMAP0ALSPlotConfig -q short -j u0_nD8_B10_WT_TDP43$model_name
-
-	# $NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_umaps_and_plot -m 20000 \
-	# -a $model_path $data_configs/newNeuronsD8FigureConfig_UMAP0_B10_WT_OPTN $plot_configs/UMAP0ALSPlotConfig -q short -j u0_nD8_B10_WT_OPTN$model_name
-
-	# $NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_umaps_and_plot -m 20000 \
-	# -a $model_path $data_configs/newNeuronsD8FigureConfig_UMAP0_B10_WT_TBK1 $plot_configs/UMAP0ALSPlotConfig -q short -j u0_nD8_B10_WT_TBK1$model_name
-
-	# $NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_umaps_and_plot -m 20000 \
-	# -a $model_path $data_configs/newNeuronsD8FigureConfig_UMAP0_B10_WT_FUSRev $plot_configs/UMAP0ALSPlotConfig -q short -j u0_nD8_B10_WT_FUSRev$model_name
-
-	# $NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_umaps_and_plot -m 20000 \
-	# -a $model_path $data_configs/newNeuronsD8FigureConfig_UMAP0_B10_WT_FUSHet $plot_configs/UMAP0ALSPlotConfig -q short -j u0_nD8_B10_WT_FUSHet$model_name
-
-	# $NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_umaps_and_plot -m 20000 \
-	# -a $model_path $data_configs/newNeuronsD8FigureConfig_UMAP0_B10_WT_FUSHom $plot_configs/UMAP0ALSPlotConfig -q short -j u0_nD8_B10_WT_FUSHom$model_name
-
     ######
     ## UMAP0 all lines from all batches
 
@@ -555,6 +536,10 @@ for model_path in "${models_path[@]}"; do
     # $NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/plot_effect_sizes_multiplex -m 3000 -a \
     # $model_path $data_configs/NeuronsMultiplexedEffectsFigureConfig  $plot_configs/DistancesNeuronsALSPlotConfig -q short -j effect_multi_d8_plot
 
+    # $NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/plot_effect_sizes_multiplex -m 3000 -a \
+    # $model_path $data_configs/NeuronsMultiplexedEffectsFigureConfig_FUSLines  $plot_configs/DistancesNeuronsALSPlotConfig -q short -j effect_multi_d8_plot
+
+
     ###
     ## Alyssa old
     ##
@@ -643,6 +628,10 @@ for model_path in "${models_path[@]}"; do
 
     # $NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_umaps_and_plot -m 50000 \
     # -a $model_path $data_configs/newAlyssaFigureConfig_UMAP2_B1_with_patientID $plot_configs/UMAP2AlyssaCoyneColorByPatientPlotConfig -q short -j u2_nAlys_p_$model_name
+
+    # $NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_umaps_and_plot -m 50000 \
+    # -a $model_path $data_configs/newAlyssaFigureConfig_Ctrl_C9_UMAP2_B1_with_patientID $plot_configs/UMAP2AlyssaCoyneColorByPatientPlotConfig -q short -j u2_nAlys_p_$model_name
+
 
     # Per plate
     # $NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_umaps_and_plot -m 50000 \
