@@ -25,8 +25,8 @@ from src.common.utils import init_logging, flat_list_of_lists
 from tools.preprocessing_tools.image_sampling_utils import sample_images_all_markers_all_lines
 
 
-BASE_DIR = os.path.join('/home','projects','hornsteinlab','Collaboration','MOmaps')
-INPUT_DIR = os.path.join(BASE_DIR, 'input', 'images', 'raw', 'SpinningDisk', 'NOVA_d18_neurons_sorted')
+BASE_DIR = os.path.join('/home','projects','hornsteinlab','Collaboration','NOVA')
+INPUT_DIR = os.path.join(BASE_DIR, 'input', 'images', 'raw', 'Opera18DaysReimaged_sorted')
 calc_per_tile = False # I ran _site_ with this being False! (281123)
 
 def calculate_metrics_for_batch(batch_name, sample_size_per_markers=100, num_markers=36, markers=None):
@@ -86,8 +86,7 @@ def _calc_image_metrics(img_path):
     # Load an tiff image (a site image, 1024x1024)
     img = cv2.imread(img_path, cv2.IMREAD_ANYDEPTH) 
     if img is None:
-        path = img_path.replace("/home/projects/hornsteinlab/Collaboration/MOmaps/input/images/raw/SpinningDisk/NOVA_d18_neurons_sorted/","")
-        logging.info(f"{path} is empty!")
+        logging.info(f"{img_path} is empty!")
         return None
     
     # img = img[12:-12,12:-12]
@@ -136,10 +135,10 @@ def main():
     batches = ['batch1', 'batch2']#[os.path.join('240323_day29_neurons_sorted', 'batch1')]#['batch4','batch5','batch6', 'batch9']#['batch7', 'batch8', 'batch3', 'batch4','batch5','batch6', 'batch9']#, 'batch8']#['batch6_16bit_no_downsample']
     # raw_base_path = '/home/projects/hornsteinlab/Collaboration/MOmaps/input/images/raw/SpinningDisk/'
     
-    
-    log_file_path = "/home/projects/hornsteinlab/Collaboration/MOmaps/outputs/preprocessing/spd18days/brenner/log280524_all.txt"
-    savepath =      "/home/projects/hornsteinlab/Collaboration/MOmaps/outputs/preprocessing/spd18days/brenner/raw_metrics280524_all.csv"
-    
+    folder_path = "/home/projects/hornsteinlab/Collaboration/NOVA/outputs/preprocessing/ManuscriptFinalData_80pct/neuronsDay18/brenner"
+    log_file_path = os.path.join(folder_path, "log210825_all.txt")
+    savepath = os.path.join(folder_path, "raw_metrics210825_all.csv")
+
     init_logging(log_file_path)
     
     logging.info("Starting outlier detection..")
@@ -167,4 +166,4 @@ if __name__ == "__main__":
     
 ###########################################
 
-
+# $NOVA_HOME/runnables/run.sh $NOVA_HOME/tools/preprocessing_tools/calculate_brenners -q short -j calc_brenner -m 20000

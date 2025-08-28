@@ -89,20 +89,20 @@ for model_path in "${models_path[@]}"; do
     # -a $model_path $effects_configs/NeuronsMultiplexEffectConfig -q short -j effect_multi_d8 -m 200000
 
 
-    $NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_effects_multiplex \
-    -a $model_path $effects_configs/NeuronsMultiplexEffectConfig_WithSNCA -q short -j effect_multi_d8_withSNCA -m 200000
+    # $NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_effects_multiplex \
+    # -a $model_path $effects_configs/NeuronsMultiplexEffectConfig_WithSNCA -q short -j effect_multi_d8_withSNCA -m 200000
 
     # dNLS 
     # $NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_effects_multiplex \
     # -a $model_path $effects_configs/dNLSMultiplexEffectConfig -q short -j effect_multi_dNLS -m 200000
 
-
-    # $NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_effects_multiplex \
-    # -a $model_path $effects_configs/dNLSMultiplexEffectConfig_NBoot1000 -q short -j effect_multi_dNLS -m 200000
-
     # # NIH
     # $NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_effects_multiplex \
     # -a $model_path $effects_configs/NIHMultiplexEffectConfig -q short -j effect_multi_NIH -m 200000
+
+    # AlyssaCoyne_new
+    $NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_effects_alyssa_new_multiplex \
+    -a $model_path $effects_configs/AlyssaCoyneNEWMultiplexEffectConfig -q short -j effect_multi_alyssaNew -m 200000
 
 
     # NANCY: runnables/run.sh runnables/generate_effects_multiplex -a outputs/vit_models/finetunedModel_MLPHead_acrossBatches_B56789_80pct_frozen/ ./manuscript/effects_config/NeuronsMultiplexEffectConfig -q short -j effect_multi -m 500000
