@@ -412,7 +412,8 @@ def run_baseline_model(
     train_each_as_singleton=False,  # if True, train on each batch individually, test on all others
     return_proba=False,            # if True, return DataFrame of predicted probabilities along with metrics
     calculate_auc=False,           # if True, compute ROC AUC for the predictions
-    results_csv=None               # if provided, append results to this CSV file
+    results_csv=None,               # if provided, append results to this CSV file
+    plot_per_fold_cm=True           # if True, plot confusion matrix for each fold
 ):
     accuracies = []
     accumulated_cm = None
@@ -440,8 +441,6 @@ def run_baseline_model(
 
         X_train, y_train = concat_from_cache(cache, train_batches)
         X_test,  y_test  = concat_from_cache(cache, test_batches)
-        print(np.unique(y_train))
-        print(np.unique(y_test))
 
         # Optionally filter based on label_map
         if label_map is not None:
@@ -484,14 +483,15 @@ def run_baseline_model(
         )
         stats_df_fold = compute_multilabel_metrics(bin_cms_fold, labels=le.classes_, overall_cm=cm)
         per_fold_stats.append(stats_df_fold)
-        print("\n=== Evaluation Metrics ===")
-        print(stats_df_fold.to_string(index=False))
+        if plot_per_fold_cm:
+            print("\n=== Evaluation Metrics ===")
+            print(stats_df_fold.to_string(index=False))
 
-        disp = ConfusionMatrixDisplay(confusion_matrix=cm, display_labels=le.classes_)    
-        disp.plot(xticks_rotation=90)
-        plt.title("Confusion Matrix")
-        plt.tight_layout()
-        plt.show()
+            disp = ConfusionMatrixDisplay(confusion_matrix=cm, display_labels=le.classes_)    
+            disp.plot(xticks_rotation=90)
+            plt.title("Confusion Matrix")
+            plt.tight_layout()
+            plt.show()
 
     # Final summary
     print("\n=== Overall Accuracy ===")
