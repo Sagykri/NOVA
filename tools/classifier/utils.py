@@ -440,6 +440,8 @@ def run_baseline_model(
 
         X_train, y_train = concat_from_cache(cache, train_batches)
         X_test,  y_test  = concat_from_cache(cache, test_batches)
+        print(np.unique(y_train))
+        print(np.unique(y_test))
 
         # Optionally filter based on label_map
         if label_map is not None:
@@ -484,6 +486,12 @@ def run_baseline_model(
         per_fold_stats.append(stats_df_fold)
         print("\n=== Evaluation Metrics ===")
         print(stats_df_fold.to_string(index=False))
+
+        disp = ConfusionMatrixDisplay(confusion_matrix=cm, display_labels=le.classes_)    
+        disp.plot(xticks_rotation=90)
+        plt.title("Confusion Matrix")
+        plt.tight_layout()
+        plt.show()
 
     # Final summary
     print("\n=== Overall Accuracy ===")
