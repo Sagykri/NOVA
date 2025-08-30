@@ -53,8 +53,7 @@ def generate_distances(
 
     logging.info(f"[Load embeddings] Loading embeddings from {model_outputs_folder}")
     if rep_effect:
-        detailed_stats= True  # If rep_effect is enabled, detailed stats should also be enabled
-        config_data.ADD_REP_TO_LABEL = True # Force adding rep to label for distance calculation
+        logging.warning("Make sure to set ADD_REP_TO_LABEL and detailed_stats flag to True when rep_effect flag is on")
 
     embeddings, labels, _ = load_embeddings(model_outputs_folder, config_data)
 
