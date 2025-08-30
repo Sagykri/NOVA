@@ -5,7 +5,6 @@ import numpy as np
 import time
 import pandas as pd
 
-
 sys.path.insert(1, os.getenv("NOVA_HOME"))
 print(f"NOVA_HOME: {os.getenv('NOVA_HOME')}")
 
@@ -30,7 +29,7 @@ def parse_args(argv):
     return {
         'model_outputs_folder' : sys.argv[1],
         'config_path_data' : sys.argv[2],
-        'ref_effect': True if "ref_effect" in sys.argv else False,
+        'rep_effect': True if "rep_effect" in sys.argv else False,
         'multiplexed': True if "multiplexed" in sys.argv else False,
         'detailed_stats': True if "detailed" in sys.argv else False,
         'normalize': True if "normalize" in sys.argv else False,
@@ -53,6 +52,9 @@ def generate_distances(
         Model outputs folder:{model_outputs_folder}, Multiplexed:{multiplexed}, Detailed stats:{detailed_stats}")
 
     logging.info(f"[Load embeddings] Loading embeddings from {model_outputs_folder}")
+    if rep_effect:
+        logging.warning("Make sure to set ADD_REP_TO_LABEL and detailed_stats flag to True when rep_effect flag is on")
+
     embeddings, labels, _ = load_embeddings(model_outputs_folder, config_data)
 
     logging.info(f"[Calculate distances]")
@@ -72,10 +74,10 @@ if __name__ == "__main__":
 
         model_outputs_folder = args['model_outputs_folder']
         config_path_data = args['config_path_data']
-        rep_effect = args['ref_effect'] # optional flag: True if "ref_effect" in sys.argv else False
+        rep_effect = args['rep_effect'] # optional flag: True if "rep_effect" in sys.argv else False
         multiplexed = args['multiplexed'] # optional flag: True if "multiplexed" in sys.argv else False
         detailed_stats = args['detailed_stats'] # optional flag: True if "detailed" in sys.argv else False
-        metric = "euclidean"  # Default metric
+        metric = "euclidean"  # Default metric, other option is "cosine"
         normalize_embeddings = args['normalize']  # optional flag: True if "normalize" in sys.argv else False
 
         generate_distances(
