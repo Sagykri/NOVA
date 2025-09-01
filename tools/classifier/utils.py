@@ -495,9 +495,7 @@ def run_baseline_model(
     accumulated_cm, classes_global = _align_and_sum_confusions(_cms, _cm_classes)
 
     # Labels for plot
-    print("Global classes:", classes_global)
     display_labels = _build_display_labels(label_map, classes_global)
-    print('display_labels', display_labels)
     # Plot
     plot_confusion_matrix(accumulated_cm, display_labels, 
                           title="Combined Confusion Matrix Across Folds")
