@@ -72,45 +72,7 @@ def load_batches_pkl(batch_ids, umap=1):
             y_list.append(data["labels"])
     return np.concatenate(X_list, axis=0), np.concatenate(y_list, axis=0)
 
-def load_batches(
-    batch_ids,
-    dataset_config 
-):
-    """
-    Load and concatenate embeddings and labels across batches.
-
-    Requires: load_config_file, load_embeddings, AnalyzerMultiplexMarkers (if multiplexed=True)
-    """
-    path_to_embeddings = dataset_config['path_to_embeddings']
-    multiplexed=dataset_config.get('multiplexed', False)
-    config_fmt=dataset_config.get('config_fmt', 'newNeuronsD8FigureConfig_UMAP1_B{batch}')
-    config_dir=dataset_config.get('config_dir','manuscript/manuscript_figures_data_config')
-
-    X_list, y_list = [], []
-
-    for b in batch_ids:
-        config_name = config_fmt.format(batch=b)
-        config_path_data = f'{config_dir}/{config_name}'
-        config_data = load_config_file(config_path_data, 'data')
-        config_data.OUTPUTS_FOLDER = path_to_embeddings
-
-        embeddings, labels, _ = load_embeddings(path_to_embeddings, config_data)
-
-        if multiplexed:
-            analyzer = AnalyzerMultiplexMarkers(config_data, path_to_embeddings)
-            embeddings, labels, _ = analyzer.calculate(embeddings, labels)
-
-        X_list.append(np.asarray(embeddings))
-        y_list.append(np.asarray(labels))
-
-    if not X_list:
-        raise ValueError("No batches loaded.")
-
-    X = np.concatenate(X_list, axis=0)
-    y = np.concatenate(y_list, axis=0).reshape(-1)
-    return X, y
-
-def load_all_batches(batch_ids, dataset_config):
+def load_batches(batch_ids, dataset_config):
     """
     Return a dict: {batch_id: (X, y)}
     """
@@ -140,7 +102,7 @@ def load_all_batches(batch_ids, dataset_config):
 def concat_from_cache(cache, batch_ids):
     """
     Concatenate (X,y) from the cache for the given batch_ids.
-    Cach is a dict {batch_id: (X, y)} as returned by load_all_batches.
+    Cach is a dict {batch_id: (X, y)} as returned by load_batches.
     """
     X_list, y_list = [], []
     for b in batch_ids:
@@ -420,7 +382,7 @@ def run_baseline_model(
     _cms = []; _cm_classes = []  # collect per-fold CMs + their class orders
 
     print("Loading all batches...")
-    cache = load_all_batches(batches, dataset_config)
+    cache = load_batches(batches, dataset_config)
     print("Batches loaded.")
 
     test_specific_batches  = ensure_list(test_specific_batches)
@@ -652,8 +614,9 @@ def run_train_test_split_baseline(
     return_proba=False,  # If True, return predicted probabilities
     label_map=None
 ):
-    # Load and encode
-    X, y = load_batches(batches, dataset_config= dataset_config)
+    # Load once via cache, then concat the requested batches
+    cache = load_batches(batches, dataset_config)
+    X, y = concat_from_cache(cache, batches)
 
     # Split
     X_train, X_test, y_train, y_test = train_test_split(
@@ -776,8 +739,9 @@ def run_clustering(
     pca_components=50,
     cluster_kwargs=dict()  # e.g., {'n_clusters': 5} or {'eps': 1.2}
 ):
-    # Load data
-    X_all, y_all = load_batches(batches, dataset_config= dataset_config)
+    # Load data via cache, then concat the requested batches
+    cache = load_batches(batches, dataset_config)
+    X_all, y_all = concat_from_cache(cache, batches)
     print('Data loaded.')
     y_all = np.array(y_all)
 
