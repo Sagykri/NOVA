@@ -35,8 +35,14 @@ def count_labels(y):
     counts = Counter(y)
     for label, count in counts.items():
         print(f"{label}: {count}")
+
+def remove_untreated_from_labels(labels):
+    """Remove '_Untreated' from a single label or a list/array of labels."""
+    if isinstance(labels, str):
+        return labels.replace('_Untreated', '')
+    return [str(l).replace('_Untreated', '') for l in labels]
         
-def plot_confusion_matrix(y_true, y_pred, label_encoder, shorten_labels=True, rotation=90):
+def create_confusion_matrix(y_true, y_pred, label_encoder, shorten_labels=True, rotation=90):
     """
     Plots a confusion matrix with correctly aligned labels and optional label cleaning.
     """
@@ -45,7 +51,7 @@ def plot_confusion_matrix(y_true, y_pred, label_encoder, shorten_labels=True, ro
 
     # Clean labels if needed
     if shorten_labels:
-        display_labels = [l.replace('_Untreated', '') for l in labels]
+        display_labels = remove_untreated_from_labels(labels)
     else:
         display_labels = labels
 
@@ -54,12 +60,7 @@ def plot_confusion_matrix(y_true, y_pred, label_encoder, shorten_labels=True, ro
     y_pred_str = label_encoder.inverse_transform(y_pred)
     cm = confusion_matrix(y_true_str, y_pred_str, labels=labels)
 
-    # Plot    
-    fig, ax = plt.subplots(figsize=(8, 6))
-    disp = ConfusionMatrixDisplay(confusion_matrix=cm, display_labels=display_labels)
-    disp.plot(xticks_rotation=rotation, ax=ax, cmap='viridis') 
-    plt.tight_layout(rect=[0, 0.05, 1, 1])  # give extra space at the bottom
-    plt.show()
+    return cm, display_labels
     
 def load_batches_pkl(batch_ids, umap=1):
     """Load and concatenate embeddings and labels from pkl files based on a list of batch numbers."""
@@ -137,7 +138,10 @@ def load_all_batches(batch_ids, dataset_config):
     return cache
 
 def concat_from_cache(cache, batch_ids):
-    """Concatenate (X,y) from the cache for the given batch_ids."""
+    """
+    Concatenate (X,y) from the cache for the given batch_ids.
+    Cach is a dict {batch_id: (X, y)} as returned by load_all_batches.
+    """
     X_list, y_list = [], []
     for b in batch_ids:
         if b not in cache:
@@ -374,22 +378,16 @@ def _average_stats_tables(stats_tables):
     num_cols = [c for c in stats_all.columns if c != "Label"]
     return stats_all.groupby("Label", as_index=False)[num_cols].mean()
 
-def _build_display_labels(label_map, classes_global):
-    """
-    Return display_labels for plotting.
-    - If label_map is given: groups original labels by mapped class index and joins with ' / '.
-    - Else: strips '_Untreated' from classes_global.
-    """
+def _build_display_labels(label_map, classes_global, shorten=True):
     def _clean(x):
-        # make sure we can call .replace even if x is not a string
-        return str(x).replace('_Untreated', '')
+        return remove_untreated_from_labels(x) if shorten else str(x)
 
     if label_map is not None:
         inv_map_full = defaultdict(list)
         for k, v in label_map.items():
             inv_map_full[v].append(_clean(k))
-        # assumes mapped indices are 0..K-1 (same as your current code)
-        display_labels = [' / '.join(inv_map_full[i]) for i in range(len(inv_map_full))]
+        # Use the mapped class names (keys) as display labels
+        display_labels = list(inv_map_full.keys())
     else:
         display_labels = [_clean(c) for c in classes_global]
 
@@ -486,12 +484,8 @@ def run_baseline_model(
         if plot_per_fold_cm:
             print("\n=== Evaluation Metrics ===")
             print(stats_df_fold.to_string(index=False))
-
-            disp = ConfusionMatrixDisplay(confusion_matrix=cm, display_labels=le.classes_)    
-            disp.plot(xticks_rotation=90)
-            plt.title("Confusion Matrix")
-            plt.tight_layout()
-            plt.show()
+            plot_confusion_matrix(cm, remove_untreated_from_labels(le.classes_) if label_map is None else le.classes_, 
+                                  title="Confusion Matrix per Fold")
 
     # Final summary
     print("\n=== Overall Accuracy ===")
@@ -501,14 +495,12 @@ def run_baseline_model(
     accumulated_cm, classes_global = _align_and_sum_confusions(_cms, _cm_classes)
 
     # Labels for plot
+    print("Global classes:", classes_global)
     display_labels = _build_display_labels(label_map, classes_global)
-    
+    print('display_labels', display_labels)
     # Plot
-    disp = ConfusionMatrixDisplay(confusion_matrix=accumulated_cm, display_labels=display_labels)    
-    disp.plot(xticks_rotation=90)
-    plt.title("Combined Confusion Matrix Across Batches")
-    plt.tight_layout()
-    plt.show()
+    plot_confusion_matrix(accumulated_cm, display_labels, 
+                          title="Combined Confusion Matrix Across Folds")
         
     # Metrics from the aggregated confusion matrix (global)
     binary_cms = _binary_cms_from_cm(accumulated_cm)
@@ -584,151 +576,6 @@ def _filter_and_remap_labels(X_train, y_train, X_test, y_test, label_map):
     y_test  = np.array([label_map[l] for l in y_test])
 
     return X_train, y_train, X_test, y_test
-
-
-def run_baseline_model_old(
-    dataset_config,                # dict with paths/loading settings for embeddings
-    batches=[1, 2, 3, 7, 8, 9,],   # list of batch IDs to include in the experiment
-    balance=False,                 # whether to balance class distributions during training
-    norm=False,                    # whether to normalize features before training
-    choose_features=False,         # whether to select top features 
-    top_k=100,                     # number of features to keep if choose_features=True
-    apply_pca=False,               # whether to reduce dimensionality with PCA
-    pca_components=50,             # number of PCA components if apply_pca=True
-    label_map=None,                # optional mapping to merge/remap labels, e.g. {"WT":0,"KO":1}
-    classifier_class=cuMLLogisticRegression, # classifier class to use (any sklearn/cuML-compatible estimator)
-    classifier_kwargs=dict(),      # extra arguments for the classifier constructor (e.g. {"max_depth":10})
-    test_specific_batches=None,    # int or list: which batches to use as test folds; None = default LOOCV
-    train_specific_batches=None,   # int or list: which batches to use for training; None = complement of test
-    train_each_as_singleton=False,  # if True, train on each batch individually, test on all others
-    return_proba=False,            # if True, return DataFrame of predicted probabilities along with metrics
-    calculate_auc=False,           # if True, compute ROC AUC for the predictions
-    results_csv=None               # if provided, append results to this CSV file
-):
-    accuracies = []
-    accumulated_cm = None
-    all_y_true = []; all_y_pred = [];  all_y_proba = []; fold_classes=[]
-
-    print("Loading all batches...")
-    cache = load_all_batches(batches, dataset_config)
-    print("Batches loaded.")
-
-    test_specific_batches  = ensure_list(test_specific_batches)
-    train_specific_batches = ensure_list(train_specific_batches)
-
-    folds = plan_folds(
-        batches=batches,
-        test_specific_batches=test_specific_batches,
-        train_specific_batches=train_specific_batches,
-        train_each_as_singleton=train_each_as_singleton,  
-        )
-    
-    for fold in folds:
-        train_batches, test_batches = fold["train"], fold["test"]
-        print(f"Training on Batches: {train_batches}, Testing on: {test_batches}.")
-
-        X_train, y_train = concat_from_cache(cache, train_batches)
-        X_test,  y_test  = concat_from_cache(cache, test_batches)
-
-        # Optionally filter based on label_map
-        if label_map is not None:
-            allowed_labels = set(label_map.keys())
-            train_mask = np.isin(y_train, list(allowed_labels))
-            test_mask = np.isin(y_test, list(allowed_labels))
-            X_train, y_train = X_train[train_mask], y_train[train_mask]
-            X_test, y_test = X_test[test_mask], y_test[test_mask]
-            y_train = np.array([label_map[l] for l in y_train])
-            y_test = np.array([label_map[l] for l in y_test])
-
-        # Encode labels numerically
-        le = LabelEncoder()
-        y_train_mapped = le.fit_transform(y_train)
-        y_test_mapped = le.transform(y_test)
-
-        print(f"\n=== Fold (test={test_batches}) ===")
-        print("Train:", np.shape(X_train), "Labels:", np.unique(y_train_mapped))
-        print("Test:", np.shape(X_test), "Labels:", np.unique(y_test_mapped))
-        count_labels(y_train)
-
-        accuracy, cm, y_pred, y_proba = train_and_evaluate_classifier(
-            X_train, X_test, y_train_mapped, y_test_mapped,
-            balance=balance, norm=norm,
-            choose_features=choose_features, top_k=top_k,
-            apply_pca=apply_pca, pca_components=pca_components,
-            classifier_class=classifier_class, classifier_kwargs=classifier_kwargs,
-            return_proba=return_proba or calculate_auc
-        )
-        accuracies.append(accuracy)
-
-        # Confusion matrix
-        accumulated_cm = cm if accumulated_cm is None else accumulated_cm + cm
-        all_y_true.extend(y_test_mapped)
-        all_y_pred.extend(y_pred)
-        fold_classes.append(list(le.classes_)) # collect per-fold classes during the loop
-        all_y_proba.append(_to_numpy_proba(y_proba))
-
-    # Final summary
-    print("\n=== Overall Accuracy ===")
-    print(np.mean(accuracies), accuracies)
-    if label_map is not None:
-        # Invert label_map for display
-        inv_map_full = defaultdict(list)
-        for k, v in label_map.items():
-            inv_map_full[v].append(k.replace('_Untreated', ''))
-        display_labels = [' / '.join(inv_map_full[i]) for i in range(len(inv_map_full))]
-    else:
-        classes_global = sorted(set().union(*fold_classes)) 
-        display_labels = [c.replace('_Untreated','') for c in classes_global]
-    disp = ConfusionMatrixDisplay(confusion_matrix=accumulated_cm, display_labels=display_labels)    
-    disp.plot(xticks_rotation=90)
-    plt.title("Combined Confusion Matrix Across Batches")
-    plt.tight_layout()
-    plt.show()
-        
-    # Generate list of binary confusion matrices
-    binary_cms = multilabel_confusion_matrix(all_y_true, all_y_pred, labels=range(len(le.classes_)))
-
-    # Compute and print stats
-    stats_df = compute_multilabel_metrics(binary_cms, labels=le.classes_)
-    # Ensure correct display
-    pd.set_option('display.max_columns', None)
-    pd.set_option('display.expand_frame_repr', False)
-
-    print("\n=== Evaluation Metrics ===")
-    print(stats_df.to_string(index=False))
-    macro = stats_df.loc[stats_df['Label'].eq('Macro Average')].drop(columns='Label').iloc[0].to_dict()
-
-    if results_csv:
-        _append_results_csv(
-            results_csv,
-            dataset_config=dataset_config,
-            batches=batches,
-            train_specific_batches=train_specific_batches,
-            test_specific_batches=test_specific_batches,
-            classifier_class=classifier_class,
-            classifier_kwargs=classifier_kwargs,
-            balance=balance,
-            norm=norm,
-            choose_features=choose_features,
-            top_k=top_k,
-            apply_pca=apply_pca,
-            pca_components=pca_components,
-            label_map=label_map,
-            macro_stats=macro,
-        )
-
-    if calculate_auc:
-        classes_global = sorted(set().union(*fold_classes))
-        proba_all = np.vstack([_align_proba(p, cls, classes_global) for p, cls in zip(all_y_proba, fold_classes)])
-        aucs = compute_overall_auc(np.array(all_y_true), proba_all)
-    if return_proba:
-        all_y_proba = np.vstack(all_y_proba)
-        df_proba = pd.DataFrame(all_y_proba, columns=le.classes_)
-        df_proba['predicted'] = le.inverse_transform(all_y_pred)
-        df_proba['true'] = le.inverse_transform(all_y_true)
-        return df_proba, macro
-    else:
-        return macro
 
 def _to_numpy_proba(p):
     try:
@@ -848,7 +695,8 @@ def run_train_test_split_baseline(
 
     # Only plot if not too many classes
     if len(le.classes_) <= 15:
-        plot_confusion_matrix(y_test_encoded, y_pred, le, shorten_labels=False if label_map else True) 
+        cm, dispalyed_labels = create_confusion_matrix(y_test_encoded, y_pred, le, shorten_labels=False if label_map else True)
+        plot_confusion_matrix(cm, dispalyed_labels) 
     else:
         print(f"Skipping confusion matrix plot ({len(le.classes_)} classes).")
     print(f"\nAccuracy: {accuracy:.4f}")
@@ -984,11 +832,11 @@ def run_clustering(
     merged_label_summary = plot_cluster_label_distribution(df_with_merged, row='label', col='merged_cluster', cmap='Oranges',
         title="Merged Cluster % Distribution per Label")
     
-    plot_cluster_confusion_matrix(df_with_merged, cluster_col='merged_cluster', title_prefix=f"{method.upper()} ")
+    create_and_plot_cluster_confusion_matrix(df_with_merged, cluster_col='merged_cluster', title_prefix=f"{method.upper()} ")
 
     return df, cluster_summary, label_summary
 
-def plot_cluster_confusion_matrix(df, cluster_col='cluster', title_prefix=''):
+def create_and_plot_cluster_confusion_matrix(df, cluster_col='cluster', title_prefix=''):
     """
     Plots a confusion matrix between true labels and predicted clusters.
 
@@ -1005,15 +853,51 @@ def plot_cluster_confusion_matrix(df, cluster_col='cluster', title_prefix=''):
 
     cm = confusion_matrix(df['label'], df[cluster_col], labels=labels)
 
-    disp = ConfusionMatrixDisplay(confusion_matrix=cm, display_labels=clusters)
-    disp.plot(xticks_rotation=90)
-    plt.title(f"{title_prefix}Confusion Matrix: True Label vs {cluster_col}")
-    plt.xlabel("Cluster")
-    plt.ylabel("True Label")
-    plt.tight_layout()
-    plt.show()
+    plot_confusion_matrix(cm, clusters, title=f"{title_prefix}Confusion Matrix: True Label vs {cluster_col}",
+                          xlabel="Cluster", ylabel="True Label")
 
     return cm
+
+def plot_confusion_matrix(cm, labels, title="Confusion Matrix", cmap="viridis",
+                          xlabel=None, ylabel=None, xtick_rotation=90):
+    """
+    Plot a confusion matrix with automatic scaling of figure & font size.
+    - Colorbar matches the matrix height (not including labels).
+    - For small matrices the figure size is capped smaller.
+    """
+    n_classes = len(labels)
+
+    fig_size = max(5, min(0.45 * n_classes, 14))
+    fig, ax = plt.subplots(figsize=(fig_size, fig_size))
+
+    # scale fonts
+    font_size = max(6, 10 - n_classes // 6)
+
+    # plot confusion matrix without colorbar
+    disp = ConfusionMatrixDisplay(confusion_matrix=cm, display_labels=labels)
+    disp.plot(ax=ax, xticks_rotation=xtick_rotation, cmap=cmap, colorbar=False)
+
+    # add colorbar aligned to image (matrix only)
+    im = disp.im_
+    cbar = fig.colorbar(im, ax=ax, fraction=0.046, pad=0.04)
+    cbar.ax.tick_params(labelsize=font_size)
+
+    # set titles and labels
+    ax.set_title(title, fontsize=font_size + 2)
+    if xlabel is not None:
+        ax.set_xlabel(xlabel, fontsize=font_size)
+    if ylabel is not None:
+        ax.set_ylabel(ylabel, fontsize=font_size)
+
+    # resize ticks and cell text
+    ax.tick_params(axis='x', labelsize=font_size)
+    ax.tick_params(axis='y', labelsize=font_size)
+    if hasattr(disp, "text_") and disp.text_ is not None:
+        for t in np.ravel(disp.text_):
+            t.set_fontsize(font_size)
+
+    plt.tight_layout()
+    plt.show()
 
 def plot_cluster_label_distribution(df, row='cluster', col='label', cmap='Blues', title=''):
     summary = (
