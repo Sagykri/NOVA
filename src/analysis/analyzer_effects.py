@@ -256,7 +256,8 @@ class AnalyzerEffects(Analyzer):
         if min(n_baseline, n_pert) < min_required:
             logging.warning(f"Too few samples: baseline={n_baseline}, pert={n_pert}. Minimum required is {min_required}")
             return {}
-        
+        logging.info(f"Sample size: baseline={n_baseline}, pert={n_pert}")
+
         effect_size, variance = self._compute_effect(baseline_embeddings, perturb_embeddings, n_boot)
 
         return {'baseline_size':n_baseline, 'perturb_size':n_pert,

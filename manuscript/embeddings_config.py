@@ -180,6 +180,55 @@ class EmbeddingsDay8B9DatasetConfig_withSNCA_Multiplexed(EmbeddingsDay8B9Dataset
 
         self.CELL_LINES = self.CELL_LINES + ['SNCA']
 
+# Cell painting markers
+class EmbeddingsDay8DatasetConfig_CellPainting_Multiplexed(EmbeddingsDay8NewDatasetConfig_Multiplexed):
+    def __init__(self):
+        super().__init__()
+
+        self.MARKERS = ['DAPI', 'Calreticulin', 'NCL', 'mitotracker', 'Phalloidin', 'GM130']
+
+class EmbeddingsDay8B1DatasetConfig_CellPainting_Multiplexed(EmbeddingsDay8DatasetConfig_CellPainting_Multiplexed):
+    def __init__(self):
+        super().__init__()
+
+        self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "ManuscriptFinalData_80pct", "neuronsDay8_new", f) for f in 
+                ["batch1"]]
+
+class EmbeddingsDay8B2DatasetConfig_CellPainting_Multiplexed(EmbeddingsDay8DatasetConfig_CellPainting_Multiplexed):
+    def __init__(self):
+        super().__init__()
+
+        self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "ManuscriptFinalData_80pct", "neuronsDay8_new", f) for f in 
+                ["batch2"]]
+
+class EmbeddingsDay8B3DatasetConfig_CellPainting_Multiplexed(EmbeddingsDay8DatasetConfig_CellPainting_Multiplexed):
+    def __init__(self):
+        super().__init__()
+
+        self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "ManuscriptFinalData_80pct", "neuronsDay8_new", f) for f in 
+                ["batch3"]]
+
+class EmbeddingsDay8B7DatasetConfig_CellPainting_Multiplexed(EmbeddingsDay8DatasetConfig_CellPainting_Multiplexed):
+    def __init__(self):
+        super().__init__()
+
+        self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "ManuscriptFinalData_80pct", "neuronsDay8_new", f) for f in 
+                ["batch7"]]
+
+class EmbeddingsDay8B8DatasetConfig_CellPainting_Multiplexed(EmbeddingsDay8DatasetConfig_CellPainting_Multiplexed):
+    def __init__(self):
+        super().__init__()
+
+        self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "ManuscriptFinalData_80pct", "neuronsDay8_new", f) for f in 
+                ["batch8"]]
+
+class EmbeddingsDay8B9DatasetConfig_CellPainting_Multiplexed(EmbeddingsDay8DatasetConfig_CellPainting_Multiplexed):
+    def __init__(self):
+        super().__init__()
+
+        self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "ManuscriptFinalData_80pct", "neuronsDay8_new", f) for f in 
+                ["batch9"]]
+
 # wo FUS marker
 class EmbeddingsDay8NewDatasetConfig_Multiplexed_wo_FUSMarker(EmbeddingsDay8NewDatasetConfig_Multiplexed):
     def __init__(self):
