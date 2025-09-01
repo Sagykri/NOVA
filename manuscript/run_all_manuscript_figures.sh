@@ -135,7 +135,7 @@ for model_path in "${models_path[@]}"; do
 
     # # UMAP0 - one marker two lines (WT and mutated line)
 
-    # B1 - B10:
+    # B1 - B9:
     # $NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_umaps_and_plot -m 70000 \
     # -a $model_path $data_configs/newNeuronsD8FigureConfig_UMAP0_allBatches_WT_TDP43 $plot_configs/UMAP0ALSPlotConfig -q short -j u0_nD8_WT_TDP43
     

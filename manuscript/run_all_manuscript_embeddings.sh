@@ -81,24 +81,26 @@ for model_path in "${models_path[@]}"; do
     # $NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_multiplexed_embeddings -g -m 20000 -b 10 \
     # -a $model_path $embeddings_configs/EmbeddingsDay8B9DatasetConfig_withSNCA_Multiplexed -q short-gpu -j emb_mul_d8New_withSNCA_B9
 
-    # WO FUS MARKER
-    $NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_multiplexed_embeddings -g -m 20000 -b 10 \
-    -a $model_path $embeddings_configs/EmbeddingsDay8B1DatasetConfig_Multiplexed_wo_FUSMarker -q short-gpu -j emb_mul_d8New_B1
+    # Cell painting markers multiplexed
 
     $NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_multiplexed_embeddings -g -m 20000 -b 10 \
-    -a $model_path $embeddings_configs/EmbeddingsDay8B2DatasetConfig_Multiplexed_wo_FUSMarker -q short-gpu -j emb_mul_d8New_B2
+    -a $model_path $embeddings_configs/EmbeddingsDay8B1DatasetConfig_CellPainting_Multiplexed -q short-gpu -j emb_mul_d8New_B1
 
     $NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_multiplexed_embeddings -g -m 20000 -b 10 \
-    -a $model_path $embeddings_configs/EmbeddingsDay8B3DatasetConfig_Multiplexed_wo_FUSMarker -q short-gpu -j emb_mul_d8New_B3
+    -a $model_path $embeddings_configs/EmbeddingsDay8B2DatasetConfig_CellPainting_Multiplexed -q short-gpu -j emb_mul_d8New_B2
+
+    $NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_multiplexed_embeddings -g -m 20000 -b 10 \
+    -a $model_path $embeddings_configs/EmbeddingsDay8B3DatasetConfig_CellPainting_Multiplexed -q short-gpu -j emb_mul_d8New_B3
     
     $NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_multiplexed_embeddings -g -m 20000 -b 10 \
-    -a $model_path $embeddings_configs/EmbeddingsDay8B7DatasetConfig_Multiplexed_wo_FUSMarker -q short-gpu -j emb_mul_d8New_B7
+    -a $model_path $embeddings_configs/EmbeddingsDay8B7DatasetConfig_CellPainting_Multiplexed -q short-gpu -j emb_mul_d8New_B7
 
     $NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_multiplexed_embeddings -g -m 20000 -b 10 \
-    -a $model_path $embeddings_configs/EmbeddingsDay8B8DatasetConfig_Multiplexed_wo_FUSMarker -q short-gpu -j emb_mul_d8New_B8
+    -a $model_path $embeddings_configs/EmbeddingsDay8B8DatasetConfig_CellPainting_Multiplexed -q short-gpu -j emb_mul_d8New_B8
 
     $NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_multiplexed_embeddings -g -m 20000 -b 10 \
-    -a $model_path $embeddings_configs/EmbeddingsDay8B9DatasetConfig_Multiplexed_Hits -q short-gpu -j emb_mul_d8New_B9_Hits 
+    -a $model_path $embeddings_configs/EmbeddingsDay8B9DatasetConfig_CellPainting_Multiplexed -q short-gpu -j emb_mul_d8New_B9
+
 
     # WO FUS MARKER
     # $NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_multiplexed_embeddings -g -m 20000 -b 10 \
