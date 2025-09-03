@@ -13,6 +13,11 @@ effects_configs=./manuscript/effects_config
 for model_path in "${models_path[@]}"; do
     model_name=$(basename "$model_path")
 
+    # U2OS ###
+    # $NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_effects \
+    # -a $model_path $effects_configs/U2OSEffectConfig -q short -j effects_U2OS -m 20000
+
+
     ### Neurons d8 ###
     # $NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_effects \
     # -a $model_path $effects_configs/NeuronsEffectWTBaselineFUSHomoConfig -q short -j effects_WT_FUSHom -m 250000

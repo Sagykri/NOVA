@@ -24,7 +24,7 @@ echo "NOVA_DATA_HOME:" $NOVA_DATA_HOME
 # $NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/preprocessing -g -m 20000 -b 10 -a ./manuscript/preprocessor_config/dNLSPreprocessingConfig_80pct_B6 true -j preprocess_dNLS_b6
 
 # new Neurons day 8
-$NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/preprocessing -g -m 20000 -b 10 -a ./manuscript/preprocessor_config/NeuronsD8PreprocessingConfig_80pct_New_B1 false -j preprocess_nD8New_b1
+# $NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/preprocessing -g -m 20000 -b 10 -a ./manuscript/preprocessor_config/NeuronsD8PreprocessingConfig_80pct_New_B1 false -j preprocess_nD8New_b1
 # $NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/preprocessing -g -m 20000 -b 10 -a ./manuscript/preprocessor_config/NeuronsD8PreprocessingConfig_80pct_New_B2 true -j preprocess_nD8New_b2
 # $NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/preprocessing -g -m 20000 -b 10 -a ./manuscript/preprocessor_config/NeuronsD8PreprocessingConfig_80pct_New_B3 true -j preprocess_nD8New_b3
 # $NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/preprocessing -g -m 20000 -b 10 -a ./manuscript/preprocessor_config/NeuronsD8PreprocessingConfig_80pct_New_B7 true -j preprocess_nD8New_b7
@@ -44,3 +44,5 @@ $NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/preprocessing -g -m 20000 -b 10
 # $NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/preprocessing -g -m 20000 -b 10 -a ./manuscript/preprocessor_config/AlyssaPreprocessingConfig_New_B1_woBrenner true -j preprocess_nAlyssa
 
 
+# U2OS
+$NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/preprocessing -g -m 20000 -b 10 -a ./manuscript/preprocessor_config/U2OSPreprocessingConfig_80pct false -j preprocess_U2OS

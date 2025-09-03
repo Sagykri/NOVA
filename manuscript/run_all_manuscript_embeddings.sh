@@ -14,8 +14,12 @@ for model_path in "${models_path[@]}"; do
     model_name=$(basename "$model_path")
 
     # OpenCell
+    # $NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_embeddings -g -m 40000 -b 10 \
+    # -a $model_path $embeddings_configs/EmbeddingsOpenCellDatasetConfig -q short-gpu -j emb_opencell
+
+    # U2OS
     $NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_embeddings -g -m 40000 -b 10 \
-    -a $model_path $embeddings_configs/EmbeddingsOpenCellDatasetConfig -q short-gpu -j emb_opencell
+    -a $model_path $embeddings_configs/EmbeddingsU2OSDatasetConfig -q short-gpu -j emb_u2os
 
     # neurons d8 - NEW 
     # $NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_embeddings -g -m 40000 -b 10 \
@@ -80,6 +84,22 @@ for model_path in "${models_path[@]}"; do
 
     # $NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_multiplexed_embeddings -g -m 20000 -b 10 \
     # -a $model_path $embeddings_configs/EmbeddingsDay8B9DatasetConfig_withSNCA_Multiplexed -q short-gpu -j emb_mul_d8New_withSNCA_B9
+
+    # Multiplexed neurons d8 - NEW - SHUFFLED! #
+    # $NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_shuffled_multiplexed_embeddings -g -m 20000 -b 10 \
+    # -a $model_path $embeddings_configs/EmbeddingsDay8B1DatasetConfig_Multiplexed -q short-gpu -j emb_mul_d8New_B1
+
+    # $NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_shuffled_multiplexed_embeddings -g -m 20000 -b 10 \
+    # -a $model_path $embeddings_configs/EmbeddingsDay8B2DatasetConfig_Multiplexed -q short-gpu -j emb_mul_d8New_B2
+
+    # $NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_shuffled_multiplexed_embeddings -g -m 20000 -b 10 \
+    # -a $model_path $embeddings_configs/EmbeddingsDay8B3DatasetConfig_Multiplexed -q short-gpu -j emb_mul_d8New_B3
+
+    # $NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_shuffled_multiplexed_embeddings -g -m 20000 -b 10 \
+    # -a $model_path $embeddings_configs/EmbeddingsDay8B8DatasetConfig_Multiplexed -q short-gpu -j emb_mul_d8New_B8
+
+    # $NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_shuffled_multiplexed_embeddings -g -m 20000 -b 10 \
+    # -a $model_path $embeddings_configs/EmbeddingsDay8B9DatasetConfig_Multiplexed -q short-gpu -j emb_mul_d8New_B9
 
     # Cell painting markers multiplexed
 
