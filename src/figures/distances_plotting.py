@@ -8,6 +8,9 @@ import networkx as nx
 import warnings
 from matplotlib.lines import Line2D
 from matplotlib.patches import Rectangle
+from scipy.spatial.distance import squareform
+import os
+from src.figures.plotting_utils import save_plot
 
 # Added by Nancy
 from itertools import combinations
@@ -76,55 +79,89 @@ def plot_custom_boxplot(summary_df,
     plt.tight_layout()
     plt.show()
 
-def plot_label_clustermap(df: pd.DataFrame,
-                          metric_col: str = "p50",
-                          method: str = "average",
-                          cmap: str = "viridis",
-                          figsize: tuple = (10,10),
-                          highlight_thresh: float = None,
-                          save_path: str = None):
+def plot_distances_heatmap(
+    df: pd.DataFrame,
+    metric_col: str = "p50",
+    method: str = "average",
+    cmap: str = "viridis",
+    figsize: tuple = (10,10),
+    highlight_thresh: float = None,
+    savepath: str = None,
+    fmt: str = ".2f",
+    text_color: str = "black",
+    do_cluster: bool = True,
+    annotate_values: bool = True
+):
     """
-    Build a symmetric distance matrix from df[['label1','label2',metric_col]],
-    cluster it, and draw a seaborn clustermap, and (if highlight_thresh is set)
-    draw a red box around any cell with value ≤ highlight_thresh.
+    Build a symmetric distance matrix from df[['label1','label2',metric_col]].
+    Optionally cluster (hierarchical) and optionally annotate cell values.
+    If highlight_thresh is set, draw a red box around any cell with value ≤ threshold.
     """
     labels = sorted(set(df['label1']) | set(df['label2']))
     dist_mat = pd.DataFrame(np.nan, index=labels, columns=labels)
-    
-    # Fill both off‐diag and diag entries from your df
+
+    # Fill both off-diag and diag entries from df
     for _, row in df.iterrows():
         i, j = row['label1'], row['label2']
         v = row[metric_col]
-        # Nancy's comment: note, this uses the last value and DOES NOT aggregate values from same i,j
+        # Nancy's comment: this uses the last value and DOES NOT aggregate values for same (i,j)
         dist_mat.loc[i, j] = v
         dist_mat.loc[j, i] = v
 
-    #dist_mat = dist_mat.fillna(0) # Added by Nancy - to support diff number of reps in each cell line
-    
-    link = linkage(dist_mat.values, method=method)
-    cg = sns.clustermap(dist_mat,
-                        row_linkage=link, col_linkage=link,
-                        cmap=cmap,
-                        figsize=figsize)
-    cg.fig.suptitle(f"Clustered heatmap ({metric_col})", y=1.02)
-    # Highlight low‑distance cells
-    if highlight_thresh is not None:
-        # Map original matrix indices to clustered heatmap positions
+    # Build clustermap with optional clustering
+    row_link = col_link = None
+    if do_cluster:
+        condensed_dist = squareform(dist_mat.values, checks=False)
+        link = linkage(condensed_dist, method=method)
+        row_link = col_link = link
+
+    cg = sns.clustermap(
+        dist_mat,
+        row_linkage=row_link,
+        col_linkage=col_link,
+        row_cluster=do_cluster,
+        col_cluster=do_cluster,
+        cmap=cmap,
+        figsize=figsize
+    )
+    cg.fig.suptitle(f"Clustered heatmap ({metric_col})" if do_cluster else f"Heatmap ({metric_col})", y=1.02)
+
+    # Map original matrix indices to displayed positions
+    if do_cluster:
         order = cg.dendrogram_row.reordered_ind
         inv_map = {orig: new for new, orig in enumerate(order)}
-        ax = cg.ax_heatmap
-        data = dist_mat.values
-        n = data.shape[0]
+    else:
+        inv_map = {i: i for i in range(len(labels))}
+
+    ax = cg.ax_heatmap
+    data = dist_mat.values
+    n = data.shape[0]
+
+    # Optional value annotations
+    if annotate_values:
         for i in range(n):
             for j in range(n):
-                if data[i, j] <= highlight_thresh:
+                val = data[i, j]
+                if np.isfinite(val):
                     yi, xi = inv_map[i], inv_map[j]
-                    ax.add_patch(Rectangle((xi, yi), 1, 1,
-                                           fill=False,
-                                           edgecolor='red',
-                                           linewidth=1))
-    if save_path:
-        cg.savefig(save_path, bbox_inches='tight')
+                    ax.text(xi + 0.5, yi + 0.5, format(val, fmt),
+                            ha='center', va='center', color=text_color, fontsize=10)
+
+    # Optional highlighting
+    if highlight_thresh is not None:
+        for i in range(n):
+            for j in range(n):
+                val = data[i, j]
+                if np.isfinite(val) and val <= highlight_thresh:
+                    yi, xi = inv_map[i], inv_map[j]
+                    ax.add_patch(Rectangle((xi, yi), 1, 1, fill=False, edgecolor='red', linewidth=1))
+
+    if savepath:
+        savepath = os.path.join(savepath, f'distance_heatmap')
+        save_plot(cg, savepath, dpi=300, save_eps=True)
+    else:
+        plt.show()
+    return
 
 def plot_network1(df: pd.DataFrame,
                              metric_col: str = "p50",
@@ -658,7 +695,7 @@ def plot_replicate_boxes(df, figsize=(14,6), pad_frac=0.05):
         color = palette.get(row['rep_pair'], 'gray')
 
         # Draw box (p25 to p75)
-        box = patches.Rectangle(
+        box = Rectangle(
             (x - 0.1, row['p25']),
             0.2,
             row['p75'] - row['p25'],
