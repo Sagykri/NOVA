@@ -7,7 +7,7 @@ from src.preprocessing.preprocessing_config import PreprocessingConfig
 class NeuronsD8PreprocessingConfig_80pct(PreprocessingConfig):
     def __init__(self):
         super().__init__()
-        self.RAW_FOLDER_ROOT = os.path.join(self.RAW_FOLDER_ROOT, 'SpinningDisk')
+        self.RAW_FOLDER_ROOT = os.path.join(self.RAW_FOLDER_ROOT, 'NeuronsDay8')
         self.MARKERS_FOCUS_BOUNDRIES_PATH =  os.path.join(os.getenv("NOVA_HOME"), 'manuscript', 'markers_focus_boundries', 'markers_focus_boundries_spd.csv')
         self.PROCESSED_FOLDER_ROOT = os.path.join(self.PROCESSED_FOLDER_ROOT, "ManuscriptFinalData_80pct", "neuronsDay8")
         self.OUTPUTS_FOLDER = os.path.join(self.OUTPUTS_FOLDER, "preprocessing", "ManuscriptFinalData_80pct", "neuronsDay8")
@@ -278,3 +278,26 @@ class NeuronsD8PreprocessingConfig_80pct_New_B10(NeuronsD8PreprocessingConfig_80
         self.INPUT_FOLDERS = [os.path.join(self.RAW_FOLDER_ROOT, "batch10")]
         self.PROCESSED_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "batch10")]
         self.OUTPUTS_FOLDER = os.path.join(self.OUTPUTS_FOLDER, "batch10")
+
+# U2OS
+class U2OSPreprocessingConfig_80pct(PreprocessingConfig):
+    def __init__(self):
+        super().__init__()
+
+        self.INPUT_FOLDERS = [os.path.join(self.RAW_FOLDER_ROOT, 'U2OS_sorted', 'batch1')]
+        self.PROCESSED_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "ManuscriptFinalData_80pct", "U2OS", 'batch1')]
+        self.OUTPUTS_FOLDER = os.path.join(self.OUTPUTS_FOLDER, "preprocessing", "ManuscriptFinalData_80pct", "U2OS", 'batch1')
+        
+        self.PREPROCESSOR_CLASS_PATH = os.path.join("src", "preprocessing", "preprocessors", "preprocessor_spd", "SPDPreprocessor")
+        self.MARKERS_FOCUS_BOUNDRIES_PATH =  None
+
+        self.MAX_INTENSITY_THRESHOLD_TARGET:float = 0
+        self.VARIANCE_THRESHOLD_TARGET:float = 0
+        self.MAX_INTENSITY_THRESHOLD_NUCLEI:float = 0
+        self.VARIANCE_THRESHOLD_NUCLEI:float = 0
+        self.MIN_ALIVE_NUCLEI_AREA: int = -1
+        self.MIN_MEDIAN_INTENSITY_NUCLEI_BLOB_THRESHOLD = 1.1 # > 1 means this filter won't be applied
+
+
+
+    

@@ -16,6 +16,11 @@ plot_configs=./manuscript/manuscript_plot_config
 for model_path in "${models_path[@]}"; do
     model_name=$(basename "$model_path")
 
+    # U2OS
+    # $NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_umaps_and_plot -m 15000 \
+    # -a $model_path $data_configs/U2OSUMAP0DatasetConfig $plot_configs/UMAP0StressPlotConfig -q short -j umap0_u2os
+
+
     # # new dNLS
 
     # $NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_umaps_and_plot -m 30000 \
@@ -280,31 +285,6 @@ for model_path in "${models_path[@]}"; do
 
     # ######
 
-    # # # UMAP0 - stress - UNUSED
-    # # $NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_umaps_and_plot -m 50000 \
-    # # -a $model_path $data_configs/newNeuronsD8FigureConfig_UMAP0 $plot_configs/UMAP0StressPlotConfig -q short -j u0_nD8_stress_$model_name
-
-    # # $NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_umaps_and_plot -m 10000 \
-    # # -a $model_path $data_configs/newNeuronsD8FigureConfig_UMAP0_B1 $plot_configs/UMAP0StressPlotConfig -q short -j u0_nD8_stress_B1_$model_name
-
-    # # $NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_umaps_and_plot -m 10000 \
-    # # -a $model_path $data_configs/newNeuronsD8FigureConfig_UMAP0_B2 $plot_configs/UMAP0StressPlotConfig -q short -j u0_nD8_stress_B2_$model_name
-
-    # # $NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_umaps_and_plot -m 10000 \
-    # # -a $model_path $data_configs/newNeuronsD8FigureConfig_UMAP0_B3 $plot_configs/UMAP0StressPlotConfig -q short -j u0_nD8_stress_B3_$model_name
-
-    # # $NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_umaps_and_plot -m 10000 \
-    # # -a $model_path $data_configs/newNeuronsD8FigureConfig_UMAP0_B7 $plot_configs/UMAP0StressPlotConfig -q short -j u0_nD8_stress_B7_$model_name
-
-    # # $NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_umaps_and_plot -m 10000 \
-    # # -a $model_path $data_configs/newNeuronsD8FigureConfig_UMAP0_B8 $plot_configs/UMAP0StressPlotConfig -q short -j u0_nD8_stress_B8_$model_name
-
-    # # $NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_umaps_and_plot -m 10000 \
-    # # -a $model_path $data_configs/newNeuronsD8FigureConfig_UMAP0_B9 $plot_configs/UMAP0StressPlotConfig -q short -j u0_nD8_stress_B9_$model_name
-
-    # # $NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_umaps_and_plot -m 10000 \
-    # # -a $model_path $data_configs/newNeuronsD8FigureConfig_UMAP0_B10 $plot_configs/UMAP0StressPlotConfig -q short -j u0_nD8_stress_B10_$model_name
-
     # # # UMAP0 - FUS lines
     # $NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_umaps_and_plot -m 40000 \
     # -a $model_path $data_configs/newNeuronsD8FigureConfig_FUSLines_UMAP0 $plot_configs/UMAP0ALSPlotConfig -q short -j u0_nD8_FUSLines_$model_name
@@ -523,6 +503,47 @@ for model_path in "${models_path[@]}"; do
 
     # $NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_umaps_and_plot -m 25000 \
     # -a $model_path $data_configs/newNeuronsD8FigureConfig_UMAP2_CellPainting_B10 $plot_configs/UMAP2ALSPlotConfig -q short -j u2_nD8_cpaint_b10
+
+    # UMAP2 - Shuffled
+
+    # $NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_shuffled_synthetic_superposition -m 50000 \
+    # -a $model_path $data_configs/newNeuronsD8FigureConfig_UMAP2_B1 $plot_configs/UMAP2ALSPlotConfig -q short -j u2_nD8_B1_$model_name
+
+
+    # $NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_shuffled_synthetic_superposition -m 50000 \
+    # -a $model_path $data_configs/newNeuronsD8FigureConfig_UMAP2_B2 $plot_configs/UMAP2ALSPlotConfig -q short -j u2_nD8_B2_$model_name
+
+
+    # $NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_shuffled_synthetic_superposition -m 50000 \
+    # -a $model_path $data_configs/newNeuronsD8FigureConfig_UMAP2_B3 $plot_configs/UMAP2ALSPlotConfig -q short -j u2_nD8_B3_$model_name
+
+
+    # $NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_shuffled_synthetic_superposition -m 50000 \
+    # -a $model_path $data_configs/newNeuronsD8FigureConfig_UMAP2_B8 $plot_configs/UMAP2ALSPlotConfig -q short -j u2_nD8_B8_$model_name
+
+
+    # $NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_shuffled_synthetic_superposition -m 50000 \
+    # -a $model_path $data_configs/newNeuronsD8FigureConfig_UMAP2_B9 $plot_configs/UMAP2ALSPlotConfig -q short -j u2_nD8_B9_$model_name
+
+    # $NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_shuffled_synthetic_superposition -m 50000 \
+    # -a $model_path $data_configs/newNeuronsD8FigureConfig_UMAP2_B1_wo_FUSMarker $plot_configs/UMAP2ALSPlotConfig -q short -j u2_nD8_B1_$model_name
+
+    # $NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_shuffled_synthetic_superposition -m 50000 \
+    # -a $model_path $data_configs/newNeuronsD8FigureConfig_UMAP2_B2_wo_FUSMarker $plot_configs/UMAP2ALSPlotConfig -q short -j u2_nD8_B2_$model_name
+
+
+    # $NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_shuffled_synthetic_superposition -m 50000 \
+    # -a $model_path $data_configs/newNeuronsD8FigureConfig_UMAP2_B3_wo_FUSMarker $plot_configs/UMAP2ALSPlotConfig -q short -j u2_nD8_B3_$model_name
+
+    # $NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_shuffled_synthetic_superposition -m 50000 \
+    # -a $model_path $data_configs/newNeuronsD8FigureConfig_UMAP2_B7_wo_FUSMarker $plot_configs/UMAP2ALSPlotConfig -q short -j u2_nD8_B7_$model_name
+
+    # $NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_shuffled_synthetic_superposition -m 50000 \
+    # -a $model_path $data_configs/newNeuronsD8FigureConfig_UMAP2_B8_wo_FUSMarker $plot_configs/UMAP2ALSPlotConfig -q short -j u2_nD8_B8_$model_name
+
+    # $NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_shuffled_synthetic_superposition -m 50000 \
+    # -a $model_path $data_configs/newNeuronsD8FigureConfig_UMAP2_B9_wo_FUSMarker $plot_configs/UMAP2ALSPlotConfig -q short -j u2_nD8_B9_$model_name
+
 
 
     ## Effect size

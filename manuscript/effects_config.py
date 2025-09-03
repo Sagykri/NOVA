@@ -5,6 +5,18 @@ sys.path.insert(1, os.getenv("NOVA_HOME"))
 from src.effects.effects_config import EffectConfig
 from manuscript.plot_config import PlotConfig
 
+# U2OS
+class U2OSEffectConfig(EffectConfig):
+    def __init__(self):
+        super().__init__()
+        self.INPUT_FOLDERS = ["batch1"]
+        self.EXPERIMENT_TYPE = 'U2OS'
+        self.BASELINE = 'WT_Untreated'
+        self.PERTURBATION = 'WT_stress'
+
+        self.MIN_REQUIRED:int = 0
+        self.N_BOOT:int = 1 # No need, only effect size is in use (no variance)
+
 ## neuronsDay8_new ##
 
 class NeuronsEffectConfig(EffectConfig):

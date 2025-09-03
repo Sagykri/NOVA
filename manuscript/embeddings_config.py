@@ -18,6 +18,20 @@ class EmbeddingsOpenCellDatasetConfig(EmbeddingsConfig):
         self.CONDITIONS = ['Untreated']
         self.EXPERIMENT_TYPE = 'Opencell'
 
+
+# U2OS
+class EmbeddingsU2OSDatasetConfig(EmbeddingsConfig):
+    def __init__(self):
+        super().__init__()
+
+        self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "ManuscriptFinalData_80pct", "U2OS", f) for f in 
+                        ["batch1"]]
+                        
+        self.SPLIT_DATA = False
+        self.ADD_BATCH_TO_LABEL = True
+        self.ADD_REP_TO_LABEL = True
+        self.EXPERIMENT_TYPE = 'U2OS'
+
 ### Neurons Day 8 NEW ###
 class EmbeddingsDay8NewDatasetConfig(EmbeddingsConfig):
     def __init__(self):
