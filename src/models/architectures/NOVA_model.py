@@ -112,6 +112,46 @@ class NOVAModel():
         all_outputs:np.ndarray[torch.Tensor] = np.vstack(all_outputs)
         
         return all_outputs, all_labels, all_paths
+
+    def gen_attn_maps(self, data_loader: DataLoader)->Tuple[np.ndarray[torch.Tensor], np.ndarray[str]]:
+        """ same as  - self.Infer(), but calls self.model.get_all_selfattention(X) instead of self.model(X)
+        Run epoch on the data_loader data
+
+        Args:
+            data_loader (DataLoader): The dataloader to run inference on
+
+        Returns:
+            Tuple[np.ndarray[torch.Tensor], np.ndarray[str]]: (all the outputs, all the labels)
+        """
+        all_outputs:List[torch.Tensor] = []
+        all_labels:np.ndarray[str] = np.array([])
+        all_paths:np.ndarray[str] = np.array([])
+        # Move model to cuda
+        self.model = self.model.cuda()
+        
+        # Set model to eval mode
+        self.model.eval()
+        
+        with torch.no_grad():
+            for it, res in enumerate(data_loader): #it: index, res: batch (X, y, path)
+                logging.info(f"[Inference] Batch number: {it}/{len(data_loader)}")
+                X, y, path = res
+                X = X.cuda()
+                
+                # convert from indexes to the labels
+                labels = data_loader.dataset.id2label(y)
+                # run the model to get the embeddings
+                outputs = self.model.get_all_selfattention(X).cpu() # (num_layers, num_samples, num_heads, num_patches, num_patches)
+                outputs = outputs.permute(1, 0, 2, 3, 4) # (num_samples, num_layers, num_heads, num_patches, num_patches)
+                all_outputs.append(outputs)
+
+                all_labels = np.append(all_labels, labels) # (num_samples)
+
+                all_paths = np.append(all_paths, path)
+        
+        all_outputs:np.ndarray[torch.Tensor] = np.vstack(all_outputs) # concanate all output  - [num_of_samples, output_dim]
+        
+        return all_outputs, all_labels, all_paths
     
     def is_equal_architecture(self, other_state_dict: Dict)->bool:
         """Check if the given state_dict is equal to self state_dict
@@ -146,7 +186,7 @@ class NOVAModel():
         is_MLP_head = get_if_exists(self.model_config, 'IS_MLP_HEAD', False)
 
         logging.info(f"Creating Vision Transformer with version: {vit_version}, MLP head: {is_MLP_head}")
-
+        
         if vit_version == 'base':
             create_vit = vision_transformer.vit_base
         elif vit_version == 'small':
