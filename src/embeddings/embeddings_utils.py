@@ -181,7 +181,7 @@ def generate_multiplexed_embeddings(model_output_folder:str,
 
 def save_embeddings(embeddings: List[np.ndarray[torch.Tensor]],labels: List[np.ndarray[str]],
                     paths: List[np.ndarray[str]],data_config: DatasetConfig,
-                    output_folder_path: str, multiplex: bool = False, folder_name_postfix:str='') -> None:
+                    output_folder_path: str, multiplex: bool = False, emb_folder_name:str = "embeddings",folder_name_postfix:str='') -> None:
     """
     Save embeddings per batch, optionally multiplexed.
 
@@ -192,6 +192,7 @@ def save_embeddings(embeddings: List[np.ndarray[torch.Tensor]],labels: List[np.n
         data_config: DatasetConfig object
         output_folder_path: Path to save embeddings
         multiplex: Whether to treat embeddings as multiplexed (passed to get_batches_from_labels)
+        emb_folder_name (str, optional): string of the embeddings folder name. Defaults to 'embeddings'.
         folder_name_postfix (str, optional): Postfix to add to the embeddings folder name. Defaults to ''.
     """
     batches_func = multiplex_batches if multiplex else get_batches_from_labels
@@ -207,7 +208,7 @@ def save_embeddings(embeddings: List[np.ndarray[torch.Tensor]],labels: List[np.n
 
         for batch, batch_indexes in __dict_temp.items():
             batch_save_path = os.path.join(
-                output_folder_path, f'embeddings', data_config.EXPERIMENT_TYPE,
+                output_folder_path, emb_folder_name, data_config.EXPERIMENT_TYPE,
                 f'multiplexed{folder_name_postfix}' if multiplex else folder_name_postfix, batch
             )
             os.makedirs(batch_save_path, exist_ok=True)
@@ -226,7 +227,7 @@ def save_embeddings(embeddings: List[np.ndarray[torch.Tensor]],labels: List[np.n
             logging.info(f'[save_embeddings] Finished {set_type} set, saved in {batch_save_path}')
 
 
-def load_embeddings(model_output_folder:str, config_data:DatasetConfig, sample_fraction:float=1.0, multiplex: bool = False, folder_name_postfix:str='')-> Tuple[np.ndarray[float], np.ndarray[str], np.ndarray[str]]:
+def load_embeddings(model_output_folder:str, config_data:DatasetConfig, sample_fraction:float=1.0, multiplex: bool = False, emb_folder_name:str = "embeddings", folder_name_postfix:str='')-> Tuple[np.ndarray[float], np.ndarray[str], np.ndarray[str]]:
     """
     Load embeddings from the model output folder, filtering and sampling as specified in the config_data.
 
@@ -235,6 +236,7 @@ def load_embeddings(model_output_folder:str, config_data:DatasetConfig, sample_f
         config_data (DatasetConfig): Configuration data containing settings for loading and filtering embeddings.
         sample_fraction (float, optional): Fraction of each label group to sample. Defaults to 1.0 (no sampling).
         multiplex (bool, optional): Whether to load multiplexed embeddings. Defaults to False.
+        emb_folder_name (str, optional): string of the embeddings folder name. Defaults to 'embeddings'.
         folder_name_postfix (str, optional): Postfix to add to the embeddings folder name. Defaults to ''.
 
     Returns:
@@ -256,7 +258,7 @@ def load_embeddings(model_output_folder:str, config_data:DatasetConfig, sample_f
     logging.info(f"[load_embeddings] model_output_folder = {model_output_folder}")
 
     batches = get_batches_from_input_folders(input_folders)
-    embeddings_folder = os.path.join(model_output_folder, f"embeddings", experiment_type, f"multiplexed{folder_name_postfix}" if multiplex else folder_name_postfix)
+    embeddings_folder = os.path.join(model_output_folder, emb_folder_name, experiment_type, f"multiplexed{folder_name_postfix}" if multiplex else folder_name_postfix)
     logging.info(f"[load_embeddings] embeddings_folder = {embeddings_folder}")
     embeddings, labels, paths = __load_multiple_batches(batches = batches,embeddings_folder = embeddings_folder,
                                                  config_data=config_data, allow_pickle=multiplex)
