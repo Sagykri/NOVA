@@ -93,7 +93,8 @@ class AnalyzerUMAP(Analyzer):
         if 'random_state' not in kwargs:
             kwargs['random_state'] = self.data_config.SEED
         reducer = umap.UMAP(**kwargs)
-        umap_embeddings = reducer.fit_transform(embeddings)
+        embeddings_flattened = embeddings.reshape(embeddings.shape[0], -1) #flatten the embedding to (num_samples, num_features)
+        umap_embeddings = reducer.fit_transform(embeddings_flattened)
         return umap_embeddings
     
     def _compute_ari(self, embeddings:np.ndarray[float], labels:np.ndarray[str], **kwargs)->float:
@@ -108,6 +109,7 @@ class AnalyzerUMAP(Analyzer):
             float: the ari score
         """
         clustering_kwargs = {a: kwargs[a] for a in inspect.signature(calc_ari_with_kmeans).parameters if a in kwargs}
-        score = calc_ari_with_kmeans(embeddings, labels, **clustering_kwargs)
+        embeddings_flattened = embeddings.reshape(embeddings.shape[0], -1) #flatten the embedding to (num_samples, num_features)
+        score = calc_ari_with_kmeans(embeddings_flattened, labels, **clustering_kwargs)
         return score
 
