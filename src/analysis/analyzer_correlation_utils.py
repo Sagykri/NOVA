@@ -14,10 +14,40 @@ from src.datasets.label_utils import get_batches_from_labels, get_unique_parts_f
     edit_labels_by_config, get_batches_from_input_folders, get_reps_from_labels, get_conditions_from_labels, get_cell_lines_from_labels
 from collections import OrderedDict
 from NOVA.tools.load_data_from_npy import parse_paths, load_tile, load_paths_from_npy, Parse_Path_Item
+from skimage import filters
+from src.analysis.attention_correlation_config import AttnCorrScoresConfig
+
+def threshold_percentile(arr, percentile):
+        # top X% of the array
+        return np.quantile(arr, percentile)
+# Map threshold method names to their functions
+THRESHOLD_METHODS = {
+        "percentile": threshold_percentile,  
+        "otsu": filters.threshold_otsu,
+        "isodata": filters.threshold_isodata,
+        "yen": filters.threshold_yen,
+        "li": filters.threshold_li,
+        "triangle": filters.threshold_triangle,
+        "mean": filters.threshold_mean,
+        "niblack": filters.threshold_niblack,
+        "sauvola": filters.threshold_sauvola,
+    }
+
+def l1_normalize(x, eps=1e-12):
+    s = x.sum()
+    return x / (s + eps)
+
+# Example “probability-overlap” (Bhattacharyya coefficient)
+def corr_prob_overlap(attn, img_ch, config  = None):
+    args = getattr(config, 'CORR_METHOD_ARGS', None)
+    magnitude_scaling = args.get('magnitude_scaling', 100) if args else 100
+
+    a = l1_normalize(attn)
+    m = l1_normalize(img_ch)
+    return (a * m).sum() * magnitude_scaling
 
 
-
-def corr_pearsonr(m1, m2):
+def corr_pearsonr(m1, m2, config  = None):
     """
     calcaultes person r correlation score betweeb the 2 flattened matrices 
     """
@@ -26,30 +56,38 @@ def corr_pearsonr(m1, m2):
     v2 = m2.flatten()
     return pearsonr(v1, v2)[0]
 
-def corr_mutual_info(m1, m2, bins=32):
+def corr_mutual_info(m1, m2, config  = None):
     from sklearn.metrics import mutual_info_score
+    args = getattr(config, 'CORR_METHOD_ARGS', None)
+    bins = args.get('bins', 32) if args else 32
     # Flatten and discretize
     v1 = np.digitize(m1.flatten(), bins=np.histogram_bin_edges(m1, bins))
     v2 = np.digitize(m2.flatten(), bins=np.histogram_bin_edges(m2, bins))
     return mutual_info_score(v1, v2)
 
-def corr_ssim(m1, m2):
+def corr_ssim(m1, m2, config  = None):
     """
     assumes m1 and m2 are normalized.
     Calculates structural similarity index measure between the 2 matrices.
     """
     from skimage.metrics import structural_similarity as ssim
-    score, ssim_map = ssim(m1, m2, full=True)
+    args = getattr(config, 'CORR_METHOD_ARGS', None)
+    full = args.get('full', True) if args else True
+    score, ssim_map = ssim(m1, m2, full=full)
 
     return score
 
-def corr_attn_overlap(m1, m2, m2_binary_perc = 0.8):
+def corr_attn_overlap(m1, m2, config = None):
     """
+        m1: attn
+        m2: channel
         for attention maps:
             sums the values of attention (m1) only in the masked area of the input (m2).
                 --> "segment" to get only the most important pixels of the input images and calculate
                     the average attention value in those areas.  
     """
+    args = getattr(config, 'CORR_METHOD_ARGS', None)
+    m2_binary_perc = args.get('m2_binary_perc', 0.75) if args else 0.75
     # Use top X% of m2 (img) as binary mask
     threshold = np.quantile(m2, m2_binary_perc)
     m2_mask = m2 >= threshold
@@ -59,10 +97,10 @@ def corr_attn_overlap(m1, m2, m2_binary_perc = 0.8):
     return score
 
 
-def corr_soft_overlap(attn_map, img_ch):
+def corr_soft_overlap(attn_map, img_ch, config = None):
 
-    # Element-wise product (overlap)
-    overlap = np.sum(attn_map * img_ch)
+    # element-wise multiplication (Hadamard product) - "soft overlap"
+    overlap = np.sum(attn_map * img_ch) 
 
     # Normalizations
     total_attn = np.sum(attn_map)
@@ -78,7 +116,40 @@ def corr_soft_overlap(attn_map, img_ch):
     else:
         f1_like = 0
     
-    return f1_like
+    return precision_like, recall_like, f1_like
+
+
+def binary_mask(arr, config):
+        # Check if the requested method exists in the map
+        method = config.THRESHOLD_METHOD
+        if method not in THRESHOLD_METHODS:
+            raise ValueError(f"No threshold function found for {method}")
+            
+        func = THRESHOLD_METHODS[method]
+        args = config.THRESHOLD_ARGS
+
+        try:
+            threshold = func(arr, **args)
+        except TypeError as e:
+            raise TypeError(f"The threshold function '{method}' received invalid arguments: {e}")
+
+        return arr >= threshold
+
+def corr_binary_score(attn_map , img_ch, config):
+
+    attn_mask = binary_mask(attn_map, config)
+    ch_mask = binary_mask(img_ch, config)
+
+    tp = np.logical_and(attn_mask, ch_mask).sum()  # True Positives
+    fp = np.logical_and(attn_mask, np.logical_not(ch_mask)).sum()  # False Positives
+    tn = np.logical_and(np.logical_not(attn_mask), np.logical_not(ch_mask)).sum()  # True Negatives
+    fn = np.logical_and(np.logical_not(attn_mask), ch_mask).sum()  # False Negatives
+
+    precision = tp / (tp + fp) if (tp + fp) > 0 else 0
+    recall = tp / (tp + fn) if (tp + fn) > 0 else 0
+    f1 = 2 * precision * recall / (precision + recall) if (precision + recall) > 0 else 0
+
+    return precision, recall, f1
 
 def normalize(v1):
     denom = v1.max() - v1.min()
@@ -87,14 +158,14 @@ def normalize(v1):
     else:
         return (v1 - v1.min()) / denom
 
-def compute_correlation(attn, img_ch, corrleation_method:str):
+def compute_correlation(attn, img_ch, corr_config:AttnCorrScoresConfig):
     assert attn.shape == img_ch.shape, f"[compute_correlation] Shape mismatch: attn.shape={attn.shape}, img_ch.shape={img_ch.shape}"
 
     # make sure both are normalized
     attn = normalize(attn) 
     img_ch = normalize(img_ch)
 
-    return globals()[f"corr_{corrleation_method}"](attn, img_ch)
+    return globals()[f"corr_{corr_config.CORR_METHOD}"](attn, img_ch, corr_config)
 
 
 def get_percentiles(data, prc_list = [25,50,75], axis=0):
@@ -105,7 +176,7 @@ def get_percentiles(data, prc_list = [25,50,75], axis=0):
     return perc_tuple
 
 
-def compute_corr_data(attn_map, channels, corr_method = "pearsonr"):
+def compute_corr_data(attn_map, channels, corr_config:AttnCorrScoresConfig):
     """
         input:
             attn_map: attention maps values, already in the img shape (H,W), rescale to [0,1]
@@ -115,14 +186,17 @@ def compute_corr_data(attn_map, channels, corr_method = "pearsonr"):
         returns:
             corrs: list of correlation for each channel
             normalized_ent: normalized [0,1] entropy of the attn map
-            corr_method: as the argument
+            corr_config: config with the correlation scores parameters
     """
 
     corrs = []
     for channel in channels:
         # compute correlation - 
-        ch_corr = compute_correlation(attn_map, channel, corr_method)
-        corrs.append(ch_corr)
+        ch_corr = compute_correlation(attn_map, channel, corr_config)
+        if isinstance(ch_corr, tuple):
+            corrs.append(ch_corr)
+        else:
+            corrs.append((ch_corr,))  # Add dummy dimension
 
     return corrs
 
@@ -409,7 +483,7 @@ def plot_correlation_all_layers_by_markers(corr_by_markers, corr_method, config_
 
 ##################### calculate correlation##################### 
 
-def _compute_attn_corr(processed_attn_map, sample_info, corr_method):
+def _compute_attn_corr(processed_attn_map, sample_info, corr_config:AttnCorrScoresConfig):
     # Sample Info
     img_path, site, tile, label = sample_info
     marker, nucleus, input_img = load_tile(img_path, tile)
@@ -418,27 +492,27 @@ def _compute_attn_corr(processed_attn_map, sample_info, corr_method):
         # All layers: (num_layers, N, N)
         corr_data_all_layers = []
         for layer_attn in processed_attn_map:
-            corr_data = compute_corr_data(layer_attn, [nucleus, marker], corr_method)
+            corr_data = compute_corr_data(layer_attn, [nucleus, marker], corr_config)
             corr_data_all_layers.append(corr_data)
         return corr_data_all_layers
 
     elif processed_attn_map.ndim == 2:
         # Rollout: (N, N)
-        corr_data = compute_corr_data(processed_attn_map, [nucleus, marker], corr_method)
+        corr_data = compute_corr_data(processed_attn_map, [nucleus, marker], corr_config)
         return corr_data
 
     else:
         raise ValueError(f"Unexpected processed_attn_map shape: {processed_attn_map.shape}")
 
-def __calc_attn_corr(proccessed_sample_attn: np.ndarray[float], sample_info:tuple, corr_method:str):
+def __calc_attn_corr(proccessed_sample_attn: np.ndarray[float], sample_info:tuple, corr_config:AttnCorrScoresConfig):
     """
         calculate correlation data between attention maps and input image
     """
-    corr_data = _compute_attn_corr(proccessed_sample_attn, sample_info, corr_method=corr_method)
+    corr_data = _compute_attn_corr(proccessed_sample_attn, sample_info, corr_config)
     return corr_data
 
 def compute_attn_correlations(processed_attn_maps: np.ndarray[float], labels: np.ndarray[str], 
-                    paths: np.ndarray[str], data_config: DatasetConfig, corr_method:str):
+                    paths: np.ndarray[str], data_config: DatasetConfig, corr_config:AttnCorrScoresConfig):
     """
     for each sample in processed_attn_maps create and saves a figure of the input image, its attention map and overlay. 
     in the process it calculate ad return each samples correlation score between the attn map and the input image. 
@@ -476,7 +550,7 @@ def compute_attn_correlations(processed_attn_maps: np.ndarray[float], labels: np
                 img_path, tile, site = Parse_Path_Item(path_item)
 
                 # compute corr
-                corr_data = __calc_attn_corr(sample_attn, (img_path, site, tile, label), corr_method)
+                corr_data = __calc_attn_corr(sample_attn, (img_path, site, tile, label), corr_config)
                 set_corr_data.append(corr_data)
         
         # end of set type

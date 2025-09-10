@@ -29,84 +29,86 @@ def get_corr_percentiles(data, num_channels):
                 p75s.append(p75)
             return p25s, medians, p75s
 
-def plot_correlation(corr_data, corr_method, config_plot, channel_names=None,
+def plot_correlation(corr_data, corr_method, config_plot, channel_names=None, features_names=None,
                      sup_title="Correlation", output_folder_path=None, per_layer=False):
 
-    # Step 1: Normalize shape to (N, L, C)
-    if corr_data.ndim == 2:
+    # Normalize shape to (N, L, C, F): (num_samples, num_layers, num_channels, num_features)
+    print(corr_data.shape)
+    if corr_data.ndim == 3:
         old_shape = corr_data.shape
-        corr_data = corr_data[:, np.newaxis, :]  # shape (N, 1, C)
+        corr_data = corr_data[:, np.newaxis, :, :]  # shape (N, 1, C, F)
         logging.info(f'[plot_corr_data] reshaping corr_data: {old_shape} -> {corr_data.shape}')
-    #     only_one_layer = True
-    # elif corr_data.ndim == 3:
-    #     only_one_layer = False
-    # else:
-    #     raise ValueError(f"Unsupported shape for corr_data: {corr_data.shape}")
 
-    num_samples, num_layers, num_channels = corr_data.shape
+    num_samples, num_layers, num_channels, num_features = corr_data.shape
 
-    # Step 2: Channel names
+    # Channel names
     if channel_names is None:
         channel_names = [f"Ch{i}" for i in range(num_channels)]
     assert len(channel_names) == num_channels, "Mismatch between channel names and data"
 
-    if per_layer:
-        # ─── Line + shaded percentile plot across layers ───
+    # feature names
+    if features_names is None:
+        features_names = [f"Feature{i}" for i in range(num_features)]
+    assert len(features_names) == num_features, "Mismatch between feature names and data"
 
-        p25s_corr, medians_corr, p75s_corr = get_corr_percentiles(corr_data, num_channels)
-        layers_range = np.arange(num_layers)
+    for i, feature in enumerate(features_names):
+        if per_layer: # plotting correlation score per layer (num_layers > 1) using percentiles
+            # ─── Line + shaded percentile plot across layers ───
+            p25s_corr, medians_corr, p75s_corr = get_corr_percentiles(corr_data[:, :, :, i], num_channels)
+            layers_range = np.arange(num_layers)
 
-        fig, ax = plt.subplots(figsize=(1.5 * num_layers, 6))
-        ax.axhline(y=0, color='black', linestyle='--', linewidth=1)
+            fig, ax = plt.subplots(figsize=(1.5 * num_layers, 6))
+            ax.axhline(y=0, color='black', linestyle='--', linewidth=1)
 
-        for ch in range(num_channels):
-            ax.plot(layers_range, medians_corr[ch], label=f"{channel_names[ch]} (Median)",
-                    marker='o', color=f"C{ch}")
-            ax.fill_between(layers_range, p25s_corr[ch], p75s_corr[ch],
-                            alpha=0.3, color=f"C{ch}")
+            for ch in range(num_channels):
+                ax.plot(layers_range, medians_corr[ch], label=f"{channel_names[ch]} (Median)",
+                        marker='o', color=f"C{ch}")
+                ax.fill_between(layers_range, p25s_corr[ch], p75s_corr[ch],
+                                alpha=0.3, color=f"C{ch}")
 
-        ax.set_xlabel("Layer Number", fontsize=config_plot.PLOT_TITLE_FONTSIZE)
-        ax.set_xticks(layers_range)
+            ax.set_xlabel("Layer Number", fontsize=config_plot.PLOT_TITLE_FONTSIZE)
+            ax.set_xticks(layers_range)
 
-    else:
-        # ─── Boxplot per channel (collapsed over layers) ───
-        fig, ax = plt.subplots(figsize=(1.5 * num_channels, 6))
-        ax.axhline(y=0, color='black', linestyle='--', linewidth=1)
+        else:
+            # ─── Boxplot per channel (collapsed over layers) ───
+            fig, ax = plt.subplots(figsize=(1.5 * num_channels, 6))
+            ax.axhline(y=0, color='black', linestyle='--', linewidth=1)
 
-        for ch in range(num_channels):
-            values = corr_data[:, :, ch].flatten()
-            ax.boxplot(values,
-                       positions=[ch + 1],
-                       widths=0.6,
-                       patch_artist=True,
-                       boxprops=dict(facecolor=f"C{ch}", color='black'),
-                       medianprops=dict(color='black'),
-                       showfliers=False)
+            for ch in range(num_channels):
+                values = corr_data[:, :, ch, i].flatten()
+                ax.boxplot(values,
+                        positions=[ch + 1],
+                        widths=0.6,
+                        patch_artist=True,
+                        boxprops=dict(facecolor=f"C{ch}", color='black'),
+                        medianprops=dict(color='black'),
+                        showfliers=False)
 
-        ax.set_xticks(np.arange(1, num_channels + 1))
-        ax.set_xticklabels(channel_names, fontsize=10)
+            ax.set_xticks(np.arange(1, num_channels + 1))
+            ax.set_xticklabels(channel_names, fontsize=10)
 
-    # ─── Shared formatting ───
-    ax.set_ylabel(f"{corr_method} Correlation", fontsize=config_plot.PLOT_TITLE_FONTSIZE)
-    ax.set_ylim(-1, 1)
-    ax.grid(axis='y', linestyle='--', alpha=0.5)
-    ax.legend(loc="upper left")
-    fig.suptitle(sup_title, fontsize=config_plot.PLOT_SUPTITLE_FONTSIZE)
-    plt.tight_layout(rect=[0, 0.03, 1, 0.95])
+        # ─── Shared formatting ───
+        temp_sup_title = sup_title + f"_{feature}"
+        ax.set_ylabel(f"{feature} Score", fontsize=config_plot.PLOT_TITLE_FONTSIZE)
+        ax.set_ylim(-1, 1)
+        ax.grid(axis='y', linestyle='--', alpha=0.5)
+        ax.legend(loc="upper left")
+        fig.suptitle(temp_sup_title, fontsize=config_plot.PLOT_SUPTITLE_FONTSIZE)
+        plt.tight_layout(rect=[0, 0.03, 1, 0.95])
 
-    # ─── Save or show ───
-    if config_plot.SAVE_PLOT and output_folder_path is not None:
-        fig_name = sup_title.split('\n', 1)[0]
-        plt.savefig(os.path.join(output_folder_path, f"{fig_name}.png"),
-                    dpi=config_plot.PLOT_SAVEFIG_DPI, bbox_inches="tight", facecolor=fig.get_facecolor())
-        plt.close()
-    else:
-        plt.show()
+        # ─── Save or show ───
+        if config_plot.SAVE_PLOT and output_folder_path is not None:
+            fig_name = temp_sup_title.replace("\n", "_") # clean str from new lines
+            plt.savefig(os.path.join(output_folder_path, f"{fig_name}.png"),
+                        dpi=config_plot.PLOT_SAVEFIG_DPI, bbox_inches="tight", facecolor=fig.get_facecolor())
+            plt.close()
+        else:
+            plt.show()
 
 
 
 
-def plot_correlation_by_markers(corr_by_markers, corr_method, config_plot, channel_names=None,
+def plot_correlation_by_markers(corr_by_markers, corr_method, config_plot, channel_names=None, features_names=None,
                                 sup_title="Correlation_by_Markers", output_folder_path=None,
                                 per_layer=False):
     """
@@ -125,107 +127,109 @@ def plot_correlation_by_markers(corr_by_markers, corr_method, config_plot, chann
     marker_names = list(corr_by_markers.keys())
     sample = np.array(next(iter(corr_by_markers.values())))
 
-    # Normalize shape: (N, C) → (N, 1, C)
-    if sample.ndim == 2:
+    # Step 1: Normalize shape to (N, L, C, F): (num_samples, num_layers, num_channels, num_features)
+    if sample.ndim == 3:
         old_shape = sample.shape
-        corr_by_markers = {k: v[:,  np.newaxis, :] for k, v in corr_by_markers.items()}
+        corr_by_markers = {k: v[:,  np.newaxis, :, :] for k, v in corr_by_markers.items()}
         new_sample = np.array(next(iter(corr_by_markers.values())))
         logging.info(f'[plot_corr_data] reshaping corr_data: {old_shape} -> {new_sample.shape}')
-    #     is_rollout = True
-    # elif sample.ndim == 3:
-    #     is_rollout = False
-    # else:
-    #     raise ValueError(f"Unsupported shape: {sample.shape}")
 
     sample = np.array(next(iter(corr_by_markers.values())))
     num_markers = len(marker_names)
-    num_samples, num_layers, num_channels = sample.shape
+    num_samples, num_layers, num_channels, num_features = sample.shape
    
-
     if channel_names is None:
         channel_names = [f"Ch{i}" for i in range(num_channels)]
     assert len(channel_names) == num_channels
 
-    if per_layer:
-        # ─── Line + shaded plot per marker ────────────────
-        ncols = len(marker_names)
-        fig, axes = plt.subplots(1, ncols, figsize=(6 * ncols, 6), sharey=True)
+    # feature names
+    if features_names is None:
+        features_names = [f"Feature{i}" for i in range(num_features)]
+    assert len(features_names) == num_features, "Mismatch between feature names and data"
 
-        if ncols == 1:
-            axes = [axes]
 
-        for ax, marker in zip(axes, marker_names):
-            data = corr_by_markers[marker]  # shape: (N, L, C)
-            p25s_corr, medians_corr, p75s_corr = get_corr_percentiles(data, num_channels)
-            layers_range = np.arange(num_layers)
+    for i, feature in enumerate(features_names):
+        temp_sup_title = sup_title + f"_{feature}"
+        if per_layer:
+            # ─── Line + shaded plot per marker ────────────────
+            ncols = len(marker_names)
+            fig, axes = plt.subplots(1, ncols, figsize=(6 * ncols, 6), sharey=True)
 
-            for ch in range(num_channels):
-                ax.plot(layers_range, medians_corr[ch], label=f"{channel_names[ch]} (Median)",
-                        marker='o', color=f"C{ch}")
-                ax.fill_between(layers_range, p25s_corr[ch], p75s_corr[ch],
-                                alpha=0.3, color=f"C{ch}")
+            if ncols == 1:
+                axes = [axes]
+
+            for ax, marker in zip(axes, marker_names):
+                data = corr_by_markers[marker]  # shape: (N, L, C, F)
+                p25s_corr, medians_corr, p75s_corr = get_corr_percentiles(data[:, :, :, i], num_channels)
+                layers_range = np.arange(num_layers)
+
+                for ch in range(num_channels):
+                    ax.plot(layers_range, medians_corr[ch], label=f"{channel_names[ch]} (Median)",
+                            marker='o', color=f"C{ch}")
+                    ax.fill_between(layers_range, p25s_corr[ch], p75s_corr[ch],
+                                    alpha=0.3, color=f"C{ch}")
+
+                ax.axhline(y=0, color='black', linestyle='--', linewidth=1)
+                ax.set_title(marker, fontsize=config_plot.PLOT_TITLE_FONTSIZE)
+                ax.set_xlabel("Layer Number", fontsize=config_plot.PLOT_TITLE_FONTSIZE)
+                ax.set_xticks(layers_range)
+                ax.grid(axis='y', linestyle='--', alpha=0.5)
+
+            axes[0].set_ylabel(f"{feature} Correlation", fontsize=config_plot.PLOT_TITLE_FONTSIZE)
+            axes[-1].legend(loc="upper right")
+            fig.suptitle(temp_sup_title, fontsize=config_plot.PLOT_SUPTITLE_FONTSIZE)
+            plt.tight_layout(rect=[0, 0.03, 1, 0.95])
+
+        else:
+            # ─── Boxplot per (marker, channel) ────────────────
+            fig_width = 1.5 * num_channels * len(marker_names)
+            fig, ax = plt.subplots(figsize=(fig_width, 6))
+
+            box_width = 0.6
+            intra_gap = 1.0
+            inter_gap = 2.5
+
+            xtick_positions = []
+            xtick_labels = []
+            current_pos = 1
+
+            for marker in marker_names:
+                data = corr_by_markers[marker]  # shape: (N, L, C)
+                for ch in range(num_channels):
+                    values = data[:, :, ch, i].flatten()
+                    ax.boxplot(values,
+                            positions=[current_pos],
+                            widths=box_width,
+                            patch_artist=True,
+                            boxprops=dict(facecolor=f"C{ch}", color='black'),
+                            medianprops=dict(color='black'),
+                            showfliers=False)
+                    xtick_positions.append(current_pos)
+                    xtick_labels.append(f"{marker}\n{channel_names[ch]}")
+                    current_pos += intra_gap
+                current_pos += inter_gap
 
             ax.axhline(y=0, color='black', linestyle='--', linewidth=1)
-            ax.set_title(marker, fontsize=config_plot.PLOT_TITLE_FONTSIZE)
-            ax.set_xlabel("Layer Number", fontsize=config_plot.PLOT_TITLE_FONTSIZE)
-            ax.set_xticks(layers_range)
+            ax.set_xticks(xtick_positions)
+            ax.set_xticklabels(xtick_labels, rotation=45, ha='right', fontsize=10)
+            ax.set_ylabel(f"{feature} Correlation", fontsize=config_plot.PLOT_TITLE_FONTSIZE)
+            ax.set_ylim(-1, 1)
             ax.grid(axis='y', linestyle='--', alpha=0.5)
+            fig.suptitle(temp_sup_title, fontsize=config_plot.PLOT_SUPTITLE_FONTSIZE)
+            plt.tight_layout()
 
-        axes[0].set_ylabel(f"{corr_method} Correlation", fontsize=config_plot.PLOT_TITLE_FONTSIZE)
-        axes[-1].legend(loc="upper right")
-        fig.suptitle(sup_title, fontsize=config_plot.PLOT_SUPTITLE_FONTSIZE)
-        plt.tight_layout(rect=[0, 0.03, 1, 0.95])
-
-    else:
-        # ─── Boxplot per (marker, channel) ────────────────
-        fig_width = 1.5 * num_channels * len(marker_names)
-        fig, ax = plt.subplots(figsize=(fig_width, 6))
-
-        box_width = 0.6
-        intra_gap = 1.0
-        inter_gap = 2.5
-
-        xtick_positions = []
-        xtick_labels = []
-        current_pos = 1
-
-        for marker in marker_names:
-            data = corr_by_markers[marker]  # shape: (N, L, C)
-            for ch in range(num_channels):
-                values = data[:, :, ch].flatten()
-                ax.boxplot(values,
-                           positions=[current_pos],
-                           widths=box_width,
-                           patch_artist=True,
-                           boxprops=dict(facecolor=f"C{ch}", color='black'),
-                           medianprops=dict(color='black'),
-                           showfliers=False)
-                xtick_positions.append(current_pos)
-                xtick_labels.append(f"{marker}\n{channel_names[ch]}")
-                current_pos += intra_gap
-            current_pos += inter_gap
-
-        ax.axhline(y=0, color='black', linestyle='--', linewidth=1)
-        ax.set_xticks(xtick_positions)
-        ax.set_xticklabels(xtick_labels, rotation=45, ha='right', fontsize=10)
-        ax.set_ylabel(f"{corr_method} Correlation", fontsize=config_plot.PLOT_TITLE_FONTSIZE)
-        ax.set_ylim(-1, 1)
-        ax.grid(axis='y', linestyle='--', alpha=0.5)
-        fig.suptitle(sup_title, fontsize=config_plot.PLOT_SUPTITLE_FONTSIZE)
-        plt.tight_layout()
-
-    # ─── Save or show ─────────────
-    if config_plot.SAVE_PLOT and output_folder_path is not None:
-        fig_name = sup_title.split('\n', 1)[0]
-        plt.savefig(os.path.join(output_folder_path, f"{fig_name}.png"),
-                    dpi=config_plot.PLOT_SAVEFIG_DPI, bbox_inches="tight", facecolor=fig.get_facecolor())
-        plt.close()
-    else:
-        plt.show()
+        # ─── Save or show ─────────────
+        if config_plot.SAVE_PLOT and output_folder_path is not None:
+            fig_name = temp_sup_title.replace("\n", "_") # clean str from new lines
+            plt.savefig(os.path.join(output_folder_path, f"{fig_name}.png"),
+                        dpi=config_plot.PLOT_SAVEFIG_DPI, bbox_inches="tight", facecolor=fig.get_facecolor())
+            plt.close()
+        else:
+            plt.show()
 
 def plot_corr_data(corr_data:List[np.ndarray[torch.Tensor]], labels:List[np.ndarray[torch.Tensor]], 
                     data_config:DatasetConfig, config_plot:PlotCorrConfig, corr_method:str, 
-                    output_folder_path:str)->None:
+                    output_folder_path:str, features_names:List[str] = None)->None:
     """
         - extract correlation data for each batch 
         - saves the corr data and its summary plot to output_folder_path
@@ -237,8 +241,11 @@ def plot_corr_data(corr_data:List[np.ndarray[torch.Tensor]], labels:List[np.ndar
             data_config: config: with parameteres of the data. 
             config_plot: config: with parameteres of the plotting.
             output_folder_path: path to save the plots.
+            features_names: [Optional] names of the features if more than one feature is calculated in the score.
+                                    if not given, assumes the correlation method name.
 
     """
+
     unique_batches = get_unique_parts_from_labels(labels[0], get_batches_from_labels, data_config)
     logging.info(f'[plot_corr_data] unique_batches: {unique_batches}')
 
@@ -279,11 +286,15 @@ def plot_corr_data(corr_data:List[np.ndarray[torch.Tensor]], labels:List[np.ndar
 
                 # create correlation plots by seperate markers
                 if config_plot.PLOT_CORR_SEPERATE_MARKERS:
-                   plot_correlation(marker_cor, corr_method, config_plot, channel_names=['Nucleus', 'Marker'],  
-                                                                sup_title = f"{marker}_{corr_method}_correlation", output_folder_path=marker_save_path, per_layer=config_plot.PLOT_CORR_PER_LAYER)
+                   plot_correlation(marker_cor, corr_method, 
+                                    config_plot, channel_names=['Nucleus', 'Marker'], 
+                                    features_names = features_names,  
+                                    sup_title = f"{marker}_{corr_method}_correlation", output_folder_path=marker_save_path, per_layer=config_plot.PLOT_CORR_PER_LAYER)
             
             # plot corr for all markers 
             if config_plot.PLOT_CORR_ALL_MARKERS:
-                plot_correlation_by_markers(corr_by_markers, corr_method, config_plot, channel_names=['Nucleus', 'Marker'],  
-                                                                        sup_title = f"{corr_method}_correlation", output_folder_path=batch_save_path, per_layer=config_plot.PLOT_CORR_PER_LAYER)
+                plot_correlation_by_markers(corr_by_markers, corr_method, 
+                                            config_plot, channel_names=['Nucleus', 'Marker'],
+                                            features_names = features_names,    
+                                            sup_title = f"{corr_method}_correlation", output_folder_path=batch_save_path, per_layer=config_plot.PLOT_CORR_PER_LAYER)
             

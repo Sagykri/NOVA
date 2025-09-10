@@ -126,106 +126,108 @@ def _plot_attn_map_rollout(processed_attn_map, sample_info, config_plot, output_
     heatmap_colored = __color_heatmap_attn_map(processed_attn_map, heatmap_color=config_plot.PLOT_HEATMAP_COLORMAP)
     
     # create figure
-    __create_attn_map_img_test(processed_attn_map, input_img, heatmap_colored, config_plot, sup_title= f"{label}_Tile{tile}", output_folder_path= output_folder_path, corr_data = corr, corr_method = corr_method)
+    __create_attn_map_img(processed_attn_map, input_img, heatmap_colored, config_plot, sup_title= f"{label}_Tile{tile}", output_folder_path= output_folder_path, corr_data = corr, corr_method = corr_method)
+
+
+
+# def __create_attn_map_img(attn_map, input_img, heatmap_colored, config_plot, sup_title = "Attention Maps", output_folder_path = None, corr_data = None, corr_method = None):
+#         """
+#             Create attention map img with:
+#                 (1) input image 
+#                 (2) attention heatmap
+#                 (3) attention overlay on the input img
+#             ** save/plot according to config_plot
+
+#             parameters:
+#                 attn_map: attention maps values, already in the img shape (H,W), rescale to [0,1]
+#                 input_img: input img with marker and nucleus overlay (3,H,W)
+#                             ** assuming  Green = nucleus, Blue = marker, Red = zeroed out
+#                 heatmap_colored: attention map colored by heatmap_color (3,H,W)
+#                 config_plot: config with the plotting parameters 
+#                 corr_data: [optional] tuple of corrletion of the attention with the image channels, entropy and corr_method
+#                 sup_title: [optional] main title for the figure
+#                 output_folder_path: [optional] for saving the output fig.
+
+#             return:
+#                 fig: matplot fig created. 
+#         """
+
+        
+
+#         alpha = config_plot.ALPHA
+
+#         fig, ax = plt.subplots(1, 3, figsize=config_plot.FIG_SIZE)
+
+#         if corr_data is not None:
+#             corr_nucleus, corr_marker = corr_data[0], corr_data[1]
+#             formatted_nucleus = ", ".join(f"{v:.3f}" for v in corr_nucleus)
+#             formatted_marker = ", ".join(f"{v:.3f}" for v in corr_marker)
+#             ax[1].text(0.5, -0.25, f"{corr_method} Correlation (Nucleus): {formatted_nucleus:.2f}\n{corr_method} Correlation (Marker): {formatted_marker:.2f}",
+#                     transform=ax[1].transAxes, ha='center', va='center', fontsize=config_plot.PLOT_TITLE_FONTSIZE, color='black')
+
+        
+#         ax[0].set_title(f'Input - Marker (green), Nucleus (blue)', fontsize=config_plot.PLOT_TITLE_FONTSIZE)
+#         ax[0].imshow(input_img)
+#         ax[0].set_axis_off()
+
+#         ax[1].set_title(f'Attention Heatmap: No Th', fontsize=config_plot.PLOT_TITLE_FONTSIZE)
+#         ax[1].imshow(cv2.cvtColor(heatmap_colored, cv2.COLOR_BGR2RGB))
+#         ax[1].set_axis_off()
+
+#         fill_cmap = LinearSegmentedColormap.from_list(
+#             'fill_colors',
+#             [(0, 0, 0, 0),           # transparent black
+#             (1, 1, 0, 0.4),         # yellow 
+#             (1, 0.6, 0, 0.6),       # orange
+#             (1, 0, 0, 0.8)]         # red
+#         )
+
+#         lines_cmap = LinearSegmentedColormap.from_list(
+#             'line_colors',
+#             [(1, 1, 1, 0.2),         # transparent white
+#             (1, 1, 0, 0.4),         # yellow 
+#             (1, 0.6, 0, 0.6),       # orange
+#             (1, 0, 0, 0.8)]         # red
+#         )
+
+#         ax[2].set_title(f'Attention Overlay: Th{config_plot.ATTN_OVERLAY_THRESHOLD}', fontsize=config_plot.PLOT_TITLE_FONTSIZE)
+#         ax[2].imshow(input_img)  # Show the original image
+
+#         levels = np.linspace(config_plot.ATTN_OVERLAY_THRESHOLD, 1.0, config_plot.NUM_CONTOURS) # skip 20% lowest values  
+#         contours = ax[2].contourf(
+#             attn_map,
+#             levels=levels,
+#             cmap=fill_cmap,
+#             alpha=alpha,  
+#         )
+
+#         thick_contours = ax[2].contour(
+#             attn_map,
+#             levels=levels,              
+#             cmap=lines_cmap,            
+#             linewidths=1.0,             
+#             alpha= alpha + 0.05
+#         )
+
+#         ax[2].set_axis_off()
+
+#         fig.suptitle(sup_title, fontsize=config_plot.PLOT_SUPTITLE_FONTSIZE, y=1.1)
+        
+#         if config_plot.SAVE_PLOT and (output_folder_path is not None):
+#             fig_name  = sup_title.split('\n', 1)[0] #either till the end of the line or the full str
+#             save_path = os.path.join(output_folder_path, f"{fig_name}.png")
+#             plt.savefig(save_path, bbox_inches='tight', dpi=config_plot.PLOT_SAVEFIG_DPI)
+#             plt.close()
+#         if config_plot.SHOW_PLOT:
+#             plt.show()
+
+#         logging.info(f"[plot_attn_maps] attn maps saved: {save_path}")
+#         return fig
+
 
 
 
 def __create_attn_map_img(attn_map, input_img, heatmap_colored, config_plot, sup_title = "Attention Maps", output_folder_path = None, corr_data = None, corr_method = None):
-        """
-            Create attention map img with:
-                (1) input image 
-                (2) attention heatmap
-                (3) attention overlay on the input img
-            ** save/plot according to config_plot
-
-            parameters:
-                attn_map: attention maps values, already in the img shape (H,W), rescale to [0,1]
-                input_img: input img with marker and nucleus overlay (3,H,W)
-                            ** assuming  Green = nucleus, Blue = marker, Red = zeroed out
-                heatmap_colored: attention map colored by heatmap_color (3,H,W)
-                config_plot: config with the plotting parameters 
-                corr_data: [optional] tuple of corrletion of the attention with the image channels, entropy and corr_method
-                sup_title: [optional] main title for the figure
-                output_folder_path: [optional] for saving the output fig.
-
-            return:
-                fig: matplot fig created. 
-        """
-
-        
-
-        alpha = config_plot.ALPHA
-
-        fig, ax = plt.subplots(1, 3, figsize=config_plot.FIG_SIZE)
-
-        if corr_data is not None:
-            corr_nucleus, corr_marker = corr_data[0], corr_data[1]
-            ax[1].text(0.5, -0.25, f"{corr_method} Correlation (Nucleus): {corr_nucleus:.2f}\n{corr_method} Correlation (Marker): {corr_marker:.2f}",
-                    transform=ax[1].transAxes, ha='center', va='center', fontsize=config_plot.PLOT_TITLE_FONTSIZE, color='black')
-
-        
-        ax[0].set_title(f'Input - Marker (green), Nucleus (blue)', fontsize=config_plot.PLOT_TITLE_FONTSIZE)
-        ax[0].imshow(input_img)
-        ax[0].set_axis_off()
-
-        ax[1].set_title(f'Attention Heatmap: No Th', fontsize=config_plot.PLOT_TITLE_FONTSIZE)
-        ax[1].imshow(cv2.cvtColor(heatmap_colored, cv2.COLOR_BGR2RGB))
-        ax[1].set_axis_off()
-
-        fill_cmap = LinearSegmentedColormap.from_list(
-            'fill_colors',
-            [(0, 0, 0, 0),           # transparent black
-            (1, 1, 0, 0.4),         # yellow 
-            (1, 0.6, 0, 0.6),       # orange
-            (1, 0, 0, 0.8)]         # red
-        )
-
-        lines_cmap = LinearSegmentedColormap.from_list(
-            'line_colors',
-            [(1, 1, 1, 0.2),         # transparent white
-            (1, 1, 0, 0.4),         # yellow 
-            (1, 0.6, 0, 0.6),       # orange
-            (1, 0, 0, 0.8)]         # red
-        )
-
-        ax[2].set_title(f'Attention Overlay: Th{config_plot.ATTN_OVERLAY_THRESHOLD}', fontsize=config_plot.PLOT_TITLE_FONTSIZE)
-        ax[2].imshow(input_img)  # Show the original image
-
-        levels = np.linspace(config_plot.ATTN_OVERLAY_THRESHOLD, 1.0, config_plot.NUM_CONTOURS) # skip 20% lowest values  
-        contours = ax[2].contourf(
-            attn_map,
-            levels=levels,
-            cmap=fill_cmap,
-            alpha=alpha,  
-        )
-
-        thick_contours = ax[2].contour(
-            attn_map,
-            levels=levels,              
-            cmap=lines_cmap,            
-            linewidths=1.0,             
-            alpha= alpha + 0.05
-        )
-
-        ax[2].set_axis_off()
-
-        fig.suptitle(sup_title, fontsize=config_plot.PLOT_SUPTITLE_FONTSIZE, y=1.1)
-        
-        if config_plot.SAVE_PLOT and (output_folder_path is not None):
-            fig_name  = sup_title.split('\n', 1)[0] #either till the end of the line or the full str
-            save_path = os.path.join(output_folder_path, f"{fig_name}.png")
-            plt.savefig(save_path, bbox_inches='tight', dpi=config_plot.PLOT_SAVEFIG_DPI)
-            plt.close()
-        if config_plot.SHOW_PLOT:
-            plt.show()
-
-        logging.info(f"[plot_attn_maps] attn maps saved: {save_path}")
-        return fig
-
-
-
-
-def __create_attn_map_img_test(attn_map, input_img, heatmap_colored, config_plot, sup_title = "Attention Maps", output_folder_path = None, corr_data = None, corr_method = None):
     """
     Visualize attention alongside marker and nucleus channels in a 2x2 layout:
 
@@ -249,7 +251,6 @@ def __create_attn_map_img_test(attn_map, input_img, heatmap_colored, config_plot
     # Create figure with minimal spacing
     fig, ax = plt.subplots(2, 2, figsize=config_plot.FIG_SIZE, 
                           gridspec_kw={'wspace': 0.02, 'hspace': 0.25})
-
     # Extract channels
     nucleus = input_img[..., 2]
     marker = input_img[..., 1]
@@ -265,6 +266,15 @@ def __create_attn_map_img_test(attn_map, input_img, heatmap_colored, config_plot
     ax[0, 0].imshow(marker_rgb)
     ax[0, 0].set_title("Marker (Green)", fontsize=config_plot.PLOT_TITLE_FONTSIZE, pad=5)
     ax[0, 0].set_axis_off()
+    if corr_data is not None:
+        corr_marker = corr_data[1]
+        formatted_marker = ", ".join(f"{v:.3f}" for v in corr_marker)
+        ax[0, 0].text(
+            0.5, -0.05,  # slightly below the axes
+            f"{corr_method} Correlation: \n{formatted_marker}",
+            transform=ax[0, 0].transAxes,
+            ha='center', va='top', fontsize=config_plot.PLOT_TITLE_FONTSIZE, color='black'
+        )
 
     # [0,1] Overlay (Input + Attn)
     ax[0, 1].imshow(input_img)
@@ -294,6 +304,15 @@ def __create_attn_map_img_test(attn_map, input_img, heatmap_colored, config_plot
     ax[1, 0].imshow(nucleus_rgb)
     ax[1, 0].set_title("Nucleus (Blue)", fontsize=config_plot.PLOT_TITLE_FONTSIZE, pad=5)
     ax[1, 0].set_axis_off()
+    if corr_data is not None:
+        corr_nucleus = corr_data[0]
+        formatted_nucleus = ", ".join(f"{v:.3f}" for v in corr_nucleus)
+        ax[1, 0].text(
+            0.5, -0.05,  # slightly below the axes
+            f"{corr_method} Correlation: \n{formatted_nucleus}",
+            transform=ax[1, 0].transAxes,
+            ha='center', va='top', fontsize=config_plot.PLOT_TITLE_FONTSIZE, color='black'
+        )
 
     # [1,1] Heatmap
     ax[1, 1].imshow(cv2.cvtColor(heatmap_colored, cv2.COLOR_BGR2RGB))

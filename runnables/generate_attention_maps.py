@@ -41,7 +41,7 @@ def generate_attn_maps_with_model(outputs_folder_path:str, config_path_data:str,
         save_attn_maps(attn_maps, labels, paths, config_data, output_folder_path=os.path.join(outputs_folder_path, "attention_maps", "raw"))
 
     # process the raw attn_map and save 
-    num_workers = min(config_plot.PLOT_ATTN_NUM_WORKERS, os.cpu_count())
+    num_workers = min(config_attn.ATTN_NUM_WORKERS, os.cpu_count())
     processed_attn_maps = process_attn_maps(attn_maps, labels, config_data, config_attn, num_workers=num_workers)
     del attn_maps
     save_attn_maps(processed_attn_maps, labels, paths, config_data, output_folder_path=os.path.join(outputs_folder_path, "attention_maps", "processed"))

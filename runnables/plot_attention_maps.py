@@ -22,21 +22,25 @@ from src.analysis.analyzer_pair_wise_distances import AnalyzerPairwiseDistances
 from NOVA.src.datasets.label_utils import get_unique_parts_from_labels, get_markers_from_labels
 
 
-def load_and_plot_attn_maps(outputs_folder_path:str, config_path_data:str, config_path_plot:str):
+def load_and_plot_attn_maps(outputs_folder_path:str, config_path_data:str, config_path_plot:str, config_path_corr:str = None):
     config_data:DatasetConfig = load_config_file(config_path_data, "data")
     config_data.OUTPUTS_FOLDER = outputs_folder_path
     config_plot:PlotAttnMapConfig = load_config_file(config_path_plot, "plot")
-    corr_method = "pearsonr" # TODO: decide where to put corr_method
+
+    if config_path_corr is not None:
+        config_corr = load_config_file(config_path_corr, "data")
+        corr_method = config_corr.CORR_METHOD
+        features_names = config_corr.FEATURES_NAMES
+
     # load processed attn maps
     processed_attn_maps, labels, paths = load_embeddings(os.path.join(outputs_folder_path, "attention_maps"), config_data, emb_folder_name = "processed")
     processed_attn_maps, labels, paths = [processed_attn_maps], [labels], [paths] #TODO: fix, needed for settypes
     
     
-    d = AnalyzerAttnCorr(config_data, output_folder_path, corr_method = corr_method) #TODO: decied if to instancize it - here only for the output dir
+    d = AnalyzerAttnCorr(config_data, output_folder_path, config_corr) #TODO: decied if to instancize it - here only for the output dir
 
     # load correlation data if needed
     if config_plot.SHOW_CORR_SCORES:
-        #corr_method = ????
         d.load()
         corr_data = d.features
     else:
@@ -107,7 +111,13 @@ if __name__ == "__main__":
         config_path_data = sys.argv[2]
         config_path_plot = sys.argv[3]
 
-        load_and_plot_attn_maps(output_folder_path, config_path_data, config_path_plot)
+        if len(sys.argv) == 5:
+            config_path_corr = sys.argv[4]
+        else:
+            config_path_corr = None
+        
+
+        load_and_plot_attn_maps(output_folder_path, config_path_data, config_path_plot, config_path_corr)
         
     except Exception as e:
         logging.exception(str(e))
