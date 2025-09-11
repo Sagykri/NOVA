@@ -185,14 +185,14 @@ class DistancesNeuronsStressPlotConfig(PlotConfig):
 
         self.COLOR_MAPPINGS_CELL_LINE_CONDITION = self.COLOR_MAPPINGS_CONDITION_AND_ALS
 
-        self.FIGSIZE = (5,7)
+        self.FIGSIZE = None
 
 class DistancesNeuronsALSPlotConfig(PlotConfig):
     def __init__(self):
         super().__init__()
 
         self.COLOR_MAPPINGS_CELL_LINE_CONDITION = self.COLOR_MAPPINGS_CONDITION_AND_ALS
-        self.FIGSIZE = (3,7)
+        self.FIGSIZE = None
         #TODO: add fix order marker name (need to implmement in the distance_plotting.py relevat function...)
 
 class DistancesNeuronsFUSPlotConfig(PlotConfig): # TODO: probably delete
@@ -221,11 +221,11 @@ class DistancesdNLSPlotConfig(PlotConfig):
         super().__init__()
 
         self.COLOR_MAPPINGS_CELL_LINE_CONDITION = self.COLOR_MAPPINGS_DOX
-        self.FIGSIZE = (5,7)
+        self.FIGSIZE = None
 
 class DistancesAlyssaCoynePlotConfig(PlotConfig):
     def __init__(self):
         super().__init__()
 
         self.COLOR_MAPPINGS_CELL_LINE_CONDITION = self.COLOR_MAPPINGS_ALYSSA
-        self.FIGSIZE = (5,7)
+        self.FIGSIZE = None

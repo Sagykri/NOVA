@@ -27,13 +27,11 @@ class NeuronsEffectConfig(EffectConfig):
         
         self.EXPERIMENT_TYPE = 'neuronsDay8_new'  
 
-class NeuronsEffectConfig_with_B10(EffectConfig):
-    def __init__(self):
-        super().__init__()
-
-        self.INPUT_FOLDERS =  [f"batch{i}" for i in [1,2,3,7,8,9,10]]
-        
-        self.EXPERIMENT_TYPE = 'neuronsDay8_new'    
+        ## Sagy 08.09.25
+        self.MIN_REQUIRED:int = 80 # with subsample fraction = 0.8 it enforce at least 33 tiles per condition X marker X batch
+        self.SUBSAMPLE_FRACTION = 0.8
+        ###
+        self.N_BOOT:int = 1000
 
 class NeuronsEffectWTBaselineConfig(NeuronsEffectConfig):
     def __init__(self):
@@ -213,8 +211,13 @@ class AlyssaCoyneNEWEffectConfig(EffectConfig):
                                  ['C9-CS7VCZ_Untreated','SALSPositive-CS4ZCD_Untreated','SALSNegative-CS0JPP_Untreated'],
                                  'Ctrl-EDi037_Untreated':
                                  ['C9-CS8RFT_Untreated','SALSPositive-CS7TN6_Untreated','SALSNegative-CS6ZU8_Untreated']}
-        self.MIN_REQUIRED = 40 
-        self.N_BOOT = 100 
+        self.MIN_REQUIRED = 8#40 
+        self.N_BOOT = 1000#100  # Must have many boots for trimming
+
+        # Sagy 9.9.25
+        self.SUBSAMPLE_FRACTION = 1.0 # use all samples (no subsampling) cause we have few samples
+        self.BOOTSTRAP_TRIMMING_ALPHA = 0.01  # trim 1% from each side
+        #
 
 class AlyssaCoyneNEWEffectConfig_Ctrl_C9(AlyssaCoyneNEWEffectConfig):
     def __init__(self):
@@ -242,7 +245,7 @@ class AlyssaCoyneNEWMultiplexEffectConfig(EffectConfig):
         self.ADD_REP_TO_LABEL = False
 
         self.MIN_REQUIRED = 40 # To include everyone
-        self.N_BOOT = 100 
+        self.N_BOOT = 1000  #100
 
 class AlyssaCoyneNEWMultiplexEffectConfig_Ctrl_C9(AlyssaCoyneNEWMultiplexEffectConfig):
     def __init__(self):
@@ -263,7 +266,12 @@ class dNLSEffectConfig(EffectConfig):
         self.BASELINE = 'dNLS_Untreated'
         self.PERTURBATION = 'dNLS_DOX'
 
-        self.MIN_REQUIRED:int = 200
+        ## Sagy 08.09.25
+        # self.MIN_REQUIRED:int = 200 # OLD
+        self.MIN_REQUIRED:int = 80 # with subsample fraction = 0.8 it enforce at least 33 tiles per condition X marker X batch
+        self.SUBSAMPLE_FRACTION = 0.8 # 
+        ###
+
         self.N_BOOT:int = 1000
 
 class dNLSMultiplexEffectConfig(EffectConfig):
@@ -292,7 +300,12 @@ class NIHEffectConfig_Stress(EffectConfig):
         self.BASELINE = 'WT_Untreated'
         self.PERTURBATION = 'WT_stress'
 
-        self.MIN_REQUIRED:int = 450
+        ## Sagy 08.09.25
+        # self.MIN_REQUIRED:int = 450 # OLD
+        self.MIN_REQUIRED:int = 80 # with subsample fraction = 0.8 it enforce at least 33 tiles per condition X marker X batch
+        self.SUBSAMPLE_FRACTION = 0.8
+        ###
+
         self.N_BOOT:int = 1000
 
 class NIHMultiplexEffectConfig(EffectConfig):
