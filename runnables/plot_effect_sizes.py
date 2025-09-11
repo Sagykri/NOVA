@@ -9,7 +9,7 @@ print(f"NOVA_HOME: {os.getenv('NOVA_HOME')}")
 import logging
 
 from src.common.utils import load_config_file, save_config
-from src.figures.effect_size_plotting import plot_combined_effect_sizes_barplots
+from src.figures.effect_size_plotting import plot_combined_effect_sizes_forestplot
 from src.datasets.dataset_config import DatasetConfig
 from src.figures.plot_config import PlotConfig
 
@@ -36,7 +36,7 @@ def plot_effect_sizes(output_folder_path:str, config_path_data:str, config_path_
                 save_config(config_data_copy, plot_output_folder_path)
                 save_config(config_plot, plot_output_folder_path)
             
-            plot_combined_effect_sizes_barplots(*analyzer_distances.features, plot_output_folder_path, config_plot)
+            plot_combined_effect_sizes_forestplot(*analyzer_distances.features, plot_output_folder_path, config_plot)
                 
 if __name__ == "__main__":
     print("Starting plotting distances...")
