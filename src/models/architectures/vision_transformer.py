@@ -294,7 +294,7 @@ class VisionTransformer(nn.Module):
             x, attn = blk(x, return_both=True)
             attns.append(attn)
             
-        return torch.vstack(attns)
+        return torch.stack(attns)
 
     def get_intermediate_layers(self, x, n=1):
         x = self.prepare_tokens(x)
