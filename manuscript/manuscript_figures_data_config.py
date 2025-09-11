@@ -22,6 +22,18 @@ class OpencellFigureConfig_UMAP1(FigureConfig):
         self.ADD_REP_TO_LABEL = False
         self.ADD_BATCH_TO_LABEL = False
 
+## U2OS
+class U2OSUMAP0DatasetConfig(FigureConfig):
+    def __init__(self):
+        super().__init__()
+
+        self.INPUT_FOLDERS = ["batch1"]
+      
+        self.EXPERIMENT_TYPE = 'U2OS'
+                           
+        self.ADD_REP_TO_LABEL=False
+        self.ADD_BATCH_TO_LABEL=False
+
 ###################
 ## Alyssa (pilot) ##
 ####################

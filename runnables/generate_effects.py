@@ -16,11 +16,12 @@ def generate_effects(output_folder_path:str, config_path_data:str )->None:
     config_data:EffectConfig = load_config_file(config_path_data, 'data')
     config_data.OUTPUTS_FOLDER = output_folder_path
     logging.info(f"[Generate effects]")
+    logging.info(f"MIN_REQUIRED: {config_data.MIN_REQUIRED}, N_BOOT: {config_data.N_BOOT}, SUBSAMPLE_FRACTION: {config_data.SUBSAMPLE_FRACTION}, BOOTSTRAP_TRIMMING_ALPHA: {config_data.BOOTSTRAP_TRIMMING_ALPHA}")
     config_data.CELL_LINES = list(set([config_data.BASELINE.split('_')[0],config_data.PERTURBATION.split('_')[0]]))
     config_data.CONDITIONS = list(set([config_data.BASELINE.split('_')[1],config_data.PERTURBATION.split('_')[1]]))
-    embeddings, labels, _ = load_embeddings(output_folder_path, config_data)
+    embeddings, labels, paths = load_embeddings(output_folder_path, config_data)
     d = AnalyzerEffectsDistRatio(config_data, output_folder_path)
-    d.calculate(embeddings, labels, n_boot=config_data.N_BOOT)
+    d.calculate(embeddings, labels, paths, n_boot=config_data.N_BOOT)
     d.save()
         
 
