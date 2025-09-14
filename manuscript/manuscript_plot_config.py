@@ -196,6 +196,7 @@ class DistancesNeuronsALSPlotConfig(PlotConfig):
         self.ORDERED_MARKERS = ['FUS', 'LAMP1', 'PEX14', 'PURA', 'NEMO', 'SNCA', 'PML', 'TIA1', 'DCP1A','LSM14A',\
                                  'TOMM20', 'HNRNPA1','TDP43', 'ANXA11', 'GM130', 'Calreticulin', 'NONO', 'Tubulin', 'PSD95']
         self.XLIM = (-0.2,2.0)
+        self.MARKERS_TO_SHOW = self.ORDERED_MARKERS
         
 class DistancesNeuronsALSMultiplexPlotConfig(PlotConfig):
     def __init__(self):
