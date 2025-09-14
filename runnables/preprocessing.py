@@ -1,3 +1,4 @@
+import gc
 import os
 import sys
 
@@ -6,7 +7,7 @@ sys.path.insert(1, os.getenv("NOVA_HOME"))
 
 import torch
 import logging
-
+import gc
 from src.preprocessing.preprocessing_config import PreprocessingConfig
 from src.preprocessing.preprocessors.preprocessor_base import Preprocessor
 from src.common.utils import load_config_file, get_class
@@ -43,3 +44,6 @@ if __name__ == "__main__":
         raise e
     
     logging.info("Done")
+    # cleanup before exit
+    gc.collect()
+    torch.cuda.empty_cache()
