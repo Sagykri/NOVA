@@ -53,41 +53,41 @@ class PlotConfig(PlotConfig):
 
         self.COLOR_MAPPINGS_MARKERS: Dict[str, Dict[str,str]] = {
             'DAPI':{self.MAPPINGS_ALIAS_KEY:'Nucleus', self.MAPPINGS_COLOR_KEY:'#AFBDFF'},
-            'Calreticulin':{self.MAPPINGS_ALIAS_KEY:'ER', self.MAPPINGS_COLOR_KEY:'#4343FE'},
-            'NCL':{self.MAPPINGS_ALIAS_KEY:'Nucleolus', self.MAPPINGS_COLOR_KEY:'#921010'},
-            'TDP43':{self.MAPPINGS_ALIAS_KEY:'TDP-43 granules', self.MAPPINGS_COLOR_KEY:'#12F986'},
-            'TDP43B':{self.MAPPINGS_ALIAS_KEY: 'TDP-43 granules', self.MAPPINGS_COLOR_KEY :'#12F986'},
-            'NONO':{self.MAPPINGS_ALIAS_KEY:'Paraspeckles', self.MAPPINGS_COLOR_KEY:'#66CDAA'},
-            'ANXA11':{self.MAPPINGS_ALIAS_KEY:'ANXA11 granules', self.MAPPINGS_COLOR_KEY:'#18E4CF'},
-            'GM130':{self.MAPPINGS_ALIAS_KEY:'Golgi', self.MAPPINGS_COLOR_KEY:'#168FB2'},
+            'Calreticulin':{self.MAPPINGS_ALIAS_KEY:'ER', self.MAPPINGS_COLOR_KEY:'#888902'},
+            'NCL':{self.MAPPINGS_ALIAS_KEY:'Nucleolus', self.MAPPINGS_COLOR_KEY:'#9968CB'},
+            'TDP43':{self.MAPPINGS_ALIAS_KEY:'TDP-43 granules', self.MAPPINGS_COLOR_KEY:'#BB00E0'},
+            'TDP43B':{self.MAPPINGS_ALIAS_KEY: 'TDP-43 granules', self.MAPPINGS_COLOR_KEY :'#BB00E0'},
+            'NONO':{self.MAPPINGS_ALIAS_KEY:'Paraspeckles', self.MAPPINGS_COLOR_KEY:'#D257EA'},
+            'ANXA11':{self.MAPPINGS_ALIAS_KEY:'ANXA11 granules', self.MAPPINGS_COLOR_KEY:'#F0A3A3'},
+            'GM130':{self.MAPPINGS_ALIAS_KEY:'Golgi', self.MAPPINGS_COLOR_KEY:'#EE4923'},
             'LAMP1':{self.MAPPINGS_ALIAS_KEY:'Lysosome', self.MAPPINGS_COLOR_KEY:'#A80358'},
-            'FUS':{self.MAPPINGS_ALIAS_KEY:'hnRNP complex', self.MAPPINGS_COLOR_KEY:'#9968CB'},
-            'PEX14':{self.MAPPINGS_ALIAS_KEY:'Peroxisome', self.MAPPINGS_COLOR_KEY:'#D257EA'},
-            'DCP1A':{self.MAPPINGS_ALIAS_KEY:'P-Bodies', self.MAPPINGS_COLOR_KEY:'#E6A9EA'},
+            'FUS':{self.MAPPINGS_ALIAS_KEY:'FUS granules', self.MAPPINGS_COLOR_KEY:'#A864A8'},
+            'PEX14':{self.MAPPINGS_ALIAS_KEY:'Peroxisome', self.MAPPINGS_COLOR_KEY:'#EC298B'},
+            'DCP1A':{self.MAPPINGS_ALIAS_KEY:'P-Bodies', self.MAPPINGS_COLOR_KEY:'#AF8215'},
             'CD41':{self.MAPPINGS_ALIAS_KEY:'Integrin puncta', self.MAPPINGS_COLOR_KEY:'#F04521'},
-            'SQSTM1':{self.MAPPINGS_ALIAS_KEY:'Autophagosomes', self.MAPPINGS_COLOR_KEY:'#F08F21'},
-            'PML':{self.MAPPINGS_ALIAS_KEY:'PML bodies', self.MAPPINGS_COLOR_KEY:'#F1CBDD'},
+            'SQSTM1':{self.MAPPINGS_ALIAS_KEY:'Autophagosomes', self.MAPPINGS_COLOR_KEY:'#38AB49'},
+            'PML':{self.MAPPINGS_ALIAS_KEY:'PML bodies', self.MAPPINGS_COLOR_KEY:'#EE9026'},
             'SCNA':{self.MAPPINGS_ALIAS_KEY:'Presynapse', self.MAPPINGS_COLOR_KEY:'#FFBF0D'},
             'SNCA':{self.MAPPINGS_ALIAS_KEY: 'Presynapse', self.MAPPINGS_COLOR_KEY : '#FFBF0D'},
-            'NEMO':{self.MAPPINGS_ALIAS_KEY:'NEMO granules', self.MAPPINGS_COLOR_KEY:'#37378D'},
-            'PSD95':{self.MAPPINGS_ALIAS_KEY:'Postsynapse', self.MAPPINGS_COLOR_KEY:'gray'},
-            'KIF5A':{self.MAPPINGS_ALIAS_KEY:'Transport machinery', self.MAPPINGS_COLOR_KEY:'#DEDB23'},
-            'CLTC':{self.MAPPINGS_ALIAS_KEY:'Coated vesicles', self.MAPPINGS_COLOR_KEY:'#AF8215'},
-            'TOMM20':{self.MAPPINGS_ALIAS_KEY:'MOM', self.MAPPINGS_COLOR_KEY:'#32AC0E'},
-            'mitotracker':{self.MAPPINGS_ALIAS_KEY:'Mitochondria', self.MAPPINGS_COLOR_KEY:'#898700'},
-            'PURA':{self.MAPPINGS_ALIAS_KEY:'PURA granules', self.MAPPINGS_COLOR_KEY:'#ACE142'},
-            'G3BP1':{self.MAPPINGS_ALIAS_KEY:'Stress granules', self.MAPPINGS_COLOR_KEY:'#F0A3A3'},
-            'Phalloidin':{self.MAPPINGS_ALIAS_KEY:'Actin Cytoskeleton', self.MAPPINGS_COLOR_KEY:'#06A0E9'},
-            'FMRP':{self.MAPPINGS_ALIAS_KEY:'FMRP granules', self.MAPPINGS_COLOR_KEY:'#EF218B'},
+            'NEMO':{self.MAPPINGS_ALIAS_KEY:'NEMO granules', self.MAPPINGS_COLOR_KEY:'#6FC175'},
+            'PSD95':{self.MAPPINGS_ALIAS_KEY:'Postsynapse', self.MAPPINGS_COLOR_KEY:'#808080'},
+            'KIF5A':{self.MAPPINGS_ALIAS_KEY:'Transport machinery', self.MAPPINGS_COLOR_KEY:'#AFD24A'},
+            'CLTC':{self.MAPPINGS_ALIAS_KEY:'Coated vesicles', self.MAPPINGS_COLOR_KEY:'#525EAA'},
+            'TOMM20':{self.MAPPINGS_ALIAS_KEY:'MOM', self.MAPPINGS_COLOR_KEY:'#921010'},
+            'mitotracker':{self.MAPPINGS_ALIAS_KEY:'Mitochondria', self.MAPPINGS_COLOR_KEY:'#2C9BD7'},
+            'PURA':{self.MAPPINGS_ALIAS_KEY:'PURA granules', self.MAPPINGS_COLOR_KEY:'#D8ABCE'},
+            'G3BP1':{self.MAPPINGS_ALIAS_KEY:'Stress granules', self.MAPPINGS_COLOR_KEY:'#5BC4BD'},
+            'Phalloidin':{self.MAPPINGS_ALIAS_KEY:'Actin Cytoskeleton', self.MAPPINGS_COLOR_KEY:'#38388D'},
+            'FMRP':{self.MAPPINGS_ALIAS_KEY:'FMRP granules', self.MAPPINGS_COLOR_KEY:'#DFDA26'},
 
             'MERGED':{self.MAPPINGS_ALIAS_KEY:'MERGED', self.MAPPINGS_COLOR_KEY:'gray'},
             'Map2':{self.MAPPINGS_ALIAS_KEY:'Neuronal marker', self.MAPPINGS_COLOR_KEY:'gray'},
 
             'LSM14A':{self.MAPPINGS_ALIAS_KEY:'P-bodies #2', self.MAPPINGS_COLOR_KEY:"#B91EC4"},
             'SON':{self.MAPPINGS_ALIAS_KEY:'Nuclear Speckles', self.MAPPINGS_COLOR_KEY:"#EC5F5F"},
-            'HNRNPA1':{self.MAPPINGS_ALIAS_KEY:'hnRNP complex #2', self.MAPPINGS_COLOR_KEY:"#033A7A"},
-            'Tubulin':{self.MAPPINGS_ALIAS_KEY:'Microtubule', self.MAPPINGS_COLOR_KEY:"#00D612"},
-            'TIA1':{self.MAPPINGS_ALIAS_KEY:'TIA1 granules', self.MAPPINGS_COLOR_KEY:"#BB00E0"},
+            'HNRNPA1':{self.MAPPINGS_ALIAS_KEY:'hnRNP complex', self.MAPPINGS_COLOR_KEY:"#033A7A"},
+            'Tubulin':{self.MAPPINGS_ALIAS_KEY:'Microtubule', self.MAPPINGS_COLOR_KEY:"#148FB1"},
+            'TIA1':{self.MAPPINGS_ALIAS_KEY:'TIA1 granules', self.MAPPINGS_COLOR_KEY:"#F1CBDD"},
 
             'Nup153': {self.MAPPINGS_ALIAS_KEY:'Nup153', self.MAPPINGS_COLOR_KEY:"#0F8500"},
             'POM121': {self.MAPPINGS_ALIAS_KEY:'POM121', self.MAPPINGS_COLOR_KEY:"#FF6F00"},
@@ -107,7 +107,7 @@ class PlotConfig(PlotConfig):
         self.COLOR_MAPPINGS_MARKERS['ANAX11'] = self.COLOR_MAPPINGS_MARKERS['ANXA11']
         self.COLOR_MAPPINGS_MARKERS['MitoTracker'] = self.COLOR_MAPPINGS_MARKERS['mitotracker']
         self.COLOR_MAPPINGS_MARKERS['P54'] = self.COLOR_MAPPINGS_MARKERS['NONO']
-        self.COLOR_MAPPINGS_MARKERS['TUJ1'] = {self.MAPPINGS_ALIAS_KEY:'Microtubule', self.MAPPINGS_COLOR_KEY:"#65FF72"}
+        self.COLOR_MAPPINGS_MARKERS['TUJ1'] = self.COLOR_MAPPINGS_MARKERS['Tubulin']
         ##
 
 

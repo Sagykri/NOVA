@@ -12,7 +12,7 @@ class UMAP1PlotConfig(PlotConfig):
         self.ORDERED_MARKER_NAMES = None
     
         # Set the size of the dots
-        self.SIZE = 1
+        self.SIZE = 3
         self.ALPHA = 1
         # How labels are shown in legend
         self.MAP_LABELS_FUNCTION = MapLabelsFunction.MARKERS.name
@@ -193,7 +193,16 @@ class DistancesNeuronsALSPlotConfig(PlotConfig):
 
         self.COLOR_MAPPINGS_CELL_LINE_CONDITION = self.COLOR_MAPPINGS_CONDITION_AND_ALS
         self.FIGSIZE = None
-        #TODO: add fix order marker name (need to implmement in the distance_plotting.py relevat function...)
+        self.ORDERED_MARKERS = ['FUS', 'LAMP1', 'PEX14', 'PURA', 'NEMO', 'SNCA', 'PML', 'TIA1', 'DCP1A','LSM14A',\
+                                 'TOMM20', 'HNRNPA1','TDP43', 'ANXA11', 'GM130', 'Calreticulin', 'NONO', 'Tubulin', 'PSD95']
+        self.XLIM = (-0.2,2.0)
+        
+class DistancesNeuronsALSMultiplexPlotConfig(PlotConfig):
+    def __init__(self):
+        super().__init__()
+
+        self.COLOR_MAPPINGS_CELL_LINE_CONDITION = self.COLOR_MAPPINGS_CONDITION_AND_ALS
+        self.FIGSIZE = None
 
 class DistancesNeuronsFUSPlotConfig(PlotConfig): # TODO: probably delete
     def __init__(self):

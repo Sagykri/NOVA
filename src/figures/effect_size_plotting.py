@@ -4,10 +4,12 @@ sys.path.insert(1, os.getenv("NOVA_HOME"))
 
 from src.figures.plotting_utils import save_plot, FONT_PATH
 from src.figures.plot_config import PlotConfig
+from src.common.utils import load_config_file, get_if_exists
 
 import numpy as np
 import pandas as pd
 import natsort
+import logging
 
 import seaborn as sns
 import matplotlib.pyplot as plt
@@ -38,7 +40,28 @@ def plot_combined_effect_sizes_forestplot(combined_effects_df, single_effects_df
 def __plot_forest_plot(combined_effects_df, cur_df_single, config_plot, baseline=None, pert=None, savepath=None, figsize=None,
                        combine_on='batch', unit:Literal['marker', 'pert'] = 'marker', show_only_significant: bool = True, add_reproducability_table=True):    
 
-    combined_effects_df = combined_effects_df.sort_values('combined_effect', ascending=True).reset_index(drop=True)
+
+    
+    xlim = get_if_exists(config_plot, 'XLIM', None)
+    ordered_markers = get_if_exists(config_plot, 'ORDERED_MARKERS', None)
+
+    combined_effects_df = combined_effects_df.copy()
+    
+    if xlim is not None:
+        logging.info(f"Using custom xlim for forest plot: {xlim}")
+
+    if ordered_markers is not None and unit == 'marker':
+        logging.info(f"Using custom ordered markers for forest plot: {ordered_markers}")
+        if len(ordered_markers) < combined_effects_df[unit].nunique():
+            logging.warning(f"Custom ordered markers has fewer entries ({len(ordered_markers)}) than the number of unique markers in the data ({combined_effects_df[unit].nunique()}). Sorting the rest based on combined effect size.")
+
+        order_map = {m: i for i, m in enumerate(ordered_markers)}
+        combined_effects_df["_order"] = combined_effects_df[unit].map(lambda m: order_map.get(m, len(ordered_markers)))
+        combined_effects_df = combined_effects_df.sort_values(["_order", "combined_effect"], ascending=[False, True]).drop(columns="_order").reset_index(drop=True)
+
+        logging.info("Final order of markers: " + ", ".join(combined_effects_df[unit].tolist()))
+    else:
+        combined_effects_df = combined_effects_df.sort_values('combined_effect', ascending=True).reset_index(drop=True)
 
     if combined_effects_df.empty:
         raise ValueError("combined_effects_df is empty")
@@ -152,6 +175,8 @@ def __plot_forest_plot(combined_effects_df, cur_df_single, config_plot, baseline
     # Show the 0 line
     ax.axvline(0, color="gray", linestyle="--", zorder=0, lw=0.5)
 
+    if xlim is not None:
+        ax.set_xlim(xlim)
     ax.set_xlabel("Effect Size (Log2FC)")
 
     if baseline and pert:
