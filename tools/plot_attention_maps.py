@@ -17,9 +17,9 @@ import torch
 from src.figures.attention_maps_plotting import plot_attn_maps
 from src.datasets.label_utils import get_batches_from_input_folders
 from tools.load_data_from_npy import __extract_indices_to_plot, __extract_samples_to_plot
-from NOVA.src.analysis.analyzer_attention_scores import AnalyzerAttnScore
+from src.analysis.analyzer_attention_scores import AnalyzerAttnScore
 from src.analysis.analyzer_pair_wise_distances import AnalyzerPairwiseDistances
-from NOVA.src.datasets.label_utils import get_unique_parts_from_labels, get_markers_from_labels
+from src.datasets.label_utils import get_unique_parts_from_labels, get_markers_from_labels
 
 
 def load_and_plot_attn_maps(outputs_folder_path:str, config_path_data:str, config_path_plot:str, config_path_corr:str = None):

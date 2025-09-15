@@ -2,7 +2,7 @@ import os
 import sys
 sys.path.insert(0, os.getenv("HOME"))
 sys.path.insert(1, os.getenv("NOVA_HOME"))
-from src.figures.plot_attn_score_config import PlotAttnScoreConfig
+from tools.plot_attn_score_config import PlotAttnScoreConfig
 import cv2
 import numpy as np
 from PIL import Image

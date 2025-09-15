@@ -16,7 +16,7 @@ class AttnScoresBaseConfig(BaseConfig):
         # correaltion score method (from analyzer_corr_utils): ["pearsonr", "mutual_info", "ssim", "attn_overlap", "soft_overlap", "prob_overlap", "binary_score"]
         self.CORR_METHOD:str = None
 
-        # scores names when multiple results are returned
+        # scores aliases names when multiple results are returned from the correaltion score method
         self.FEATURES_NAMES:List = None
 
         # threshold method for binary thresholding (! used onlt if needed for CORR_METHOD)

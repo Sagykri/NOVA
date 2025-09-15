@@ -9,8 +9,8 @@ from src.common.utils import load_config_file
 from src.embeddings.embeddings_utils import load_embeddings
 from src.datasets.dataset_config import DatasetConfig
 from src.analysis.analyzer_attention_scores import AnalyzerAttnScore
-from src.figures.attn_scores_plotting import plot_corr_data
-from src.figures.plot_attn_score_config import PlotAttnScoreConfig
+from tools.attn_scores_plotting import plot_corr_data
+from tools.plot_attn_score_config import PlotAttnScoreConfig
 
 def load_attn_and_plot_correlation(outputs_folder_path:str, config_path_data:str, 
                                    config_path_corr:str, config_path_plot:str = None):

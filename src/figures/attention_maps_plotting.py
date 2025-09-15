@@ -16,7 +16,7 @@ from matplotlib.colors import LinearSegmentedColormap
 import cv2
 from PIL import Image
 from matplotlib import gridspec
-from tools.load_data_from_npy import parse_paths, load_tile, load_paths_from_npy, Parse_Path_Item
+from tools.load_data_from_npy import parse_paths, load_tile, load_paths_from_npy, parse_path_item
 from concurrent.futures import ThreadPoolExecutor
 
 
@@ -64,7 +64,7 @@ def plot_attn_maps(processed_attn_maps: np.ndarray[float], labels: np.ndarray[st
 def _plot_single_attn_sample(sample_attn, label, img_path, corr, config_plot, output_folder_path, corr_method):
     # load img details
     path_item = parse_paths([img_path]).iloc[0]
-    img_path, tile, site = Parse_Path_Item(path_item)
+    img_path, tile, site = parse_path_item(path_item)
     # plot
     temp_output_folder_path = os.path.join(output_folder_path, os.path.basename(img_path).split('.npy')[0])
     os.makedirs(temp_output_folder_path, exist_ok=True)

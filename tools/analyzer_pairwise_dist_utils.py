@@ -6,11 +6,11 @@ import sys
 import os
 sys.path.insert(0, os.getenv("HOME"))
 from NOVA_rotation.load_files.load_data_from_npy import load_npy_to_df, load_npy_to_nparray, load_paths_from_npy
-from NOVA.src.datasets.dataset_config import DatasetConfig
+from src.datasets.dataset_config import DatasetConfig
 from NOVA_rotation.embeddings.embedding_utils.subset_utils import _extract_mutual_params
-from NOVA.src.figures.plot_config import PlotConfig
-from NOVA.src.common.utils import load_config_file
-from NOVA.src.datasets.label_utils import get_batches_from_labels, get_unique_parts_from_labels, get_markers_from_labels, get_batches_from_input_folders, get_cell_lines_conditions_from_labels
+from src.figures.plot_config import PlotConfig
+from src.common.utils import load_config_file
+from src.datasets.label_utils import get_batches_from_labels, get_unique_parts_from_labels, get_markers_from_labels, get_batches_from_input_folders, get_cell_lines_conditions_from_labels
 import logging
 
 

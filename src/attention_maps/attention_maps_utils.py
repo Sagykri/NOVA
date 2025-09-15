@@ -151,7 +151,7 @@ def process_attn_maps(attn_maps: np.ndarray[float], labels: np.ndarray[str],
         (1) process attention using attn_method and head_reduction_method
         (2) normalize and apply thershold if specified 
     return:
-        processed attention maps 
+        processed attention maps [ N, (12), 100, 100 ]
 
     """
 

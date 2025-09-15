@@ -70,26 +70,4 @@ class AnalyzerUMAPSingleMarkers(AnalyzerUMAP):
         return umap_embeddings, umap_labels, umap_paths, ari_scores
 
 
-    def _get_only_ari(self, embeddings:np.ndarray[float], labels:np.ndarray[str]):
-
-            unique_markers = get_unique_parts_from_labels(labels, get_markers_from_labels) 
-            logging.info(f"[AnalyzerUMAPSingleMarkers._get_only_ari] Detected markers: {unique_markers}")
-            marker_of_labels = get_markers_from_labels(labels)
-            ari_scores = {}
-            for marker in unique_markers:
-                logging.info(f"Marker: {marker}")
-                indices = np.where(marker_of_labels == marker)[0]
-                logging.info(f"{len(indices)} indexes have been selected")
-
-                if len(indices) == 0:
-                    logging.info(f"No data for marker {marker}, skipping.")
-                    continue
-
-                marker_embeddings, marker_labels = embeddings[indices], labels[indices]
-
-                if self.data_config.SHOW_ARI:
-                    labels_for_ari = map_labels(marker_labels, self.data_config, self.data_config, config_function_name='ARI_LABELS_FUNC')
-                    ari = self._compute_ari(marker_embeddings, labels_for_ari)
-                    ari_scores[marker] = ari
-
-            return ari_scores
+    

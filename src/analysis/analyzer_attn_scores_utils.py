@@ -13,7 +13,7 @@ import torch
 from src.datasets.label_utils import get_batches_from_labels, get_unique_parts_from_labels, get_markers_from_labels,\
     edit_labels_by_config, get_batches_from_input_folders, get_reps_from_labels, get_conditions_from_labels, get_cell_lines_from_labels
 from collections import OrderedDict
-from NOVA.tools.load_data_from_npy import parse_paths, load_tile, load_paths_from_npy, Parse_Path_Item
+from tools.load_data_from_npy import parse_paths, load_tile, load_paths_from_npy, parse_path_item
 from skimage import filters
 from src.analysis.attention_scores_config import AttnScoresConfig
 
@@ -32,38 +32,6 @@ THRESHOLD_METHODS = {
         "niblack": filters.threshold_niblack,
         "sauvola": filters.threshold_sauvola,
     }
-
-def l1_normalize(x, eps=1e-12):
-    s = x.sum()
-    return x / (s + eps)
-
-# Example “probability-overlap” (Bhattacharyya coefficient)
-def corr_prob_overlap(attn, img_ch, config  = None):
-    args = getattr(config, 'CORR_METHOD_ARGS', None)
-    magnitude_scaling = args.get('magnitude_scaling', 100) if args else 100
-
-    a = l1_normalize(attn)
-    m = l1_normalize(img_ch)
-    return (a * m).sum() * magnitude_scaling
-
-
-def corr_pearsonr(m1, m2, config  = None):
-    """
-    calcaultes person r correlation score betweeb the 2 flattened matrices 
-    """
-    from scipy.stats import pearsonr
-    v1 = m1.flatten()
-    v2 = m2.flatten()
-    return pearsonr(v1, v2)[0]
-
-def corr_mutual_info(m1, m2, config  = None):
-    from sklearn.metrics import mutual_info_score
-    args = getattr(config, 'CORR_METHOD_ARGS', None)
-    bins = args.get('bins', 32) if args else 32
-    # Flatten and discretize
-    v1 = np.digitize(m1.flatten(), bins=np.histogram_bin_edges(m1, bins))
-    v2 = np.digitize(m2.flatten(), bins=np.histogram_bin_edges(m2, bins))
-    return mutual_info_score(v1, v2)
 
 def corr_ssim(m1, m2, config  = None):
     """
@@ -547,7 +515,7 @@ def compute_attn_correlations(processed_attn_maps: np.ndarray[float], labels: np
             for index, (sample_attn, label, img_path) in enumerate(zip(batch_attn_maps, batch_labels, batch_paths)):
                 # load img details
                 path_item = img_path_df.iloc[index]
-                img_path, tile, site = Parse_Path_Item(path_item)
+                img_path, tile, site = parse_path_item(path_item)
 
                 # compute corr
                 corr_data = __calc_attn_corr(sample_attn, (img_path, site, tile, label), corr_config)

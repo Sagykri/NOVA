@@ -14,7 +14,7 @@ from src.datasets.label_utils import get_unique_parts_from_labels, get_cell_line
 from src.datasets.dataset_config import DatasetConfig
 from src.analysis.analyzer import Analyzer
 from src.common.utils import get_if_exists
-from src.analysis.analyzer_scores_utils import *
+from src.analysis.analyzer_attn_scores_utils import *
 from src.analysis.attention_scores_config import AttnScoresBaseConfig
 
 class AnalyzerAttnScore(Analyzer):
