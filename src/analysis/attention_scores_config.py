@@ -5,7 +5,7 @@ from typing import Dict, List, Tuple
 sys.path.insert(1, os.getenv("NOVA_HOME")) 
 from src.common.base_config import BaseConfig
 
-class AttnCorrScoresConfig(BaseConfig):
+class AttnScoresBaseConfig(BaseConfig):
     """Config for plotting
     """
     

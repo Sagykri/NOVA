@@ -20,7 +20,7 @@ import torch
 from src.attention_maps.attention_config import AttnConfig
 from src.attention_maps.attention_maps_utils import generate_attn_maps, process_attn_maps, save_attn_maps
 from src.figures.attention_maps_plotting import plot_attn_maps
-from src.analysis.analyzer_attention_correlation import AnalyzerAttnCorr
+from NOVA.src.analysis.analyzer_attention_scores import AnalyzerAttnScore
 
 
 # arguments: model, dataset config, attn_config, plot_attn_config 
@@ -100,7 +100,7 @@ def generate_attn_maps_with_model(paths:list, outputs_folder_path:str, config_pa
             # process the raw attn_map and save 
             processed_attn_maps = process_attn_maps([attn_maps], [labels], config_data, config_attn)
 
-            d = AnalyzerAttnCorr(config_data, outputs_folder_path, config_corr)
+            d = AnalyzerAttnScore(config_data, outputs_folder_path, config_corr)
             corr_data = d.calculate(processed_attn_maps, [labels], [paths])
 
             plot_attn_maps(processed_attn_maps, [labels], [paths], config_data, config_plot, output_folder_path=temp_output_path, num_workers = 2, corr_data =  corr_data,corr_method = corr_method)

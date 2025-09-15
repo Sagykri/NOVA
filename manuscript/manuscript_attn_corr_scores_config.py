@@ -3,9 +3,9 @@ import os
 from typing import Dict, List, Tuple
 
 sys.path.insert(1, os.getenv("NOVA_HOME")) 
-from src.analysis.attention_correlation_config import AttnCorrScoresConfig
+from src.analysis.attention_scores_config import AttnScoresBaseConfig
 
-class AttnCorrScoresConfig(AttnCorrScoresConfig):
+class AttnScoresConfig(AttnScoresBaseConfig):
     """Config for plotting
     """
     

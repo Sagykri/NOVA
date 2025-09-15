@@ -17,7 +17,7 @@ import torch
 from src.figures.attention_maps_plotting import plot_attn_maps
 from src.datasets.label_utils import get_batches_from_input_folders
 from tools.load_data_from_npy import __extract_indices_to_plot, __extract_samples_to_plot
-from src.analysis.analyzer_attention_correlation import AnalyzerAttnCorr
+from NOVA.src.analysis.analyzer_attention_scores import AnalyzerAttnScore
 from src.analysis.analyzer_pair_wise_distances import AnalyzerPairwiseDistances
 from NOVA.src.datasets.label_utils import get_unique_parts_from_labels, get_markers_from_labels
 
@@ -37,7 +37,7 @@ def load_and_plot_attn_maps(outputs_folder_path:str, config_path_data:str, confi
     processed_attn_maps, labels, paths = [processed_attn_maps], [labels], [paths] #TODO: fix, needed for settypes
     
     
-    d = AnalyzerAttnCorr(config_data, output_folder_path, config_corr) #TODO: decied if to instancize it - here only for the output dir
+    d = AnalyzerAttnScore(config_data, output_folder_path, config_corr) #TODO: decied if to instancize it - here only for the output dir
 
     # load correlation data if needed
     if config_plot.SHOW_CORR_SCORES:

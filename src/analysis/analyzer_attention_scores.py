@@ -14,15 +14,15 @@ from src.datasets.label_utils import get_unique_parts_from_labels, get_cell_line
 from src.datasets.dataset_config import DatasetConfig
 from src.analysis.analyzer import Analyzer
 from src.common.utils import get_if_exists
-from src.analysis.analyzer_correlation_utils import *
-from src.analysis.attention_correlation_config import AttnCorrScoresConfig
+from src.analysis.analyzer_scores_utils import *
+from src.analysis.attention_scores_config import AttnScoresBaseConfig
 
-class AnalyzerAttnCorr(Analyzer):
+class AnalyzerAttnScore(Analyzer):
     """
-    AnalyzerAttnCorr is responsible for calculating correlation scores between attention maps and their corresponding input images. 
+    AnalyzerAttnScore is responsible for calculating correlation scores between attention maps and their corresponding input images. 
     The correlation scores are computed for each marker and batch.
     """
-    def __init__(self, data_config: DatasetConfig, output_folder_path:str, corr_config:AttnCorrScoresConfig):
+    def __init__(self, data_config: DatasetConfig, output_folder_path:str, corr_config:AttnScoresBaseConfig):
         """Get an instance
 
         Args:
@@ -54,7 +54,7 @@ class AnalyzerAttnCorr(Analyzer):
         Load the saved features, labels, and paths into the corresponding attributes.
         Stacks data per set into arrays with shape (num_sets, ...).
         """
-        output_folder_path = self.get_saving_folder(feature_type='attn_correlations')
+        output_folder_path = self.get_saving_folder(feature_type='attn_scores')
         logging.info(f"[load scores]: output_folder_path: {output_folder_path}")
 
         if self.data_config.SPLIT_DATA:
@@ -67,7 +67,7 @@ class AnalyzerAttnCorr(Analyzer):
         paths = []
 
         for set_type in data_set_types:
-            logging.info(f"[AnalyzerAttnCorr] loading from: {output_folder_path}")
+            logging.info(f"[AnalyzerAttnScores] loading from: {output_folder_path}")
             features.append(np.load(self._get_save_path(output_folder_path, "corrs", set_type)))
             labels.append(np.load(self._get_save_path(output_folder_path, "labels", set_type)))
             paths.append(np.load(self._get_save_path(output_folder_path, "paths", set_type)))
@@ -82,7 +82,7 @@ class AnalyzerAttnCorr(Analyzer):
         """"
         Save the calculated distances to a specified file.
         """
-        output_folder_path = self.get_saving_folder(feature_type='attn_correlations')
+        output_folder_path = self.get_saving_folder(feature_type='attn_scores')
         os.makedirs(output_folder_path, exist_ok=True)
         logging.info(f"Saving scores to {output_folder_path}")
 

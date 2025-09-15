@@ -10,7 +10,7 @@ import os
 from typing import List, Tuple, Iterable, Dict
 import torch
 from src.datasets.dataset_config import DatasetConfig
-from src.figures.plot_correlation_config import PlotCorrConfig
+from src.figures.plot_attn_score_config import PlotAttnScoreConfig
 from src.datasets.label_utils import get_unique_parts_from_labels, get_markers_from_labels, get_batches_from_labels
 
 def get_percentiles(data, prc_list = [25,50,75], axis=0):
@@ -228,7 +228,7 @@ def plot_correlation_by_markers(corr_by_markers, corr_method, config_plot, chann
             plt.show()
 
 def plot_corr_data(corr_data:List[np.ndarray[torch.Tensor]], labels:List[np.ndarray[torch.Tensor]], 
-                    data_config:DatasetConfig, config_plot:PlotCorrConfig, corr_method:str, 
+                    data_config:DatasetConfig, config_plot:PlotAttnScoreConfig, corr_method:str, 
                     output_folder_path:str, features_names:List[str] = None)->None:
     """
         - extract correlation data for each batch 

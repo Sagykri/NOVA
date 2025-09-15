@@ -8,9 +8,9 @@ import logging
 from src.common.utils import load_config_file
 from src.embeddings.embeddings_utils import load_embeddings
 from src.datasets.dataset_config import DatasetConfig
-from src.analysis.analyzer_attention_correlation import AnalyzerAttnCorr
-from src.figures.attn_correlation_plotting import plot_corr_data
-from src.figures.plot_correlation_config import PlotCorrConfig
+from src.analysis.analyzer_attention_scores import AnalyzerAttnScore
+from src.figures.attn_scores_plotting import plot_corr_data
+from src.figures.plot_attn_score_config import PlotAttnScoreConfig
 
 def load_attn_and_plot_correlation(outputs_folder_path:str, config_path_data:str, 
                                    config_path_corr:str, config_path_plot:str = None):
@@ -24,16 +24,16 @@ def load_attn_and_plot_correlation(outputs_folder_path:str, config_path_data:str
     processed_attn_maps, labels, paths = [processed_attn_maps], [labels], [paths] #TODO: fix, needed for settypes
     
     logging.info("[Generate correlations]")
-    d = AnalyzerAttnCorr(config_data, output_folder_path, config_corr)
+    d = AnalyzerAttnScore(config_data, output_folder_path, config_corr)
     corr_data = d.calculate(processed_attn_maps, labels, paths)
     d.save()
 
     # save summary plots of the correlations
     if config_path_plot is not None:
-        config_plot:PlotCorrConfig = load_config_file(config_path_plot, 'plot')
+        config_plot:PlotAttnScoreConfig = load_config_file(config_path_plot, 'plot')
 
         if config_plot.PLOT_CORR_SUMMARY:
-            plot_corr_data(corr_data, labels, config_data, config_plot, config_corr.CORR_METHOD, output_folder_path=d.get_saving_folder(feature_type='attn_correlations'), features_names=config_corr.FEATURES_NAMES)
+            plot_corr_data(corr_data, labels, config_data, config_plot, config_corr.CORR_METHOD, output_folder_path=d.get_saving_folder(feature_type='attn_scores'), features_names=config_corr.FEATURES_NAMES)
 
         
 
