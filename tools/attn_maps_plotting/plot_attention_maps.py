@@ -8,17 +8,17 @@ import logging
 from src.embeddings.embeddings_utils import load_embeddings
 from src.common.utils import load_config_file
 from src.datasets.dataset_config import DatasetConfig
-from src.figures.plot_attention_config import PlotAttnMapConfig
+from tools.attn_maps_plotting.plot_attention_config import PlotAttnMapConfig
 from src.models.utils.consts import CHECKPOINT_BEST_FILENAME, CHECKPOINTS_FOLDERNAME
 from typing import Dict, List, Optional, Tuple, Callable
 from copy import deepcopy
 import numpy as np
 import torch
-from src.figures.attention_maps_plotting import plot_attn_maps
+from tools.attn_maps_plotting.attention_maps_plotting import plot_attn_maps
 from src.datasets.label_utils import get_batches_from_input_folders
 from tools.load_data_from_npy import __extract_indices_to_plot, __extract_samples_to_plot
 from src.analysis.analyzer_attention_scores import AnalyzerAttnScore
-from src.analysis.analyzer_pair_wise_distances import AnalyzerPairwiseDistances
+from tools.attn_maps_plotting.analyzer_pair_wise_distances import AnalyzerPairwiseDistances
 from src.datasets.label_utils import get_unique_parts_from_labels, get_markers_from_labels
 
 

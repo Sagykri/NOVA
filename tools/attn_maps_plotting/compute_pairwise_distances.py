@@ -9,7 +9,7 @@ import logging
 from src.common.utils import load_config_file
 from src.embeddings.embeddings_utils import load_embeddings
 from src.datasets.dataset_config import DatasetConfig
-from src.analysis.analyzer_pair_wise_distances import AnalyzerPairwiseDistances
+from tools.attn_maps_plotting.analyzer_pair_wise_distances import AnalyzerPairwiseDistances
 
 def generate_distances(output_folder_path:str, config_path_data:str, config_path_pairwise )->None:
     

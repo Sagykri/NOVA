@@ -9,14 +9,14 @@ from src.common.utils import load_config_file
 from src.datasets.dataset_config import DatasetConfig
 from src.datasets.dataset_NOVA import DatasetNOVA
 from src.datasets.data_loader import get_dataloader
-from src.figures.plot_attention_config import PlotAttnMapConfig
+from tools.attn_maps_plotting.plot_attention_config import PlotAttnMapConfig
 from src.models.utils.consts import CHECKPOINT_BEST_FILENAME, CHECKPOINTS_FOLDERNAME
 from typing import Dict, List, Optional, Tuple, Callable
 import numpy as np
 import torch
 from src.attention_maps.attention_config import AttnConfig
 from src.attention_maps.attention_maps_utils import process_attn_maps
-from src.figures.attention_maps_plotting import plot_attn_maps
+from tools.attn_maps_plotting.attention_maps_plotting import plot_attn_maps
 
 """ 
 arguments: model, dataset config, attn_config, plot_attn_config 

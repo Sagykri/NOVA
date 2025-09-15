@@ -3,7 +3,7 @@ import sys
 sys.path.insert(0, os.getenv("HOME"))
 sys.path.insert(1, os.getenv("NOVA_HOME"))
 
-from NOVA_rotation.Configs.plot_attn_map_config import PlotAttnMapConfig
+from tools.attn_maps_plotting.plot_attention_config import PlotAttnMapConfig
 import cv2
 import numpy as np
 from PIL import Image

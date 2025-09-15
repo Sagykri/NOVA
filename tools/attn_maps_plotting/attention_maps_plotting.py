@@ -9,7 +9,7 @@ import os
 from typing import List, Tuple, Iterable, Dict
 import torch
 from src.datasets.dataset_config import DatasetConfig
-from src.figures.plot_attention_config import PlotAttnMapConfig
+from tools.attn_maps_plotting.plot_attention_config import PlotAttnMapConfig
 from src.datasets.label_utils import get_unique_parts_from_labels, get_markers_from_labels, get_batches_from_labels
 import matplotlib.pyplot as plt
 from matplotlib.colors import LinearSegmentedColormap

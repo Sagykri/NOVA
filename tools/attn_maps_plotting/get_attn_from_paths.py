@@ -9,7 +9,7 @@ from src.embeddings.embeddings_utils import load_embeddings
 from src.common.utils import load_config_file
 from src.datasets.dataset_config import DatasetConfig
 from src.datasets.dataset_NOVA import DatasetNOVA
-from tools.dataset_PATHS import DatasetFromPaths
+from tools.attn_maps_plotting.dataset_PATHS import DatasetFromPaths
 from src.datasets.data_loader import get_dataloader
 from src.figures.plot_config import PlotConfig
 from src.models.utils.consts import CHECKPOINT_BEST_FILENAME, CHECKPOINTS_FOLDERNAME
@@ -19,7 +19,7 @@ import numpy as np
 import torch
 from src.attention_maps.attention_config import AttnConfig
 from src.attention_maps.attention_maps_utils import generate_attn_maps, process_attn_maps, save_attn_maps
-from src.figures.attention_maps_plotting import plot_attn_maps
+from tools.attn_maps_plotting.attention_maps_plotting import plot_attn_maps
 from src.analysis.analyzer_attention_scores import AnalyzerAttnScore
 
 

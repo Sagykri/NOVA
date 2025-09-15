@@ -15,7 +15,7 @@ from src.datasets.dataset_config import DatasetConfig
 from src.analysis.analyzer import Analyzer
 from src.common.utils import get_if_exists
 from src.datasets.label_utils import get_batches_from_labels, get_unique_parts_from_labels, get_markers_from_labels
-from tools.analyzer_pairwise_dist_utils import filter_by_labels, compute_distances, extract_pairs
+from tools.attn_maps_plotting.analyzer_pairwise_dist_utils import filter_by_labels, compute_distances, extract_pairs
 
 
 class AnalyzerPairwiseDistances(Analyzer):

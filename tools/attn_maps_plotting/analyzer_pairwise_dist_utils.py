@@ -5,14 +5,21 @@ import pandas as pd
 import sys
 import os
 sys.path.insert(0, os.getenv("HOME"))
-from NOVA_rotation.load_files.load_data_from_npy import load_npy_to_df, load_npy_to_nparray, load_paths_from_npy
 from src.datasets.dataset_config import DatasetConfig
-from NOVA_rotation.embeddings.embedding_utils.subset_utils import _extract_mutual_params
+
 from src.figures.plot_config import PlotConfig
 from src.common.utils import load_config_file
 from src.datasets.label_utils import get_batches_from_labels, get_unique_parts_from_labels, get_markers_from_labels, get_batches_from_input_folders, get_cell_lines_conditions_from_labels
 import logging
 
+def _extract_mutual_params(mutual_param):
+        if isinstance(mutual_param, list):
+                if len(mutual_param) == 1:
+                    return mutual_param[0], mutual_param[0]
+                else:
+                    return mutual_param[0], mutual_param[1]
+        else:
+            raise ValueError("[get subset: extract_subset] Mutual param is not a valid option.")
 
 def filter_by_labels(labels_df: pd.DataFrame,embeddings_df: pd.DataFrame,paths_df: pd.DataFrame, filters: dict
 ):
