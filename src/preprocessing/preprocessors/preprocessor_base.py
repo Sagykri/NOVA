@@ -577,6 +577,10 @@ class Preprocessor(ABC):
             print("ncomponents failed:", ncomponents)
             return True
         
+        print("ncomponents:", ncomponents)
+
+        num_alive_cells = 0
+        num_dead_cells = 0
         for i in range(1, ncomponents + 1): # 0 is the background
             blob_mask = (labeled == i)
             dapi_masked = dapi_rescaled[blob_mask]
@@ -593,32 +597,67 @@ class Preprocessor(ABC):
             #               NEW:
             #               --> high intensity *and* (either low or high variance)
             #            or --> very high size (=~noise) (above maximal threshold)
-            # which indicates blurred / about-to-die / dead cell 
-            if blob_size > self.preprocessing_config.MIN_ALIVE_NUCLEI_AREA and \
-                (((blob_variance <= self.preprocessing_config.MIN_VARIANCE_THRESHOLD_ALIVE_NUCLEI or \
-                blob_variance >= self.preprocessing_config.MAX_VARIANCE_THRESHOLD_ALIVE_NUCLEI) and blob_median >= self.preprocessing_config.MAX_MEDIAN_INTENSITY_THRESHOLD_ALIVE_NUCLEI) or \
-                blob_size >= self.preprocessing_config.MAX_ALIVE_NUCLEI_AREA):
-                print("ALIVE CELL failed thresholds -")
-                print("blob_size:", blob_size, "blob_median: ", blob_median, "blob_variance:", blob_variance)
-                return True
-
+            # which indicates blurred / about-to-die / dead cell
+            # 
+            # Size passed - considered as ALIVE 
+            if (blob_size > self.preprocessing_config.MIN_ALIVE_NUCLEI_AREA and \
+                blob_size <= self.preprocessing_config.MAX_ALIVE_NUCLEI_AREA):
+                # Data (var and intensity) thresholds
+                if ((blob_variance <= self.preprocessing_config.MIN_VARIANCE_THRESHOLD_ALIVE_NUCLEI or blob_variance >= self.preprocessing_config.MAX_VARIANCE_THRESHOLD_ALIVE_NUCLEI) and \
+                ( blob_median <= self.preprocessing_config.MIN_MEDIAN_INTENSITY_THRESHOLD_ALIVE_NUCLEI or blob_median >= self.preprocessing_config.MAX_MEDIAN_INTENSITY_THRESHOLD_ALIVE_NUCLEI)):
+                # (1) ((blob_variance <= self.preprocessing_config.MIN_VARIANCE_THRESHOLD_ALIVE_NUCLEI and blob_median <= self.preprocessing_config.MIN_MEDIAN_INTENSITY_THRESHOLD_ALIVE_NUCLEI) or \
+                # (blob_variance >= self.preprocessing_config.MAX_VARIANCE_THRESHOLD_ALIVE_NUCLEI and blob_median >= self.preprocessing_config.MAX_MEDIAN_INTENSITY_THRESHOLD_ALIVE_NUCLEI) or \
+                # (2) (((blob_variance <= self.preprocessing_config.MIN_VARIANCE_THRESHOLD_ALIVE_NUCLEI or \
+                # blob_variance >= self.preprocessing_config.MAX_VARIANCE_THRESHOLD_ALIVE_NUCLEI) and blob_median >= self.preprocessing_config.MAX_MEDIAN_INTENSITY_THRESHOLD_ALIVE_NUCLEI) or \
+                
+                    print("ALIVE CELL failed thresholds -")
+                    print("blob_size:", blob_size, "blob_median: ", blob_median, "blob_variance:", blob_variance)
+                    return True
+                else:
+                    print("ALIVE CELL passed thresholds -")
+                    print("blob_size:", blob_size, "blob_median: ", blob_median, "blob_variance:", blob_variance)
+                    num_alive_cells += 1
             
+
             # CHANGE - KEEP
             # detect DEAD NUCLEUS
-            #if blob_median >= intensity_threshold or (not __is_blob_touching_edge(blob_mask) and blob_size <= self.preprocessing_config.MIN_ALIVE_NUCLEI_AREA):
-            if blob_median >= intensity_threshold and \
-            blob_size <= self.preprocessing_config.MIN_ALIVE_NUCLEI_AREA and\
-            blob_size >= self.preprocessing_config.MIN_NUCLEI_BLOB_AREA and \
-            (blob_variance >= self.preprocessing_config.MIN_VARIANCE_NUCLEI_BLOB_THRESHOLD or\
-            blob_variance <= self.preprocessing_config.MAX_VARIANCE_NUCLEI_BLOB_THRESHOLD):
+            # if blob_median >= intensity_threshold and \
+            # blob_size <= self.preprocessing_config.MIN_ALIVE_NUCLEI_AREA and\
+            # blob_size >= self.preprocessing_config.MIN_NUCLEI_BLOB_AREA and \
+            # (blob_variance >= self.preprocessing_config.MIN_VARIANCE_NUCLEI_BLOB_THRESHOLD or\
+            # blob_variance <= self.preprocessing_config.MAX_VARIANCE_NUCLEI_BLOB_THRESHOLD):
+            #     print("DEAD CELL failed thresholds -")
+            #     print("blob_size:", blob_size, "blob_median: ", blob_median, "blob_variance:", blob_variance)
+            #     return  True
+
+            # Check for intensity and size thresholds
+            # if blob is the right size (MIN_ALIVE_NUCLEI_AREA >= size >= MIN_NUCLEI_BLOB_AREA)
+            # and either:
+            #    -> has high intensity
+            #    -> not touching edge
+            #    -> has smaller variance than MAX_VARIANCE_NUCLEI_BLOB_THRESHOLD
+            if  (blob_size <= self.preprocessing_config.MIN_ALIVE_NUCLEI_AREA and\
+                blob_size >= self.preprocessing_config.MIN_NUCLEI_BLOB_AREA) and \
+                (not __is_blob_touching_edge(blob_mask) or\
+                  blob_median >= intensity_threshold or \
+                blob_variance <= self.preprocessing_config.MAX_VARIANCE_NUCLEI_BLOB_THRESHOLD)        :
+                # (not __is_blob_touching_edge(blob_mask) or
                 print("DEAD CELL failed thresholds -")
                 print("blob_size:", blob_size, "blob_median: ", blob_median, "blob_variance:", blob_variance)
-                return  True
+                num_dead_cells += 1
+                #return  True
             
             # CHANGE
-            print("passed:")
-            print("blob_size:", blob_size, "blob_median: ", blob_median, "blob_variance:", blob_variance)
-                
+            # print("passed:")
+            # print("blob_size:", blob_size, "blob_median: ", blob_median, "blob_variance:", blob_variance)
+
+        #NEW - CHECK AT LEAST PNE ALIVE CELL
+        if num_alive_cells == 0:
+            print("Failed - No alive cells.") 
+            return  True
+        if num_dead_cells > 1:
+            print("Failed - More than one dead cell.") 
+            return True
         return False
 
     def __is_empty_tile_dapi(self, dapi:np.ndarray, dapi_scaled:np.ndarray, tile_name:str)-> Tuple[bool, Union[str, None]]:

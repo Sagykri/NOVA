@@ -87,6 +87,7 @@ def is_image_focused(img:np.ndarray , thresholds:Tuple[float, float]):
         return True
     
     logging.warning(f"Image is blurred. Expected to be in range of ({lower_bound}, {upper_bound}), but got {img_focus_quality}")
+    print("brenner value: ", img_focus_quality)
     return False
 
 def is_tile_focused(img:np.ndarray , lower_bound:Tuple[float, float]):
