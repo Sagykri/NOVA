@@ -21,9 +21,9 @@ from src.datasets.data_loader import get_dataloader
 from src.datasets.dataset_NOVA import DatasetNOVA
 from src.datasets.label_utils import get_batches_from_labels, get_unique_parts_from_labels, get_markers_from_labels,\
     edit_labels_by_config, get_batches_from_input_folders, get_reps_from_labels, get_conditions_from_labels, get_cell_lines_from_labels
-from torch.utils.data import DataLoader
 from NOVA_rotation.Configs.attn_config import AttnConfig #TODO: CHANGE TO NOVA
 
+attn_maps_utils_module = sys.modules[__name__]
 
 
 REDUCE_HEAD_FUNC_MAP = {
@@ -188,7 +188,7 @@ def process_attn_maps(attn_maps: np.ndarray[float], labels: np.ndarray[str],
     return all_attn_maps
 
 def _process_single_attn_sample(sample_attn, config_attn, img_shape):
-    processed_attn_map = globals()[f"_process_attn_map_{config_attn.ATTN_METHOD}"](sample_attn, config_attn)
+    processed_attn_map = getattr(attn_maps_utils_module, f"_process_attn_map_{config_attn.ATTN_METHOD}")(sample_attn, config_attn)
     num_patches = processed_attn_map.shape[-1]
     patch_dim = int(np.sqrt(num_patches))
     processed_attn_map = __resize_attn_map(processed_attn_map, patch_dim, img_shape, resample_method=config_attn.RESAMPLE_METHOD)
@@ -282,30 +282,6 @@ def __resize_attn_map(processed_attn, patch_dim, img_shape, resample_method=Imag
     else:
         raise ValueError(f"Unsupported shape {processed_attn.shape}. Expected (N,) or (L, N).")
 
-
-
-def __color_heatmap_attn_map(processed_attn, patch_dim, img_shape, heatmap_color=cv2.COLORMAP_JET, resample_method=Image.BICUBIC):
-    """
-    Create attention heatmap:
-        (1) Reshape to (patch_dim, patch_dim)
-        (2) Resize to image shape
-        (3) Apply colormap
-
-    Parameters:
-        processed_attn: float32 vector of shape (patch_dim * patch_dim,), scaled to [0,1]
-        patch_dim: dimension of square patch grid
-        img_shape: (H, W) of the original image
-        heatmap_color: OpenCV colormap type (default: cv2.COLORMAP_JET)
-
-    Returns:
-        heatmap_colored: uint8 colored attention heatmap of shape (H, W, 3)
-    """
-    attn_square = processed_attn.reshape(patch_dim, patch_dim)
-    heatmap_uint8 = (attn_square * 255).astype(np.uint8)
-    heatmap_resized = Image.fromarray(heatmap_uint8).resize(img_shape, resample=resample_method)
-    heatmap_resized = np.array(heatmap_resized).astype(np.uint8)
-    heatmap_colored = cv2.applyColorMap(heatmap_resized, heatmap_color)
-    return heatmap_colored
 
 
 def __attn_map_all_layers(attn, attn_layer_dim=0, heads_reduce_fn:callable=np.mean):
