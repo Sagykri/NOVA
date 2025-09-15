@@ -21,7 +21,7 @@ class PlotAttnMapConfig(BaseConfig):
         # Controls transparency of the attention overlay (higher alpha = more visible red)
         self.ALPHA:float = None
 
-        self.NUM_CONTOURS:int = None # numbed of contours lines for the attention map
+        self.NUM_CONTOURS:int = None # numbed of contours lines for the attention map overlay
 
         self.ATTN_OVERLAY_THRESHOLD:float = None
         # Controls layout size of the output figure.
@@ -41,11 +41,21 @@ class PlotAttnMapConfig(BaseConfig):
 
         self.PLOT_HEATMAP_COLORMAP:int = None # cv2 int constanat that control colors of the heatmap
 
-        self.SAVE_PLOT:bool = None 
+        self.SAVE_PLOT:bool = None  # save figure in the output path
 
-        self.SHOW_PLOT:bool = None 
+        self.SHOW_PLOT:bool = None  # display plot 
 
-        self.FILTER_SAMPLES_FOLDER_PATHS:list = None # list of folders which had paths files in them , which will be ised to filter the samples
+        self.FILTER_SAMPLES_BY_FOLDER_PATHS = None # whether to filter the samples by the paths given in the pair-wise distances analysis
 
-        self.SHOW_CORR_SCORES = None # if true, loads correlarion data and adds correlation score to each input image
+        self.DISPLAY_SUPTITLE:bool = None # whether to display the suptitle of the figure
+
+        self.DISPLAY_COMPONENTS_TITLE:bool = None  # whether to display each components sub-title
+
+        self.FIG_COMPONENTS:list = None # which sub-components to display in the figure. options - ["Overlay", "Marker", "Nucleus", "Heatmap"]
+        
+        # list of colors to be used in LinearSegmentedColormap for filling the contours
+        self.FILL_CMAP_LIST:list  = None
+        
+        # list of colors to be used in LinearSegmentedColormap for the contours lines
+        self.LINE_CMAP_LIST:list  = None
 

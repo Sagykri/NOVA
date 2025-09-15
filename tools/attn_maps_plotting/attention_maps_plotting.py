@@ -12,12 +12,12 @@ from src.datasets.dataset_config import DatasetConfig
 from tools.attn_maps_plotting.plot_attention_config import PlotAttnMapConfig
 from src.datasets.label_utils import get_unique_parts_from_labels, get_markers_from_labels, get_batches_from_labels
 import matplotlib.pyplot as plt
-from matplotlib.colors import LinearSegmentedColormap
 import cv2
 from PIL import Image
 from matplotlib import gridspec
 from tools.load_data_from_npy import parse_paths, load_tile, load_paths_from_npy, parse_path_item
 from concurrent.futures import ThreadPoolExecutor
+from matplotlib.colors import LinearSegmentedColormap
 
 
 def plot_attn_maps(processed_attn_maps: np.ndarray[float], labels: np.ndarray[str], 
@@ -119,7 +119,8 @@ def _plot_attn_map_rollout(processed_attn_map, sample_info, config_plot, output_
     img_path, site, tile, label = sample_info
     marker, nucleus, input_img = load_tile(img_path, tile)
     assert marker.shape == nucleus.shape
-    logging.info(f"[plot_attn_maps] Sample Info: img_path:{img_path}, site:{site}, tile:{tile}, label:{label}")
+    logging.info(f"[plot_attn_maps] Sample Path: {img_path}")
+    logging.info(f"[plot_attn_maps] Sample Info: site:{site}, tile:{tile}, label:{label}")
 
     # Attn workflow
     # create attn map heatmap
@@ -130,109 +131,18 @@ def _plot_attn_map_rollout(processed_attn_map, sample_info, config_plot, output_
 
 
 
-# def __create_attn_map_img(attn_map, input_img, heatmap_colored, config_plot, sup_title = "Attention Maps", output_folder_path = None, corr_data = None, corr_method = None):
-#         """
-#             Create attention map img with:
-#                 (1) input image 
-#                 (2) attention heatmap
-#                 (3) attention overlay on the input img
-#             ** save/plot according to config_plot
-
-#             parameters:
-#                 attn_map: attention maps values, already in the img shape (H,W), rescale to [0,1]
-#                 input_img: input img with marker and nucleus overlay (3,H,W)
-#                             ** assuming  Green = nucleus, Blue = marker, Red = zeroed out
-#                 heatmap_colored: attention map colored by heatmap_color (3,H,W)
-#                 config_plot: config with the plotting parameters 
-#                 corr_data: [optional] tuple of corrletion of the attention with the image channels, entropy and corr_method
-#                 sup_title: [optional] main title for the figure
-#                 output_folder_path: [optional] for saving the output fig.
-
-#             return:
-#                 fig: matplot fig created. 
-#         """
-
-        
-
-#         alpha = config_plot.ALPHA
-
-#         fig, ax = plt.subplots(1, 3, figsize=config_plot.FIG_SIZE)
-
-#         if corr_data is not None:
-#             corr_nucleus, corr_marker = corr_data[0], corr_data[1]
-#             formatted_nucleus = ", ".join(f"{v:.3f}" for v in corr_nucleus)
-#             formatted_marker = ", ".join(f"{v:.3f}" for v in corr_marker)
-#             ax[1].text(0.5, -0.25, f"{corr_method} Correlation (Nucleus): {formatted_nucleus:.2f}\n{corr_method} Correlation (Marker): {formatted_marker:.2f}",
-#                     transform=ax[1].transAxes, ha='center', va='center', fontsize=config_plot.PLOT_TITLE_FONTSIZE, color='black')
-
-        
-#         ax[0].set_title(f'Input - Marker (green), Nucleus (blue)', fontsize=config_plot.PLOT_TITLE_FONTSIZE)
-#         ax[0].imshow(input_img)
-#         ax[0].set_axis_off()
-
-#         ax[1].set_title(f'Attention Heatmap: No Th', fontsize=config_plot.PLOT_TITLE_FONTSIZE)
-#         ax[1].imshow(cv2.cvtColor(heatmap_colored, cv2.COLOR_BGR2RGB))
-#         ax[1].set_axis_off()
-
-#         fill_cmap = LinearSegmentedColormap.from_list(
-#             'fill_colors',
-#             [(0, 0, 0, 0),           # transparent black
-#             (1, 1, 0, 0.4),         # yellow 
-#             (1, 0.6, 0, 0.6),       # orange
-#             (1, 0, 0, 0.8)]         # red
-#         )
-
-#         lines_cmap = LinearSegmentedColormap.from_list(
-#             'line_colors',
-#             [(1, 1, 1, 0.2),         # transparent white
-#             (1, 1, 0, 0.4),         # yellow 
-#             (1, 0.6, 0, 0.6),       # orange
-#             (1, 0, 0, 0.8)]         # red
-#         )
-
-#         ax[2].set_title(f'Attention Overlay: Th{config_plot.ATTN_OVERLAY_THRESHOLD}', fontsize=config_plot.PLOT_TITLE_FONTSIZE)
-#         ax[2].imshow(input_img)  # Show the original image
-
-#         levels = np.linspace(config_plot.ATTN_OVERLAY_THRESHOLD, 1.0, config_plot.NUM_CONTOURS) # skip 20% lowest values  
-#         contours = ax[2].contourf(
-#             attn_map,
-#             levels=levels,
-#             cmap=fill_cmap,
-#             alpha=alpha,  
-#         )
-
-#         thick_contours = ax[2].contour(
-#             attn_map,
-#             levels=levels,              
-#             cmap=lines_cmap,            
-#             linewidths=1.0,             
-#             alpha= alpha + 0.05
-#         )
-
-#         ax[2].set_axis_off()
-
-#         fig.suptitle(sup_title, fontsize=config_plot.PLOT_SUPTITLE_FONTSIZE, y=1.1)
-        
-#         if config_plot.SAVE_PLOT and (output_folder_path is not None):
-#             fig_name  = sup_title.split('\n', 1)[0] #either till the end of the line or the full str
-#             save_path = os.path.join(output_folder_path, f"{fig_name}.png")
-#             plt.savefig(save_path, bbox_inches='tight', dpi=config_plot.PLOT_SAVEFIG_DPI)
-#             plt.close()
-#         if config_plot.SHOW_PLOT:
-#             plt.show()
-
-#         logging.info(f"[plot_attn_maps] attn maps saved: {save_path}")
-#         return fig
-
-
-
-
-def __create_attn_map_img(attn_map, input_img, heatmap_colored, config_plot, sup_title = "Attention Maps", output_folder_path = None, corr_data = None, corr_method = None):
+def __create_attn_map_img(attn_map, input_img, heatmap_colored, config_plot, 
+                          sup_title="Attention Maps", output_folder_path=None, 
+                          corr_data=None, corr_method=None):
     """
-    Visualize attention alongside marker and nucleus channels in a 2x2 layout:
+    Visualize attention maps with flexible component selection.
 
-        [0,0] Marker channel       [0,1] Overlay (Input + Attn)
-        [1,0] Nucleus channel      [1,1] Heatmap
+    Supported components in config_plot.FIG_COMPONENTS:
+        - "Marker"   : Marker channel
+        - "Overlay"  : Overlay (Input + Attn)
+        - "Nucleus"  : Nucleus channel
+        - "Heatmap"  : Attention heatmap
+    (displayed by the order in the list)
 
     Args:
         attn_map: (H, W) attention map, scaled [0, 1]
@@ -241,101 +151,117 @@ def __create_attn_map_img(attn_map, input_img, heatmap_colored, config_plot, sup
         config_plot: plotting config
         sup_title: overall title
         output_folder_path: optional path to save the figure
+        corr_data:tuple (optional): attn score tuple for the sample. displayed if given.
+        corr_method:str (optional): attn score method name. displayed if corr_data is given.
 
     Returns:
         fig: matplotlib figure object
     """
 
     alpha = config_plot.ALPHA
-    
-    # Create figure with minimal spacing
-    fig, ax = plt.subplots(2, 2, figsize=config_plot.FIG_SIZE, 
-                          gridspec_kw={'wspace': 0.02, 'hspace': 0.25})
-    # Extract channels
-    nucleus = input_img[..., 2]
-    marker = input_img[..., 1]
+    components = config_plot.FIG_COMPONENTS
 
-    # Create RGB versions with black background for marker and nucleus
-    nucleus_rgb = np.zeros_like(input_img)
-    nucleus_rgb[..., 2] = nucleus
+    def plot_marker(ax):
+        marker = input_img[..., 1]
+        marker_rgb = np.zeros_like(input_img)
+        marker_rgb[..., 1] = marker
+        ax.imshow(marker_rgb)
+        if config_plot.DISPLAY_COMPONENTS_TITLE:
+            ax.set_title("Marker", fontsize=config_plot.PLOT_TITLE_FONTSIZE, pad=5)
+        ax.set_axis_off()
+        if corr_data is not None:
+            corr_marker = corr_data[1]
+            formatted = ", ".join(f"{v:.3f}" for v in corr_marker)
+            ax.text(0.5, -0.05, f"{corr_method} Score:\n{formatted}",
+                    transform=ax.transAxes, ha='center', va='top',
+                    fontsize=config_plot.PLOT_TITLE_FONTSIZE, color='black')
 
-    marker_rgb = np.zeros_like(input_img)
-    marker_rgb[..., 1] = marker
+    def plot_overlay(ax):
+        logging.info(f"[plot_attn_maps] Attention overlay threshold: {config_plot.ATTN_OVERLAY_THRESHOLD}")
+        ax.imshow(input_img)
+        if config_plot.DISPLAY_COMPONENTS_TITLE:
+            ax.set_title(f"Overlay", 
+                     fontsize=config_plot.PLOT_TITLE_FONTSIZE, pad=5)
+        levels = np.linspace(config_plot.ATTN_OVERLAY_THRESHOLD, 1.0, config_plot.NUM_CONTOURS)
 
-    # [0,0] Marker channel
-    ax[0, 0].imshow(marker_rgb)
-    ax[0, 0].set_title("Marker (Green)", fontsize=config_plot.PLOT_TITLE_FONTSIZE, pad=5)
-    ax[0, 0].set_axis_off()
-    if corr_data is not None:
-        corr_marker = corr_data[1]
-        formatted_marker = ", ".join(f"{v:.3f}" for v in corr_marker)
-        ax[0, 0].text(
-            0.5, -0.05,  # slightly below the axes
-            f"{corr_method} Correlation: \n{formatted_marker}",
-            transform=ax[0, 0].transAxes,
-            ha='center', va='top', fontsize=config_plot.PLOT_TITLE_FONTSIZE, color='black'
+        fill_cmap = LinearSegmentedColormap.from_list(
+            'fill_colors',
+            config_plot.FILL_CMAP_LIST
         )
-
-    # [0,1] Overlay (Input + Attn)
-    ax[0, 1].imshow(input_img)
-    ax[0, 1].set_title(f"Overlay (Th={config_plot.ATTN_OVERLAY_THRESHOLD})", fontsize=config_plot.PLOT_TITLE_FONTSIZE, pad=5)
-
-    # Contour fill & lines for attention overlay
-    fill_cmap = LinearSegmentedColormap.from_list(
-        'fill_colors',
-        [(0, 0, 0, 0),
-         (1, 1, 0, 0.4),
-         (1, 0.6, 0, 0.6),
-         (1, 0, 0, 0.8)]
-    )
-    line_cmap = LinearSegmentedColormap.from_list(
-        'line_colors',
-        [(1, 1, 1, 0.2),
-         (1, 1, 0, 0.4),
-         (1, 0.6, 0, 0.6),
-         (1, 0, 0, 0.8)]
-    )
-    levels = np.linspace(config_plot.ATTN_OVERLAY_THRESHOLD, 1.0, config_plot.NUM_CONTOURS)
-    ax[0, 1].contourf(attn_map, levels=levels, cmap=fill_cmap, alpha=alpha)
-    ax[0, 1].contour(attn_map, levels=levels, cmap=line_cmap, linewidths=1.0, alpha=alpha + 0.05)
-    ax[0, 1].set_axis_off()
-
-    # [1,0] Nucleus channel
-    ax[1, 0].imshow(nucleus_rgb)
-    ax[1, 0].set_title("Nucleus (Blue)", fontsize=config_plot.PLOT_TITLE_FONTSIZE, pad=5)
-    ax[1, 0].set_axis_off()
-    if corr_data is not None:
-        corr_nucleus = corr_data[0]
-        formatted_nucleus = ", ".join(f"{v:.3f}" for v in corr_nucleus)
-        ax[1, 0].text(
-            0.5, -0.05,  # slightly below the axes
-            f"{corr_method} Correlation: \n{formatted_nucleus}",
-            transform=ax[1, 0].transAxes,
-            ha='center', va='top', fontsize=config_plot.PLOT_TITLE_FONTSIZE, color='black'
+ 
+        line_cmap = LinearSegmentedColormap.from_list(
+            'line_colors',
+            config_plot.LINE_CMAP_LIST
         )
+        ax.contourf(attn_map, levels=levels, cmap=fill_cmap, alpha=alpha)
+        ax.contour(attn_map, levels=levels, cmap=line_cmap,
+                   linewidths=1.0, alpha=alpha + 0.05)
+        ax.set_axis_off()
 
-    # [1,1] Heatmap
-    ax[1, 1].imshow(cv2.cvtColor(heatmap_colored, cv2.COLOR_BGR2RGB))
-    ax[1, 1].set_title("Attention Heatmap", fontsize=config_plot.PLOT_TITLE_FONTSIZE, pad=5)
-    ax[1, 1].set_axis_off()
+    def plot_nucleus(ax):
+        nucleus = input_img[..., 2]
+        nucleus_rgb = np.zeros_like(input_img)
+        nucleus_rgb[..., 2] = nucleus
+        ax.imshow(nucleus_rgb)
 
-    # Add main title with proper spacing
-    fig.suptitle(sup_title, fontsize=config_plot.PLOT_SUPTITLE_FONTSIZE, y=0.95)
+        if config_plot.DISPLAY_COMPONENTS_TITLE:
+            ax.set_title("Nucleus", fontsize=config_plot.PLOT_TITLE_FONTSIZE, pad=5)
 
-    # Fine-tune the layout
+        ax.set_axis_off()
+        if corr_data is not None:
+            corr_nucleus = corr_data[0]
+            formatted = ", ".join(f"{v:.3f}" for v in corr_nucleus)
+            ax.text(0.5, -0.05, f"{corr_method} Score:\n{formatted}",
+                    transform=ax.transAxes, ha='center', va='top',
+                    fontsize=config_plot.PLOT_TITLE_FONTSIZE, color='black')
+
+    def plot_heatmap(ax):
+        ax.imshow(cv2.cvtColor(heatmap_colored, cv2.COLOR_BGR2RGB))
+        if config_plot.DISPLAY_COMPONENTS_TITLE:
+            ax.set_title("Attention Heatmap", fontsize=config_plot.PLOT_TITLE_FONTSIZE, pad=5)
+        ax.set_axis_off()
+
+    component_map = {
+        "Marker": plot_marker,
+        "Overlay": plot_overlay,
+        "Nucleus": plot_nucleus,
+        "Heatmap": plot_heatmap,
+    }
+
+    # Build dynamic grid based on selected components
+    n_components = len(components)
+    ncols = 2 if n_components > 1 else 1
+    nrows = int(np.ceil(n_components / ncols))
+
+    fig, axes = plt.subplots(nrows, ncols, figsize=config_plot.FIG_SIZE,
+                             squeeze=False,
+                             gridspec_kw={'wspace': 0.02, 'hspace': 0.25})
+
+    axes = axes.flatten()
+
+    for ax, comp in zip(axes, components):
+        component_map[comp](ax)
+
+    # Hide any unused axes
+    for ax in axes[len(components):]:
+        ax.axis("off")
+
+    if config_plot.DISPLAY_SUPTITLE:
+        fig.suptitle(sup_title, fontsize=config_plot.PLOT_SUPTITLE_FONTSIZE, y=0.98)
     plt.subplots_adjust(top=0.88, bottom=0.02, left=0.02, right=0.98)
 
     if config_plot.SAVE_PLOT and output_folder_path is not None:
         fig_name = sup_title.split('\n', 1)[0]
         save_path = os.path.join(output_folder_path, f"{fig_name}.png")
-        plt.savefig(save_path, dpi=config_plot.PLOT_SAVEFIG_DPI, 
-                    bbox_inches='tight',facecolor='white', 
+        plt.savefig(save_path, dpi=config_plot.PLOT_SAVEFIG_DPI,
+                    bbox_inches='tight', facecolor='white',
                     edgecolor='none', pad_inches=0.05)
-        plt.close()
         logging.info(f"[plot_attn_maps] attn maps saved: {save_path}")
-    elif config_plot.SHOW_PLOT:
+    
+    if config_plot.SHOW_PLOT:
         plt.show()
-
+        
+    plt.close()
     return fig
 
 

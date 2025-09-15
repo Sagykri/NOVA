@@ -127,7 +127,7 @@ def parse_paths(paths):
 
     return df
 
-def Parse_Path_Item(path_item):
+def parse_path_item(path_item):
     img_path = str(path_item.Path).split('.npy')[0]+'.npy'
     tile = int(path_item.Tile)
     Site = path_item.Site

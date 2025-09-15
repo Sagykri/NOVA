@@ -15,7 +15,7 @@ from src.datasets.label_utils import get_batches_from_labels, get_unique_parts_f
 from collections import OrderedDict
 from tools.load_data_from_npy import parse_paths, load_tile, load_paths_from_npy, parse_path_item
 from skimage import filters
-from src.analysis.attention_scores_config import AttnScoresConfig
+from src.analysis.attention_scores_config import AttnScoresBaseConfig
 
 def threshold_percentile(arr, percentile):
         # top X% of the array
@@ -126,7 +126,7 @@ def normalize(v1):
     else:
         return (v1 - v1.min()) / denom
 
-def compute_correlation(attn, img_ch, corr_config:AttnScoresConfig):
+def compute_correlation(attn, img_ch, corr_config:AttnScoresBaseConfig):
     assert attn.shape == img_ch.shape, f"[compute_correlation] Shape mismatch: attn.shape={attn.shape}, img_ch.shape={img_ch.shape}"
 
     # make sure both are normalized
@@ -144,7 +144,7 @@ def get_percentiles(data, prc_list = [25,50,75], axis=0):
     return perc_tuple
 
 
-def compute_corr_data(attn_map, channels, corr_config:AttnScoresConfig):
+def compute_corr_data(attn_map, channels, corr_config:AttnScoresBaseConfig):
     """
         input:
             attn_map: attention maps values, already in the img shape (H,W), rescale to [0,1]
@@ -451,7 +451,7 @@ def plot_correlation_all_layers_by_markers(corr_by_markers, corr_method, config_
 
 ##################### calculate correlation##################### 
 
-def _compute_attn_corr(processed_attn_map, sample_info, corr_config:AttnScoresConfig):
+def _compute_attn_corr(processed_attn_map, sample_info, corr_config:AttnScoresBaseConfig):
     # Sample Info
     img_path, site, tile, label = sample_info
     marker, nucleus, input_img = load_tile(img_path, tile)
@@ -472,7 +472,7 @@ def _compute_attn_corr(processed_attn_map, sample_info, corr_config:AttnScoresCo
     else:
         raise ValueError(f"Unexpected processed_attn_map shape: {processed_attn_map.shape}")
 
-def __calc_attn_corr(proccessed_sample_attn: np.ndarray[float], sample_info:tuple, corr_config:AttnScoresConfig):
+def __calc_attn_corr(proccessed_sample_attn: np.ndarray[float], sample_info:tuple, corr_config:AttnScoresBaseConfig):
     """
         calculate correlation data between attention maps and input image
     """
@@ -480,7 +480,7 @@ def __calc_attn_corr(proccessed_sample_attn: np.ndarray[float], sample_info:tupl
     return corr_data
 
 def compute_attn_correlations(processed_attn_maps: np.ndarray[float], labels: np.ndarray[str], 
-                    paths: np.ndarray[str], data_config: DatasetConfig, corr_config:AttnScoresConfig):
+                    paths: np.ndarray[str], data_config: DatasetConfig, corr_config:AttnScoresBaseConfig):
     """
     for each sample in processed_attn_maps create and saves a figure of the input image, its attention map and overlay. 
     in the process it calculate ad return each samples correlation score between the attn map and the input image. 
