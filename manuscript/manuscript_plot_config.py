@@ -63,6 +63,8 @@ class UMAP0AlyssaCoyneColorByGroupPlotConfig(PlotConfig):
         # umap type
         self.UMAP_TYPE = 0
 
+        self.SIZE = 10
+
 class UMAP0AlyssaCoyneColorByPatientPlotConfig(PlotConfig):
     def __init__(self):
         super().__init__()
@@ -71,6 +73,8 @@ class UMAP0AlyssaCoyneColorByPatientPlotConfig(PlotConfig):
         self.COLOR_MAPPINGS = self.COLOR_MAPPINGS_ALYSSA
         # umap type
         self.UMAP_TYPE = 0
+
+        self.SIZE = 10
 
 class UMAP0newAlyssaCoyne(PlotConfig):
     def __init__(self):
