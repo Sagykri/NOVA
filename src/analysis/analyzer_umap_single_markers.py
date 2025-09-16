@@ -68,3 +68,6 @@ class AnalyzerUMAPSingleMarkers(AnalyzerUMAP):
         self.ari_scores = ari_scores
 
         return umap_embeddings, umap_labels, umap_paths, ari_scores
+
+
+    
