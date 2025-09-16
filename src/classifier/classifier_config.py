@@ -34,7 +34,6 @@ class ClassifierConfig(EmbeddingsConfig):
         # ---- experiment (which samples/labels) ----
         self.batches: List[int] = [1, 2, 3]   # batch IDs to include
         self.label_map: Optional[Dict[Any, Any]] = None       # remap/merge labels, e.g. {"WT":0,"C9":1}
-        self.remove_untreated: bool = False    # whether to remove 'untreated' from labels strings
 
         # ---- features (preprocessing/selection) ----
         self.balance: bool = False               # rebalance classes during training (e.g., oversampling)

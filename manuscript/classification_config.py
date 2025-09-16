@@ -15,7 +15,6 @@ class NIHUMAP1LinearSVCConfig(ClassifierConfig):
         self.classifier = "LinearSVC"      # key in CLASSIFIERS
         self.classifier_kwargs = {"C": 1.0, "max_iter": 1000, "random_state": 42}
         self.mode = "singleton"            # "singleton" (train_each_as_singleton)
-        self.remove_untreated = True        # whether to remove 'untreated' from labels strings
 
         # ---- output (artifacts) ----
         # self.results_csv = "classification_results.csv"

@@ -66,7 +66,6 @@ class AnalyzerClassification(Analyzer):
             get_proba=cfg.get_proba,
             label_map=cfg.label_map,
             save_path=self.save_path,
-            remove_untreated=cfg.remove_untreated,
         )
 
         if cfg.mode == "singleton":
