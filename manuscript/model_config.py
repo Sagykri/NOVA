@@ -12,19 +12,13 @@ class ClassificationModelConfig(ModelConfig):
         super().__init__()
         
         self.OUTPUT_DIM = 1311
+        self.IS_MLP_HEAD = False
 
-class FineTuningClassificationWithBatchModelConfig(ModelConfig):
-    """Configuration for the fine tuned classification model
-    """
-    def __init__(self):
-        super().__init__()
-        
-        self.OUTPUT_DIM = 216*2
-        
-class ContrastivenModelConfig(ModelConfig):
+class ContrastiveModelConfig(ModelConfig):
     """Configuration for the contrastive learning model
     """
     def __init__(self):
         super().__init__()
         
         self.OUTPUT_DIM = 128
+        self.IS_MLP_HEAD = True
