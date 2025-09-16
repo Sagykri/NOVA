@@ -63,13 +63,13 @@ class Analyzer():
         """
         pass
 
-    def get_saving_folder(self, feature_type:str)->str:
+    def get_saving_folder(self, feature_type:str, main_folder:str = 'figures')->str:
         """Get the path to the folder where the features and figures can be saved
         Args:
             feature_type (str): string indicating the feature type ('distances','UMAP')
         """
         model_output_folder = self.output_folder_path
-        feature_folder_path = os.path.join(model_output_folder, 'figures', self.data_config.EXPERIMENT_TYPE, feature_type)
+        feature_folder_path = os.path.join(model_output_folder, main_folder, self.data_config.EXPERIMENT_TYPE, feature_type)
         os.makedirs(feature_folder_path, exist_ok=True)
         
         input_folders = get_batches_from_input_folders(self.data_config.INPUT_FOLDERS)
@@ -80,7 +80,7 @@ class Analyzer():
         if markers is not None and len(markers)<=3:
             title = f"{'_'.join(input_folders)}_{'_'.join(reps)}_{'_'.join(cell_lines)}_{'_'.join(conditions)}_{'_'.join(markers)}"
         else:
-            excluded_markers = list(self.data_config.MARKERS_TO_EXCLUDE) if self.data_config.MARKERS_TO_EXCLUDE else ["all_markers"]
+            excluded_markers = self.data_config.MARKERS_TO_EXCLUDE.copy() if self.data_config.MARKERS_TO_EXCLUDE else ["all_markers"]
             if excluded_markers != ['all_markers']:
                 excluded_markers.insert(0,"without")
             title = f"{'_'.join(input_folders)}_{'_'.join(reps)}_{'_'.join(cell_lines)}_{'_'.join(conditions)}_{'_'.join(excluded_markers)}"
