@@ -119,26 +119,36 @@ def concat_from_cache(cache, batch_ids):
         if b not in cache:
             raise KeyError(f"Batch {b} missing from cache.")
         X, y = cache[b]
-        X_list.append(X); y_list.append(y)
+        X_list.append(X)
+        y_list.append(y)
     return np.concatenate(X_list, axis=0), np.concatenate(y_list, axis=0)
 
 def _filter_and_remap_labels(X_train, y_train, X_test, y_test, label_map):
     """
     Filter samples to allowed labels and remap via label_map.
-    If label_map is None -> returns inputs unchanged.
+    Matching is substring-based: if a label contains a key from label_map,
+    it will be mapped to that alias.
     """
     if label_map is None:
         return X_train, y_train, X_test, y_test
 
-    allowed = set(label_map.keys())
-    train_mask = np.isin(y_train, list(allowed))
-    test_mask  = np.isin(y_test,  list(allowed))
+    # function to remap a single label
+    def remap(label):
+        for k, v in label_map.items():
+            if k in label:   # substring match
+                return v
+        return None  # if no match, drop it
 
-    X_train, y_train = X_train[train_mask], y_train[train_mask]
-    X_test,  y_test  = X_test[test_mask],  y_test[test_mask]
+    # remap all labels
+    y_train_mapped = np.array([remap(l) for l in y_train])
+    y_test_mapped  = np.array([remap(l) for l in y_test])
 
-    y_train = np.array([label_map[l] for l in y_train])
-    y_test  = np.array([label_map[l] for l in y_test])
+    # keep only those with a mapping
+    train_mask = y_train_mapped != None
+    test_mask  = y_test_mapped  != None
+
+    X_train, y_train = X_train[train_mask], y_train_mapped[train_mask]
+    X_test,  y_test  = X_test[test_mask],  y_test_mapped[test_mask]
 
     return X_train, y_train, X_test, y_test
 
@@ -211,7 +221,6 @@ def train_and_evaluate_classifier(
     if hasattr(y_pred, "to_numpy"):
         y_pred = y_pred.to_numpy()
 
-
     if get_proba:
         if hasattr(clf, "predict_proba"):
             y_scores = clf.predict_proba(X_test)
@@ -219,8 +228,6 @@ def train_and_evaluate_classifier(
             y_scores = clf.decision_function(X_test)
         else:
             y_scores = None
-
-    print(classification_report(y_test_mapped, y_pred))
 
     # Confusion matrix
     cm = confusion_matrix(y_test_mapped, y_pred, labels=sorted(set(y_test_mapped)))
@@ -248,7 +255,7 @@ def compute_multilabel_metrics(conf_matrices, labels=None, overall_cm=None):
 
     Returns:
         pd.DataFrame with per-class and overall statistics
-         If `overall_cm` (K×K) is provided, an extra 'Overall Accuracy' row is appended,
+         If `overall_cm` (K×K) is provided, an extra 'Correct / Total Accuracy' row is appended,
         where Accuracy = trace(overall_cm) / overall_cm.sum(), other cells are NaN.
     """
     rows = []
@@ -278,14 +285,14 @@ def compute_multilabel_metrics(conf_matrices, labels=None, overall_cm=None):
     macro = df[['Accuracy', 'Sensitivity', 'Specificity', 'PPV', 'NPV', 'F1']].mean(skipna=True)
     macro_row = pd.DataFrame([['Macro Average', *macro.values.tolist()]], columns=df.columns)
 
-    # Overall accuracy from the fold's K×K confusion matrix
+    # Accuracy = correct predictions / total samples from the aggregated confusion matrix
     if overall_cm is not None and overall_cm.size > 0 and overall_cm.sum() > 0:
         overall_acc = float(np.trace(overall_cm) / overall_cm.sum())
     else:
         overall_acc = np.nan
 
-    macro_row['Overall Accuracy'] = overall_acc
-    df['Overall Accuracy'] = np.nan
+    macro_row['Correct/Total Accuracy'] = overall_acc
+    df['Correct/Total Accuracy'] = np.nan
 
     # Add macro row last
     df = pd.concat([df, macro_row], ignore_index=True)
@@ -298,47 +305,76 @@ def remove_untreated_from_labels(labels):
         return labels.replace('_Untreated', '')
     return [str(l).replace('_Untreated', '') for l in labels]
 
-def plot_confusion_matrix(cm, labels, title="Confusion Matrix", cmap="viridis",
-                          xlabel=None, ylabel=None, xtick_rotation=90, save_path=None):
+def plot_confusion_matrix(cm, labels, title="Confusion Matrix", cmap="Blues",
+                          xlabel=None, ylabel=None, save_path=None,
+                          show_percentages=True, annotate_threshold=50):
     """
     Plot a confusion matrix with automatic scaling of figure & font size.
-    - Colorbar matches the matrix height (not including labels).
-    - For small matrices the figure size is capped smaller.
+    - Default: show raw counts.
+    - If show_percentages=True: show row-wise % with raw counts in brackets.
+      Only annotates diagonal cells and off-diagonals with count > annotate_threshold.
     """
     n_classes = len(labels)
+    fig_size = np.round(1.8 * n_classes,1)
+    fig, ax = plt.subplots(figsize=(fig_size, fig_size)) 
+    # scale fonts 
+    font_size = int(round(23 * 26 / n_classes))
+    font_size = max(8, min(font_size, 30))  # cap between 8 and 30
 
-    fig_size = max(5, min(0.45 * n_classes, 14))
-    fig, ax = plt.subplots(figsize=(fig_size, fig_size))
+    print(f"Plotting confusion matrix with {n_classes} classes, fig_size={fig_size}, font_size={font_size}")
 
-    # scale fonts
-    font_size = max(6, 10 - n_classes // 6)
+    # inside the annotation loop
+    if show_percentages:
+        # normalize row-wise
+        row_sums = cm.sum(axis=1, keepdims=True)
+        cm_perc = cm.astype(float) / np.where(row_sums == 0, 1, row_sums)
 
-    # plot confusion matrix without colorbar
-    disp = ConfusionMatrixDisplay(confusion_matrix=cm, display_labels=labels)
-    disp.plot(ax=ax, xticks_rotation=xtick_rotation, cmap=cmap, colorbar=False)
+        # plot heatmap by percentage
+        im = ax.imshow(cm_perc, cmap=cmap, vmin=0, vmax=1)
 
-    # add colorbar aligned to image (matrix only)
-    im = disp.im_
+        for i in range(cm.shape[0]):
+            for j in range(cm.shape[1]):
+                count = cm[i, j]
+                if count > annotate_threshold or i == j:
+                    perc = 100.0 * cm_perc[i, j]
+                    text = f"{perc:.1f}%\n[{count}]"
+                else:
+                    text = "0"
+                color = "white" if cm_perc[i, j] > 0.5 else "black"
+                ax.text(j, i, text,
+                        ha="center", va="center",
+                        fontsize=font_size,
+                        color=color)    
+    else:
+        for i in range(cm.shape[0]):
+            for j in range(cm.shape[1]):
+                count = cm[i, j]
+                color = "white" if cm[i, j] > cm.max() * 0.5 else "black"
+                ax.text(j, i, str(count),
+                        ha="center", va="center",
+                        fontsize=font_size,
+                        color=color)
+                    
+    font_size += 6
+
+    # axis ticks
+    ax.set_xticks(np.arange(n_classes))
+    ax.set_xticklabels(labels, rotation=90, fontsize=font_size)
+    ax.set_yticks(np.arange(n_classes))
+    ax.set_yticklabels(labels, fontsize=font_size)
+
+    # labels and title
+    ax.set_title(title, fontsize=font_size+20, fontweight="bold", pad=30)
+    ax.set_xlabel(xlabel if xlabel else "Predicted", fontsize=font_size+10, fontweight="bold")
+    ax.set_ylabel(ylabel if ylabel else "True", fontsize=font_size+10, fontweight="bold")
+
+    # colorbar
     cbar = fig.colorbar(im, ax=ax, fraction=0.046, pad=0.04)
     cbar.ax.tick_params(labelsize=font_size)
 
-    # set titles and labels
-    ax.set_title(title, fontsize=font_size + 2)
-    if xlabel is not None:
-        ax.set_xlabel(xlabel, fontsize=font_size)
-    if ylabel is not None:
-        ax.set_ylabel(ylabel, fontsize=font_size)
-
-    # resize ticks and cell text
-    ax.tick_params(axis='x', labelsize=font_size)
-    ax.tick_params(axis='y', labelsize=font_size)
-    if hasattr(disp, "text_") and disp.text_ is not None:
-        for t in np.ravel(disp.text_):
-            t.set_fontsize(font_size)
-
     plt.tight_layout()
     if save_path:
-        plt.savefig(save_path, dpi=200, bbox_inches="tight")
+        plt.savefig(save_path, dpi=250, bbox_inches="tight")
     plt.show()
 
 def _align_and_sum_confusions(cms, cm_classes):
@@ -414,6 +450,7 @@ def _average_stats_tables(stats_tables):
     num_cols = [c for c in stats_all.columns if c != "Label"]
     averaged = stats_all.groupby("Label", as_index=False)[num_cols].mean()
 
+    # Move Macro Average to the end
     if "Macro Average" in averaged["Label"].values:
         macro = averaged[averaged["Label"] == "Macro Average"]
         averaged = averaged[averaged["Label"] != "Macro Average"]
@@ -578,7 +615,6 @@ def run_baseline_model(
     results_csv=None,               # if provided, append results to this CSV file
     plot_per_fold_cm=True,          # if True, plot confusion matrix for each fold
     save_path=None,                  # if provided, save plots to this path
-    remove_untreated=False,       # whether to remove '_Untreated' from label strings for display
 ):
     accumulated_cm = None
     all_y_true = []; all_y_pred = []; all_y_scores = []
@@ -649,8 +685,7 @@ def run_baseline_model(
         if plot_per_fold_cm:
             print("\n=== Evaluation Metrics ===")
             print(stats_df_fold.to_string(index=False))
-            cur_fold_classes = remove_untreated_from_labels(le.classes_) if ((label_map is None) and remove_untreated) else le.classes_
-            plot_confusion_matrix(cm, cur_fold_classes, 
+            plot_confusion_matrix(cm, le.classes_, 
                                   title="Confusion Matrix per Fold", 
                                   save_path = os.path.join(save_path, f"confusion_matrix_train-{'-'.join(map(str, train_batches))}_test-{'-'.join(map(str, test_batches))}.png")
                                                 if save_path else None)
@@ -658,14 +693,13 @@ def run_baseline_model(
                 save_classification_df(stats_df_fold, save_path=os.path.join(save_path, f"metrics_train-{'-'.join(map(str, train_batches))}_test-{'-'.join(map(str, test_batches))}.csv"))
 
             if y_scores is not None:
-                plot_roc_ovr(y_test_mapped, y_scores, class_names=cur_fold_classes,
+                plot_roc_ovr(y_test_mapped, y_scores, class_names=le.classes_,
                              save_path = os.path.join(save_path, f"roc_curve_train-{'-'.join(map(str, train_batches))}_test-{'-'.join(map(str, test_batches))}.png")
                                                 if save_path else None)
 
 
     # ---------- Align & Combine ----------
     accumulated_cm, classes_global = _align_and_sum_confusions(_cms, fold_classes)
-    display_labels = _build_display_labels(label_map, classes_global, shorten=remove_untreated)
 
     # ---------- Metrics ----------
     # Metrics from the aggregated confusion matrix (global)
@@ -691,12 +725,12 @@ def run_baseline_model(
                             .drop(columns='Label').iloc[0].to_dict()) if not stats_df_avg.empty else {}
     
     # ---------- Plots ----------
-    plot_confusion_matrix(accumulated_cm, display_labels, 
+    plot_confusion_matrix(accumulated_cm, classes_global, 
                           title="Combined Confusion Matrix Across Folds", 
                           save_path = os.path.join(save_path, f"confusion_matrix_train-all_folds.png")if save_path else None)
     # Overall ROC-AUC across all folds
     aligned_scores = np.vstack([_align_proba(p, cls, classes_global) for p, cls in zip(all_y_scores, fold_classes)])
-    plot_roc_ovr(all_y_true, aligned_scores, class_names=display_labels,
+    plot_roc_ovr(all_y_true, aligned_scores, class_names=classes_global,
                  save_path = os.path.join(save_path, f"roc_curve_all_folds.png") if save_path else None,
                  title="ROC Curve Across All Folds")   
 
@@ -729,7 +763,7 @@ def get_df_proba(y_proba, y_pred, y_true, le):
     df_proba['true'] = le.inverse_transform(y_true)
     return df_proba
 
-def create_confusion_matrix(y_true, y_pred, label_encoder, shorten_labels=False, rotation=90):
+def create_confusion_matrix(y_true, y_pred, label_encoder, shorten_labels=False):
     """
     Plots a confusion matrix with correctly aligned labels and optional label cleaning.
     """
@@ -763,7 +797,6 @@ def run_train_test_split_baseline(
     return_proba=False,  # If True, return predicted probabilities
     label_map=None,
     save_path=None,
-    remove_untreated=False,  # whether to remove '_Untreated' from label strings for display
 ):
     # Load once via cache, then concat the requested batches
     cache = load_batches(batches, dataset_config)
@@ -807,7 +840,7 @@ def run_train_test_split_baseline(
 
     # Only plot if not too many classes
     if len(le.classes_) <= 15:
-        cm, dispalyed_labels = create_confusion_matrix(y_test_encoded, y_pred, le, shorten_labels = not label_map or remove_untreated)
+        cm, dispalyed_labels = create_confusion_matrix(y_test_encoded, y_pred, le)
         plot_confusion_matrix(cm, dispalyed_labels, save_path=save_path) 
     else:
         print(f"Skipping confusion matrix plot ({len(le.classes_)} classes).")
@@ -819,5 +852,8 @@ def run_train_test_split_baseline(
 
     print("\n=== Evaluation Metrics ===")
     print(stats_df.to_string(index=False))
-    if return_proba:
-        return y_proba
+    if save_path:
+        save_classification_df(stats_df, save_path=os.path.join(save_path, "metrics.csv"))
+    macro_avg = (stats_df.loc[stats_df['Label'].eq('Macro Average')]
+                            .drop(columns='Label').iloc[0].to_dict()) if not stats_df.empty else {}
+    return macro_avg
