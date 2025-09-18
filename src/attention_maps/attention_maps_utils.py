@@ -21,7 +21,7 @@ from src.datasets.data_loader import get_dataloader
 from src.datasets.dataset_NOVA import DatasetNOVA
 from src.datasets.label_utils import get_batches_from_labels, get_unique_parts_from_labels, get_markers_from_labels,\
     edit_labels_by_config, get_batches_from_input_folders, get_reps_from_labels, get_conditions_from_labels, get_cell_lines_from_labels
-from NOVA_rotation.Configs.attn_config import AttnConfig #TODO: CHANGE TO NOVA
+from src.attention_maps.attention_config import AttnConfig 
 
 attn_maps_utils_module = sys.modules[__name__]
 
@@ -333,8 +333,8 @@ def __attn_map_rollout(attn, attn_layer_dim:int=0, heads_reduce_fn:callable=np.m
             layer_attn = attn[tuple(idx)]
 
         # rollout mechanism 
-        layer_attn += np.eye(layer_attn.shape[-1]) # A + I
-        layer_attn /= layer_attn.sum(axis=-1, keepdims=True) # Normalizing A
+        layer_attn += np.eye(layer_attn.shape[-1]) # A + I --> simulating skip connection
+        layer_attn /= layer_attn.sum(axis=-1, keepdims=True) # Normalizing A --> simulating the softmax
         rollout = rollout @ layer_attn  # Matrix multiplication
     
     return rollout
