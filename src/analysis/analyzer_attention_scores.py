@@ -9,13 +9,14 @@ import pandas as pd
 import numpy as np
 from typing import List, Tuple, Iterable, Dict
 import itertools
+import torch
 
-from src.datasets.label_utils import get_unique_parts_from_labels, get_cell_lines_conditions_from_labels,
+from src.datasets.label_utils import get_unique_parts_from_labels, get_cell_lines_conditions_from_labels,\
                                          get_markers_from_labels, get_batches_from_labels, get_batches_from_input_folders
 from src.datasets.dataset_config import DatasetConfig
 from src.analysis.analyzer import Analyzer
 from src.common.utils import get_if_exists
-from src.analysis.analyzer_attn_scores_utils import compute_attn_correlations, 
+from src.analysis.analyzer_attn_scores_utils import compute_attn_correlations
 from src.analysis.attention_scores_config import AttnScoresBaseConfig
 
 class AnalyzerAttnScore(Analyzer):
