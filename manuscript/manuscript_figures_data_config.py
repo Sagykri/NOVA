@@ -71,6 +71,11 @@ class AlyssaCoyneUMAP2FigureConfig(FigureConfig):
         self.ADD_BATCH_TO_LABEL = False
         self.ADD_CONDITION_TO_LABEL = False
 
+class AlyssaCoyneDistGroups(AlyssaCoyneUMAP0FigureConfig):
+    def __init__(self):
+        super().__init__()
+
+        self.ADD_REP_TO_LABEL=False
 
 ################
 ## New Alyssa
@@ -1217,14 +1222,6 @@ class newNeuronsD8FigureConfig_WT_vs_FUSLines_FUSMarker(FigureConfig):
         
         self.ADD_REP_TO_LABEL = False
         self.ADD_BATCH_TO_LABEL = True
-
-class newNeuronsD8FigureConfig_WT_vs_FUSLines_FUSMarker_RepEffect(FigureConfig):
-    def __init__(self):
-        super().__init__()
-        
-        """UMAP0 of WT untreated
-        """
-        self.ADD_REP_TO_LABEL = True
 
 class newNeuronsD8FigureConfig_WT_vs_FUSLines_FUSMarker_B1(newNeuronsD8FigureConfig_WT_vs_FUSLines_FUSMarker):
     def __init__(self):
