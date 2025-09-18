@@ -10,11 +10,12 @@ import numpy as np
 from typing import List, Tuple, Iterable, Dict
 import itertools
 
-from src.datasets.label_utils import get_unique_parts_from_labels, get_cell_lines_conditions_from_labels, get_markers_from_labels, get_batches_from_labels
+from src.datasets.label_utils import get_unique_parts_from_labels, get_cell_lines_conditions_from_labels,
+                                         get_markers_from_labels, get_batches_from_labels, get_batches_from_input_folders
 from src.datasets.dataset_config import DatasetConfig
 from src.analysis.analyzer import Analyzer
 from src.common.utils import get_if_exists
-from src.analysis.analyzer_attn_scores_utils import *
+from src.analysis.analyzer_attn_scores_utils import compute_attn_correlations, 
 from src.analysis.attention_scores_config import AttnScoresBaseConfig
 
 class AnalyzerAttnScore(Analyzer):
@@ -138,8 +139,7 @@ class AnalyzerAttnScore(Analyzer):
         return saveroot
 
 
-    def _get_save_path(self, output_folder_path:str, file_type:str, set_type:str = "testset")->str: #TODO:ask sagy where to save
-        
+    def _get_save_path(self, output_folder_path:str, file_type:str, set_type:str = "testset")->str: 
         savepath = os.path.join(output_folder_path, f"{set_type}_{self.corr_method}_{file_type}.npy")
         return savepath
 

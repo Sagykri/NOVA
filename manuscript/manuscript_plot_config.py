@@ -85,6 +85,8 @@ class UMAP0newAlyssaCoyne(PlotConfig):
         # umap type
         self.UMAP_TYPE = 0
 
+        self.SIZE = 10
+
 class UMAP2StressPlotConfig(PlotConfig):
     def __init__(self):
         super().__init__()
