@@ -268,7 +268,6 @@ def load_embeddings(model_output_folder:str, config_data:DatasetConfig, sample_f
     paths = np.concatenate(paths)
     labels = edit_labels_by_config(labels, config_data, multiplex)
     filtered_labels, filtered_embeddings, filtered_paths = __filter(labels, embeddings, paths, config_data, multiplex)
-
     if sample_fraction < 1.0:
         logging.info(f"[load_embeddings] Sampling {sample_fraction*100:.1f}% of each label group (from {len(filtered_labels)} total labels)")
         sampled_indices = __sample_by_label_fraction(filtered_labels, sample_fraction, seed=config_data.SEED)
