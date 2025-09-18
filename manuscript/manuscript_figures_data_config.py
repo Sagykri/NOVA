@@ -2506,3 +2506,27 @@ class NeuronsDay18FigureConfig_UMAP2_B2(NeuronsDay18FigureConfig_UMAP2):
 
          
         self.INPUT_FOLDERS = ['batch2']
+
+
+class AlyssaCoyneUMAP2FigureConfig(FigureConfig):
+    def __init__(self):
+        super().__init__()
+
+         
+        self.INPUT_FOLDERS = ["batch1"]
+        
+        self.EXPERIMENT_TYPE = 'AlyssaCoyne'    
+        
+        self.ADD_REP_TO_LABEL=True
+        self.ADD_BATCH_TO_LABEL = False
+        self.ADD_CONDITION_TO_LABEL = False
+
+class AlyssaCoyneUMAP2FigureConfig_old(AlyssaCoyneUMAP2FigureConfig):
+    def __init__(self):
+        super().__init__()
+        self.MARKERS = ['DAPI', 'DCP1A', 'TDP43', 'Map2']
+
+class AlyssaCoyneUMAP2FigureConfig_new(newAlyssaFigureConfig_UMAP2_4Markers_with_patientID):
+    def __init__(self):
+        super().__init__()
+        self.MARKERS = ['DAPI', 'DCP1A', 'TDP43', 'Map2']
