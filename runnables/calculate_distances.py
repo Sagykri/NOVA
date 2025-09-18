@@ -31,7 +31,7 @@ def parse_args(argv):
         'config_path_data' : sys.argv[2],
         'rep_effect': True if "rep_effect" in sys.argv else False,
         'multiplexed': True if "multiplexed" in sys.argv else False,
-        'detailed_stats': True if "detailed" in sys.argv else False,
+        'detailed_stats': True if "detailed_stats" in sys.argv else False,
         'normalize': True if "normalize" in sys.argv else False,
     }
 
@@ -49,7 +49,7 @@ def generate_distances(
     config_data.OUTPUTS_FOLDER = model_outputs_folder
 
     logging.info(f"Parameters: data config path:{config_path_data}, \
-        Model outputs folder:{model_outputs_folder}, Multiplexed:{multiplexed}, Detailed stats:{detailed_stats}")
+        Model outputs folder:{model_outputs_folder}, Multiplexed:{multiplexed}, Detailed stats:{detailed_stats}, rep_effect: {rep_effect}, normalize_embeddings: {normalize_embeddings}")
 
     logging.info(f"[Load embeddings] Loading embeddings from {model_outputs_folder}")
     if rep_effect:

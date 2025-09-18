@@ -242,7 +242,7 @@ def __plot_forest_plot(combined_effects_df, cur_df_single, config_plot, baseline
             table_ax.text(3.3, y, f"{row['Q']:.4f}", ha='center', va='center')
 
     if savepath:
-        save_plot(fig, savepath, dpi=300, save_eps=True)
+        save_plot(fig, savepath, dpi=300, save_eps=True, save_pdf=True)
     else:
         plt.show()
 
