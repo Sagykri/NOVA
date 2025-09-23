@@ -307,7 +307,7 @@ def remove_untreated_from_labels(labels):
 
 def plot_confusion_matrix(cm, labels, title="Confusion Matrix", cmap="Blues",
                           xlabel=None, ylabel=None, save_path=None,
-                          show_percentages=True, annotate_threshold=50):
+                          show_percentages=True, annotate_threshold=1):
     """
     Plot a confusion matrix with automatic scaling of figure & font size.
     - Default: show raw counts.
