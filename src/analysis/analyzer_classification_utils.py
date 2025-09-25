@@ -15,13 +15,10 @@ from sklearn.decomposition import PCA
 import cudf
 import cupy as cp
 from sklearn.metrics import (
-    classification_report,
     confusion_matrix,
     multilabel_confusion_matrix,
-    ConfusionMatrixDisplay,
     roc_auc_score, roc_curve, auc)
 from sklearn.model_selection import train_test_split
-import matplotlib.cm as cm
 import colorcet as cc
 
 from src.common.utils import load_config_file
