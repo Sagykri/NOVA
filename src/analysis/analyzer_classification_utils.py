@@ -304,7 +304,7 @@ def remove_untreated_from_labels(labels):
 
 def plot_confusion_matrix(cm, labels, title="Confusion Matrix", cmap="Blues",
                           xlabel=None, ylabel=None, save_path=None,
-                          show_percentages=True, annotate_threshold=1):
+                          show_percentages=True, show_values = False, show_zeros = False, annotate_threshold=1, dpi = 300):
     """
     Plot a confusion matrix with automatic scaling of figure & font size.
     - Default: show raw counts.
@@ -312,11 +312,9 @@ def plot_confusion_matrix(cm, labels, title="Confusion Matrix", cmap="Blues",
       Only annotates diagonal cells and off-diagonals with count > annotate_threshold.
     """
     n_classes = len(labels)
-    fig_size = np.round(1.8 * n_classes,1)
-    fig, ax = plt.subplots(figsize=(fig_size, fig_size)) 
-    # scale fonts 
-    font_size = int(round(23 * 26 / n_classes))
-    font_size = max(8, min(font_size, 30))  # cap between 8 and 30
+    fig_size = 6.5 
+    fig, ax = plt.subplots(figsize=(fig_size, fig_size), dpi=dpi) 
+    font_size = 5.2
 
     print(f"Plotting confusion matrix with {n_classes} classes, fig_size={fig_size}, font_size={font_size}")
 
@@ -324,24 +322,38 @@ def plot_confusion_matrix(cm, labels, title="Confusion Matrix", cmap="Blues",
     if show_percentages:
         # normalize row-wise
         row_sums = cm.sum(axis=1, keepdims=True)
-        cm_perc = cm.astype(float) / np.where(row_sums == 0, 1, row_sums)
+        cm_perc = 100 * cm.astype(float) / np.where(row_sums == 0, 1, row_sums)
 
         # plot heatmap by percentage
-        im = ax.imshow(cm_perc, cmap=cmap, vmin=0, vmax=1)
+        im = ax.imshow(cm_perc, cmap=cmap, vmin=0, vmax=100)
 
         for i in range(cm.shape[0]):
             for j in range(cm.shape[1]):
                 count = cm[i, j]
-                if count > annotate_threshold or i == j:
-                    perc = 100.0 * cm_perc[i, j]
-                    text = f"{perc:.1f}%\n[{count}]"
-                else:
-                    text = "0"
-                color = "white" if cm_perc[i, j] > 0.5 else "black"
-                ax.text(j, i, text,
-                        ha="center", va="center",
-                        fontsize=font_size,
-                        color=color)    
+                perc = cm_perc[i, j]
+                color = "white" if cm_perc[i, j] > 50 else "black"
+
+                if (count > annotate_threshold or i == j) and np.round(perc,1) >= 0.1:
+                    pct_str = f"{round(cm_perc[i,j],1):.1f}".rstrip('0').rstrip('.')
+                    ax.text(j, i, f"{pct_str}",  # percentage 
+                            ha="center", va="center",
+                            fontsize=font_size,
+                            color=color)
+                    if show_values:
+                        if count >= 1000:
+                            count_str = f"{count/1000:.1f}K"   # e.g. 30428 → 30.4K
+                        else:
+                            count_str = str(count)
+                        ax.text(j, i + 0.2, f"[{count_str}]",  
+                                ha="center", va="center",
+                                fontsize=font_size -1,
+                                color=color)
+                elif show_zeros:
+                    ax.text(j, i, "0",
+                            ha="center", va="center",
+                            fontsize=font_size-0.5,
+                            color=color)
+
     else:
         for i in range(cm.shape[0]):
             for j in range(cm.shape[1]):
@@ -352,7 +364,7 @@ def plot_confusion_matrix(cm, labels, title="Confusion Matrix", cmap="Blues",
                         fontsize=font_size,
                         color=color)
                     
-    font_size += 6
+    font_size += 0.5
 
     # axis ticks
     ax.set_xticks(np.arange(n_classes))
@@ -361,17 +373,18 @@ def plot_confusion_matrix(cm, labels, title="Confusion Matrix", cmap="Blues",
     ax.set_yticklabels(labels, fontsize=font_size)
 
     # labels and title
-    ax.set_title(title, fontsize=font_size+20, fontweight="bold", pad=30)
-    ax.set_xlabel(xlabel if xlabel else "Predicted", fontsize=font_size+10, fontweight="bold")
-    ax.set_ylabel(ylabel if ylabel else "True", fontsize=font_size+10, fontweight="bold")
+    if len(title):
+        ax.set_title(title, fontsize=font_size+5, fontweight="bold")
+    ax.set_xlabel(xlabel if xlabel else "Predicted", fontsize=font_size+2, fontweight="bold")
+    ax.set_ylabel(ylabel if ylabel else "True", fontsize=font_size+2, fontweight="bold")
 
     # colorbar
-    cbar = fig.colorbar(im, ax=ax, fraction=0.046, pad=0.04)
+    cbar = fig.colorbar(im, ax=ax, fraction=0.046, pad=0.03)
     cbar.ax.tick_params(labelsize=font_size)
 
     plt.tight_layout()
     if save_path:
-        plt.savefig(save_path, dpi=250, bbox_inches="tight")
+        plt.savefig(save_path, dpi=dpi, bbox_inches="tight")
     plt.show()
 
 def _align_and_sum_confusions(cms, cm_classes):
@@ -723,8 +736,9 @@ def run_baseline_model(
     
     # ---------- Plots ----------
     plot_confusion_matrix(accumulated_cm, classes_global, 
-                          title="Combined Confusion Matrix Across Folds", 
-                          save_path = os.path.join(save_path, f"confusion_matrix_train-all_folds.png")if save_path else None)
+                          title="", 
+                          save_path = os.path.join(save_path, f"confusion_matrix_train-all_folds.png")if save_path else None,
+                          dpi = 3000)
     # Overall ROC-AUC across all folds
     aligned_scores = np.vstack([_align_proba(p, cls, classes_global) for p, cls in zip(all_y_scores, fold_classes)])
     plot_roc_ovr(all_y_true, aligned_scores, class_names=classes_global,
