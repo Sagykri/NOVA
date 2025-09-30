@@ -656,6 +656,7 @@ def run_baseline_model(
     results_csv=None,               # if provided, append results to this CSV file
     plot_per_fold_cm=True,          # if True, plot confusion matrix for each fold
     save_path=None,                  # if provided, save plots to this path
+    cm_plot_dpi = 3000,              # DPI for confusion matrix plots
 ):
     accumulated_cm = None
     all_y_true = []; all_y_pred = []; all_y_scores = []
@@ -772,7 +773,7 @@ def run_baseline_model(
     plot_confusion_matrix(accumulated_cm, classes_global, 
                           title="", 
                           save_path = os.path.join(save_path, f"confusion_matrix_train-all_folds.png")if save_path else None,
-                          dpi = 3000)
+                          dpi = cm_plot_dpi)
     # Overall ROC-AUC across all folds
     aligned_scores = np.vstack([_align_proba(p, cls, classes_global) for p, cls in zip(all_y_scores, fold_classes)])
     plot_roc_ovr(all_y_true, aligned_scores, class_names=classes_global,
