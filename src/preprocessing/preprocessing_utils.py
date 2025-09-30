@@ -136,6 +136,7 @@ def get_nuclei_segmentations(
         cellprob_threshold=cellprob_threshold, 
         flow_threshold=flow_threshold
     )
+
     
     # If requested, plot the segmentation results
     if show_plot:

@@ -2509,3 +2509,406 @@ class NeuronsDay18FigureConfig_UMAP2_B2(NeuronsDay18FigureConfig_UMAP2):
 
          
         self.INPUT_FOLDERS = ['batch2']
+
+
+########## AAT NOVA ###############
+AAT_NOVA_CELL_LINES = ["CTL", "C9"]
+AAT_NOVA_CONDITIONS  = ["PPP2R1A","HMGCS1","PIK3C3","NDUFAB1","MAPKAP1","NDUFS2","RALA","TLK1","NRIP1","TARDBP","RANBP17","CYLD","NT-1873","NT-6301-3085","Intergenic","Untreated"]
+AAT_NOVA_MARKERS = ["DAPI", "Cas3", "FK-2", "SMI32", "pDRP1", "TOMM20", "pCaMKIIa", "pTDP-43", "TDP-43", "ATF6", "pAMPK", "HDGFL2", "pS6", "PAR", "UNC13A", "Calreticulin", "LC3-II", "p62", "CathepsinD"]
+
+class AAT_NOVA_BaseFigureConfig(FigureConfig):
+    def __init__(self):
+        super().__init__()
+        self.EXPERIMENT_TYPE = 'AAT_NOVA'
+        self.INPUT_FOLDERS = ['batch1', 'batch2']
+        self.CELL_LINES = None
+        self.CONDITIONS = None
+        self.MARKERS = None
+        self.MARKERS_TO_EXCLUDE = None
+        self.ADD_REP_TO_LABEL=True
+        self.ADD_BATCH_TO_LABEL = True
+
+
+#XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+############ UMAP 0 (fig per marker) ##############
+
+# -------- color by cell lines-------- 
+# all conditions
+# use - UMAP0PlotConfigAAT_NOVA_by_Cellline
+class AAT_NOVA_UMAP0_ByCellLines(AAT_NOVA_BaseFigureConfig):
+    def __init__(self):
+        super().__init__()
+        self.CELL_LINES = AAT_NOVA_CELL_LINES
+
+class AAT_NOVA_UMAP0_ByCellLines_B1(AAT_NOVA_UMAP0_ByCellLines):
+    def __init__(self):
+        super().__init__()
+        self.INPUT_FOLDERS = ['batch1']
+
+class AAT_NOVA_UMAP0_ByCellLines_B2(AAT_NOVA_UMAP0_ByCellLines):
+    def __init__(self):
+        super().__init__()
+        self.INPUT_FOLDERS = ['batch2']
+
+# single condition
+# use - UMAP0PlotConfigAAT_NOVA_by_Cellline_Single_Condition
+# Untreated
+class AAT_NOVA_UMAP0_ByCellLines_Untreated_B1(AAT_NOVA_UMAP0_ByCellLines_B1):
+    def __init__(self):
+        super().__init__()
+        self.CONDITIONS = ["Untreated"]
+
+class AAT_NOVA_UMAP0_ByCellLines_Untreated_B2(AAT_NOVA_UMAP0_ByCellLines_B2):
+    def __init__(self):
+        super().__init__()
+        self.CONDITIONS = ["Untreated"]
+
+# PPP2R1A
+class AAT_NOVA_UMAP0_ByCellLines_PPP2R1A_B1(AAT_NOVA_UMAP0_ByCellLines_B1):
+    def __init__(self):
+        super().__init__()
+        self.CONDITIONS = ["PPP2R1A"]
+
+class AAT_NOVA_UMAP0_ByCellLines_PPP2R1A_B2(AAT_NOVA_UMAP0_ByCellLines_B2):
+    def __init__(self):
+        super().__init__()
+        self.CONDITIONS = ["PPP2R1A"]
+
+# .... generate for each gene for both batches
+
+# -------- color by conditions-------- 
+# all cell lines
+# use - UMAP0PlotConfigAAT_NOVA_by_Condition
+class AAT_NOVA_UMAP0_ByConditions(AAT_NOVA_BaseFigureConfig):
+    def __init__(self):
+        super().__init__()
+        self.CONDITIONS = AAT_NOVA_CONDITIONS
+
+class AAT_NOVA_UMAP0_ByConditions_B1(AAT_NOVA_UMAP0_ByConditions):
+    def __init__(self):
+        super().__init__()
+        self.INPUT_FOLDERS = ['batch1']
+
+class AAT_NOVA_UMAP0_ByConditions_B2(AAT_NOVA_UMAP0_ByConditions):
+    def __init__(self):
+        super().__init__()
+        self.INPUT_FOLDERS = ['batch2']
+
+# single cell line - 
+# use  - UMAP0PlotConfigAAT_NOVA_by_Condition_Single_Cell_Line
+
+# CTL
+class AAT_NOVA_UMAP0_ByConditions_CTL_B1(AAT_NOVA_UMAP0_ByConditions_B1):
+    def __init__(self):
+        super().__init__()
+        self.CELL_LINES = ["CTL"]
+
+class AAT_NOVA_UMAP0_ByConditions_CTL_B2(AAT_NOVA_UMAP0_ByConditions_B2):
+    def __init__(self):
+        super().__init__()
+        self.CELL_LINES = ["CTL"]
+
+# C9 
+class AAT_NOVA_UMAP0_ByConditions_C9_B1(AAT_NOVA_UMAP0_ByConditions_B1):
+    def __init__(self):
+        super().__init__()
+        self.CELL_LINES = ["C9"]
+
+class AAT_NOVA_UMAP0_ByConditions_C9_B2(AAT_NOVA_UMAP0_ByConditions_B2):
+    def __init__(self):
+        super().__init__()
+        self.CELL_LINES = ["C9"]
+
+# singel cell line - single Gene VS Untreated
+# use -  UMAP0PlotConfigAAT_NOVA_by_Condition_Single_Cell_Line
+# PPP2R1A
+class AAT_NOVA_UMAP0_PPP2R1A_Untreated_CTL_B1(AAT_NOVA_UMAP0_ByConditions_CTL_B1):
+    def __init__(self):
+        super().__init__()
+        self.CONDITIONS = ["PPP2R1A", "Untreated"]
+
+class AAT_NOVA_UMAP0_PPP2R1A_Untreated_CTL_B2(AAT_NOVA_UMAP0_ByConditions_CTL_B2):
+    def __init__(self):
+        super().__init__()
+        self.CONDITIONS = ["PPP2R1A", "Untreated"]
+
+class AAT_NOVA_UMAP0_PPP2R1A_Untreated_C9_B1(AAT_NOVA_UMAP0_ByConditions_C9_B1):
+    def __init__(self):
+        super().__init__()
+        self.CONDITIONS = ["PPP2R1A", "Untreated"]
+
+class AAT_NOVA_UMAP0_PPP2R1A_Untreated_C9_B2(AAT_NOVA_UMAP0_ByConditions_C9_B2):
+    def __init__(self):
+        super().__init__()
+        self.CONDITIONS = ["PPP2R1A", "Untreated"]
+
+# .... generate for each gene for both batches
+
+# -------- color by cell lines and conditions-------- 
+
+# color both cell line and condition
+class AAT_NOVA_UMAP0_By_Cell_Line_and_Condition(AAT_NOVA_BaseFigureConfig):
+    def __init__(self):
+        super().__init__()
+        self.CONDITIONS = AAT_NOVA_CONDITIONS
+
+class AAT_NOVA_UMAP0_By_Cell_Line_and_Condition_B1(AAT_NOVA_UMAP0_By_Cell_Line_and_Condition):
+    def __init__(self):
+        super().__init__()
+        self.INPUT_FOLDERS = ['batch1']
+
+class AAT_NOVA_UMAP0_By_Cell_Line_and_Condition_B2(AAT_NOVA_UMAP0_By_Cell_Line_and_Condition):
+    def __init__(self):
+        super().__init__()
+        self.INPUT_FOLDERS = ['batch2']
+
+# for each single condition
+# use - UMAP0PlotConfigAAT_NOVA_Cellline_Cond
+# Untreated
+class AAT_NOVA_UMAP0_By_Cell_Line_and_Condition_Untreated_B1(AAT_NOVA_UMAP0_By_Cell_Line_and_Condition_B1):
+    def __init__(self):
+        super().__init__()
+        self.CONDITIONS = ["Untreated"]
+
+class AAT_NOVA_UMAP0_By_Cell_Line_and_Condition_Untreated_B2(AAT_NOVA_UMAP0_By_Cell_Line_and_Condition_B2):
+    def __init__(self):
+        super().__init__()
+        self.CONDITIONS = ["Untreated"]
+# PPP2R1A
+class AAT_NOVA_UMAP0_By_Cell_Line_and_Condition_PPP2R1A_B1(AAT_NOVA_UMAP0_By_Cell_Line_and_Condition_B1):
+    def __init__(self):
+        super().__init__()
+        self.CONDITIONS = ["PPP2R1A"]
+
+class AAT_NOVA_UMAP0_By_Cell_Line_and_Condition_PPP2R1A_B2(AAT_NOVA_UMAP0_By_Cell_Line_and_Condition_B2):
+    def __init__(self):
+        super().__init__()
+        self.CONDITIONS = ["PPP2R1A"]
+
+# .... generate for each gene for both batches
+
+#XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+
+# UMAP0 Stress
+class NIH_UMAP0_Stress_DatasetConfig(FigureConfig):
+    def __init__(self):
+        super().__init__()
+
+        self.INPUT_FOLDERS = ['batch1', 'batch2', 'batch3']
+        
+        self.EXPERIMENT_TYPE = 'NIH'
+        self.CELL_LINES = ['WT']
+        self.CONDITIONS = None
+
+        self.SHOW_ARI = False
+        self.ADD_REP_TO_LABEL=False
+        self.ADD_BATCH_TO_LABEL = False
+        self.ARI_LABELS_FUNC = MapLabelsFunction.MARKERS.name
+
+class NIH_UMAP0_Stress_DatasetConfig_Hits(NIH_UMAP0_Stress_DatasetConfig):
+    def __init__(self):
+        super().__init__()
+        self.MARKERS = ['G3BP1', 'FMRP', 'MitoTracker', 'PML', 'TOMM20', 'PURA', 'DCP1A']
+
+class NIH_UMAP0_Stress_DatasetConfig_B1(NIH_UMAP0_Stress_DatasetConfig):
+    def __init__(self):
+        super().__init__()
+        self.INPUT_FOLDERS = ["batch1"]
+
+class NIH_UMAP0_Stress_DatasetConfig_B2(NIH_UMAP0_Stress_DatasetConfig):
+    def __init__(self):
+        super().__init__()
+        self.INPUT_FOLDERS = ["batch2"]
+
+class NIH_UMAP0_Stress_DatasetConfig_B3(NIH_UMAP0_Stress_DatasetConfig):
+    def __init__(self):
+        super().__init__()
+        self.INPUT_FOLDERS = ["batch3"]
+
+## Only positive controls
+class NIH_UMAP0_Stress_DatasetConfig_PositiveControls(NIH_UMAP0_Stress_DatasetConfig):
+    def __init__(self):
+        super().__init__()
+
+        self.MARKERS = ['G3BP1', 'FMRP', 'PURA']
+
+class NIH_UMAP0_Stress_DatasetConfig_PositiveControls_B1(NIH_UMAP0_Stress_DatasetConfig_PositiveControls):
+    def __init__(self):
+        super().__init__()
+        self.INPUT_FOLDERS = ["batch1"]
+
+class NIH_UMAP0_Stress_DatasetConfig_PositiveControls_B2(NIH_UMAP0_Stress_DatasetConfig_PositiveControls):
+    def __init__(self):
+        super().__init__()
+        self.INPUT_FOLDERS = ["batch2"]
+
+class NIH_UMAP0_Stress_DatasetConfig_PositiveControls_B3(NIH_UMAP0_Stress_DatasetConfig_PositiveControls):
+    def __init__(self):
+        super().__init__()
+        self.INPUT_FOLDERS = ["batch3"]
+
+# UMAP0 FUS
+class NIH_UMAP0_FUS_DatasetConfig(FigureConfig):
+    def __init__(self):
+        super().__init__()
+
+        self.INPUT_FOLDERS = ['batch1', 'batch2', 'batch3']
+        
+        self.EXPERIMENT_TYPE = 'NIH'
+        self.CELL_LINES = None
+        self.CONDITIONS = ['Untreated']
+
+        self.SHOW_ARI = False
+        self.ADD_REP_TO_LABEL=False
+        self.ADD_BATCH_TO_LABEL = False
+        self.ARI_LABELS_FUNC = MapLabelsFunction.MARKERS.name
+
+class NIH_UMAP0_FUS_DatasetConfig_B1(NIH_UMAP0_FUS_DatasetConfig):
+    def __init__(self):
+        super().__init__()
+        self.INPUT_FOLDERS = ["batch1"]
+
+class NIH_UMAP0_FUS_DatasetConfig_B2(NIH_UMAP0_FUS_DatasetConfig):
+    def __init__(self):
+        super().__init__()
+        self.INPUT_FOLDERS = ["batch2"]
+
+class NIH_UMAP0_FUS_DatasetConfig_B3(NIH_UMAP0_FUS_DatasetConfig):
+    def __init__(self):
+        super().__init__()
+        self.INPUT_FOLDERS = ["batch3"]
+# UMAP1
+class NIH_UMAP1_DatasetConfig(FigureConfig):
+    def __init__(self):
+        super().__init__()
+
+        self.INPUT_FOLDERS = ['batch1', 'batch2', 'batch3']
+        
+        self.EXPERIMENT_TYPE = 'NIH'
+        self.CELL_LINES = ['WT']
+        self.CONDITIONS = ['Untreated']
+        self.MARKERS_TO_EXCLUDE = ['CD41']
+
+        self.SHOW_ARI = False
+        self.ADD_REP_TO_LABEL=False
+        self.ADD_BATCH_TO_LABEL = False
+        self.ARI_LABELS_FUNC = MapLabelsFunction.MARKERS.name
+
+class NIH_UMAP1_DatasetConfig_B1(NIH_UMAP1_DatasetConfig):
+    def __init__(self):
+        super().__init__()
+        self.INPUT_FOLDERS = ["batch1"]
+
+class NIH_UMAP1_DatasetConfig_B2(NIH_UMAP1_DatasetConfig):
+    def __init__(self):
+        super().__init__()
+        self.INPUT_FOLDERS = ["batch2"]
+
+class NIH_UMAP1_DatasetConfig_B3(NIH_UMAP1_DatasetConfig):
+    def __init__(self):
+        super().__init__()
+        self.INPUT_FOLDERS = ["batch3"]
+
+
+# UMAP2 FUS
+class NIH_UMAP2_FUS_DatasetConfig(FigureConfig):
+    def __init__(self):
+        super().__init__()
+
+        self.INPUT_FOLDERS = ['batch1', 'batch2', 'batch3']
+        
+        self.EXPERIMENT_TYPE = 'NIH'
+        self.CELL_LINES = None
+        self.CONDITIONS = ['Untreated']
+        self.MARKERS_TO_EXCLUDE = ['CD41']
+
+        self.SHOW_ARI = False
+        self.ADD_REP_TO_LABEL=False
+        self.ADD_BATCH_TO_LABEL = False
+        self.ARI_LABELS_FUNC = MapLabelsFunction.MARKERS.name
+
+class NIH_UMAP2_FUS_DatasetConfig_B1(NIH_UMAP2_FUS_DatasetConfig):
+    def __init__(self):
+        super().__init__()
+        self.INPUT_FOLDERS = ["batch1"]
+
+class NIH_UMAP2_FUS_DatasetConfig_B2(NIH_UMAP2_FUS_DatasetConfig):
+    def __init__(self):
+        super().__init__()
+        self.INPUT_FOLDERS = ["batch2"]
+
+class NIH_UMAP2_FUS_DatasetConfig_B3(NIH_UMAP2_FUS_DatasetConfig):
+    def __init__(self):
+        super().__init__()
+        self.INPUT_FOLDERS = ["batch3"]
+
+class NIH_UMAP2_FUS_DatasetConfig_wo_FUS_Marker(NIH_UMAP2_FUS_DatasetConfig):
+    def __init__(self):
+        super().__init__()
+
+        self.MARKERS_TO_EXCLUDE = self.MARKERS_TO_EXCLUDE + ['FUS']
+
+class NIH_UMAP2_FUS_DatasetConfig_wo_FUS_Marker_B1(NIH_UMAP2_FUS_DatasetConfig_wo_FUS_Marker):
+    def __init__(self):
+        super().__init__()
+        self.INPUT_FOLDERS = ["batch1"]
+
+class NIH_UMAP2_FUS_DatasetConfig_wo_FUS_Marker_B2(NIH_UMAP2_FUS_DatasetConfig_wo_FUS_Marker):
+    def __init__(self):
+        super().__init__()
+        self.INPUT_FOLDERS = ["batch2"]
+
+class NIH_UMAP2_FUS_DatasetConfig_wo_FUS_Marker_B3(NIH_UMAP2_FUS_DatasetConfig_wo_FUS_Marker):
+    def __init__(self):
+        super().__init__()
+        self.INPUT_FOLDERS = ["batch3"]
+
+# UMAP2 Stress
+class NIH_UMAP2_Stress_DatasetConfig(FigureConfig):
+    def __init__(self):
+        super().__init__()
+
+        self.INPUT_FOLDERS = ['batch1', 'batch2', 'batch3']
+        
+        self.EXPERIMENT_TYPE = 'NIH'
+        self.CELL_LINES = ['WT']
+        self.CONDITIONS = None
+        self.MARKERS_TO_EXCLUDE = ['CD41']
+
+        self.SHOW_ARI = False
+        self.ADD_REP_TO_LABEL=False
+        self.ADD_BATCH_TO_LABEL = False
+        self.ARI_LABELS_FUNC = MapLabelsFunction.MARKERS.name
+
+class NIH_UMAP2_Stress_DatasetConfig_B1(NIH_UMAP2_Stress_DatasetConfig):
+    def __init__(self):
+        super().__init__()
+        self.INPUT_FOLDERS = ["batch1"]
+
+class NIH_UMAP2_Stress_DatasetConfig_B2(NIH_UMAP2_Stress_DatasetConfig):
+    def __init__(self):
+        super().__init__()
+        self.INPUT_FOLDERS = ["batch2"]
+
+class NIH_UMAP2_Stress_DatasetConfig_B3(NIH_UMAP2_Stress_DatasetConfig):
+    def __init__(self):
+        super().__init__()
+        self.INPUT_FOLDERS = ["batch3"]
+
+# Effect size
+class NIHEffectsFigureConfig(FigureConfig):
+    def __init__(self):
+        super().__init__()
+        self.INPUT_FOLDERS = [f"batch{i}" for i in [1,2,3]]
+        
+        self.EXPERIMENT_TYPE = 'NIH'
+        self.ADD_BATCH_TO_LABEL = True
+        self.ADD_REP_TO_LABEL = True
+        self.BASELINE_PERTURB = {'WT_Untreated': ['WT_stress']}
+
+
+class NIHEffectsFigureConfig_Multiplexed(NIHEffectsFigureConfig):
+    def __init__(self):
+        super().__init__()
+        self.ADD_BATCH_TO_LABEL = True
+        self.ADD_REP_TO_LABEL = False

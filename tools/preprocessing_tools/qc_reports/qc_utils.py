@@ -316,7 +316,7 @@ def custom_fmt(value):
     return f'/{value:.0f}'
 
 def plot_filtering_heatmap(filtered, extra_index, xlabel='', figsize=(5,5), second=None, vmin=0, vmax=100, 
-                           show_sum=False, fmt=".0f"):
+                           show_sum=False, fmt=".0f", small_font_size = 5, big_font_size = 8):
     for batch, batch_data in filtered.groupby('batch'):
         p = batch_data.pivot_table(index=['rep', extra_index],
                                     columns='cell_line_cond',
@@ -331,14 +331,14 @@ def plot_filtering_heatmap(filtered, extra_index, xlabel='', figsize=(5,5), seco
         hm = sns.heatmap(data=p, ax=ax,
                             yticklabels=p.index, cmap='RdYlGn',annot=annot,
                             vmin=vmin, vmax=vmax, cbar=True,
-                            annot_kws={'fontsize': 5, 'ha':'right','color':'black'},
+                            annot_kws={'fontsize': small_font_size, 'ha':'right','color':'black'},
                             fmt=fmt,
                             cbar_kws = {'shrink': 0.2,})
-        ax.set_yticklabels(ax.get_yticklabels(), fontsize=8)
+        ax.set_yticklabels(ax.get_yticklabels(), fontsize=big_font_size)
         ax.xaxis.tick_top()
-        ax.set_xlabel(xlabel)
-        ax.set_ylabel(batch)
-        ax.set_xticklabels(ax.get_xticklabels(), rotation=45, ha='left', fontsize=8)
+        ax.set_xlabel(xlabel, fontsize = big_font_size + 5)
+        ax.set_ylabel(batch, fontsize = big_font_size + 5)
+        ax.set_xticklabels(ax.get_xticklabels(), rotation=45, ha='left', fontsize=big_font_size)
         cbar = ax.collections[0].colorbar
         cbar.ax.tick_params(axis='y', labelsize=6)
 
@@ -356,7 +356,7 @@ def plot_filtering_heatmap(filtered, extra_index, xlabel='', figsize=(5,5), seco
                     if pd.isna(val):
                         continue
                     if val != p.iloc[y,x]:
-                        ax2.annotate(f' ({val:.0f})', xy=(x+0.5, y+0.46),fontsize=5, c='black', va='center')
+                        ax2.annotate(f' ({val:.0f})', xy=(x+0.5, y+0.46),fontsize=small_font_size, c='black', va='center')
 
             # Customize the y-axis of the second heatmap
             ax2.set_yticks([])  # Hide the y-axis ticks
@@ -391,7 +391,7 @@ def plot_filtering_heatmap(filtered, extra_index, xlabel='', figsize=(5,5), seco
 
             for ax in axs:
                 ax.set_xlabel(xlabel)
-                ax.set_yticklabels(ax.get_yticklabels(), fontsize=6)
+                ax.set_yticklabels(ax.get_yticklabels(), fontsize=small_font_size)
             with warnings.catch_warnings():
                 warnings.simplefilter("ignore", category=UserWarning)
                 plt.tight_layout()
@@ -1216,7 +1216,7 @@ def show_site_survival_dapi_brenner(df_dapi, batches, line_colors, panels, reps,
                            vmax=vmax)
     return dapi_filter_by_brenner
 
-def show_site_survival_dapi_cellpose(df_dapi, batches, dapi_filter_by_brenner, line_colors, panels, reps, figsize=(5,5), to_ignore=None):
+def show_site_survival_dapi_cellpose(df_dapi, batches, dapi_filter_by_brenner, line_colors, panels, reps, figsize=(5,5), to_ignore=None,  small_font_size = 5, big_font_size = 8):
     dapi_filter_by_cellpose = df_dapi[df_dapi.site_cell_count!=0]
     dapi_filter_by_cellpose = dapi_filter_by_cellpose.groupby(['batch','cell_line_cond','panel','rep']).index.count().reset_index()
     dapi_filter_by_cellpose=add_empty_lines(dapi_filter_by_cellpose, batches, line_colors, panels, reps,to_ignore=to_ignore)
@@ -1226,10 +1226,10 @@ def show_site_survival_dapi_cellpose(df_dapi, batches, dapi_filter_by_brenner, l
     dapi_filter_by_cellpose_per = dapi_filter_by_cellpose.copy()
     dapi_filter_by_cellpose_per['index'] = round(dapi_filter_by_cellpose_per['index']*100 / np.maximum(dapi_filter_by_brenner['index'],1))
     plot_filtering_heatmap(dapi_filter_by_cellpose_per, extra_index='panel', xlabel='% Site survival Cellpose', 
-                           second=dapi_filter_by_cellpose, figsize=figsize, fmt="")
+                           second=dapi_filter_by_cellpose, figsize=figsize, fmt="", small_font_size =small_font_size, big_font_size = big_font_size)
     return dapi_filter_by_cellpose
 
-def show_site_survival_dapi_tiling(df_dapi, batches, dapi_filter_by_cellpose, line_colors, panels, reps, figsize=(5,5),to_ignore=None):
+def show_site_survival_dapi_tiling(df_dapi, batches, dapi_filter_by_cellpose, line_colors, panels, reps, figsize=(5,5),to_ignore=None, small_font_size = 5, big_font_size = 8):
     dapi_filter_by_tiling = df_dapi[(df_dapi.site_cell_count!=0) & (df_dapi.n_valid_tiles!=0)]
     dapi_filter_by_tiling = dapi_filter_by_tiling.groupby(['batch','cell_line_cond','panel','rep']).index.count().reset_index()
     dapi_filter_by_tiling=add_empty_lines(dapi_filter_by_tiling, batches, line_colors, panels, reps, to_ignore=to_ignore)
@@ -1239,7 +1239,7 @@ def show_site_survival_dapi_tiling(df_dapi, batches, dapi_filter_by_cellpose, li
     dapi_filter_by_tiling_per = dapi_filter_by_tiling.copy()
     dapi_filter_by_tiling_per['index'] = round(dapi_filter_by_tiling_per['index']*100 / np.maximum(dapi_filter_by_cellpose['index'],1))
     plot_filtering_heatmap(dapi_filter_by_tiling_per, extra_index='panel', xlabel='% Site survival tiling', 
-                       second=dapi_filter_by_tiling, figsize=figsize, fmt="")
+                       second=dapi_filter_by_tiling, figsize=figsize, fmt="", small_font_size =small_font_size, big_font_size = big_font_size)
     return dapi_filter_by_tiling
     
 def show_site_survival_by_brenner_on_dapi_tiles(df_dapi, batches, dapi_filter_by_tiling, line_colors, panels, reps, figsize=(5,5)):

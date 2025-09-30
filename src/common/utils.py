@@ -6,7 +6,7 @@ from typing import Any, Callable, Dict, Iterable, List, Tuple, Union
 import uuid
 
 sys.path.insert(1, os.getenv("NOVA_HOME"))
-
+sys.path.insert(0, os.getenv("HOME"))
 import importlib
 import json
 import logging
@@ -148,12 +148,10 @@ def get_class(path:string)->Any:
     
     # Extract and load the module
     module_path = os.path.dirname(path).replace('/', '.')
-    
     module = importlib.import_module(module_path)
     
     # Extract the class name from the path and load it from the module
     class_in_module = os.path.basename(path)
-    
     module_class = module.__dict__[class_in_module]
     
     return module_class

@@ -46,8 +46,8 @@ class PreprocessingConfig(BaseConfig):
         # For more details please see: https://cellpose.readthedocs.io/en/latest/settings.html
         self.CELLPOSE = {
             'NUCLEUS_DIAMETER': 70, # old funova 70 # nova 60,
-            'CELLPROB_THRESHOLD': 0,# old funova 0 # nova 0,
-            'FLOW_THRESHOLD': 0.22 # old funova 0.22 # nova 0.4,
+            'CELLPROB_THRESHOLD': 0.0,# old funova 0 # nova 0,
+            'FLOW_THRESHOLD': 0.2 # old funova 0.22 # nova 0.4,
         }
         
         # The lower and upper bounds *percentiles* to shrink the image intenstiy into
@@ -77,39 +77,39 @@ class PreprocessingConfig(BaseConfig):
         # After rescale intenisty
         self.VARIANCE_THRESHOLD_NUCLEI:float = 0.028 # old funova - 0.02 # none: 0 # NOVA: 0.03 
 
-        # Threshold for fitering ALIVE Nucleus detected in [__is_contains_dead_cells]
+        # Threshold for fitering Nucleus detected in [__is_contains_dead_cells]
         # detecting blobs by thesholding to signal vs. background
-         # total number of blobs in tile
-        self.MAX_NUM_NUCLEI_BLOB:int = 10 #12?# old funova 12 # None - ~500
+
+        # total number of blobs in tile
+        self.MAX_NUM_NUCLEI_BLOB:int = 12 #10 # old funova 12 # None - ~500
 
         # Minimum area of a nuclei to be considered alive (in pixels)
-        self.MIN_ALIVE_NUCLEI_AREA: int = 900 #old funova 700 # none:-1 #  NOVA: 800 
+        self.MIN_ALIVE_NUCLEI_AREA: int = 1150 #old funova 700 # none:-1 #  NOVA: 800 
+
         # NEW THRESHOLDS
+        # filter for elipse-like shape, using - skimage.measure.regionprops
+        self.MAX_ECC:float = 0.83 # maximum allowed eccentricity (0=circle, 1=line)
+        self.AR_RANGE:tuple = (0.9, 3.0) # allowed range for aspect ratio (major/minor axis)
+        self.MIN_SOL:float = 0.92 # minimum ratio of area to convex hull area (0–1)
 
         # Thresholds for filtering ALIVE cell
         # maximum area of an alive nuclei (above is probably noise or a smear)
         self.MAX_ALIVE_NUCLEI_AREA: int = 4200  
-        # Or
-        # either below both minimal thresholds
+        # below minimal thresholds
         self.MIN_VARIANCE_THRESHOLD_ALIVE_NUCLEI: float = 0.006 #0.006 # old funova 0.01 # None 0.0
-        self.MIN_MEDIAN_INTENSITY_THRESHOLD_ALIVE_NUCLEI: float = 0.6 #0.7? #0.25 # old funova 0.25 # None 0.25
-        # or above both maximal thresholds
-        self.MAX_VARIANCE_THRESHOLD_ALIVE_NUCLEI: float = 0.025 #0.28?#0.023 # 0.028 # old funova 0.03 # None 1.0
-        self.MAX_MEDIAN_INTENSITY_THRESHOLD_ALIVE_NUCLEI: float = 0.95#0.97 # 0.875 # old funova 0.6 # None 1.0
+        self.MIN_MEDIAN_INTENSITY_THRESHOLD_ALIVE_NUCLEI: float = 0.68 #0.6  #0.25 # old funova 0.25 # None 0.25
+        # above maximal thresholds
+        self.MAX_VARIANCE_THRESHOLD_ALIVE_NUCLEI: float = 0.0265 #0.025 #0.28?#0.023 # 0.028 # old funova 0.03 # None 1.0
+        self.MAX_MEDIAN_INTENSITY_THRESHOLD_ALIVE_NUCLEI: float = 0.96 #0.97 # 0.875 # old funova 0.6 # None 1.0
 
         # Threshold for fitering DEAD Nucleus detected in [__is_contains_dead_cells]
-        # Minimum median intensity of a nuclei blob to be considered dead (between 0 and 1)
         self.MIN_NUCLEI_BLOB_AREA:int = 450 # minimum size for a blob to be considered as dead cell
-        # AND
+        # Minimum median intensity of a nuclei blob to be considered dead (between 0 and 1)
         self.MIN_MEDIAN_INTENSITY_NUCLEI_BLOB_THRESHOLD:float =  0.63 #0.55  # old funova 0.4 #  none: 1.9 # NOVA: 0.95 
-        # AND
-        # (
         # below "BOTTOM THRESHOLD"
         self.MAX_VARIANCE_NUCLEI_BLOB_THRESHOLD:float =  0.01 #0.0065 # old funova 0.005 # None - 0.0
-        # or
         # above "UPPER THRESHOLD"
-        self.MIN_VARIANCE_NUCLEI_BLOB_THRESHOLD:float = 0.0355# old funova 0.025  # None - 0.0
-        # )
+        self.MIN_VARIANCE_NUCLEI_BLOB_THRESHOLD:float = 0.0355 # old funova 0.025  # None - 0.0
        
             
         # Which markers to include

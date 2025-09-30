@@ -15,7 +15,8 @@ from shapely import affinity , make_valid
 from shapely.geometry import box ,Polygon
 
 from skimage.filters import threshold_otsu
-from scipy.ndimage import label
+from scipy.ndimage import label as ncomp_label
+from skimage.measure import regionprops, label
 
 
 from skimage import transform
@@ -271,7 +272,7 @@ class Preprocessor(ABC):
         # In each tile - match the contained polygons with the whole ones.
         # output will look like: {tile_index: [whole_polygons_indexes]}
         dict_matches = self.__match_part_with_whole_pols(nuclei_mask_tiled , whole_polygons)
-        # Select only tiles with passed nuclues 
+        # Select only tiles with passed nuclues (cell pose segment, limit:0.8<c<5)
         valid_tiles_indexes = np.where([self.__is_valid_tile(masked_tile,dict_matches, whole_polygons = whole_polygons , 
                                                                         ix=ix)
                                                    for ix, masked_tile in enumerate(nuclei_mask_tiled)])[0]
@@ -302,17 +303,22 @@ class Preprocessor(ABC):
             return None
             
         image = fit_image_shape(image, self.preprocessing_config.EXPECTED_IMAGE_SHAPE) 
-        image = rescale_intensity(image,\
-                                    lower_bound=self.preprocessing_config.RESCALE_INTENSITY['LOWER_BOUND'][ch_idx],\
-                                    upper_bound=self.preprocessing_config.RESCALE_INTENSITY['UPPER_BOUND'][ch_idx]) 
+
+        # rescaled on default threholds to fit the brenner values
+        scaled_for_brenner_image = rescale_intensity(image, lower_bound=0.5, upper_bound=99.9) 
         
         if self.markers_focus_boundries is not None:
             # Filter out-of-focus images
             marker = path_utils.get_raw_marker(path)
             thresholds = tuple(self.markers_focus_boundries.loc[marker].values)
-            if not is_image_focused(image, thresholds): 
+            if not is_image_focused(scaled_for_brenner_image, thresholds): 
                 logging.warning(f"out-of-focus for {marker}: {path}")
                 return None
+        
+        # rescale based on new thresholds
+        image = rescale_intensity(image,\
+                                    lower_bound=self.preprocessing_config.RESCALE_INTENSITY['LOWER_BOUND'][ch_idx],\
+                                    upper_bound=self.preprocessing_config.RESCALE_INTENSITY['UPPER_BOUND'][ch_idx]) 
         return image
 
     def _process_images_group_and_save(self, group_id: str, images_group: Dict[str, str], save_folder_path:str):
@@ -561,27 +567,45 @@ class Preprocessor(ABC):
             touches_left   = (cols == 0).any()
             touches_right  = (cols == ncols - 1).any()
             return touches_top or touches_bottom or touches_left or touches_right
+        
+        def ellipse_like(binary_mask, max_ecc=0.83, ar_range=(0.9, 3.0), min_solidity=0.92):
+            """
+            binary_mask: 2D mask (True/False or 0/1) of a single nucleus
+            max_ecc: maximum allowed eccentricity (0=circle, 1=line)
+            ar_range: allowed range for aspect ratio (major/minor axis)
+            min_solidity: minimum ratio of area to convex hull area (0–1); higher values (e.g., ≥0.9) enforce smooth, ellipse-like shapes.
+            Returns: True if mask is ellipse-like, else False
+            """
+            props = regionprops(label(binary_mask))
+            if not props:
+                return False
+            p = props[0]
+            ecc = p.eccentricity
+            ar = p.major_axis_length / p.minor_axis_length if p.minor_axis_length > 0 else 0
+            solidity = p.solidity
+            return (ecc <= max_ecc and (ar_range[0] <= ar <= ar_range[1]) and solidity >= min_solidity), (ecc, ar, solidity)
 
         # Separate between background and foreground using Otsu's method
         otsu_thresh = threshold_otsu(dapi_rescaled)
         dapi_mask = dapi_rescaled > otsu_thresh
-        # CHANGE - print
-        # print("otsu_thresh:", otsu_thresh)
 
         # Detect connected components in the binary mask (0 is background)
-        labeled, ncomponents = label(dapi_mask)
+        labeled, ncomponents = ncomp_label(dapi_mask)
 
-
-        # CHANGED - KEEP
+        # check if num of components exceeds limit (noisy)
         if ncomponents >= self.preprocessing_config.MAX_NUM_NUCLEI_BLOB:
-            print("ncomponents failed:", ncomponents)
+            # print("ncomponents failed:", ncomponents)
             return True
-        
-        print("ncomponents:", ncomponents)
 
         num_alive_cells = 0
         num_dead_cells = 0
         for i in range(1, ncomponents + 1): # 0 is the background
+            
+            # if more than one dead cell, discard tile
+            if num_dead_cells > 1:
+                # print("Failed - More than one dead cell.") 
+                return True
+        
             blob_mask = (labeled == i)
             dapi_masked = dapi_rescaled[blob_mask]
 
@@ -589,76 +613,66 @@ class Preprocessor(ABC):
             blob_size = blob_mask.sum()
             blob_median = np.median(dapi_masked)
 
-            # CHANGE - KEEP:
-            # detecet ALIVE NUCLEUS (right size - above minimal thershold) with:
-            #               OLD:
-            #               --> low variance *and* intensity 
-            #            or --> high variance *and* intensity 
-            #               NEW:
-            #               --> high intensity *and* (either low or high variance)
-            #            or --> very high size (=~noise) (above maximal threshold)
-            # which indicates blurred / about-to-die / dead cell
-            # 
-            # Size passed - considered as ALIVE 
-            if (blob_size > self.preprocessing_config.MIN_ALIVE_NUCLEI_AREA and \
-                blob_size <= self.preprocessing_config.MAX_ALIVE_NUCLEI_AREA):
-                # Data (var and intensity) thresholds
+            elipse, (ecc, ar, solidity) = ellipse_like(blob_mask, self.preprocessing_config.MAX_ECC, self.preprocessing_config.AR_RANGE, self.preprocessing_config.MIN_SOL)
+            touches_edge = __is_blob_touching_edge(blob_mask)
+
+            ###############################################################
+            # if blob is too small - ignore and continue
+            if blob_size < self.preprocessing_config.MIN_NUCLEI_BLOB_AREA:
+                # print("blob too small, continueing")
+                continue
+            
+            # if blob is too big - return False, as it is probabaly large noise
+            if blob_size > self.preprocessing_config.MAX_ALIVE_NUCLEI_AREA:
+                # print("blob too big:",blob_size,", tile failed.")
+                return True
+            
+            # check shape of the cell
+            if not elipse:
+                # cell is not elipse - considered as dead.
+                # print("cell is not elipse -", "ecc:", ecc, "ar:", ar, "solidity:", solidity, ", considered as dead.")
+                num_dead_cells+=1
+                continue
+
+            # if the size is sufficient for ALIVE cell - 
+            if (blob_size > self.preprocessing_config.MIN_ALIVE_NUCLEI_AREA):
+                # check texture of the ALIVE cell
                 if ((blob_variance <= self.preprocessing_config.MIN_VARIANCE_THRESHOLD_ALIVE_NUCLEI or blob_variance >= self.preprocessing_config.MAX_VARIANCE_THRESHOLD_ALIVE_NUCLEI) and \
                 ( blob_median <= self.preprocessing_config.MIN_MEDIAN_INTENSITY_THRESHOLD_ALIVE_NUCLEI or blob_median >= self.preprocessing_config.MAX_MEDIAN_INTENSITY_THRESHOLD_ALIVE_NUCLEI)):
-                # (1) ((blob_variance <= self.preprocessing_config.MIN_VARIANCE_THRESHOLD_ALIVE_NUCLEI and blob_median <= self.preprocessing_config.MIN_MEDIAN_INTENSITY_THRESHOLD_ALIVE_NUCLEI) or \
-                # (blob_variance >= self.preprocessing_config.MAX_VARIANCE_THRESHOLD_ALIVE_NUCLEI and blob_median >= self.preprocessing_config.MAX_MEDIAN_INTENSITY_THRESHOLD_ALIVE_NUCLEI) or \
-                # (2) (((blob_variance <= self.preprocessing_config.MIN_VARIANCE_THRESHOLD_ALIVE_NUCLEI or \
-                # blob_variance >= self.preprocessing_config.MAX_VARIANCE_THRESHOLD_ALIVE_NUCLEI) and blob_median >= self.preprocessing_config.MAX_MEDIAN_INTENSITY_THRESHOLD_ALIVE_NUCLEI) or \
-                
-                    print("ALIVE CELL failed thresholds -")
-                    print("blob_size:", blob_size, "blob_median: ", blob_median, "blob_variance:", blob_variance)
-                    return True
-                else:
-                    print("ALIVE CELL passed thresholds -")
-                    print("blob_size:", blob_size, "blob_median: ", blob_median, "blob_variance:", blob_variance)
+                    # ALIVE CELL failed thresholds - considered as dead
+                    # print("ALIVE CELL failed thresholds -")
+                    # print("blob_size:", blob_size, "blob_median: ", blob_median, "blob_variance:", blob_variance)
+                    num_dead_cells += 1
+                    continue
+                else: # ALIVE CELL passed thresholds 
+                    # print("ALIVE CELL passed thresholds -")
+                    # print("blob_size:", blob_size, "blob_median: ", blob_median, "blob_variance:", blob_variance)
                     num_alive_cells += 1
-            
-
-            # CHANGE - KEEP
-            # detect DEAD NUCLEUS
-            # if blob_median >= intensity_threshold and \
-            # blob_size <= self.preprocessing_config.MIN_ALIVE_NUCLEI_AREA and\
-            # blob_size >= self.preprocessing_config.MIN_NUCLEI_BLOB_AREA and \
-            # (blob_variance >= self.preprocessing_config.MIN_VARIANCE_NUCLEI_BLOB_THRESHOLD or\
-            # blob_variance <= self.preprocessing_config.MAX_VARIANCE_NUCLEI_BLOB_THRESHOLD):
-            #     print("DEAD CELL failed thresholds -")
-            #     print("blob_size:", blob_size, "blob_median: ", blob_median, "blob_variance:", blob_variance)
-            #     return  True
-
-            # Check for intensity and size thresholds
-            # if blob is the right size (MIN_ALIVE_NUCLEI_AREA >= size >= MIN_NUCLEI_BLOB_AREA)
-            # and either:
-            #    -> has high intensity
-            #    -> not touching edge
-            #    -> has smaller variance than MAX_VARIANCE_NUCLEI_BLOB_THRESHOLD
-            if  (blob_size <= self.preprocessing_config.MIN_ALIVE_NUCLEI_AREA and\
-                blob_size >= self.preprocessing_config.MIN_NUCLEI_BLOB_AREA) and \
-                (not __is_blob_touching_edge(blob_mask) or\
-                  blob_median >= intensity_threshold or \
-                blob_variance <= self.preprocessing_config.MAX_VARIANCE_NUCLEI_BLOB_THRESHOLD)        :
-                # (not __is_blob_touching_edge(blob_mask) or
-                print("DEAD CELL failed thresholds -")
-                print("blob_size:", blob_size, "blob_median: ", blob_median, "blob_variance:", blob_variance)
-                num_dead_cells += 1
-                #return  True
-            
-            # CHANGE
-            # print("passed:")
-            # print("blob_size:", blob_size, "blob_median: ", blob_median, "blob_variance:", blob_variance)
-
-        #NEW - CHECK AT LEAST PNE ALIVE CELL
+                    continue
+            else: # the size is of a DEAD cell
+                if  not touches_edge:
+                    # check texture of the DEAD cell-
+                    if blob_median >= intensity_threshold or \
+                    blob_variance <= self.preprocessing_config.MAX_VARIANCE_NUCLEI_BLOB_THRESHOLD:
+                        # DEAD CELL failed thresholds
+                        # print("DEAD CELL failed thresholds -")
+                        # print("blob_size:", blob_size, "blob_median: ", blob_median, "blob_variance:", blob_variance)
+                        num_dead_cells += 1
+                        continue
+                else: # touches edge
+                    # DEAD CELL passed thresholds - skipping. 
+                    # print("dead cell didn't fail threshold. continueing.")
+                    continue
+            ###############################################################
         if num_alive_cells == 0:
-            print("Failed - No alive cells.") 
+            # Failed - No alive cells.
+            # print("Failed - No alive cells.") 
             return  True
-        if num_dead_cells > 1:
-            print("Failed - More than one dead cell.") 
-            return True
-        return False
+        
+        return False           
+
+
+
 
     def __is_empty_tile_dapi(self, dapi:np.ndarray, dapi_scaled:np.ndarray, tile_name:str)-> Tuple[bool, Union[str, None]]:
         """
@@ -901,7 +915,6 @@ class Preprocessor(ABC):
         # Extract partial polygons from tile mask
         # These are the intersected nuclei parts within the tile
         # --------------------------------------
-
         
         polygons = extract_polygons_from_mask(masked_tile)
         matched_polygons_ixs = dict_matches[ix]
@@ -913,6 +926,7 @@ class Preprocessor(ABC):
                 if pol_part.area/ whole_polygons[pol_ix].area > self.preprocessing_config.INCLUDED_AREA_RATIO:
                     passed_tile = True
                     break
+
 
         # Image and tile size setup
         max_num_nuclei = self.preprocessing_config.MAX_NUM_NUCLEI

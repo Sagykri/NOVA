@@ -9,8 +9,8 @@ class PreprocessingBaseConfigAATNOVA(PreprocessingConfig):
         self.RAW_FOLDER_ROOT = os.getenv("AAT_NOVA_DATA_DIR")
         self.RAW_FOLDER_ROOT = os.path.join(self.RAW_FOLDER_ROOT, 'zstack_collapse_2nd_imaging_sorted')
         self.PROCESSED_FOLDER_ROOT = os.path.join(self.PROCESSED_FOLDER_ROOT, "AAT-NOVA_pilot", "processed")
-        self.OUTPUTS_FOLDER =  os.path.join(os.getenv("NOVA_LOCAL"), "outputs", "preprocessing", "AAT-NOVA")
-        self.LOGS_FOLDER = self.OUTPUTS_FOLDER 
+        self.OUTPUTS_FOLDER =  os.path.join(os.getenv("NOVA_HOME"), "outputs", "preprocessing", "AAT-NOVA")
+        self.LOGS_FOLDER = os.path.join(self.OUTPUTS_FOLDER, 'logs')
         self.PREPROCESSOR_CLASS_PATH = os.path.join("src", "preprocessing", "preprocessors", "preprocessor_opera", "OperaPreprocessor")        
 
         self.CELL_LINES = ["CTL", "C9"]
@@ -19,17 +19,8 @@ class PreprocessingBaseConfigAATNOVA(PreprocessingConfig):
         self.PANELS = ["panelA", "panelB", "panelC", "panelD", "panelE", "panelF"]
         self.MARKERS = ["DAPI", "Cas3", "FK-2", "SMI32", "pDRP1", "TOMM20", "pCaMKIIa", "pTDP-43", "TDP-43", "ATF6", "pAMPK", "HDGFL2", "pS6", "PAR", "UNC13A", "Calreticulin", "LC3-II", "p62", "CathepsinD"]
 
-
-        # # NEED TO ADJUST
-        # self.CELLPOSE = {
-        #     'NUCLEUS_DIAMETER': 70,
-        #     'CELLPROB_THRESHOLD': 0,
-        #     'FLOW_THRESHOLD': 0.22
-        # } ## Adjusted cellpose params to get dead dead cells
-
-        # NEED TO ADJUST
         self.MARKERS_FOCUS_BOUNDRIES_PATH = os.path.join(
-            os.getenv("NOVA_LOCAL"), 
+            os.getenv("NOVA_HOME"), 
             'manuscript', 
             'markers_focus_boundries', 
             'markers_focus_boundries_AAT_NOVA.csv'
