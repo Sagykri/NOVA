@@ -56,6 +56,37 @@ def load_batches(batch_ids, dataset_config):
         raise ValueError("No batches loaded.")
     return cache
 
+def load_batches_csv(batch_ids, dataset_config):
+    """
+    Return a dict: {batch_id: (X, y)}
+    """
+    path_to_embeddings = dataset_config['path_to_embeddings']
+    multiplexed = dataset_config.get('multiplexed', False)
+    embeddings_csv = dataset_config.get('embeddings_csv', {})
+    csv_fmt = embeddings_csv.get('csv_fmt')
+    label_col = embeddings_csv.get('label_col', 'marker')
+    not_features = embeddings_csv.get('not_features', [label_col])
+
+    cache = {}
+    for b in batch_ids:
+        csv_name = csv_fmt.format(batch=b)
+        path_data = f'{path_to_embeddings}/{csv_name}'
+        data = pd.read_csv(path_data)
+
+        # y: label column
+        y = data[label_col].values
+
+        # X: all numeric features excluding not_features
+        X = data.drop(columns=not_features).select_dtypes(include='number').values
+
+        if multiplexed:
+            raise ValueError("Multiplexed is currently not supported for CSV data.")
+
+        cache[b] = (np.asarray(X), np.asarray(y).reshape(-1))
+        if not cache:
+            raise ValueError("No batches loaded.")
+    return cache
+
 def ensure_list(x):
     if x is None: return []
     if isinstance(x, (list, tuple, set)): return [v for v in x]
@@ -632,7 +663,10 @@ def run_baseline_model(
     _cms = []   # collect per-fold CMs
 
     print("Loading all batches...")
-    cache = load_batches(batches, dataset_config)
+    if "embeddings_csv" in dataset_config:
+        cache = load_batches_csv(batches, dataset_config)
+    else:
+        cache = load_batches(batches, dataset_config)
     print("Batches loaded.")
 
     test_specific_batches  = ensure_list(test_specific_batches)
