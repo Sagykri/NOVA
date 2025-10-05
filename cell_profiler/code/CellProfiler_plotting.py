@@ -82,6 +82,9 @@ def load_data_and_plot_UMAPs(input_path, stress = True, color_mapping=None):
             logging.info(f'Reading csv: {features_file}')
             df = pd.read_csv(features_file)
             df['marker'] = marker
+
+            if marker == 'DAPI':
+                df.columns = [col.replace("nucleus", "marker") for col in df.columns]
             
             # Create an empty dataframe
             new_df = []
