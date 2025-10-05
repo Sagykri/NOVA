@@ -385,6 +385,80 @@ def plot_umap1(df_all, color_mappings=None):
 
     return None
 
+def plot_umap1_all_batches(df_all, color_mapping=None, mix_groups=False):
+    logging.info(f"\nStarting plot_umap1() ...")
+    logging.info('%s %s', "\n", df_all.value_counts(subset=['replicate', 'cell_line', 'marker', 'panel']))
+
+    umap_df = df_all.drop(['replicate', 'panel'], axis=1)
+    umap_df2 = umap_df.set_index(['marker'])
+    umap_df2 = umap_df2.drop(['cell_line'], axis=1)
+    indices = umap_df2.index
+    embeddings = umap.UMAP(random_state=42, n_jobs=1).fit_transform(umap_df2)
+
+    pdf_file = os.path.join(OUTPUT_DIR, f'UMAP1_all_batches.pdf')
+    os.makedirs(os.path.dirname(pdf_file), exist_ok=True)
+    pdf_pages = bpdf.PdfPages(pdf_file)
+
+    unique_labels = indices.unique()
+
+    try:
+        color_map = {label: color_mapping[label]['color'] for label in unique_labels}
+        label_map = {label: color_mapping[label]['alias'] for label in unique_labels}
+        cmap = None
+    except KeyError:
+        color_map = {label: i for i, label in enumerate(unique_labels)}
+        label_map = {label: label for label in unique_labels}
+        cmap = 'tab20'
+
+    fig, ax = plt.subplots(figsize=(6, 5))
+    ax.set_xticks([])
+    ax.set_yticks([])
+    ax.set_xlabel("UMAP 1")
+    ax.set_ylabel("UMAP 2")
+
+    if not mix_groups:
+        for i, label in enumerate(unique_labels):
+            group_idx = np.where(indices == label)[0]
+            color = color_map[label] if cmap is None else plt.get_cmap(cmap)(color_map[label] / max(1, len(unique_labels) - 1))
+            ax.scatter(embeddings[group_idx, 0], embeddings[group_idx, 1], s=5, alpha=0.6, c=[color], label=label_map[label])
+    else:
+        color_array = []
+        group_indices = []
+        for i, label in enumerate(unique_labels):
+            group_idx = np.where(indices == label)[0]
+            color = color_map[label] if cmap is None else plt.get_cmap(cmap)(color_map[label] / max(1, len(unique_labels) - 1))
+            color_array.extend([color] * len(group_idx))
+            group_indices.extend(group_idx)
+
+        color_array = np.array(color_array)
+        group_indices = np.array(group_indices)
+        shuffle = np.random.permutation(len(group_indices))
+        ax.scatter(embeddings[group_indices[shuffle], 0], embeddings[group_indices[shuffle], 1], s=5, alpha=0.6, c=color_array[shuffle])
+
+    handles = [
+        mpatches.Patch(
+            color=color_map[label] if cmap is None else plt.get_cmap(cmap)(color_map[label] / max(1, len(unique_labels) - 1)),
+            label=label_map[label]
+        )
+        for label in unique_labels
+    ]
+    handles.sort(key=lambda h: h.get_label())
+    ax.legend(
+        handles=handles,
+        bbox_to_anchor=(1.02, 1),
+        loc='upper left',
+        fontsize=6.5,
+        frameon=False,
+        borderaxespad=0.0,
+        ncol=1 if len(unique_labels) <= 20 else 2,
+    )
+
+    pdf_pages.savefig(fig, bbox_inches='tight')
+    plt.close(fig)
+
+    pdf_pages.close()
+    logging.info(f'UMAP1 of {BATCH_TO_RUN} saved')
+    return None
 
 def load_CP_features(input_path, stress = True):
     # load CP features (all)
