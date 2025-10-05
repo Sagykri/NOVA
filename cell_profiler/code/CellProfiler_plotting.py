@@ -385,7 +385,7 @@ def plot_umap1(df_all, color_mappings=None):
 
     return None
 
-def plot_umap1_all_batches(df_all, color_mapping=None, mix_groups=False):
+def plot_umap1_all_batches(df_all, color_mapping=None, mix_groups=False, marker_size = 1, alpha=1):
     logging.info(f"\nStarting plot_umap1() ...")
     logging.info('%s %s', "\n", df_all.value_counts(subset=['replicate', 'cell_line', 'marker', 'panel']))
 
@@ -420,7 +420,8 @@ def plot_umap1_all_batches(df_all, color_mapping=None, mix_groups=False):
         for i, label in enumerate(unique_labels):
             group_idx = np.where(indices == label)[0]
             color = color_map[label] if cmap is None else plt.get_cmap(cmap)(color_map[label] / max(1, len(unique_labels) - 1))
-            ax.scatter(embeddings[group_idx, 0], embeddings[group_idx, 1], s=5, alpha=0.6, c=[color], label=label_map[label])
+            ax.scatter(embeddings[group_idx, 0], embeddings[group_idx, 1], s=marker_size, 
+                       alpha=alpha, c=[color], label=label_map[label])
     else:
         color_array = []
         group_indices = []
@@ -433,7 +434,8 @@ def plot_umap1_all_batches(df_all, color_mapping=None, mix_groups=False):
         color_array = np.array(color_array)
         group_indices = np.array(group_indices)
         shuffle = np.random.permutation(len(group_indices))
-        ax.scatter(embeddings[group_indices[shuffle], 0], embeddings[group_indices[shuffle], 1], s=5, alpha=0.6, c=color_array[shuffle])
+        ax.scatter(embeddings[group_indices[shuffle], 0], embeddings[group_indices[shuffle], 1], s=marker_size,
+                   alpha=alpha, c=color_array[shuffle])
 
     handles = [
         mpatches.Patch(
