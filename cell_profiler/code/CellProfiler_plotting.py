@@ -42,7 +42,7 @@ def set_logging(log_file_path, level=logging.INFO, format=' INFO: %(message)s'):
     logging.info(__doc__)
 
 
-def load_data_and_plot_UMAPs(input_path, stress = True, color_mapping=None):
+def load_data_and_plot_UMAPs(input_path, stress = True, color_mappings=None):
      with os.scandir(input_path) as input_data_folder:
         # We loop on all markers, plot single marker UMAPs (AKA UMAP0), 
         # but also keep the marker data for later UMAP1 (of all markers in one plot)
@@ -135,7 +135,7 @@ def load_data_and_plot_UMAPs(input_path, stress = True, color_mapping=None):
             df_all.to_csv(os.path.join(INPUT_DIR_BATCH, f'all_markers_concatenated-by-object-type_{BATCH_TO_RUN}.csv'), index=False)
         
         # Plot UMAP1
-        plot_umap1(df_all, color_mapping=color_mapping)
+        plot_umap1(df_all, color_mappings=color_mappings)
         
         return None
                   
@@ -305,7 +305,7 @@ def plot_umap0(df, marker,
     return None
 
 
-def plot_umap1(df_all, color_mapping=None):
+def plot_umap1(df_all, color_mappings=None):
     
     logging.info(f"\nStarting plot_umap1() ...")
     logging.info('%s %s', "\n", df_all.value_counts(subset=['replicate', 'cell_line', 'marker', 'panel']))
@@ -339,10 +339,10 @@ def plot_umap1(df_all, color_mapping=None):
         unique_labels = idx.unique()
         fig, ax = plt.subplots(figsize=(6, 5))
 
-        # Try to get color and alias from color_mapping
+        # Try to get color and alias from color_mappings
         try:
-            color_map = {label: color_mapping[label]['color'] for label in unique_labels}
-            label_map = {label: color_mapping[label]['alias'] for label in unique_labels}
+            color_map = {label: color_mappings[label]['color'] for label in unique_labels}
+            label_map = {label: color_mappings[label]['alias'] for label in unique_labels}
             cmap = None
         except KeyError:
             color_map = {label: i for i, label in enumerate(unique_labels)}
@@ -585,8 +585,8 @@ def main():
     logging.info(f"\n\nStarting to plot marker UMAPs from Cell Profiler output of batch: {INPUT_DIR_BATCH}")
 
     cfg = PlotConfig()
-    color_mapping = cfg.COLOR_MAPPINGS_MARKERS 
-    load_data_and_plot_UMAPs(INPUT_DIR_BATCH, stress = False,color_mapping=color_mapping)
+    color_mappings = cfg.COLOR_MAPPINGS_MARKERS
+    load_data_and_plot_UMAPs(INPUT_DIR_BATCH, stress=False, color_mappings=color_mappings)
     #plot_umap2(INPUT_DIR_BATCH)
     #customized_plot()
     logging.info(f"\n\nFinished plotting marker UMAPs from Cell Profiler output of batch: {INPUT_DIR_BATCH}")
