@@ -5,6 +5,7 @@ import numpy as np
 import seaborn as sns
 from scipy.cluster.hierarchy import linkage
 import networkx as nx
+import logging
 import warnings
 from matplotlib.lines import Line2D
 from matplotlib.patches import Rectangle
@@ -83,37 +84,62 @@ def plot_distances_heatmap(
     df: pd.DataFrame,
     metric_col: str = "p50",
     method: str = "average",
-    cmap: str = "viridis",
+    cmap: str = "viridis_r",
     figsize: tuple = (10,10),
+    fontsize: int = 10,
+    highlight_organelles_pairs: list = None,
+    highlight_linewidth: float = 2.0,
     highlight_thresh: float = None,
     savepath: str = None,
     fmt: str = ".2f",
     text_color: str = "black",
     do_cluster: bool = True,
-    annotate_values: bool = True
+    annotate_values: bool = True,
+    show_upper_only: bool = True,
+    normalize: bool = False,
+    remove_diagonal: bool = False,
+    xticks_position_shift=-0.1,
+    axis_font_size=15
 ):
+
     """
     Build a symmetric distance matrix from df[['label1','label2',metric_col]].
-    Optionally cluster (hierarchical) and optionally annotate cell values.
+    Optionally cluster and annotate cell values.
     If highlight_thresh is set, draw a red box around any cell with value ≤ threshold.
+    If normalize is True, min-max scale the metric_col to [0,1].
+    If show_upper_only is True, annotate only the upper triangle (no diagonal).
+    Empty cells are masked (no color).
     """
+
+    df = df.copy()
+    if remove_diagonal:
+        df.loc[df['label1'] == df['label2'], metric_col] = np.nan
+
+    if normalize:
+        df[metric_col] = (df[metric_col] - df[metric_col].min()) / (
+            (df[metric_col].max() - df[metric_col].min()) + 1e-6
+        )
+
     labels = sorted(set(df['label1']) | set(df['label2']))
     dist_mat = pd.DataFrame(np.nan, index=labels, columns=labels)
+    
+    # fill symmetric
 
-    # Fill both off-diag and diag entries from df
     for _, row in df.iterrows():
         i, j = row['label1'], row['label2']
         v = row[metric_col]
-        # Nancy's comment: this uses the last value and DOES NOT aggregate values for same (i,j)
         dist_mat.loc[i, j] = v
         dist_mat.loc[j, i] = v
 
-    # Build clustermap with optional clustering
+    # clustering on full matrix
     row_link = col_link = None
+
     if do_cluster:
         condensed_dist = squareform(dist_mat.values, checks=False)
         link = linkage(condensed_dist, method=method)
         row_link = col_link = link
+
+    n = len(labels)
 
     cg = sns.clustermap(
         dist_mat,
@@ -122,46 +148,134 @@ def plot_distances_heatmap(
         row_cluster=do_cluster,
         col_cluster=do_cluster,
         cmap=cmap,
-        figsize=figsize
+        figsize=figsize,
     )
-    cg.fig.suptitle(f"Clustered heatmap ({metric_col})" if do_cluster else f"Heatmap ({metric_col})", y=1.02)
-
-    # Map original matrix indices to displayed positions
-    if do_cluster:
-        order = cg.dendrogram_row.reordered_ind
-        inv_map = {orig: new for new, orig in enumerate(order)}
-    else:
-        inv_map = {i: i for i in range(len(labels))}
+    # Hide the row dendrogram
+    cg.ax_row_dendrogram.set_visible(False)
 
     ax = cg.ax_heatmap
-    data = dist_mat.values
-    n = data.shape[0]
 
-    # Optional value annotations
+    if remove_diagonal:
+        # Hide the last tick label since we don't show the diagonal
+        yticks = ax.get_yticks()
+        yticklabels = [lab.get_text() for lab in ax.get_yticklabels()[:-1]]
+
+        xticks = ax.get_xticks()
+        xticklabels = [lab.get_text() for lab in ax.get_xticklabels()[1:]]
+
+        ax.set_yticks(yticks[:-1])
+        ax.set_yticklabels(yticklabels)
+        ax.set_xticks(xticks[1:])
+        ax.set_xticklabels(xticklabels)
+    
+
+    # --- Staircase x-labels ---
+    # 1) read current (shown) ticks/labels BEFORE we clear them
+    shown_xticks = ax.get_xticks()                    # e.g., [1.5, 2.5, ..., n-0.5]
+    shown_xlabs  = [t.get_text() for t in ax.get_xticklabels()]
+
+    # 2) hide default tick labels
+    ax.set_xticklabels([])
+    ax.set_xticks([])
+
+    # 3) compute a robust base y in DATA coords (bottom row center is n_rows - 0.5)
+    base_y  = 1.2 + 0.3     # just below the heatmap; use n_rows - 0.4 to place inside
+    step    = 1            # staircase step per column; tweak as needed
+
+    # 4) place each label at its x tick with increasing y offset
+    for k, (x, txt) in enumerate(zip(shown_xticks, shown_xlabs)):
+        yy = base_y + k * step
+        ax.plot([x+xticks_position_shift, x+xticks_position_shift], [yy-0.2, yy - 0.4], color="black", lw=1, clip_on=False)
+        ax.text(
+            x+0.1, yy, txt,
+            transform=ax.transData,        # <-- use data coords on the heatmap axes
+            ha="right", va="top", rotation=90,
+            clip_on=False, zorder=10,
+            fontsize=axis_font_size
+        )
+
+    # cg.fig.suptitle(
+    #     f"Clustered heatmap ({metric_col})" if do_cluster else f"Heatmap ({metric_col})",
+    #     y=1.02,
+    # )
+
+    # maps for displayed positions (row/col orders can differ)
+
+    if do_cluster:
+        order_row = cg.dendrogram_row.reordered_ind
+        order_col = cg.dendrogram_col.reordered_ind
+        inv_row = {orig: new for new, orig in enumerate(order_row)}
+        inv_col = {orig: new for new, orig in enumerate(order_col)}
+    else:
+        inv_row = {i: i for i in range(n)}
+        inv_col = {i: i for i in range(n)}
+
+    data = dist_mat.values
+
+    # annotations
     if annotate_values:
         for i in range(n):
             for j in range(n):
                 val = data[i, j]
-                if np.isfinite(val):
-                    yi, xi = inv_map[i], inv_map[j]
-                    ax.text(xi + 0.5, yi + 0.5, format(val, fmt),
-                            ha='center', va='center', color=text_color, fontsize=10)
 
-    # Optional highlighting
+                if not np.isfinite(val):
+                    continue
+
+                yi, xi = inv_row[i], inv_col[j]
+                cond = (xi >= yi) if not remove_diagonal else (xi > yi)
+                if cond or not show_upper_only:
+                    ax.text(
+                        xi + 0.5, yi + 0.5, format(val, fmt).lstrip('0'),
+                        ha='center', va='center', color=text_color, fontsize=fontsize
+                    )
+                elif show_upper_only:
+                    cond = (xi <= yi) if remove_diagonal else (xi < yi)
+                    if cond: 
+                        ax.add_patch(
+                                Rectangle((xi, yi), 1, 1, facecolor="white", edgecolor="gainsboro",linewidth=0)# hatch="//", linewidth=0.3, zorder=3)
+                            )
+
+    # highlighting
     if highlight_thresh is not None:
         for i in range(n):
             for j in range(n):
                 val = data[i, j]
-                if np.isfinite(val) and val <= highlight_thresh:
-                    yi, xi = inv_map[i], inv_map[j]
-                    ax.add_patch(Rectangle((xi, yi), 1, 1, fill=False, edgecolor='red', linewidth=1))
+                if not np.isfinite(val):
+                    continue
+                yi, xi = inv_row[i], inv_col[j]
+                if show_upper_only and not (xi > yi):
+                    continue
+
+                if val <= highlight_thresh:
+                    ax.add_patch(Rectangle((xi, yi), 1, 1, fill=False,
+                                           edgecolor='red', linewidth=1))
+
+    if highlight_organelles_pairs is not None:
+        for coord in highlight_organelles_pairs:
+            if len(coord) != 2:
+                logging.warning(f"Invalid highlight_organelles_pairs {coord}, must be [label1, label2]")
+                continue
+            try:
+                i = labels.index(coord[0])
+                j = labels.index(coord[1])
+            except ValueError:
+                logging.warning(f"Invalid highlight_organelles_pairs {coord}, labels not found")
+                continue
+            yi, xi = inv_row[i], inv_col[j]
+            if show_upper_only and xi <= yi:
+                xi, yi = yi, xi  # swap to upper triangle
+            ax.add_patch(Rectangle((xi, yi), 1, 1, fill=False,
+                                   edgecolor='purple', linewidth=highlight_linewidth))
+
+    ax.tick_params(axis='both', labelsize=axis_font_size) 
 
     if savepath:
-        savepath = os.path.join(savepath, f'distance_heatmap')
-        save_plot(cg, savepath, dpi=300, save_eps=True)
+        os.makedirs(savepath, exist_ok=True)
+        savepath = os.path.join(savepath, 'distance_heatmap')
+        save_plot(cg, savepath, dpi=300, save_eps=True, save_pdf=True)
     else:
         plt.show()
-    return
+
 
 def plot_network1(df: pd.DataFrame,
                              metric_col: str = "p50",

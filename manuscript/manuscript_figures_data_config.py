@@ -98,6 +98,19 @@ class newAlyssaFigureConfig_UMAP0_B1(FigureConfig):
         self.ADD_REP_TO_LABEL = False
         self.ADD_BATCH_TO_LABEL = False
 
+class newAlyssaCoyneDistPatients(newAlyssaFigureConfig_UMAP0_B1):
+    def __init__(self):
+        super().__init__()
+
+        self.ADD_REP_TO_LABEL=False
+        self.MARKERS = ['TDP43', 'DCP1A']
+
+class newAlyssaCoyneDistGroups(newAlyssaCoyneDistPatients):
+    def __init__(self):
+        super().__init__()
+
+        self.REMOVE_PATIENT_ID_FROM_CELL_LINE = True
+
 
 class newAlyssaFigureConfig_UMAP0_B1_per_patient_Ctrl_C9(newAlyssaFigureConfig_UMAP0_B1):
     def __init__(self):

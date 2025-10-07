@@ -55,7 +55,24 @@ for model_path in "${models_path[@]}"; do
     # $NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/calculate_distances -g -m 20000 -b 10 \
     # -a $model_path $data_configs/AlyssaCoyneUMAP0FigureConfig rep_effect detailed_stats -q short-gpu -j dis_Alyssa
 
+    # Alyssa (old)
+
+    # $NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/calculate_distances -g -m 20000 -b 10 \
+    # -a $model_path $data_configs/AlyssaCoyneDistGroups -q short-gpu -j dis_Alyssa
+
+    # Alyssa (new)
+
+    # $NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/calculate_distances -g -m 20000 -b 10 \
+    # -a $model_path $data_configs/newAlyssaCoyneDistPatients -q short-gpu -j dis_Alyssa_new
+    
+
     $NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/calculate_distances -g -m 20000 -b 10 \
-    -a $model_path $data_configs/AlyssaCoyneDistGroups -q short-gpu -j dis_Alyssa
+    -a $model_path $data_configs/newAlyssaCoyneDistGroups -q short-gpu -j dis_Alyssa_new
+
+    # NIH (UMAP1)
+    # $NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/calculate_distances -g -m 40000 -b 44 \
+    # -a $model_path $data_configs/NIH_UMAP1_DatasetConfig -q short-gpu -j dis_NIH_UMAP1
+
+
 
 done
