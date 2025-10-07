@@ -1,14 +1,10 @@
 import pickle
 from itertools import product
 
-import cupy as cp
-import cudf
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import seaborn as sns
-from cuml.linear_model import LogisticRegression as cuMLLogisticRegression
-from imblearn.over_sampling import RandomOverSampler
 from sklearn.cluster import DBSCAN, KMeans
 from sklearn.metrics import (
     confusion_matrix,
@@ -99,7 +95,9 @@ def plot_multiclass_roc(y_true, y_scores, classes, title="ROC (OvR)"):
     plt.legend(loc="lower right", fontsize=8)
     plt.tight_layout(); plt.show()
 
-def spearman_gpu(X, y, top_n=100):
+def spearman_gpu(X, y, top_n=100):    
+    import cupy as cp
+
     # Convert to GPU
     X_gpu = cp.asarray(X)
     y_gpu = cp.asarray(y)
@@ -171,7 +169,8 @@ def run_clustering(
     y_all = np.array(y_all)
 
     # Optional: Balance dataset
-    if balance:
+    if balance: 
+        from imblearn.over_sampling import RandomOverSampler
         ros = RandomOverSampler(random_state=42)
         X_all, y_all = ros.fit_resample(X_all, y_all)
 

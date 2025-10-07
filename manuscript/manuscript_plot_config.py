@@ -203,6 +203,37 @@ class DistancesNeuronsALSPlotConfig(PlotConfig):
                                  'TOMM20', 'HNRNPA1','TDP43', 'ANXA11', 'GM130', 'Calreticulin', 'NONO', 'Tubulin', 'PSD95']
         self.XLIM = (-0.2,2.0)
         self.MARKERS_TO_SHOW = self.ORDERED_MARKERS
+
+class DistancesNeuronsALSPlotConfig_autoRangeAndOrder(PlotConfig):
+    def __init__(self):
+        super().__init__()
+
+        self.COLOR_MAPPINGS_CELL_LINE_CONDITION = self.COLOR_MAPPINGS_CONDITION_AND_ALS
+        self.FIGSIZE = None
+        self.ORDERED_MARKERS = None
+        self.XLIM = None
+        self.MARKERS_TO_SHOW = None
+
+class DistancesNeuronsALSPlotConfig_autoRangeAndOrder_WO_Showing_FUS(PlotConfig):
+    def __init__(self):
+        super().__init__()
+
+        self.COLOR_MAPPINGS_CELL_LINE_CONDITION = self.COLOR_MAPPINGS_CONDITION_AND_ALS
+        self.FIGSIZE = None
+        self.ORDERED_MARKERS = None
+        self.XLIM = None
+        self.MARKERS_TO_SHOW = None
+        self.MARKERS_TO_HIDE = ['FUS']
+
+class DistancesNeuronsALSPlotConfig_autoRangeAndOrder_onlyShowing_FUS(PlotConfig):
+    def __init__(self):
+        super().__init__()
+
+        self.COLOR_MAPPINGS_CELL_LINE_CONDITION = self.COLOR_MAPPINGS_CONDITION_AND_ALS
+        self.FIGSIZE = None
+        self.ORDERED_MARKERS = None
+        self.XLIM = None
+        self.MARKERS_TO_SHOW = ['FUS']
         
 class DistancesNeuronsALSMultiplexPlotConfig(PlotConfig):
     def __init__(self):

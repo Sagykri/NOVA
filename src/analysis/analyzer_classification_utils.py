@@ -7,13 +7,10 @@ from collections import Counter
 import matplotlib.pyplot as plt
 from collections import defaultdict
 
-from cuml.linear_model import LogisticRegression as cuMLLogisticRegression
+from sklearn.svm import LinearSVC
 from sklearn.preprocessing import StandardScaler, LabelEncoder, label_binarize
-from imblearn.over_sampling import RandomOverSampler
 from sklearn.feature_selection import f_classif
 from sklearn.decomposition import PCA
-import cudf
-import cupy as cp
 from sklearn.metrics import (
     classification_report,
     confusion_matrix,
@@ -175,12 +172,14 @@ def train_and_evaluate_classifier(
     top_k=100,
     apply_pca=False,
     pca_components=50,
-    classifier_class=cuMLLogisticRegression,
+    classifier_class=LinearSVC,
     classifier_kwargs=dict(),
     get_proba=True
 ):
     # Balance
     if balance:
+        from imblearn.over_sampling import RandomOverSampler
+
         ros = RandomOverSampler(random_state=42)
         X_train, y_train_mapped = ros.fit_resample(X_train, y_train_mapped)
 
@@ -208,6 +207,7 @@ def train_and_evaluate_classifier(
 
     # Move to GPU if needed
     if is_gpu:
+        import cudf
         X_train = cudf.DataFrame.from_records(X_train)
         X_test = cudf.DataFrame.from_records(X_test)
         y_train_mapped = cudf.Series(y_train_mapped)
@@ -235,6 +235,7 @@ def train_and_evaluate_classifier(
 
 def _to_numpy_proba(p):
     try:
+        import cupy as cp
         if isinstance(p, cp.ndarray): return cp.asnumpy(p)
     except Exception:
         pass
@@ -307,7 +308,7 @@ def remove_untreated_from_labels(labels):
 
 def plot_confusion_matrix(cm, labels, title="Confusion Matrix", cmap="Blues",
                           xlabel=None, ylabel=None, save_path=None,
-                          show_percentages=True, annotate_threshold=50):
+                          show_percentages=True, annotate_threshold=1):
     """
     Plot a confusion matrix with automatic scaling of figure & font size.
     - Default: show raw counts.
@@ -375,6 +376,8 @@ def plot_confusion_matrix(cm, labels, title="Confusion Matrix", cmap="Blues",
     plt.tight_layout()
     if save_path:
         plt.savefig(save_path, dpi=250, bbox_inches="tight")
+        plt.savefig(os.path.splitext(save_path)[0] + ".pdf", dpi=250, bbox_inches="tight", format='pdf')
+        plt.savefig(os.path.splitext(save_path)[0] + ".eps", dpi=250, bbox_inches="tight", format='eps')
     plt.show()
 
 def _align_and_sum_confusions(cms, cm_classes):
@@ -594,6 +597,9 @@ def plot_roc_ovr(y_true, y_proba, class_names=None, save_path=None, title="ROC C
     plt.grid(True)
     if save_path:
         plt.savefig(save_path, bbox_inches="tight", dpi=300)
+        plt.savefig(os.path.splitext(save_path)[0] + ".pdf", dpi=300, bbox_inches="tight", format='pdf')
+        plt.savefig(os.path.splitext(save_path)[0] + ".eps", dpi=300, bbox_inches="tight", format='eps')
+
     plt.show()
 
 def run_baseline_model(
@@ -606,7 +612,7 @@ def run_baseline_model(
     apply_pca=False,               # whether to reduce dimensionality with PCA
     pca_components=50,             # number of PCA components if apply_pca=True
     label_map=None,                # optional mapping to merge/remap labels, e.g. {"WT":0,"KO":1}
-    classifier_class=cuMLLogisticRegression, # classifier class to use (any sklearn/cuML-compatible estimator)
+    classifier_class=LinearSVC, # classifier class to use (any sklearn/cuML-compatible estimator)
     classifier_kwargs=dict(),      # extra arguments for the classifier constructor (e.g. {"max_depth":10})
     test_specific_batches=None,    # int or list: which batches to use as test folds; None = default LOOCV
     train_specific_batches=None,   # int or list: which batches to use for training; None = complement of test
@@ -792,7 +798,7 @@ def run_train_test_split_baseline(
     top_k=100,
     apply_pca=False,
     pca_components=50,
-    classifier_class=cuMLLogisticRegression,
+    classifier_class=LinearSVC,
     classifier_kwargs=dict(),
     return_proba=False,  # If True, return predicted probabilities
     label_map=None,

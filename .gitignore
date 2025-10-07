@@ -1,5 +1,6 @@
 # Visual Code
 .history/
+.lh/
 .vscode/
 envs/
 outputs/
@@ -30,6 +31,10 @@ data/processed/*
 
 ./tools
 ./tests
+
+/s3_scripts/upload_to_s3.py
+/s3_scripts/upload_to_s3.sh
+
 
 /tools/lena/models_outputs_Lena/embeddings/**/*.npy
 /tools/lena/UMAPs/**/*.npy

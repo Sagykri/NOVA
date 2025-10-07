@@ -123,10 +123,13 @@ class BaseConfig():
 
         username = 'UnknownUser'
         if jobid:
-            # Run the bjobs command to get job details
-            result = subprocess.run(['bjobs', '-o', 'user', jobid], capture_output=True, text=True, check=True)
-            # Extract the username from the output
-            username = result.stdout.replace('USER', '').strip()
+            try:
+                # Run the bjobs command to get job details
+                result = subprocess.run(['bjobs', '-o', 'user', jobid], capture_output=True, text=True, check=True)
+                # Extract the username from the output
+                username = result.stdout.replace('USER', '').strip()
+            except Exception as e:
+                logging.warning(f"Failed to get username from bjobs command: {e}")
         
         log_file_path = os.path.join(self.__LOGS_FOLDER, self.__now_str + f'_{jobid}_{username}_{jobname}.log')
         if not os.path.exists(self.__LOGS_FOLDER):

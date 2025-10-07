@@ -39,9 +39,20 @@ def plot_combined_effect_sizes_forestplot(combined_effects_df, single_effects_df
 
         # optional: only show specific markers
         markers_to_show = get_if_exists(config_plot, 'MARKERS_TO_SHOW', None)
-        if markers_to_show is not None:
+        markers_to_hide = get_if_exists(config_plot, 'MARKERS_TO_HIDE', None)
+        
+        logging.info(f"Markers to show: {markers_to_show}; Markers to hide: {markers_to_hide}")
+
+        if markers_to_hide:
+            markers = cur_df_combined['marker'].unique() if markers_to_show is None else markers_to_show
+            markers_to_show = [m for m in markers if m not in markers_to_hide]
+
+        if markers_to_show:
+            logging.info(f"Final markers to show: {markers_to_show}")
             __plot_forest_plot(cur_df_combined, cur_df_single, config_plot, baseline=baseline, pert=pert, savepath=f'{savepath}_selected_markers', figsize=config_plot.FIGSIZE,
                            combine_on=combine_on, unit='marker', markers_to_show=markers_to_show, show_only_significant=False)
+            __plot_forest_plot(cur_df_combined, cur_df_single, config_plot, baseline=baseline, pert=pert, savepath=f'{savepath}_selected_markers_only_significant', figsize=config_plot.FIGSIZE,
+                           combine_on=combine_on, unit='marker', markers_to_show=markers_to_show, show_only_significant=True)
 
 
 def __plot_forest_plot(combined_effects_df, cur_df_single, config_plot, baseline=None, pert=None, savepath=None, figsize=None,
@@ -73,22 +84,27 @@ def __plot_forest_plot(combined_effects_df, cur_df_single, config_plot, baseline
     if combined_effects_df.empty:
         raise ValueError("combined_effects_df is empty")
 
+    keep = pd.Series(True, index=combined_effects_df.index)
+
+    if show_only_significant:
+        keep &= combined_effects_df['adj_pvalue'] <= 0.05
+
     if markers_to_show is not None and unit == 'marker':
-        keep = combined_effects_df['marker'].isin(markers_to_show)
-        combined_effects_df = combined_effects_df.loc[keep].copy()
-        unit_markers = combined_effects_df[unit].tolist()
-        cur_df_single = cur_df_single[cur_df_single[unit].isin(unit_markers)].copy()
+        keep &= combined_effects_df['marker'].isin(markers_to_show)
 
-        if combined_effects_df.empty:
-            raise ValueError(f"No {unit}s remain after filtering by markers to show: {markers_to_show}")
-    elif show_only_significant:
-        keep = combined_effects_df['adj_pvalue'] <= 0.05
-        combined_effects_df = combined_effects_df.loc[keep].copy()
-        unit_markers = combined_effects_df[unit].tolist()
-        cur_df_single = cur_df_single[cur_df_single[unit].isin(unit_markers)].copy()
+    # Apply filter
+    combined_effects_df = combined_effects_df.loc[keep].copy()
 
-        if combined_effects_df.empty:
-            raise ValueError(f"No {unit}s remain after filtering by significance")
+    if combined_effects_df.empty:
+        if show_only_significant:
+            msg = f"No {unit}s remain after significance filtering"
+        else:
+            msg = f"No {unit}s remain after filtering by markers: {markers_to_show}"
+        raise ValueError(msg)
+
+    # Filter single effects for markers in the filtered combined effects
+    unit_markers = combined_effects_df[unit].tolist()
+    cur_df_single = cur_df_single[cur_df_single[unit].isin(unit_markers)].copy()
 
     figsize = (5, max(len(cur_df_single), 1) * 0.1) if figsize is None else figsize
     fig, ax = plt.subplots(figsize=figsize)

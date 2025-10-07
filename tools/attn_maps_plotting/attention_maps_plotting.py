@@ -178,7 +178,7 @@ def __create_attn_map_img(attn_map, input_img, heatmap_colored, config_plot,
 
     def plot_overlay(ax):
         logging.info(f"[plot_attn_maps] Attention overlay threshold: {config_plot.ATTN_OVERLAY_THRESHOLD}")
-        ax.imshow(input_img)
+        ax.imshow(input_img[...,1], cmap='gray')
         if config_plot.DISPLAY_COMPONENTS_TITLE:
             ax.set_title(f"Overlay", 
                      fontsize=config_plot.PLOT_TITLE_FONTSIZE, pad=5)
@@ -195,7 +195,7 @@ def __create_attn_map_img(attn_map, input_img, heatmap_colored, config_plot,
         )
         ax.contourf(attn_map, levels=levels, cmap=fill_cmap, alpha=alpha)
         ax.contour(attn_map, levels=levels, cmap=line_cmap,
-                   linewidths=1.0, alpha=alpha + 0.05)
+                   linewidths=config_plot.LINE_WIDTH, alpha=alpha + 0.05)
         ax.set_axis_off()
 
     def plot_nucleus(ax):

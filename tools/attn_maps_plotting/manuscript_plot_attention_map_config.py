@@ -62,6 +62,8 @@ class BaseAttnMapPlotConfig(PlotAttnMapConfig):
                                 (1, 1, 0, 0.4),
                                 (1, 0.6, 0, 0.6),
                                 (1, 0, 0, 0.8)] 
+
+        self.LINE_WIDTH:float = 3.0 # width of the contour lines
     
 
 
