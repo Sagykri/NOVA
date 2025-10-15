@@ -72,6 +72,13 @@ def cp_load_markers_focus_boundries(dataset_name):
         MARKERS_FOCUS_BOUNDRIES_PATH = os.path.join(os.getenv("NOVA_HOME"), 'manuscript', 'markers_focus_boundries', 'markers_focus_boundries_newINDI_allBatches.csv')
     elif dataset_name=='OPERA_dNLS_6_batches_NOVA_sorted':
         MARKERS_FOCUS_BOUNDRIES_PATH =  os.path.join(os.getenv("NOVA_HOME"), 'manuscript', 'markers_focus_boundries', 'markers_focus_boundries_operadNLS.csv')
+    elif dataset_name=='TDP43_WT_OE_PB_experiment_sorted':
+        MARKERS_FOCUS_BOUNDRIES_PATH =  os.path.join(os.getenv("NOVA_HOME"), 'manuscript', 'markers_focus_boundries', 'marker_focus_boundries_TDP43_WT_OE_PB_experiment_sorted110925.csv')
+    elif dataset_name=='Sorbitol_experiment_PBs_TDP43_sorted':
+        MARKERS_FOCUS_BOUNDRIES_PATH =  os.path.join(os.getenv("NOVA_HOME"), 'manuscript', 'markers_focus_boundries', 'marker_focus_boundries_Sorbitol_experiment_PBs_TDP43_310825.csv')
+    elif dataset_name=='indi-image-pilot-20241128':
+        MARKERS_FOCUS_BOUNDRIES_PATH =  os.path.join(os.getenv("NOVA_HOME"), 'manuscript', 'markers_focus_boundries', 'markers_focus_boundries_NIH.csv')
+        
     
     if MARKERS_FOCUS_BOUNDRIES_PATH:
         logging.info(f"\n\nLoading Markers Focus Boundries from: {MARKERS_FOCUS_BOUNDRIES_PATH}")

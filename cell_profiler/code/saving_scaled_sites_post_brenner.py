@@ -7,7 +7,7 @@ from pathlib import Path
 from datetime import datetime
 from multiprocessing import Pool
 from functools import partial
-
+import cellprofiler_core
 import nova_utils as utils
 import cell_profiler_utils as cp_utils
 
@@ -18,10 +18,11 @@ sys.path.insert(1, NOVA_HOME)
 # Paths to local directories 
 # ------------------------------------------------------------- #
 # Input folder name (raw sites)
-dataset_name = 'OPERA_dNLS_6_batches_NOVA_sorted'
-DATA_INPUT_DIR = os.path.join(NOVA_HOME, 'input', 'images', 'raw', dataset_name)
+dataset_name = 'TDP43_WT_OE_PB_experiment_sorted'
+DATA_INPUT_DIR = os.path.join(NOVA_HOME, 'input', 'images', 'raw' ,dataset_name)
+# , "batch3","iw11-NGN", "PanelX"
 # Path to filtred and rescale 
-OUTPUT_DIR = os.path.join(NOVA_HOME, 'cell_profiler', 'outputs', 'filtered_by_brenner_post_rescale_outputs', dataset_name)
+OUTPUT_DIR = os.path.join(NOVA_HOME, 'cell_profiler', 'outputs', 'filtered_by_brenner_post_rescale_outputs', 'TDP43_WT_OE_PB_experiment_sorted')
 LOG_DIR_PATH = os.path.join(NOVA_HOME, 'cell_profiler', 'logs')
 # ------------------------------------------------------------- #
 
@@ -82,7 +83,7 @@ def filter_images_by_brenner_post_rescale_intensity(image_files, input_folder_na
         subdir_path = Path(*subdirs)
     else:
         raise ValueError("Could not extract subdirs names from sample path.")
-
+#
     # Step 7: Create the output directory based on the input folder name 
     output_dir = os.path.join(OUTPUT_DIR, subdir_path)
     print("Output dir:", output_dir)
@@ -101,7 +102,7 @@ def filter_images_by_brenner_post_rescale_intensity(image_files, input_folder_na
         
         #  Skip if file already exists
         if Path(dst_path).exists():
-            logging.info(f" Skipping existing file: {dst_path}")
+            # logging.info(f" Skipping existing file: {dst_path}")
             saved_file_paths.append(dst_path)
             continue
         if image is not None:
@@ -139,7 +140,7 @@ def main(dataset_name):
     markers_focus_boundries = utils.cp_load_markers_focus_boundries(dataset_name)
     
     # create a process pool that uses all cpus
-    with Pool(10) as pool:
+    with Pool(5) as pool:
         # call the analyze_marker() function for each marker folder in parallel
         for _ in pool.map(partial(save_filter_sites, dataset_name=dataset_name, markers_focus_boundries=markers_focus_boundries), 
                                 cp_utils.find_marker_folders(batch_path=DATA_INPUT_DIR, 
@@ -155,40 +156,19 @@ def main(dataset_name):
     pool.terminate()
     
         
-def _main(dataset_name):
-    """
-    Filter images by Brenner threshold, rescale intensity, save filtered images to a new location,
-    """
-    
-    # Step 1: Load Brenner focus thresholds
-    markers_focus_boundries = utils.cp_load_markers_focus_boundries(dataset_name)
-    
-    # For a given dataset, run on each batch and filter the images by Brenner focus measure and rescale intensity
-    for input_and_output_path_list in cp_utils.find_marker_folders(batch_path=DATA_INPUT_DIR,
-                                                                    output_dir=OUTPUT_DIR, 
-                                                                    depth=6, 
-                                                                    markers_to_include=[]):
-        
-        input_folder_name, output_folder = input_and_output_path_list[0], input_and_output_path_list[1]
-        logging.info(f"Filtering images: reading input data from {input_folder_name}")
-        
-        # Collect image file paths for a given marker and its associated DAPI channel
-        image_files = cp_utils.collect_image_names_per_marker(input_folder_name, dataset_name)
-        
-        # Filter the images using Brenner focus measure, rescale intensity, and save filtered images
-        filtered_image_files = filter_images_by_brenner_post_rescale_intensity(image_files, input_folder_name, markers_focus_boundries)
 
-        logging.info(f"Filtering complete. {len(filtered_image_files)} images passed the filter.")
-        
-    
-    return None
 
     
-if __name__ == '__main__':
+if __name__ == '__main__': 
+    try:   
+        # Define the log file once in the begining of the script
+        cp_utils.set_logging(log_file_path=os.path.join(LOG_DIR_PATH, datetime.now().strftime('log_%d_%m_%Y_%H_%M')))
     
-    # Define the log file once in the begining of the script
-    cp_utils.set_logging(log_file_path=os.path.join(LOG_DIR_PATH, datetime.now().strftime('log_%d_%m_%Y_%H_%M')))
-    
-    main(dataset_name)
-    
+        main(dataset_name)
+    except Exception as e:
+        logging.info(f"Error:{e}")
+        logging.exception(e)
+        
     logging.info(f"\n\nDone!")  
+
+ 
