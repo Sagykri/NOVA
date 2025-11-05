@@ -9,98 +9,112 @@ from src.datasets.label_utils import MapLabelsFunction
 class AAT_NOVA_BaseFigureConfig(PlotConfig):
     def __init__(self):
         super().__init__()
+
+        self.COLOR_MAPPINGS_AAT_NOVA_REPS = {
+            'rep1': {self.MAPPINGS_ALIAS_KEY: 'Rep1', self.MAPPINGS_COLOR_KEY: '#F04521'},  
+            'rep2': {self.MAPPINGS_ALIAS_KEY: 'Rep2', self.MAPPINGS_COLOR_KEY: '#4343FE'},
+        }
+
+        self.COLOR_MAPPINGS_AAT_NOVA_BATCHES = {
+            'batch1': {self.MAPPINGS_ALIAS_KEY: 'Batch1', self.MAPPINGS_COLOR_KEY: "#409A14"},  
+            'batch2': {self.MAPPINGS_ALIAS_KEY: 'Batch2', self.MAPPINGS_COLOR_KEY: "#8215C1"},
+        }
+
         # Markers
         self.COLOR_MAPPINGS_AAT_NOVA = {
-            'DAPI': {self.MAPPINGS_ALIAS_KEY: 'Nucleus', self.MAPPINGS_COLOR_KEY: '#AFBDFF'},
-            'Cas3': {self.MAPPINGS_ALIAS_KEY: 'Cas3', self.MAPPINGS_COLOR_KEY: '#4343FE'},
+            'DAPI': {self.MAPPINGS_ALIAS_KEY: 'Nucleus', self.MAPPINGS_COLOR_KEY: "#7181C7"},
+            'Cas3': {self.MAPPINGS_ALIAS_KEY: 'Cas3', self.MAPPINGS_COLOR_KEY: "#3030AC"},
             'FK-2': {self.MAPPINGS_ALIAS_KEY: 'FK-2', self.MAPPINGS_COLOR_KEY: '#921010'},
-            'SMI32': {self.MAPPINGS_ALIAS_KEY: 'SMI32', self.MAPPINGS_COLOR_KEY: '#12F986'},
-            'pDRP1': {self.MAPPINGS_ALIAS_KEY: 'pDRP1', self.MAPPINGS_COLOR_KEY: '#66CDAA'},
-            'TOMM20': {self.MAPPINGS_ALIAS_KEY: 'TOMM20', self.MAPPINGS_COLOR_KEY: '#18E4CF'},
-            'pCaMKIIa': {self.MAPPINGS_ALIAS_KEY: 'pCaMKIIa', self.MAPPINGS_COLOR_KEY: '#168FB2'},
-            'pTDP-43': {self.MAPPINGS_ALIAS_KEY: 'pTDP-43', self.MAPPINGS_COLOR_KEY: '#A80358'},
-            'TDP-43': {self.MAPPINGS_ALIAS_KEY: 'TDP-43', self.MAPPINGS_COLOR_KEY: '#9968CB'},
-            'ATF6': {self.MAPPINGS_ALIAS_KEY: 'ATF6', self.MAPPINGS_COLOR_KEY: '#D257EA'},
-            'pAMPK': {self.MAPPINGS_ALIAS_KEY: 'pAMPK', self.MAPPINGS_COLOR_KEY: '#E6A9EA'},
-            'HDGFL2': {self.MAPPINGS_ALIAS_KEY: 'HDGFL2', self.MAPPINGS_COLOR_KEY: '#F04521'},
-            'pS6': {self.MAPPINGS_ALIAS_KEY: 'pS6', self.MAPPINGS_COLOR_KEY: '#F08F21'},
-            'PAR': {self.MAPPINGS_ALIAS_KEY: 'PAR', self.MAPPINGS_COLOR_KEY: '#F1CBDD'},
-            'UNC13A': {self.MAPPINGS_ALIAS_KEY: 'UNC13A', self.MAPPINGS_COLOR_KEY: '#37378D'},
+            'SMI32': {self.MAPPINGS_ALIAS_KEY: 'SMI32', self.MAPPINGS_COLOR_KEY: "#82CD10"},
+            'pDRP1': {self.MAPPINGS_ALIAS_KEY: 'pDRP1', self.MAPPINGS_COLOR_KEY: "#1EA072"},
+            'TOMM20': {self.MAPPINGS_ALIAS_KEY: 'TOMM20', self.MAPPINGS_COLOR_KEY: "#16AFBA"},
+            'pCaMKIIa': {self.MAPPINGS_ALIAS_KEY: 'pCaMKIIa', self.MAPPINGS_COLOR_KEY: "#166FA2"},
+            'pTDP-43': {self.MAPPINGS_ALIAS_KEY: 'pTDP-43', self.MAPPINGS_COLOR_KEY: "#8825E5"},
+            'TDP-43': {self.MAPPINGS_ALIAS_KEY: 'TDP-43', self.MAPPINGS_COLOR_KEY: "#C620D2"},
+            'ATF6': {self.MAPPINGS_ALIAS_KEY: 'ATF6', self.MAPPINGS_COLOR_KEY: "#AC166E"},
+            'pAMPK': {self.MAPPINGS_ALIAS_KEY: 'pAMPK', self.MAPPINGS_COLOR_KEY: "#F49DD2"},
+            'HDGFL2': {self.MAPPINGS_ALIAS_KEY: 'HDGFL2', self.MAPPINGS_COLOR_KEY: "#FE3B14"},
+            'pS6': {self.MAPPINGS_ALIAS_KEY: 'pS6', self.MAPPINGS_COLOR_KEY: "#FBA401"},
+            'PAR': {self.MAPPINGS_ALIAS_KEY: 'PAR', self.MAPPINGS_COLOR_KEY: "#FD0B0B"},
+            'UNC13A': {self.MAPPINGS_ALIAS_KEY: 'UNC13A', self.MAPPINGS_COLOR_KEY: "#140F4B"},
             'Calreticulin': {self.MAPPINGS_ALIAS_KEY: 'Calreticulin', self.MAPPINGS_COLOR_KEY: 'gray'},
-            'LC3-II': {self.MAPPINGS_ALIAS_KEY: 'LC3-II', self.MAPPINGS_COLOR_KEY: '#DEDB23'},
-            'p62': {self.MAPPINGS_ALIAS_KEY: 'p62', self.MAPPINGS_COLOR_KEY: '#AF8215'},
-            'CathepsinD': {self.MAPPINGS_ALIAS_KEY: 'CathepsinD', self.MAPPINGS_COLOR_KEY: '#32AC0E'},
+            'LC3-II': {self.MAPPINGS_ALIAS_KEY: 'LC3-II', self.MAPPINGS_COLOR_KEY: "#043121"},
+            'p62': {self.MAPPINGS_ALIAS_KEY: 'p62', self.MAPPINGS_COLOR_KEY: "#916706"},
+            'CathepsinD': {self.MAPPINGS_ALIAS_KEY: 'CathepsinD', self.MAPPINGS_COLOR_KEY: "#0A4360"},
         }
 
         # conditions
         self.COLOR_MAPPINGS_AAT_NOVA_CONDITIONS = {
-            'PPP2R1A': {self.MAPPINGS_ALIAS_KEY: 'PPP2R1A', self.MAPPINGS_COLOR_KEY: '#AFBDFF'},
-            'HMGCS1': {self.MAPPINGS_ALIAS_KEY: 'HMGCS1', self.MAPPINGS_COLOR_KEY: '#4343FE'},
+            'PPP2R1A': {self.MAPPINGS_ALIAS_KEY: 'PPP2R1A', self.MAPPINGS_COLOR_KEY: "#5D73D6"},
+            'HMGCS1': {self.MAPPINGS_ALIAS_KEY: 'HMGCS1', self.MAPPINGS_COLOR_KEY: "#14149A"},
             'PIK3C3': {self.MAPPINGS_ALIAS_KEY: 'PIK3C3', self.MAPPINGS_COLOR_KEY: '#921010'},
-            'NDUFAB1': {self.MAPPINGS_ALIAS_KEY: 'NDUFAB1', self.MAPPINGS_COLOR_KEY: '#12F986'},
-            'MAPKAP1': {self.MAPPINGS_ALIAS_KEY: 'MAPKAP1', self.MAPPINGS_COLOR_KEY: '#66CDAA'},
-            'NDUFS2': {self.MAPPINGS_ALIAS_KEY: 'NDUFS2', self.MAPPINGS_COLOR_KEY: '#18E4CF'},
+            'NDUFAB1': {self.MAPPINGS_ALIAS_KEY: 'NDUFAB1', self.MAPPINGS_COLOR_KEY: "#1EC439"},
+            'MAPKAP1': {self.MAPPINGS_ALIAS_KEY: 'MAPKAP1', self.MAPPINGS_COLOR_KEY: "#368664"},
+            'NDUFS2': {self.MAPPINGS_ALIAS_KEY: 'NDUFS2', self.MAPPINGS_COLOR_KEY: "#10766B"},
             'RALA': {self.MAPPINGS_ALIAS_KEY: 'RALA', self.MAPPINGS_COLOR_KEY: '#168FB2'},
             'TLK1': {self.MAPPINGS_ALIAS_KEY: 'TLK1', self.MAPPINGS_COLOR_KEY: '#A80358'},
-            'NRIP1': {self.MAPPINGS_ALIAS_KEY: 'NRIP1', self.MAPPINGS_COLOR_KEY: '#9968CB'},
-            'TARDBP': {self.MAPPINGS_ALIAS_KEY: 'TARDBP', self.MAPPINGS_COLOR_KEY: '#D257EA'},
-            'RANBP17': {self.MAPPINGS_ALIAS_KEY: 'RANBP17', self.MAPPINGS_COLOR_KEY: '#E6A9EA'},
+            'NRIP1': {self.MAPPINGS_ALIAS_KEY: 'NRIP1', self.MAPPINGS_COLOR_KEY: "#490092"},
+            'TARDBP': {self.MAPPINGS_ALIAS_KEY: 'TARDBP', self.MAPPINGS_COLOR_KEY: "#9223A9"},
+            'RANBP17': {self.MAPPINGS_ALIAS_KEY: 'RANBP17', self.MAPPINGS_COLOR_KEY: "#B07FB4"},
             'CYLD': {self.MAPPINGS_ALIAS_KEY: 'CYLD', self.MAPPINGS_COLOR_KEY: '#F04521'},
             'NT-1873': {self.MAPPINGS_ALIAS_KEY: 'NT-1873', self.MAPPINGS_COLOR_KEY: '#F08F21'},
-            'NT-6301-3085': {self.MAPPINGS_ALIAS_KEY: 'NT-6301-3085', self.MAPPINGS_COLOR_KEY: '#F1CBDD'},
-            'Intergenic': {self.MAPPINGS_ALIAS_KEY: 'Intergenic', self.MAPPINGS_COLOR_KEY: '#37378D'},
-            'Untreated': {self.MAPPINGS_ALIAS_KEY: 'Untreated', self.MAPPINGS_COLOR_KEY: 'gray'},
+            'NT-6301-3085': {self.MAPPINGS_ALIAS_KEY: 'NT-6301-3085', self.MAPPINGS_COLOR_KEY: "#646464"},
+            'Intergenic': {self.MAPPINGS_ALIAS_KEY: 'Intergenic', self.MAPPINGS_COLOR_KEY: "#51388A"},
+            'Untreated': {self.MAPPINGS_ALIAS_KEY: 'Untreated', self.MAPPINGS_COLOR_KEY: "#1E1E3A"},
         }
 
         # Conditions per cell line
         self.COLOR_MAPPINGS_AAT_NOVA_CONDITIONS_PER_CELL_LINE = {
-            'CTL_PPP2R1A': {self.MAPPINGS_ALIAS_KEY: 'CTL_PPP2R1A', self.MAPPINGS_COLOR_KEY: '#C9D5FF'}, # brighter
-            'C9_PPP2R1A': {self.MAPPINGS_ALIAS_KEY: 'C9_PPP2R1A', self.MAPPINGS_COLOR_KEY: '#8A9BDB'}, # darker
+            'CTL_PPP2R1A': {self.MAPPINGS_ALIAS_KEY: 'CTL_PPP2R1A', self.MAPPINGS_COLOR_KEY: "#5B76D8"}, # brighter
+            'C9_PPP2R1A': {self.MAPPINGS_ALIAS_KEY: 'C9_PPP2R1A', self.MAPPINGS_COLOR_KEY: "#1B39A6"}, # darker
 
-            'CTL_HMGCS1': {self.MAPPINGS_ALIAS_KEY: 'CTL_HMGCS1', self.MAPPINGS_COLOR_KEY: '#6A6AFF'},
-            'C9_HMGCS1': {self.MAPPINGS_ALIAS_KEY: 'C9_HMGCS1', self.MAPPINGS_COLOR_KEY: '#2E2EB2'},
+            'CTL_HMGCS1': {self.MAPPINGS_ALIAS_KEY: 'CTL_HMGCS1', self.MAPPINGS_COLOR_KEY: "#8989F5"},
+            'C9_HMGCS1': {self.MAPPINGS_ALIAS_KEY: 'C9_HMGCS1', self.MAPPINGS_COLOR_KEY: "#2E2E9D"},
 
-            'CTL_PIK3C3': {self.MAPPINGS_ALIAS_KEY: 'CTL_PIK3C3', self.MAPPINGS_COLOR_KEY: '#B83232'},
-            'C9_PIK3C3': {self.MAPPINGS_ALIAS_KEY: 'C9_PIK3C3', self.MAPPINGS_COLOR_KEY: '#6E0C0C'},
+            'CTL_PIK3C3': {self.MAPPINGS_ALIAS_KEY: 'CTL_PIK3C3', self.MAPPINGS_COLOR_KEY: "#F34545"},
+            'C9_PIK3C3': {self.MAPPINGS_ALIAS_KEY: 'C9_PIK3C3', self.MAPPINGS_COLOR_KEY: "#7D0F0F"},
 
-            'CTL_NDUFAB1': {self.MAPPINGS_ALIAS_KEY: 'CTL_NDUFAB1', self.MAPPINGS_COLOR_KEY: '#4AFFA5'},
-            'C9_NDUFAB1': {self.MAPPINGS_ALIAS_KEY: 'C9_NDUFAB1', self.MAPPINGS_COLOR_KEY: '#0E9E5F'},
+            'CTL_NDUFAB1': {self.MAPPINGS_ALIAS_KEY: 'CTL_NDUFAB1', self.MAPPINGS_COLOR_KEY: "#33F979"},
+            'C9_NDUFAB1': {self.MAPPINGS_ALIAS_KEY: 'C9_NDUFAB1', self.MAPPINGS_COLOR_KEY: "#0B663F"},
 
-            'CTL_MAPKAP1': {self.MAPPINGS_ALIAS_KEY: 'CTL_MAPKAP1', self.MAPPINGS_COLOR_KEY: '#88E0C0'},
-            'C9_MAPKAP1': {self.MAPPINGS_ALIAS_KEY: 'C9_MAPKAP1', self.MAPPINGS_COLOR_KEY: '#3E8E76'},
+            'CTL_MAPKAP1': {self.MAPPINGS_ALIAS_KEY: 'CTL_MAPKAP1', self.MAPPINGS_COLOR_KEY: "#59C3CD"},
+            'C9_MAPKAP1': {self.MAPPINGS_ALIAS_KEY: 'C9_MAPKAP1', self.MAPPINGS_COLOR_KEY: "#20678D"},
 
-            'CTL_NDUFS2': {self.MAPPINGS_ALIAS_KEY: 'CTL_NDUFS2', self.MAPPINGS_COLOR_KEY: '#4AF8E2'},
-            'C9_NDUFS2': {self.MAPPINGS_ALIAS_KEY: 'C9_NDUFS2', self.MAPPINGS_COLOR_KEY: '#0E9989'},
+            'CTL_NDUFS2': {self.MAPPINGS_ALIAS_KEY: 'CTL_NDUFS2', self.MAPPINGS_COLOR_KEY: "#A281E9"},
+            'C9_NDUFS2': {self.MAPPINGS_ALIAS_KEY: 'C9_NDUFS2', self.MAPPINGS_COLOR_KEY: "#4D0E99"},
 
-            'CTL_RALA': {self.MAPPINGS_ALIAS_KEY: 'CTL_RALA', self.MAPPINGS_COLOR_KEY: '#3AB6D6'},
-            'C9_RALA': {self.MAPPINGS_ALIAS_KEY: 'C9_RALA', self.MAPPINGS_COLOR_KEY: '#0C6479'},
+            'CTL_RALA': {self.MAPPINGS_ALIAS_KEY: 'CTL_RALA', self.MAPPINGS_COLOR_KEY: "#A734EF"},
+            'C9_RALA': {self.MAPPINGS_ALIAS_KEY: 'C9_RALA', self.MAPPINGS_COLOR_KEY: "#6C1068"},
 
-            'CTL_TLK1': {self.MAPPINGS_ALIAS_KEY: 'CTL_TLK1', self.MAPPINGS_COLOR_KEY: '#D92678'},
+            'CTL_TLK1': {self.MAPPINGS_ALIAS_KEY: 'CTL_TLK1', self.MAPPINGS_COLOR_KEY: "#E73E8A"},
             'C9_TLK1': {self.MAPPINGS_ALIAS_KEY: 'C9_TLK1', self.MAPPINGS_COLOR_KEY: '#6A0231'},
 
-            'CTL_NRIP1': {self.MAPPINGS_ALIAS_KEY: 'CTL_NRIP1', self.MAPPINGS_COLOR_KEY: '#B488E0'},
-            'C9_NRIP1': {self.MAPPINGS_ALIAS_KEY: 'C9_NRIP1', self.MAPPINGS_COLOR_KEY: '#62307E'},
+            'CTL_NRIP1': {self.MAPPINGS_ALIAS_KEY: 'CTL_NRIP1', self.MAPPINGS_COLOR_KEY: "#EB728B"},
+            'C9_NRIP1': {self.MAPPINGS_ALIAS_KEY: 'C9_NRIP1', self.MAPPINGS_COLOR_KEY: "#98011F"},
 
-            'CTL_TARDBP': {self.MAPPINGS_ALIAS_KEY: 'CTL_TARDBP', self.MAPPINGS_COLOR_KEY: '#E680F5'},
-            'C9_TARDBP': {self.MAPPINGS_ALIAS_KEY: 'C9_TARDBP', self.MAPPINGS_COLOR_KEY: '#8615A3'},
+            'CTL_TARDBP': {self.MAPPINGS_ALIAS_KEY: 'CTL_TARDBP', self.MAPPINGS_COLOR_KEY: "#F80000"},
+            'C9_TARDBP': {self.MAPPINGS_ALIAS_KEY: 'C9_TARDBP', self.MAPPINGS_COLOR_KEY: "#800606"},
 
-            'CTL_RANBP17': {self.MAPPINGS_ALIAS_KEY: 'CTL_RANBP17', self.MAPPINGS_COLOR_KEY: '#F4C5F4'},
+            'CTL_RANBP17': {self.MAPPINGS_ALIAS_KEY: 'CTL_RANBP17', self.MAPPINGS_COLOR_KEY: "#B289B2"},
             'C9_RANBP17': {self.MAPPINGS_ALIAS_KEY: 'C9_RANBP17', self.MAPPINGS_COLOR_KEY: '#914691'},
 
             'CTL_CYLD': {self.MAPPINGS_ALIAS_KEY: 'CTL_CYLD', self.MAPPINGS_COLOR_KEY: '#FF6F4A'},
             'C9_CYLD': {self.MAPPINGS_ALIAS_KEY: 'C9_CYLD', self.MAPPINGS_COLOR_KEY: '#91260E'},
 
-            'CTL_NT-1873': {self.MAPPINGS_ALIAS_KEY: 'CTL_NT-1873', self.MAPPINGS_COLOR_KEY: '#FFB366'},
-            'C9_NT-1873': {self.MAPPINGS_ALIAS_KEY: 'C9_NT-1873', self.MAPPINGS_COLOR_KEY: '#9A4E08'},
+            'CTL_NT-1873': {self.MAPPINGS_ALIAS_KEY: 'CTL_NT-1873', self.MAPPINGS_COLOR_KEY: "#CA945A"},
+            'C9_NT-1873': {self.MAPPINGS_ALIAS_KEY: 'C9_NT-1873', self.MAPPINGS_COLOR_KEY: "#B34902"},
 
-            'CTL_NT-6301-3085': {self.MAPPINGS_ALIAS_KEY: 'CTL_NT-6301-3085', self.MAPPINGS_COLOR_KEY: '#F9E1EC'},
-            'C9_NT-6301-3085': {self.MAPPINGS_ALIAS_KEY: 'C9_NT-6301-3085', self.MAPPINGS_COLOR_KEY: '#98506B'},
+            'CTL_NT-6301-3085': {self.MAPPINGS_ALIAS_KEY: 'CTL_NT-6301-3085', self.MAPPINGS_COLOR_KEY: "#636161"},
+            'C9_NT-6301-3085': {self.MAPPINGS_ALIAS_KEY: 'C9_NT-6301-3085', self.MAPPINGS_COLOR_KEY: "#010101"},
 
-            'CTL_Intergenic': {self.MAPPINGS_ALIAS_KEY: 'CTL_Intergenic', self.MAPPINGS_COLOR_KEY: '#5C5CC0'},
-            'C9_Intergenic': {self.MAPPINGS_ALIAS_KEY: 'C9_Intergenic', self.MAPPINGS_COLOR_KEY: '#1C1C5C'},
+            'CTL_Intergenic': {self.MAPPINGS_ALIAS_KEY: 'CTL_Intergenic', self.MAPPINGS_COLOR_KEY: "#B1C543"},
+            'C9_Intergenic': {self.MAPPINGS_ALIAS_KEY: 'C9_Intergenic', self.MAPPINGS_COLOR_KEY: "#667D13"},
 
-            'CTL_Untreated': {self.MAPPINGS_ALIAS_KEY: 'CTL_Untreated', self.MAPPINGS_COLOR_KEY: '#B0B0B0'},
-            'C9_Untreated': {self.MAPPINGS_ALIAS_KEY: 'C9_Untreated', self.MAPPINGS_COLOR_KEY: '#505050'},
+            'CTL_Untreated': {self.MAPPINGS_ALIAS_KEY: 'CTL_Untreated', self.MAPPINGS_COLOR_KEY: "#D2BF32"},
+            'C9_Untreated': {self.MAPPINGS_ALIAS_KEY: 'C9_Untreated', self.MAPPINGS_COLOR_KEY: "#AB8511"},
+
+            'CTL_combined-NT': {self.MAPPINGS_ALIAS_KEY: 'CTL_combined-NT', self.MAPPINGS_COLOR_KEY: "#4B8805"},
+            'C9_combined-NT': {self.MAPPINGS_ALIAS_KEY: 'C9_combined-NT', self.MAPPINGS_COLOR_KEY: "#5E11AB"},
         }
 
 
@@ -155,35 +169,32 @@ class AAT_NOVA_BaseFigureConfig(PlotConfig):
 
         self.COLOR_MAPPINGS_AAT_NOVA_CATEGORIES = {
             # Proteostasis (Blue)
-            'Cas3': {self.MAPPINGS_ALIAS_KEY: 'Proteostasis', self.MAPPINGS_COLOR_KEY: '#1F77B4'},
-            'FK-2': {self.MAPPINGS_ALIAS_KEY: 'Proteostasis', self.MAPPINGS_COLOR_KEY: '#1F77B4'},
-            'pDRP1': {self.MAPPINGS_ALIAS_KEY: 'Proteostasis', self.MAPPINGS_COLOR_KEY: '#1F77B4'},
-            'TOMM20': {self.MAPPINGS_ALIAS_KEY: 'Proteostasis', self.MAPPINGS_COLOR_KEY: '#1F77B4'},
-            'pCaMKIIa': {self.MAPPINGS_ALIAS_KEY: 'Proteostasis', self.MAPPINGS_COLOR_KEY: '#1F77B4'},
             'pTDP-43': {self.MAPPINGS_ALIAS_KEY: 'Proteostasis', self.MAPPINGS_COLOR_KEY: '#1F77B4'},
             'TDP-43': {self.MAPPINGS_ALIAS_KEY: 'Proteostasis', self.MAPPINGS_COLOR_KEY: '#1F77B4'},
-            'Protein-degradation': {self.MAPPINGS_ALIAS_KEY: 'Proteostasis', self.MAPPINGS_COLOR_KEY: '#1F77B4'},
+            'p62': {self.MAPPINGS_ALIAS_KEY: 'Proteostasis', self.MAPPINGS_COLOR_KEY: '#1F77B4'},
+            'LC3-II': {self.MAPPINGS_ALIAS_KEY: 'Proteostasis', self.MAPPINGS_COLOR_KEY: '#1F77B4'},
+            'FK-2': {self.MAPPINGS_ALIAS_KEY: 'Proteostasis', self.MAPPINGS_COLOR_KEY: '#1F77B4'},
+            'pS6': {self.MAPPINGS_ALIAS_KEY: 'Proteostasis', self.MAPPINGS_COLOR_KEY: '#1F77B4'},
 
-            # Neuronal Cell Death / Senescence (Red)
-            'ATF6': {self.MAPPINGS_ALIAS_KEY: 'Neuronal Cell Death/Senescence', self.MAPPINGS_COLOR_KEY: '#E41A1C'},
-            'HDGFL2': {self.MAPPINGS_ALIAS_KEY: 'Neuronal Cell Death/Senescence', self.MAPPINGS_COLOR_KEY: '#E41A1C'},
-            'Calreticulin': {self.MAPPINGS_ALIAS_KEY: 'Neuronal Cell Death/Senescence', self.MAPPINGS_COLOR_KEY: '#E41A1C'},
-            'LC3-II': {self.MAPPINGS_ALIAS_KEY: 'Neuronal Cell Death/Senescence', self.MAPPINGS_COLOR_KEY: '#E41A1C'},
-            'p62': {self.MAPPINGS_ALIAS_KEY: 'Neuronal Cell Death/Senescence', self.MAPPINGS_COLOR_KEY: '#E41A1C'},
-            'CathepsinD': {self.MAPPINGS_ALIAS_KEY: 'Neuronal Cell Death/Senescence', self.MAPPINGS_COLOR_KEY: '#E41A1C'},
+            # Splicing ( red)
+            'HDGFL2': {self.MAPPINGS_ALIAS_KEY: 'Splicing', self.MAPPINGS_COLOR_KEY: '#E41A1C'},
+            'UNC13A': {self.MAPPINGS_ALIAS_KEY: 'Splicing', self.MAPPINGS_COLOR_KEY: '#E41A1C'},
 
-            # Synaptic and Neuronal Function (Green)
-            'SMI32': {self.MAPPINGS_ALIAS_KEY: 'Synaptic and Neuronal Function', self.MAPPINGS_COLOR_KEY: '#238B45'},
-            'Senescence-signaling': {self.MAPPINGS_ALIAS_KEY: 'Synaptic and Neuronal Function', self.MAPPINGS_COLOR_KEY: '#238B45'},
+            #Cell Death (green)
+            'Cas3': {self.MAPPINGS_ALIAS_KEY: 'Cell Death', self.MAPPINGS_COLOR_KEY: '#4DAF4A'},
 
-            # DNA and RNA Defects (Purple)
-            'pAMPK': {self.MAPPINGS_ALIAS_KEY: 'DNA and RNA Defects', self.MAPPINGS_COLOR_KEY: '#6A3D9A'},
-            'pS6': {self.MAPPINGS_ALIAS_KEY: 'DNA and RNA Defects', self.MAPPINGS_COLOR_KEY: '#6A3D9A'},
-            'PAR': {self.MAPPINGS_ALIAS_KEY: 'DNA and RNA Defects', self.MAPPINGS_COLOR_KEY: '#6A3D9A'},
-            'UNC13A': {self.MAPPINGS_ALIAS_KEY: 'DNA and RNA Defects', self.MAPPINGS_COLOR_KEY: '#6A3D9A'},
+            # Metabolism (purple)   
+            'pAMPK': {self.MAPPINGS_ALIAS_KEY: 'Metabolism', self.MAPPINGS_COLOR_KEY: '#984EA3'},
+            'TOMM20': {self.MAPPINGS_ALIAS_KEY: 'Metabolism', self.MAPPINGS_COLOR_KEY: '#984EA3'},
+            'pDRP1': {self.MAPPINGS_ALIAS_KEY: 'Metabolism', self.MAPPINGS_COLOR_KEY: '#984EA3'},
 
-            # Pathological Protein Aggregation (Orange)
-            'TDP-43': {self.MAPPINGS_ALIAS_KEY: 'Pathological Protein Aggregation', self.MAPPINGS_COLOR_KEY: '#FF7F0E'}
+            #Cellular Stress (orange)
+            'ATF6': {self.MAPPINGS_ALIAS_KEY: 'Cellular Stress', self.MAPPINGS_COLOR_KEY: '#FF7F00'},
+            'Calreticulin': {self.MAPPINGS_ALIAS_KEY: 'Cellular Stress', self.MAPPINGS_COLOR_KEY: '#FF7F00'},
+            'CathepsinD': {self.MAPPINGS_ALIAS_KEY: 'Cellular Stress', self.MAPPINGS_COLOR_KEY: '#FF7F00'},
+            'PAR': {self.MAPPINGS_ALIAS_KEY: 'Cellular Stress', self.MAPPINGS_COLOR_KEY: '#FF7F00'},
+            'SMI32': {self.MAPPINGS_ALIAS_KEY: 'Cellular Stress', self.MAPPINGS_COLOR_KEY: '#FF7F00'},
+            'pCaMKIIa': {self.MAPPINGS_ALIAS_KEY: 'Cellular Stress', self.MAPPINGS_COLOR_KEY: '#FF7F00'},
         }
 
         # cell line and conditions
@@ -302,19 +313,27 @@ class UMAP0ALSPlotConfigAAT_NOVAMix(AAT_NOVA_BaseFigureConfig):
 
 ##########################################################################
 
+class UMAP0PlotConfigAAT_NOVA_by_Reps(AAT_NOVA_BaseFigureConfig):
+    def __init__(self):
+        super().__init__()
+        self.MAP_LABELS_FUNCTION = MapLabelsFunction.REPS.name
+        self.COLOR_MAPPINGS = self.COLOR_MAPPINGS_AAT_NOVA_REPS
+        # umap type
+        self.UMAP_TYPE = 0
+
+class UMAP0PlotConfigAAT_NOVA_by_Batches(AAT_NOVA_BaseFigureConfig):
+    def __init__(self):
+        super().__init__()
+        self.MAP_LABELS_FUNCTION = MapLabelsFunction.BATCHES.name
+        self.COLOR_MAPPINGS = self.COLOR_MAPPINGS_AAT_NOVA_BATCHES
+        # umap type
+        self.UMAP_TYPE = 0
+
 class UMAP0PlotConfigAAT_NOVA_by_Cellline(AAT_NOVA_BaseFigureConfig):
     def __init__(self):
         super().__init__()
         self.MAP_LABELS_FUNCTION = MapLabelsFunction.CELL_LINES.name
         self.COLOR_MAPPINGS = self.COLOR_MAPPINGS_AAT_NOVA_CELL_LINES
-        # umap type
-        self.UMAP_TYPE = 0
-
-class UMAP0PlotConfigAAT_NOVA_by_Cellline_Single_Condition(AAT_NOVA_BaseFigureConfig):
-    def __init__(self):
-        super().__init__()
-        self.MAP_LABELS_FUNCTION = MapLabelsFunction.CELL_LINES_CONDITIONS.name
-        self.COLOR_MAPPINGS = self.COLOR_MAPPINGS_AAT_NOVA_CONDITIONS_PER_CELL_LINE
         # umap type
         self.UMAP_TYPE = 0
 
@@ -326,18 +345,59 @@ class UMAP0PlotConfigAAT_NOVA_by_Condition(AAT_NOVA_BaseFigureConfig):
         # umap type
         self.UMAP_TYPE = 0
 
-class UMAP0PlotConfigAAT_NOVA_by_Condition_Single_Cell_Line(AAT_NOVA_BaseFigureConfig):
+class UMAP0PlotConfigAAT_NOVA_by_Cellline_and_Condition(AAT_NOVA_BaseFigureConfig):
     def __init__(self):
         super().__init__()
         self.MAP_LABELS_FUNCTION = MapLabelsFunction.CELL_LINES_CONDITIONS.name
         self.COLOR_MAPPINGS = self.COLOR_MAPPINGS_AAT_NOVA_CONDITIONS_PER_CELL_LINE
         # umap type
         self.UMAP_TYPE = 0
+        # Set the size of the dots
+        self.SIZE = 13
+        # Set the alpha of the dots (0=max opacity, 1=no opacity)
+        self.ALPHA = 0.72
 
-class UMAP0PlotConfigAAT_NOVA_Cellline_Cond(AAT_NOVA_BaseFigureConfig):
+
+# color by markers
+class UMAP1PlotConfigAAT_NOVA(AAT_NOVA_BaseFigureConfig):
+    def __init__(self):
+        super().__init__()
+        self.MAP_LABELS_FUNCTION = MapLabelsFunction.MARKERS.name
+        self.COLOR_MAPPINGS = self.COLOR_MAPPINGS_AAT_NOVA
+        # umap type
+        self.UMAP_TYPE = 1
+
+# per marker groups
+class UMAP1PlotConfigAAT_NOVA_Per_Marker_Group(AAT_NOVA_BaseFigureConfig):
+    def __init__(self):
+        super().__init__()
+        self.MAP_LABELS_FUNCTION = MapLabelsFunction.MARKERS.name
+        self.COLOR_MAPPINGS = self.COLOR_MAPPINGS_AAT_NOVA_CATEGORIES
+        # umap type
+        self.UMAP_TYPE = 1
+
+
+# color by markers and conditions
+class UMAP1PlotConfigAAT_NOVA_Per_Condition(AAT_NOVA_BaseFigureConfig):
+        def __init__(self):
+            super().__init__()
+            self.MAP_LABELS_FUNCTION = MapLabelsFunction.MARKERS.name
+            self.COLOR_MAPPINGS = self.COLOR_MAPPINGS_AAT_NOVA_MARKER_PER_CONDITIONS
+            # umap type
+            self.UMAP_TYPE = 1
+
+class EffectSizePlotConfigAAT_NOVA_Markers(AAT_NOVA_BaseFigureConfig):
+    def __init__(self):
+        super().__init__()
+        self.COLOR_MAPPINGS = self.COLOR_MAPPINGS_AAT_NOVA
+        self.COLOR_MAPPINGS_MARKERS = self.COLOR_MAPPINGS_AAT_NOVA
+        self.MAP_LABELS_FUNCTION = MapLabelsFunction.MARKERS.name
+        self.COLOR_MAPPINGS_CELL_LINE_CONDITION = self.COLOR_MAPPINGS_AAT_NOVA_CONDITIONS_PER_CELL_LINE
+        self.FIGSIZE = (5,7)
+
+class EffectSizePlotConfigAAT_NOVA_CellLines_Conditions(AAT_NOVA_BaseFigureConfig):
     def __init__(self):
         super().__init__()
         self.MAP_LABELS_FUNCTION = MapLabelsFunction.CELL_LINES_CONDITIONS.name
         self.COLOR_MAPPINGS = self.COLOR_MAPPINGS_AAT_NOVA_CONDITIONS_PER_CELL_LINE
-        # umap type
-        self.UMAP_TYPE = 0
+        self.FIGSIZE = (5,7)

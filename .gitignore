@@ -6,6 +6,8 @@ outputs/
 .ipynb_checkpoints/
 *.csv
 *.npy
+*.txt
+*.zip
 !/manuscript/markers_focus_boundries/*.csv
 anaconda3/
 logs/

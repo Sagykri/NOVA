@@ -306,7 +306,7 @@ def save_processed_tile(
     image_folder,
     colormap=None,
     brightness_factor=0.1,
-    save_eps = True,
+    save_eps = False,
     add_scale_bar = False,
     tile_pixel_size_in_um = None,
     tile_scalebar_length_in_um=5,
@@ -362,9 +362,9 @@ def save_processed_tile(
         filename_base =  os.path.join(image_folder, f"{rel_path}.Tile{tile}")
 
         # Save images
-        save_image(marker_adj, colormap, f"{filename_base}_marker.tiff", dpi, add_scale_bar, scalebar_pixels)
-        save_image(nucleus_adj, colormap, f"{filename_base}_nucleus.tiff", dpi, add_scale_bar, scalebar_pixels)
-        save_image(overlay, None, f"{filename_base}_overlay.tiff",  dpi, add_scale_bar, scalebar_pixels)
+        # save_image(marker_adj, colormap, f"{filename_base}_marker.tiff", dpi, add_scale_bar, scalebar_pixels)
+        # save_image(nucleus_adj, colormap, f"{filename_base}_nucleus.tiff", dpi, add_scale_bar, scalebar_pixels)
+        save_image(overlay, None, f"{filename_base}.tiff",  dpi, add_scale_bar, scalebar_pixels)
         if save_eps:
             save_image(marker_adj, colormap, f"{filename_base}_marker.eps", dpi, add_scale_bar, scalebar_pixels)
             save_image(nucleus_adj, colormap, f"{filename_base}_nucleus.eps", dpi, add_scale_bar, scalebar_pixels)
@@ -372,7 +372,7 @@ def save_processed_tile(
     except Exception as e:
         print(f"❌ Failed saving tile at index {tile_index}: {e}")
 
-def save_processed_site(path, image_folder, save_eps=True, dpi=200, colormap=None):
+def save_processed_site(path, image_folder, save_eps=False, dpi=200, colormap=None):
     """
     Processes and saves the site image from the given path.
     Parameters:
@@ -406,14 +406,16 @@ def extract_umap_data(base_dir):
     Returns:
     - pd.DataFrame: DataFrame containing extracted metadata.
     """
+    CELL_LINE_LIST = ["CTL", "C9"]
+    CONDITIONS_LIST = ["PPP2R1A","HMGCS1","PIK3C3","NDUFAB1","MAPKAP1","NDUFS2","RALA","TLK1","NRIP1","TARDBP","RANBP17","CYLD","NT-1873","NT-6301-3085","Intergenic","Untreated"]
+    MARKER_LIST = ["DAPI", "Cas3", "FK-2", "SMI32", "pDRP1", "TOMM20", "pCaMKIIa", "pTDP-43", "TDP-43", "ATF6", "pAMPK", "HDGFL2", "pS6", "PAR", "UNC13A", "Calreticulin", "LC3-II", "p62", "CathepsinD"]
 
     # Regex to extract metadata from folder names
     folder_pattern = re.compile(
         r"(?i)(?P<batch>(?:batch\d+)(?:_batch\d+)*)_"
         r".*?(?P<rep>all_reps|rep\d+)_"
-        r"(?P<cell_line>.+?)_"  # non-greedy
-        r"(?P<condition>Untreated|stress|all_conditions)_"
-        r"(?P<markers>.+?)_(?:colored_by|coloring)_(?P<coloring>.+)"
+        r"(?P<cell_line_condition_marker>.+?)_"  # non-greedy
+        r"(?:colored_by|coloring)_(?P<coloring>.+)"
     )
 
     image_extensions = [".png", ".jpg", ".jpeg", ".bmp", ".tiff", ".tif"]
@@ -426,16 +428,51 @@ def extract_umap_data(base_dir):
 
         for root, _, files in os.walk(folder_path):
             parent_folder = os.path.basename(root)
+            print(root)
             match = folder_pattern.search(parent_folder)
 
             if match:
                 batch = match.group("batch")
                 rep = match.group("rep")
-                cell_line_raw = match.group("cell_line")
-                cell_line = cell_line_raw.replace("_", ",") if cell_line_raw != "all_cell_lines" else "all_cell_lines"
-                condition = match.group("condition")
-                markers = match.group("markers")
+                cell_line, condition, markers = "Unknown", "Unknown", "Unknown"
+                cell_line_condition_marker_match= match.group("cell_line_condition_marker")
+                if "all_cell_lines" in cell_line_condition_marker_match:
+                    cell_line = "all_cell_lines"
+                    cell_line_condition_marker_match = cell_line_condition_marker_match.replace("all_cell_lines", "")
+                if "all_conditions" in cell_line_condition_marker_match:
+                    condition = "all_conditions"
+                    cell_line_condition_marker_match = cell_line_condition_marker_match.replace("all_conditions", "")
+                if "all_markers" in cell_line_condition_marker_match:
+                    markers = "all_markers"
+                    cell_line_condition_marker_match = cell_line_condition_marker_match.replace("all_markers", "")
+                
+                elemenets = cell_line_condition_marker_match.split("_")
+                # split cell line and conditions names
+                cell_line_parts = []
+                cond_parts = []
+                marker_parts = []
+                
+                for i, element in enumerate(elemenets):
+                    if element == "":
+                        continue
+                    if element in CELL_LINE_LIST:
+                        cell_line_parts.append(element)
+                        continue
+                    elif element in CONDITIONS_LIST:
+                        cond_parts.append(element)
+                        continue
+                    elif element in MARKER_LIST:
+                        marker_parts.append(element)
+                        continue
+                    else:
+                        print("could not find element in lists.")
+                        continue
+                    
+                cell_line = ",".join(cell_line_parts) if (cell_line_parts) else cell_line
+                condition = ",".join(cond_parts) if (cond_parts) else condition
+                markers = ",".join(marker_parts) if (marker_parts) else markers
                 coloring = match.group("coloring")
+
             else:
                 batch, rep, cell_line, condition, markers, coloring = "Unknown", "all_reps", "Unknown", "Unknown", "Unknown", "Unknown"
 

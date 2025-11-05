@@ -649,6 +649,25 @@ class InteractiveUMAPPipeline:
             # Save tile visualizations
             save_processed_tile(df_to_use, idx, image_folder)
 
+        # --- Save UMAP embeddings for selected points ---
+        umap_embeddings = self.umap_embeddings_filt.copy() if self.umap_embeddings_filt is not None else self.umap_embeddings.copy()
+        selected_embeddings = umap_embeddings[self.selected_indices_global]
+        np.save(os.path.join(folder_path, 'embeddings.npy'), np.array(selected_embeddings))
+        print(f"✅ Saved UMAP embeddings to {folder_path}")
+
+        # --- Save paths for selected points ---
+        selected_paths = df_to_use.Path.iloc[self.selected_indices_global]
+        selected_tiles = df_to_use.Tile.iloc[self.selected_indices_global]
+        selected_fullpath = [p + "/" + t for p, t in zip(selected_paths, selected_tiles)]
+        np.save(os.path.join(folder_path, 'paths.npy'), np.array(selected_fullpath))
+        print(f"✅ Saved paths to {folder_path}")
+
+        # --- Save labels for selected points ---
+        label_data = self.label_data_filt.copy() if self.label_data_filt is not None else self.label_data.copy()
+        label_data = label_data[self.selected_indices_global]
+        np.save(os.path.join(folder_path, 'labels.npy'), np.array(label_data))
+        print(f"✅ Saved labels to {folder_path}")
+
         self.zip_saved_outputs(image_folder) ## Zip the saved images and tiles folder for easy download
         # Clean up the folder after zipping
         shutil.rmtree(image_folder)

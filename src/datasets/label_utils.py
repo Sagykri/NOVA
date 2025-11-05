@@ -253,6 +253,7 @@ class MapLabelsFunction(Enum):
     CELL_LINES = (get_cell_lines_from_labels,)
     CELL_LINES_CONDITIONS = (get_cell_lines_conditions_from_labels,)
     REPS = (get_reps_from_labels,)
+    BATCHES = (get_batches_from_labels,)
     CELL_LINES_CONDITIONS_BATCH_REPS = (get_cell_lines_conditions_batch_reps_from_labels,)
 
     # Picklable MULTIPLEX functions

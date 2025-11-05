@@ -29,6 +29,7 @@ config_example = {
    config = configs["config_example"]
 """
 
+import os
 import numpy as np
 
 nova_home = "/home/projects/hornsteinlab/Collaboration/NOVA"
@@ -258,9 +259,10 @@ funova_fov_layouts = {
     "Batch4": {panel: exp_4_layout.copy() for panel in batch_panels}   # All panels in Batch 4 have the same layout
 }
 
+# new UMAPs folder paths, from ther newer (tile preprocessing) analysis
 config_funova = {
     'paths':{
-        'umaps_folder' : f'{momaps_home}{figures_path}/funova/UMAPs/',
+        'umaps_folder' : f'{new_finetuned_figures_path}/funova/UMAPs/',
         'csv_path' : f"{nova_home}{preprocessing_path}/FUNOVA/brenner/raw_metrics_exp3_exp4.csv",
         'images_dir' : [f'{nova_home}{raw_images_path}/FUNOVA/ordered/',] 
     },
@@ -268,16 +270,17 @@ config_funova = {
     'name': 'FUNOVA'
 }
 
-config_funova_finetuned = {
+## AAT NOVA ##
+config_AAT_NOVA = {
     'paths':{
-        'umaps_folder' : f'{momaps_home}/outputs/vit_models/funova_finetuned_model/figures/funova/UMAPs/',
-        'csv_path' : f"{nova_home}{preprocessing_path}/FUNOVA/brenner/raw_metrics_exp3_exp4.csv",
-        'images_dir' : [f'{nova_home}{raw_images_path}/FUNOVA/ordered/',]
+    'umaps_folder' : f'{new_finetuned_figures_path}/AAT_NOVA/UMAPs',
+    'csv_path' : f'{nova_home}{preprocessing_path}/AAT-NOVA_pilot/brenner/raw_metrics_2025-08-25.csv',
+    'images_dir' : [f'{os.getenv("AAT_NOVA_DATA_DIR")}/zstack_collapse_2nd_imaging_sorted/batch1/',
+                    f'{os.getenv("AAT_NOVA_DATA_DIR")}/zstack_collapse_2nd_imaging_sorted/batch2/',]
     },
-    'layouts': funova_fov_layouts,
-    'name': 'FUNOVA_Finetuned'
+    'layouts': base_fov_layout,
+    'name': 'AAT_NOVA'
 }
-
 # Collect all variables starting with "config" into a dictionary called `configs`.
 # This allows easy access to all config objects via: configs['config_name']
 configs = {

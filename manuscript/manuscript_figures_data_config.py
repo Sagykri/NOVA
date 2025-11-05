@@ -2514,13 +2514,14 @@ class NeuronsDay18FigureConfig_UMAP2_B2(NeuronsDay18FigureConfig_UMAP2):
 ########## AAT NOVA ###############
 AAT_NOVA_CELL_LINES = ["CTL", "C9"]
 AAT_NOVA_CONDITIONS  = ["PPP2R1A","HMGCS1","PIK3C3","NDUFAB1","MAPKAP1","NDUFS2","RALA","TLK1","NRIP1","TARDBP","RANBP17","CYLD","NT-1873","NT-6301-3085","Intergenic","Untreated"]
+AAT_NOVA_CONTROL_CONDITIONS = ["NT-1873","NT-6301-3085","Intergenic","Untreated"]
 AAT_NOVA_MARKERS = ["DAPI", "Cas3", "FK-2", "SMI32", "pDRP1", "TOMM20", "pCaMKIIa", "pTDP-43", "TDP-43", "ATF6", "pAMPK", "HDGFL2", "pS6", "PAR", "UNC13A", "Calreticulin", "LC3-II", "p62", "CathepsinD"]
 
 class AAT_NOVA_BaseFigureConfig(FigureConfig):
     def __init__(self):
         super().__init__()
         self.EXPERIMENT_TYPE = 'AAT_NOVA'
-        self.INPUT_FOLDERS = ['batch1', 'batch2']
+        self.INPUT_FOLDERS = None #['batch1', 'batch2']
         self.CELL_LINES = None
         self.CONDITIONS = None
         self.MARKERS = None
@@ -2531,14 +2532,26 @@ class AAT_NOVA_BaseFigureConfig(FigureConfig):
 
 #XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 ############ UMAP 0 (fig per marker) ##############
-
+# -------- color by reps -------- 
+# use - UMAP0PlotConfigAAT_NOVA_by_Reps
+class AAT_NOVA_UMAP0_By_Reps(AAT_NOVA_BaseFigureConfig):
+    def __init__(self):
+        super().__init__()
+        self.INPUT_FOLDERS = ['batch1', 'batch2']
+# -------- color by batches -------- 
+# use - UMAP0PlotConfigAAT_NOVA_by_Batches
+class AAT_NOVA_UMAP0_By_Batches(AAT_NOVA_BaseFigureConfig):
+    def __init__(self):
+        super().__init__()
+        self.INPUT_FOLDERS = ['batch1', 'batch2']
 # -------- color by cell lines-------- 
-# all conditions
+# ALL conditions
 # use - UMAP0PlotConfigAAT_NOVA_by_Cellline
 class AAT_NOVA_UMAP0_ByCellLines(AAT_NOVA_BaseFigureConfig):
     def __init__(self):
         super().__init__()
-        self.CELL_LINES = AAT_NOVA_CELL_LINES
+        self.CELL_LINES = None #all CELL_LINES
+        self.INPUT_FOLDERS = ['batch1', 'batch2']
 
 class AAT_NOVA_UMAP0_ByCellLines_B1(AAT_NOVA_UMAP0_ByCellLines):
     def __init__(self):
@@ -2550,39 +2563,29 @@ class AAT_NOVA_UMAP0_ByCellLines_B2(AAT_NOVA_UMAP0_ByCellLines):
         super().__init__()
         self.INPUT_FOLDERS = ['batch2']
 
-# single condition
-# use - UMAP0PlotConfigAAT_NOVA_by_Cellline_Single_Condition
-# Untreated
-class AAT_NOVA_UMAP0_ByCellLines_Untreated_B1(AAT_NOVA_UMAP0_ByCellLines_B1):
+# ONLY Control Conditions
+class AAT_NOVA_UMAP0_ByCellLines_Control_Conditions(AAT_NOVA_UMAP0_ByCellLines):
     def __init__(self):
         super().__init__()
-        self.CONDITIONS = ["Untreated"]
-
-class AAT_NOVA_UMAP0_ByCellLines_Untreated_B2(AAT_NOVA_UMAP0_ByCellLines_B2):
+        self.CONDITIONS = AAT_NOVA_CONTROL_CONDITIONS
+class AAT_NOVA_UMAP0_ByCellLines_Control_Conditions_B1(AAT_NOVA_UMAP0_ByCellLines_B1):
     def __init__(self):
         super().__init__()
-        self.CONDITIONS = ["Untreated"]
-
-# PPP2R1A
-class AAT_NOVA_UMAP0_ByCellLines_PPP2R1A_B1(AAT_NOVA_UMAP0_ByCellLines_B1):
+        self.CONDITIONS = AAT_NOVA_CONTROL_CONDITIONS
+class AAT_NOVA_UMAP0_ByCellLines_Control_Conditions_B2(AAT_NOVA_UMAP0_ByCellLines_B2):
     def __init__(self):
         super().__init__()
-        self.CONDITIONS = ["PPP2R1A"]
+        self.CONDITIONS = AAT_NOVA_CONTROL_CONDITIONS
 
-class AAT_NOVA_UMAP0_ByCellLines_PPP2R1A_B2(AAT_NOVA_UMAP0_ByCellLines_B2):
-    def __init__(self):
-        super().__init__()
-        self.CONDITIONS = ["PPP2R1A"]
-
-# .... generate for each gene for both batches
 
 # -------- color by conditions-------- 
-# all cell lines
+# ALL cell lines
 # use - UMAP0PlotConfigAAT_NOVA_by_Condition
 class AAT_NOVA_UMAP0_ByConditions(AAT_NOVA_BaseFigureConfig):
     def __init__(self):
         super().__init__()
-        self.CONDITIONS = AAT_NOVA_CONDITIONS
+        self.CONDITIONS = None # all conditions
+        self.INPUT_FOLDERS = ['batch1', 'batch2']
 
 class AAT_NOVA_UMAP0_ByConditions_B1(AAT_NOVA_UMAP0_ByConditions):
     def __init__(self):
@@ -2594,10 +2597,31 @@ class AAT_NOVA_UMAP0_ByConditions_B2(AAT_NOVA_UMAP0_ByConditions):
         super().__init__()
         self.INPUT_FOLDERS = ['batch2']
 
+# ONLY Control Conditions
+class AAT_NOVA_UMAP0_ByConditions_Control_Conditions(AAT_NOVA_UMAP0_ByConditions):
+    def __init__(self):
+        super().__init__()
+        self.CONDITIONS = AAT_NOVA_CONTROL_CONDITIONS
+
+class AAT_NOVA_UMAP0_ByConditions_Control_Conditions_B1(AAT_NOVA_UMAP0_ByConditions_B1):
+    def __init__(self):
+        super().__init__()
+        self.CONDITIONS = AAT_NOVA_CONTROL_CONDITIONS
+
+class AAT_NOVA_UMAP0_ByConditions_Control_Conditions_B2(AAT_NOVA_UMAP0_ByConditions_B2):
+    def __init__(self):
+        super().__init__()
+        self.CONDITIONS = AAT_NOVA_CONTROL_CONDITIONS
+
 # single cell line - 
-# use  - UMAP0PlotConfigAAT_NOVA_by_Condition_Single_Cell_Line
+# use  - UMAP0PlotConfigAAT_NOVA_by_Cellline_and_Condition
 
 # CTL
+class AAT_NOVA_UMAP0_ByConditions_CTL(AAT_NOVA_UMAP0_ByConditions):
+    def __init__(self):
+        super().__init__()
+        self.CELL_LINES = ["CTL"]
+
 class AAT_NOVA_UMAP0_ByConditions_CTL_B1(AAT_NOVA_UMAP0_ByConditions_B1):
     def __init__(self):
         super().__init__()
@@ -2609,6 +2633,11 @@ class AAT_NOVA_UMAP0_ByConditions_CTL_B2(AAT_NOVA_UMAP0_ByConditions_B2):
         self.CELL_LINES = ["CTL"]
 
 # C9 
+class AAT_NOVA_UMAP0_ByConditions_C9(AAT_NOVA_UMAP0_ByConditions):
+    def __init__(self):
+        super().__init__()
+        self.CELL_LINES = ["C9"]
+
 class AAT_NOVA_UMAP0_ByConditions_C9_B1(AAT_NOVA_UMAP0_ByConditions_B1):
     def __init__(self):
         super().__init__()
@@ -2619,73 +2648,487 @@ class AAT_NOVA_UMAP0_ByConditions_C9_B2(AAT_NOVA_UMAP0_ByConditions_B2):
         super().__init__()
         self.CELL_LINES = ["C9"]
 
-# singel cell line - single Gene VS Untreated
-# use -  UMAP0PlotConfigAAT_NOVA_by_Condition_Single_Cell_Line
-# PPP2R1A
-class AAT_NOVA_UMAP0_PPP2R1A_Untreated_CTL_B1(AAT_NOVA_UMAP0_ByConditions_CTL_B1):
+# Genetic comparison -
+class AAT_NOVA_UMAP0_C9_NT_6301_3085_TARDBP(AAT_NOVA_BaseFigureConfig):
     def __init__(self):
         super().__init__()
-        self.CONDITIONS = ["PPP2R1A", "Untreated"]
-
-class AAT_NOVA_UMAP0_PPP2R1A_Untreated_CTL_B2(AAT_NOVA_UMAP0_ByConditions_CTL_B2):
-    def __init__(self):
-        super().__init__()
-        self.CONDITIONS = ["PPP2R1A", "Untreated"]
-
-class AAT_NOVA_UMAP0_PPP2R1A_Untreated_C9_B1(AAT_NOVA_UMAP0_ByConditions_C9_B1):
-    def __init__(self):
-        super().__init__()
-        self.CONDITIONS = ["PPP2R1A", "Untreated"]
-
-class AAT_NOVA_UMAP0_PPP2R1A_Untreated_C9_B2(AAT_NOVA_UMAP0_ByConditions_C9_B2):
-    def __init__(self):
-        super().__init__()
-        self.CONDITIONS = ["PPP2R1A", "Untreated"]
-
-# .... generate for each gene for both batches
-
-# -------- color by cell lines and conditions-------- 
-
-# color both cell line and condition
-class AAT_NOVA_UMAP0_By_Cell_Line_and_Condition(AAT_NOVA_BaseFigureConfig):
-    def __init__(self):
-        super().__init__()
-        self.CONDITIONS = AAT_NOVA_CONDITIONS
-
-class AAT_NOVA_UMAP0_By_Cell_Line_and_Condition_B1(AAT_NOVA_UMAP0_By_Cell_Line_and_Condition):
+        self.CELL_LINES = ["C9"] # both cell lines
+        self.CONDITIONS = ["NT-6301-3085", "TARDBP"]
+        self.INPUT_FOLDERS = ['batch1', 'batch2']
+class AAT_NOVA_UMAP0_C9_NT_6301_3085_TARDBP_B1(AAT_NOVA_UMAP0_C9_NT_6301_3085_TARDBP):    
     def __init__(self):
         super().__init__()
         self.INPUT_FOLDERS = ['batch1']
-
-class AAT_NOVA_UMAP0_By_Cell_Line_and_Condition_B2(AAT_NOVA_UMAP0_By_Cell_Line_and_Condition):
+class AAT_NOVA_UMAP0_C9_NT_6301_3085_TARDBP_B2(AAT_NOVA_UMAP0_C9_NT_6301_3085_TARDBP):    
     def __init__(self):
         super().__init__()
         self.INPUT_FOLDERS = ['batch2']
 
-# for each single condition
-# use - UMAP0PlotConfigAAT_NOVA_Cellline_Cond
-# Untreated
-class AAT_NOVA_UMAP0_By_Cell_Line_and_Condition_Untreated_B1(AAT_NOVA_UMAP0_By_Cell_Line_and_Condition_B1):
+class AAT_NOVA_UMAP0_CTL_NT_6301_3085_TARDBP(AAT_NOVA_BaseFigureConfig):
     def __init__(self):
         super().__init__()
-        self.CONDITIONS = ["Untreated"]
+        self.CELL_LINES = ["CTL"] # both cell lines
+        self.CONDITIONS = ["NT-6301-3085", "TARDBP"]
+        self.INPUT_FOLDERS = ['batch1', 'batch2']
+class AAT_NOVA_UMAP0_CTL_NT_6301_3085_TARDBP_B1(AAT_NOVA_UMAP0_CTL_NT_6301_3085_TARDBP):    
+    def __init__(self):
+        super().__init__()
+        self.INPUT_FOLDERS = ['batch1']
+class AAT_NOVA_UMAP0_CTL_NT_6301_3085_TARDBP_B2(AAT_NOVA_UMAP0_CTL_NT_6301_3085_TARDBP):    
+    def __init__(self):
+        super().__init__()
+        self.INPUT_FOLDERS = ['batch2']
 
-class AAT_NOVA_UMAP0_By_Cell_Line_and_Condition_Untreated_B2(AAT_NOVA_UMAP0_By_Cell_Line_and_Condition_B2):
+
+# -------- color by cell lines and conditions-------- 
+
+# Genetic comparison - 
+# both cell lines - single Gene (KD) VS Non-targeting control (NT-6301-3085)
+# use -  UMAP0PlotConfigAAT_NOVA_by_Cellline_and_Condition
+class AAT_NOVA_UMAP0_CTL_and_C9_NT_6301_3085(AAT_NOVA_BaseFigureConfig):
     def __init__(self):
         super().__init__()
-        self.CONDITIONS = ["Untreated"]
+        self.CELL_LINES = None # both cell lines
+        self.CONDITIONS = ["NT-6301-3085"] # as control
+        self.INPUT_FOLDERS = ['batch1', 'batch2']
 # PPP2R1A
-class AAT_NOVA_UMAP0_By_Cell_Line_and_Condition_PPP2R1A_B1(AAT_NOVA_UMAP0_By_Cell_Line_and_Condition_B1):
+class AAT_NOVA_UMAP0_CTL_C9_NT_6301_3085_PPP2R1A(AAT_NOVA_UMAP0_CTL_and_C9_NT_6301_3085):
     def __init__(self):
         super().__init__()
-        self.CONDITIONS = ["PPP2R1A"]
+        self.CONDITIONS = self.CONDITIONS + ["PPP2R1A"]
 
-class AAT_NOVA_UMAP0_By_Cell_Line_and_Condition_PPP2R1A_B2(AAT_NOVA_UMAP0_By_Cell_Line_and_Condition_B2):
+class AAT_NOVA_UMAP0_CTL_C9_NT_6301_3085_PPP2R1A_B1(AAT_NOVA_UMAP0_CTL_C9_NT_6301_3085_PPP2R1A):
     def __init__(self):
         super().__init__()
-        self.CONDITIONS = ["PPP2R1A"]
+        self.INPUT_FOLDERS = ['batch1']
 
-# .... generate for each gene for both batches
+class AAT_NOVA_UMAP0_CTL_C9_NT_6301_3085_PPP2R1A_B2(AAT_NOVA_UMAP0_CTL_C9_NT_6301_3085_PPP2R1A):
+    def __init__(self):
+        super().__init__()
+        self.INPUT_FOLDERS = ['batch2']
+# HMGCS1
+class AAT_NOVA_UMAP0_CTL_C9_NT_6301_3085_HMGCS1(AAT_NOVA_UMAP0_CTL_and_C9_NT_6301_3085):
+    def __init__(self):
+        super().__init__()
+        self.CONDITIONS = self.CONDITIONS + ["HMGCS1"]
+class AAT_NOVA_UMAP0_CTL_C9_NT_6301_3085_HMGCS1_B1(AAT_NOVA_UMAP0_CTL_C9_NT_6301_3085_HMGCS1):
+    def __init__(self):
+        super().__init__()
+        self.INPUT_FOLDERS = ['batch1']
+class AAT_NOVA_UMAP0_CTL_C9_NT_6301_3085_HMGCS1_B2(AAT_NOVA_UMAP0_CTL_C9_NT_6301_3085_HMGCS1):
+    def __init__(self):
+        super().__init__()
+        self.INPUT_FOLDERS = ['batch2'] 
+# PIK3C3
+class AAT_NOVA_UMAP0_CTL_C9_NT_6301_3085_PIK3C3(AAT_NOVA_UMAP0_CTL_and_C9_NT_6301_3085):
+    def __init__(self):
+        super().__init__()
+        self.CONDITIONS = self.CONDITIONS + ["PIK3C3"]
+class AAT_NOVA_UMAP0_CTL_C9_NT_6301_3085_PIK3C3_B1(AAT_NOVA_UMAP0_CTL_C9_NT_6301_3085_PIK3C3):
+    def __init__(self):
+        super().__init__()
+        self.INPUT_FOLDERS = ['batch1']
+class AAT_NOVA_UMAP0_CTL_C9_NT_6301_3085_PIK3C3_B2(AAT_NOVA_UMAP0_CTL_C9_NT_6301_3085_PIK3C3):
+    def __init__(self):
+        super().__init__()
+        self.INPUT_FOLDERS = ['batch2']
+# NDUFAB1
+class AAT_NOVA_UMAP0_CTL_C9_NT_6301_3085_NDUFAB1(AAT_NOVA_UMAP0_CTL_and_C9_NT_6301_3085):
+    def __init__(self):
+        super().__init__()
+        self.CONDITIONS = self.CONDITIONS + ["NDUFAB1"]
+class AAT_NOVA_UMAP0_CTL_C9_NT_6301_3085_NDUFAB1_B1(AAT_NOVA_UMAP0_CTL_C9_NT_6301_3085_NDUFAB1):
+    def __init__(self):
+        super().__init__()
+        self.INPUT_FOLDERS = ['batch1']
+class AAT_NOVA_UMAP0_CTL_C9_NT_6301_3085_NDUFAB1_B2(AAT_NOVA_UMAP0_CTL_C9_NT_6301_3085_NDUFAB1):
+    def __init__(self):
+        super().__init__()
+        self.INPUT_FOLDERS = ['batch2']
+# MAPKAP1
+class AAT_NOVA_UMAP0_CTL_C9_NT_6301_3085_MAPKAP1(AAT_NOVA_UMAP0_CTL_and_C9_NT_6301_3085):
+    def __init__(self):
+        super().__init__()
+        self.CONDITIONS = self.CONDITIONS + ["MAPKAP1"]
+class AAT_NOVA_UMAP0_CTL_C9_NT_6301_3085_MAPKAP1_B1(AAT_NOVA_UMAP0_CTL_C9_NT_6301_3085_MAPKAP1):
+    def __init__(self):
+        super().__init__()
+        self.INPUT_FOLDERS = ['batch1']
+class AAT_NOVA_UMAP0_CTL_C9_NT_6301_3085_MAPKAP1_B2(AAT_NOVA_UMAP0_CTL_C9_NT_6301_3085_MAPKAP1):
+    def __init__(self):
+        super().__init__()
+        self.INPUT_FOLDERS = ['batch2']
+# NDUFS2
+class AAT_NOVA_UMAP0_CTL_C9_NT_6301_3085_NDUFS2(AAT_NOVA_UMAP0_CTL_and_C9_NT_6301_3085):
+    def __init__(self):
+        super().__init__()
+        self.CONDITIONS = self.CONDITIONS + ["NDUFS2"]
+class AAT_NOVA_UMAP0_CTL_C9_NT_6301_3085_NDUFS2_B1(AAT_NOVA_UMAP0_CTL_C9_NT_6301_3085_NDUFS2):
+    def __init__(self):
+        super().__init__()
+        self.INPUT_FOLDERS = ['batch1']
+class AAT_NOVA_UMAP0_CTL_C9_NT_6301_3085_NDUFS2_B2(AAT_NOVA_UMAP0_CTL_C9_NT_6301_3085_NDUFS2):
+    def __init__(self):
+        super().__init__()
+        self.INPUT_FOLDERS = ['batch2']
+# RALA
+class AAT_NOVA_UMAP0_CTL_C9_NT_6301_3085_RALA(AAT_NOVA_UMAP0_CTL_and_C9_NT_6301_3085):
+    def __init__(self):
+        super().__init__()
+        self.CONDITIONS = self.CONDITIONS + ["RALA"]
+class AAT_NOVA_UMAP0_CTL_C9_NT_6301_3085_RALA_B1(AAT_NOVA_UMAP0_CTL_C9_NT_6301_3085_RALA):
+    def __init__(self):
+        super().__init__()
+        self.INPUT_FOLDERS = ['batch1']
+class AAT_NOVA_UMAP0_CTL_C9_NT_6301_3085_RALA_B2(AAT_NOVA_UMAP0_CTL_C9_NT_6301_3085_RALA):
+    def __init__(self):
+        super().__init__()
+        self.INPUT_FOLDERS = ['batch2']
+# TLK1
+class AAT_NOVA_UMAP0_CTL_C9_NT_6301_3085_TLK1(AAT_NOVA_UMAP0_CTL_and_C9_NT_6301_3085):
+    def __init__(self):
+        super().__init__()
+        self.CONDITIONS = self.CONDITIONS + ["TLK1"]
+class AAT_NOVA_UMAP0_CTL_C9_NT_6301_3085_TLK1_B1(AAT_NOVA_UMAP0_CTL_C9_NT_6301_3085_TLK1):
+    def __init__(self):
+        super().__init__()
+        self.INPUT_FOLDERS = ['batch1']
+class AAT_NOVA_UMAP0_CTL_C9_NT_6301_3085_TLK1_B2(AAT_NOVA_UMAP0_CTL_C9_NT_6301_3085_TLK1):
+    def __init__(self):
+        super().__init__()
+        self.INPUT_FOLDERS = ['batch2']
+# NRIP1
+class AAT_NOVA_UMAP0_CTL_C9_NT_6301_3085_NRIP1(AAT_NOVA_UMAP0_CTL_and_C9_NT_6301_3085):
+    def __init__(self):
+        super().__init__()
+        self.CONDITIONS = self.CONDITIONS + ["NRIP1"]
+class AAT_NOVA_UMAP0_CTL_C9_NT_6301_3085_NRIP1_B1(AAT_NOVA_UMAP0_CTL_C9_NT_6301_3085_NRIP1):
+    def __init__(self):
+        super().__init__()
+        self.INPUT_FOLDERS = ['batch1']
+class AAT_NOVA_UMAP0_CTL_C9_NT_6301_3085_NRIP1_B2(AAT_NOVA_UMAP0_CTL_C9_NT_6301_3085_NRIP1):
+    def __init__(self):
+        super().__init__()
+        self.INPUT_FOLDERS = ['batch2']
+# TARDBP
+class AAT_NOVA_UMAP0_CTL_C9_NT_6301_3085_TARDBP(AAT_NOVA_UMAP0_CTL_and_C9_NT_6301_3085):
+    def __init__(self):
+        super().__init__()
+        self.CONDITIONS = self.CONDITIONS + ["TARDBP"]
+class AAT_NOVA_UMAP0_CTL_C9_NT_6301_3085_TARDBP_B1(AAT_NOVA_UMAP0_CTL_C9_NT_6301_3085_TARDBP):
+    def __init__(self):
+        super().__init__()
+        self.INPUT_FOLDERS = ['batch1']
+class AAT_NOVA_UMAP0_CTL_C9_NT_6301_3085_TARDBP_B2(AAT_NOVA_UMAP0_CTL_C9_NT_6301_3085_TARDBP):
+    def __init__(self):
+        super().__init__()
+        self.INPUT_FOLDERS = ['batch2']
+# RANBP17
+class AAT_NOVA_UMAP0_CTL_C9_NT_6301_3085_RANBP17(AAT_NOVA_UMAP0_CTL_and_C9_NT_6301_3085):
+    def __init__(self):
+        super().__init__()
+        self.CONDITIONS = self.CONDITIONS + ["RANBP17"]
+class AAT_NOVA_UMAP0_CTL_C9_NT_6301_3085_RANBP17_B1(AAT_NOVA_UMAP0_CTL_C9_NT_6301_3085_RANBP17):
+    def __init__(self):
+        super().__init__()
+        self.INPUT_FOLDERS = ['batch1']
+class AAT_NOVA_UMAP0_CTL_C9_NT_6301_3085_RANBP17_B2(AAT_NOVA_UMAP0_CTL_C9_NT_6301_3085_RANBP17):
+    def __init__(self):
+        super().__init__()
+        self.INPUT_FOLDERS = ['batch2']
+# CYLD
+class AAT_NOVA_UMAP0_CTL_C9_NT_6301_3085_CYLD(AAT_NOVA_UMAP0_CTL_and_C9_NT_6301_3085):
+    def __init__(self):
+        super().__init__()
+        self.CONDITIONS = self.CONDITIONS + ["CYLD"]
+class AAT_NOVA_UMAP0_CTL_C9_NT_6301_3085_CYLD_B1(AAT_NOVA_UMAP0_CTL_C9_NT_6301_3085_CYLD):
+    def __init__(self):
+        super().__init__()
+        self.INPUT_FOLDERS = ['batch1'] 
+class AAT_NOVA_UMAP0_CTL_C9_NT_6301_3085_CYLD_B2(AAT_NOVA_UMAP0_CTL_C9_NT_6301_3085_CYLD):
+    def __init__(self):
+        super().__init__()
+        self.INPUT_FOLDERS = ['batch2']
+
+
+#XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+############ UMAP 1 (fig per multiple markers) ##############
+
+# -------- color by markers------- 
+# use - UMAP1PlotConfigAAT_NOVA
+# both cell lines
+class AAT_NOVA_UMAP1(AAT_NOVA_BaseFigureConfig):
+    def __init__(self):
+        super().__init__()
+        self.CELL_LINES = None # all cell lines
+        self.CONDITIONS = None # all conditions
+        self.MARKERS = None # all markers
+        self.INPUT_FOLDERS = ['batch1', 'batch2']
+class AAT_NOVA_UMAP1_B1(AAT_NOVA_UMAP1):
+    def __init__(self):
+        super().__init__()
+        self.INPUT_FOLDERS = ['batch1']
+class AAT_NOVA_UMAP1_B2(AAT_NOVA_UMAP1):
+    def __init__(self):
+        super().__init__()
+        self.INPUT_FOLDERS = ['batch2']
+# CTL and all conditions
+class AAT_NOVA_UMAP1_CTL(AAT_NOVA_BaseFigureConfig):
+    def __init__(self):
+        super().__init__()
+        self.CELL_LINES = ["CTL"]
+        self.CONDITIONS = None # all conditions
+        self.MARKERS = None # all markers
+        self.INPUT_FOLDERS = ['batch1', 'batch2']
+
+class AAT_NOVA_UMAP1_CTL_B1(AAT_NOVA_UMAP1_CTL):
+    def __init__(self):
+        super().__init__()
+        self.INPUT_FOLDERS = ['batch1']
+
+class AAT_NOVA_UMAP1_CTL_B2(AAT_NOVA_UMAP1_CTL):
+    def __init__(self):
+        super().__init__()
+        self.INPUT_FOLDERS = ['batch2']
+# C9 and all conditions
+class AAT_NOVA_UMAP1_C9(AAT_NOVA_BaseFigureConfig):
+    def __init__(self):
+        super().__init__()
+        self.CELL_LINES = ["C9"]
+        self.CONDITIONS = None # all conditions
+        self.MARKERS = None # all markers
+        self.INPUT_FOLDERS = ['batch1', 'batch2']
+
+class AAT_NOVA_UMAP1_C9_B1(AAT_NOVA_UMAP1_C9):
+    def __init__(self):
+        super().__init__()
+        self.INPUT_FOLDERS = ['batch1']
+
+class AAT_NOVA_UMAP1_C9_B2(AAT_NOVA_UMAP1_C9):
+    def __init__(self):
+        super().__init__()
+        self.INPUT_FOLDERS = ['batch2']
+# W.O. DAPI
+class AAT_NOVA_UMAP1_wo_DAPI(AAT_NOVA_UMAP1):
+    def __init__(self):
+        super().__init__()
+        self.MARKERS_TO_EXCLUDE = ['DAPI']
+class AAT_NOVA_UMAP1_wo_DAPI_B1(AAT_NOVA_UMAP1_wo_DAPI):
+    def __init__(self):
+        super().__init__()
+        self.INPUT_FOLDERS = ['batch1']
+class AAT_NOVA_UMAP1_wo_DAPI_B2(AAT_NOVA_UMAP1_wo_DAPI):
+    def __init__(self):
+        super().__init__()
+        self.INPUT_FOLDERS = ['batch2']
+# W.O. DAPI - CTL
+class AAT_NOVA_UMAP1_CTL_wo_DAPI(AAT_NOVA_UMAP1_CTL):
+    def __init__(self):
+        super().__init__()
+        self.MARKERS_TO_EXCLUDE = ['DAPI']
+        self.INPUT_FOLDERS = ['batch1', 'batch2']
+
+class AAT_NOVA_UMAP1_CTL_wo_DAPI_B1(AAT_NOVA_UMAP1_CTL_wo_DAPI):
+    def __init__(self):
+        super().__init__()
+        self.INPUT_FOLDERS = ['batch1']
+class AAT_NOVA_UMAP1_CTL_wo_DAPI_B2(AAT_NOVA_UMAP1_CTL_wo_DAPI):
+    def __init__(self):
+        super().__init__()
+        self.INPUT_FOLDERS = ['batch2']
+# W.O. DAPI - C9
+class AAT_NOVA_UMAP1_C9_wo_DAPI(AAT_NOVA_UMAP1_C9):
+    def __init__(self):
+        super().__init__()
+        self.MARKERS_TO_EXCLUDE = ['DAPI']
+        self.INPUT_FOLDERS = ['batch1', 'batch2']
+class AAT_NOVA_UMAP1_C9_wo_DAPI_B1(AAT_NOVA_UMAP1_C9_wo_DAPI):
+    def __init__(self):
+        super().__init__()
+        self.INPUT_FOLDERS = ['batch1']
+class AAT_NOVA_UMAP1_C9_wo_DAPI_B2(AAT_NOVA_UMAP1_C9_wo_DAPI):
+    def __init__(self):
+        super().__init__()
+        self.INPUT_FOLDERS = ['batch2']
+
+# W.O. DAPI - CTL, only control
+class AAT_NOVA_UMAP1_CTL_wo_DAPI_NT_6301_3085(AAT_NOVA_UMAP1_CTL_wo_DAPI):
+    def __init__(self):
+        super().__init__()
+        self.CONDITIONS = ["NT-6301-3085"]
+
+class AAT_NOVA_UMAP1_CTL_wo_DAPI_NT_6301_3085_B1(AAT_NOVA_UMAP1_CTL_wo_DAPI_NT_6301_3085):
+    def __init__(self):
+        super().__init__()
+        self.INPUT_FOLDERS = ['batch1']
+class AAT_NOVA_UMAP1_CTL_wo_DAPI_NT_6301_3085_B2(AAT_NOVA_UMAP1_CTL_wo_DAPI_NT_6301_3085):
+    def __init__(self):
+        super().__init__()
+        self.INPUT_FOLDERS = ['batch2']
+# W.O. DAPI - C9
+class AAT_NOVA_UMAP1_C9_wo_DAPI_NT_6301_3085(AAT_NOVA_UMAP1_C9_wo_DAPI):
+    def __init__(self):
+        super().__init__()
+        self.CONDITIONS = ["NT-6301-3085"]
+class AAT_NOVA_UMAP1_C9_wo_DAPI_NT_6301_3085_B1(AAT_NOVA_UMAP1_C9_wo_DAPI_NT_6301_3085):
+    def __init__(self):
+        super().__init__()
+        self.INPUT_FOLDERS = ['batch1']
+class AAT_NOVA_UMAP1_C9_wo_DAPI_NT_6301_3085_B2(AAT_NOVA_UMAP1_C9_wo_DAPI_NT_6301_3085):
+    def __init__(self):
+        super().__init__()
+        self.INPUT_FOLDERS = ['batch2']
+
+# marker groups 
+# Proteostasis
+class AAT_NOVA_UMAP1_Proteostasis(AAT_NOVA_UMAP1):
+    def __init__(self):
+        super().__init__()
+        self.INPUT_FOLDERS = ['batch1', 'batch2']
+        self.MARKERS = ['TDP-43', 'pTDP-43', 'p62', 'LC3-II', 'FK-2', 'pS6']
+        
+class AAT_NOVA_UMAP1_Proteostasis_B1(AAT_NOVA_UMAP1_Proteostasis):
+    def __init__(self):
+        super().__init__()
+        self.INPUT_FOLDERS = ['batch1']
+class AAT_NOVA_UMAP1_Proteostasis_B2(AAT_NOVA_UMAP1_Proteostasis):
+    def __init__(self):
+        super().__init__()
+        self.INPUT_FOLDERS = ['batch2']
+# Splicing
+class AAT_NOVA_UMAP1_Splicing(AAT_NOVA_UMAP1):
+    def __init__(self):
+        super().__init__()
+        self.INPUT_FOLDERS = ['batch1', 'batch2']
+        self.MARKERS = ['HDGFL2', 'UNC13A']
+class AAT_NOVA_UMAP1_Splicing_B1(AAT_NOVA_UMAP1_Splicing):
+    def __init__(self):
+        super().__init__()
+        self.INPUT_FOLDERS = ['batch1']
+class AAT_NOVA_UMAP1_Splicing_B2(AAT_NOVA_UMAP1_Splicing):
+    def __init__(self):
+        super().__init__()
+        self.INPUT_FOLDERS = ['batch2']
+# Cell Death
+class AAT_NOVA_UMAP1_Cell_Death(AAT_NOVA_UMAP1):
+    def __init__(self):
+        super().__init__()
+        self.INPUT_FOLDERS = ['batch1', 'batch2']
+        self.MARKERS = ['Cas3']
+class AAT_NOVA_UMAP1_Cell_Death_B1(AAT_NOVA_UMAP1_Cell_Death):
+    def __init__(self):
+        super().__init__()
+        self.INPUT_FOLDERS = ['batch1'] 
+class AAT_NOVA_UMAP1_Cell_Death_B2(AAT_NOVA_UMAP1_Cell_Death):
+    def __init__(self):
+        super().__init__()
+        self.INPUT_FOLDERS = ['batch2']
+# Metabolism
+class AAT_NOVA_UMAP1_Metabolism(AAT_NOVA_UMAP1):
+    def __init__(self):
+        super().__init__()
+        self.INPUT_FOLDERS = ['batch1', 'batch2']
+        self.MARKERS = ['pAMPK', 'TOMM20', 'pDRP1']
+class AAT_NOVA_UMAP1_Metabolism_B1(AAT_NOVA_UMAP1_Metabolism):
+    def __init__(self):
+        super().__init__()
+        self.INPUT_FOLDERS = ['batch1']
+class AAT_NOVA_UMAP1_Metabolism_B2(AAT_NOVA_UMAP1_Metabolism):
+    def __init__(self):
+        super().__init__()
+        self.INPUT_FOLDERS = ['batch2']
+# Cellular Stress
+class AAT_NOVA_UMAP1_Cellular_Stress(AAT_NOVA_UMAP1):
+    def __init__(self):
+        super().__init__()
+        self.INPUT_FOLDERS = ['batch1', 'batch2']
+        self.MARKERS = ['ATF6', 'Calreticulin', 'CathepsinD', 'PAR', 'SMI32', 'pCaMKIIa']
+        
+class AAT_NOVA_UMAP1_Cellular_Stress_B1(AAT_NOVA_UMAP1_Cellular_Stress):
+    def __init__(self):
+        super().__init__()
+        self.INPUT_FOLDERS = ['batch1']
+class AAT_NOVA_UMAP1_Cellular_Stress_B2(AAT_NOVA_UMAP1_Cellular_Stress):
+    def __init__(self):
+        super().__init__()
+        self.INPUT_FOLDERS = ['batch2']
+
+# # single condition
+# # use - UMAP1PlotConfigAAT_NOVA
+# # ONLY untreated condition
+# class AAT_NOVA_UMAP1_CTL_NT_6301_3085(AAT_NOVA_UMAP1_CTL):
+#     def __init__(self):
+#         super().__init__()
+#         self.CONDITIONS = ["NT-6301-3085"]
+
+# class AAT_NOVA_UMAP1_CTL_NT_6301_3085_B1(AAT_NOVA_UMAP1_CTL_NT_6301_3085):
+#     def __init__(self):
+#         super().__init__()
+#         self.INPUT_FOLDERS = ['batch1']
+# class AAT_NOVA_UMAP1_CTL_NT_6301_3085_B2(AAT_NOVA_UMAP1_CTL_NT_6301_3085):
+#     def __init__(self):
+#         super().__init__()
+#         self.INPUT_FOLDERS = ['batch2']
+
+# class AAT_NOVA_UMAP1_C9_NT_6301_3085(AAT_NOVA_UMAP1_C9):
+#     def __init__(self):
+#         super().__init__()
+#         self.CONDITIONS = ["NT-6301-3085"]
+# class AAT_NOVA_UMAP1_C9_NT_6301_3085_B1(AAT_NOVA_UMAP1_C9_NT_6301_3085):
+#     def __init__(self):
+#         super().__init__()
+#         self.INPUT_FOLDERS = ['batch1']
+# class AAT_NOVA_UMAP1_C9_NT_6301_3085_B2(AAT_NOVA_UMAP1_C9_NT_6301_3085):
+#     def __init__(self):
+#         super().__init__()
+#         self.INPUT_FOLDERS = ['batch2']
+
+# # ONLY PPP2R1A condition
+# class AAT_NOVA_UMAP1_CTL_PPP2R1A(AAT_NOVA_UMAP1_CTL):
+#     def __init__(self):
+#         super().__init__()
+#         self.CONDITIONS = ["PPP2R1A"]
+# class AAT_NOVA_UMAP1_CTL_PPP2R1A_B1(AAT_NOVA_UMAP1_CTL_PPP2R1A):
+#     def __init__(self):
+#         super().__init__()
+#         self.INPUT_FOLDERS = ['batch1']
+# class AAT_NOVA_UMAP1_CTL_PPP2R1A_B2(AAT_NOVA_UMAP1_CTL_PPP2R1A):
+#     def __init__(self):
+#         super().__init__()
+#         self.INPUT_FOLDERS = ['batch2']
+
+# class AAT_NOVA_UMAP1_C9_PPP2R1A(AAT_NOVA_UMAP1_C9):
+#     def __init__(self):
+#         super().__init__()
+#         self.CONDITIONS = ["PPP2R1A"]
+# class AAT_NOVA_UMAP1_C9_PPP2R1A_B1(AAT_NOVA_UMAP1_C9_PPP2R1A):
+#     def __init__(self):
+#         super().__init__()
+#         self.INPUT_FOLDERS = ['batch1']
+# class AAT_NOVA_UMAP1_C9_PPP2R1A_B2(AAT_NOVA_UMAP1_C9_PPP2R1A):
+#     def __init__(self):
+#         super().__init__()
+#         self.INPUT_FOLDERS = ['batch2']
+
+# # W.O. DAPI
+# class AAT_NOVA_UMAP1_CTL_NT_6301_3085_wo_DAPI(AAT_NOVA_UMAP1_CTL_NT_6301_3085):
+#     def __init__(self):
+#         super().__init__()
+#         self.MARKERS_TO_EXCLUDE = ['DAPI']
+# class AAT_NOVA_UMAP1_C9_NT_6301_3085_wo_DAPI(AAT_NOVA_UMAP1_C9_NT_6301_3085):
+#     def __init__(self):
+#         super().__init__()
+#         self.MARKERS_TO_EXCLUDE = ['DAPI']
+# class AAT_NOVA_UMAP1_CTL_PPP2R1A_wo_DAPI(AAT_NOVA_UMAP1_CTL_PPP2R1A):
+#     def __init__(self):
+#         super().__init__()
+#         self.MARKERS_TO_EXCLUDE = ['DAPI']
+
+# class AAT_NOVA_UMAP1_C9_PPP2R1A_wo_DAPI(AAT_NOVA_UMAP1_C9_PPP2R1A):
+#     def __init__(self):
+#         super().__init__()
+#         self.MARKERS_TO_EXCLUDE = ['DAPI']
+
 
 #XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 
@@ -2912,3 +3355,14 @@ class NIHEffectsFigureConfig_Multiplexed(NIHEffectsFigureConfig):
         super().__init__()
         self.ADD_BATCH_TO_LABEL = True
         self.ADD_REP_TO_LABEL = False
+
+# Effect size AAT-NOVA
+class AAT_NOVAEffectsFigureConfig(FigureConfig):
+    def __init__(self):
+        super().__init__()
+        self.INPUT_FOLDERS = [f"batch{i}" for i in [1,2]]
+
+        self.EXPERIMENT_TYPE = 'AAT_NOVA'
+        self.ADD_BATCH_TO_LABEL = True
+        self.ADD_REP_TO_LABEL = True
+        
