@@ -11,18 +11,20 @@ Welcome to the official repository for **NOVA**, a deep learning framework desig
   - [Table of Contents](#table-of-contents)
   - [Introduction](#introduction)
   - [Installation](#installation)
+  - [System requirements](#system-requirements)
   - [Download files](#download-files)
-    - [Download The Model](#download-the-model)
-    - [Download The Images](#download-the-images)
+    - [Download the model](#download-the-model)
+    - [Download the images](#download-the-images)
   - [Usage](#usage)
     - [Preprocess the data](#preprocess-the-data)
     - [Train a model](#train-a-model)
     - [Generate Embeddings](#generate-embeddings)
-    - [Generate Multiplex Embeddings](#generate-multiplex-embeddings)
     - [Generate UMAPs](#generate-umaps)
     - [Generate distances plots](#generate-distances-plots)
       - [Calculate distances](#calculate-distances)
-  - [Data](#data)
+    - [Generate effect size plots](#generate-effect-size-plots)
+    -   [Calculate effect size](#calculate-effect-size)
+  - [Data Structure](#data)
   - [Configuration files](#configuration-files)
       - [Base Config](#base-config)
       - [Preprocessing Config](#preprocessing-config)
@@ -40,12 +42,12 @@ Welcome to the official repository for **NOVA**, a deep learning framework desig
 
 ## Installation
 
-To get started with Organellomics, clone the repository and install the required dependencies.
+To get started with Organellomics, clone the repository and install the required dependencies (might take several minutes).
 
 ```bash
 git clone https://github.com/Sagykri/NOVA.git
 cd NOVA
-conda env create --name nova --file environment_nova.yml
+conda env create --name nova --file environment.yml
 ```
 
 Next, you need to set two environment variables:
@@ -54,17 +56,37 @@ export NOVA_HOME=*path to NOVAs root folder*
 export NOVA_DATA_HOME=*path to the data folder*
 ```
 
+## System requirements
+
+All dependencies and their versions are listed in ```environment.yml.```
+The code was tested on IBM Spectrum LSF Standard 10.1.0.14.
+The model's training was performed on an NVIDIA A40 (48GB GPU) card.
+
 ## Download files
-### Download The Model
-The model (.pth) file can be downloaded from [here](https://github.com/Sagykri/NOVA/tree/main/model/model.pth), or via [HuggingFace](https://huggingface.co/sagykri/NOVA)
-### Download The Images
+### Download the model
+The model (.pth) file can be downloaded from [here](https://huggingface.co/sagykri/NOVA).
+### Download the images
 The images are stored in an Amazon S3 bucket named "organellomics". <br/>
 To download them to your local machine you may use the [```download_images_from_S3.py```](https://github.com/Sagykri/NOVA/tree/main/download_images_from_S3.py) script as follows:
 ```bash
 python download_images_from_S3.py path_to_local_folder
 ```
 The list of files can be seen [here](https://organellomics.s3.amazonaws.com/).
+To browse the dataset, you may use [Cyberduck](https://cyberduck.io/).
+```bash
+After installation, click "Open Connection".
+Select "Amazon S3" from the dropdown menu and check the box for "Anonymous Login".
+Next, expand "More Options", enter "/organellomics" in the "path" field, and click "Connect".
+You will then be able to browse and select images to download.
+```
+
 ## Usage
+
+For running the model on a dataset, you need to:
+1. Organize the dataset to follow this structure [Data Structure](#data).
+2. [Preprocess the data](#preprocess-the-data) based on your [dataset config](#dataset-config)
+3. Use the model to [generate embeddings](#generate-embeddings) based on your [model config](#model-config) and [embeddings config](#embeddings-config)
+4. Analyse the embeddings by (1) [generating UMAPs](#generate-umaps) or (2) [effect size figures](#generate_effect_size) or (3) [distances plots](#generate-distances-plots) based on your [figures config](#figures-config) and [plot config](#plot-config)
 
 ### Preprocess the data
 ```bash
@@ -117,28 +139,6 @@ $NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_embeddings -g -m 20000
 ```
 <br/>
 
-<br/>
-
-### Generate Multiplex Embeddings
-Once you have a trained model **and pre-generated single-marker embeddings** (check above), you may proceed to generate multiplex embeddings for downstream analysis.  
-To generate multiplex embeddings you need to run the following:
-
-```bash
-python $NOVA_HOME/runnables/generate_multiplexed_embeddings.py *ABSOLUTE_PATH_TO_OUTPUTS_FOLDER* *RELATIVE_PATH_TO_DATA_CONFIG*
-```
-
-For example:
-```bash
-python $NOVA_HOME/runnables/generate_multiplexed_embeddings.py $NOVA_HOME/outputs/vit_models/finetuned_model ./manuscript/embeddings_config/EmbeddingsDatasetConfig
-```
-
-On WEXAC:
-```bash
-$NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_multiplexed_embeddings -g -m 20000 -b 10 -a $NOVA_HOME/outputs/vit_models/finetuned_model ./manuscript/embeddings_config/AlyssaEmbeddingsDatasetConfig -q short-gpu -j generate_multiplexed_embeddings
-```
-
-<br/>
-
 ### Generate UMAPs
 Once you have saved embeddngs, you may generate UMAPs for them following this command:
 
@@ -182,6 +182,27 @@ $NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/calculate_distances -g -m 50000
 ```
 <br/>
 
+### Generate effect size plots
+For generating effect size plots you should first [calculate the effect size](#calculate-effect-size).
+```bash
+python $NOVA_HOME/runnables/plot_effect_sizes.py *ABSOLUTE_PATH_TO_MODEL_FOLDER* *RELATIVE_PATH_TO_DATASET_CONFIG_CLASS*  *RELATIVE_PATH_TO_PLOT_CONFIG_CLASS*
+```
+
+#### Calculate effect size
+For calculating effect size you should run the following:
+```bash
+python $NOVA_HOME/runnables/generate_effects.py *ABSOLUTE_PATH_TO_MODEL_FOLDER* *RELATIVE_PATH_TO_EFFECT_SIZE_CONFIG_CLASS*
+```
+For example:
+```bash
+python $NOVA_HOME/runnables/generate_effects.py $NOVA_HOME/outputs/vit_models/finetuned_model manuscript/effects_config/effects_config
+```
+On LSF:
+```bash
+$NOVA_HOME/runnables/run.sh $NOVA_HOME/runnables/generate_effects -a $NOVA_HOME/outputs/vit_models/finetuned_model manuscript/effects_config/effect_config -m 20000
+```
+
+<br/>
 
 ## Data
 Your data folder should be organized as follows:
