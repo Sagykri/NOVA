@@ -23,7 +23,7 @@ Welcome to the official repository for **NOVA**, a deep learning framework desig
     - [Generate distances plots](#generate-distances-plots)
       - [Calculate distances](#calculate-distances)
     - [Generate effect size plots](#generate-effect-size-plots)
-    -   [Calculate effect size](#calculate-effect-size)
+      - [Calculate effect size](#calculate-effect-size)
   - [Data Structure](#data)
   - [Configuration files](#configuration-files)
       - [Base Config](#base-config)
@@ -72,13 +72,12 @@ To download them to your local machine you may use the [```download_images_from_
 python download_images_from_S3.py path_to_local_folder
 ```
 The list of files can be seen [here](https://organellomics.s3.amazonaws.com/).
-To browse the dataset, you may use [Cyberduck](https://cyberduck.io/).
-```bash
+
+To browse the dataset, you may use [Cyberduck](https://cyberduck.io/):
 After installation, click "Open Connection".
 Select "Amazon S3" from the dropdown menu and check the box for "Anonymous Login".
 Next, expand "More Options", enter "/organellomics" in the "path" field, and click "Connect".
 You will then be able to browse and select images to download.
-```
 
 ## Usage
 
