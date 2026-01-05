@@ -58,9 +58,9 @@ export NOVA_DATA_HOME=*path to the data folder*
 
 ## System requirements
 
-All dependencies and their versions are listed in ```environment.yml.```
-The code was tested on IBM Spectrum LSF Standard 10.1.0.14.
-The model's training was performed on an NVIDIA A40 (48GB GPU) card.
+All dependencies and their versions are listed in ```environment.yml.```<br/>
+The code was tested on IBM Spectrum LSF Standard 10.1.0.14.<br/>
+The model's training was performed on an NVIDIA A40 (48GB GPU) card.<br/>
 
 ## Download files
 ### Download the model
@@ -74,10 +74,10 @@ python download_images_from_S3.py path_to_local_folder
 The list of files can be seen [here](https://organellomics.s3.amazonaws.com/).
 
 To browse the dataset, you may use [Cyberduck](https://cyberduck.io/):
-After installation, click "Open Connection".
-Select "Amazon S3" from the dropdown menu and check the box for "Anonymous Login".
-Next, expand "More Options", enter "/organellomics" in the "path" field, and click "Connect".
-You will then be able to browse and select images to download.
+After installation, click "Open Connection".<br/>
+Select "Amazon S3" from the dropdown menu and check the box for "Anonymous Login".<br/>
+Next, expand "More Options", enter "/organellomics" in the "path" field, and click "Connect".<br/>
+You will then be able to browse and select images to download.<br/>
 
 ## Usage
 
