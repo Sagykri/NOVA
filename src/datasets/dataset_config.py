@@ -11,7 +11,7 @@ class DatasetConfig(BaseConfig):
         super().__init__()
         
         # The path to the root of the processed folder
-        self.PROCESSED_FOLDER_ROOT:str = os.path.join(self.HOME_DATA_FOLDER, "images", "processed")
+        self.PROCESSED_FOLDER_ROOT:str = os.path.join(self.HOME_DATA_FOLDER, "input", "images", "processed")
         
         # The path to the data folders
         self.INPUT_FOLDERS:List[str]      = None

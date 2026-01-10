@@ -1,4 +1,4 @@
-from collections import defaultdict
+from collections import Counter, defaultdict
 import logging
 from multiprocessing import Pool
 import os
@@ -23,12 +23,12 @@ from skimage import transform
 
 sys.path.insert(1, os.getenv("NOVA_HOME"))
 from src.common.utils import filter_paths_by_substrings, flat_list_of_lists, get_if_exists
-from src.preprocessing.log_df_preprocessing import LogDFPreprocessing
+from src.preprocessing.log_df_preprocessing import LogDFPreprocessing, LogDFPreprocessingFailedReasons
 from src.preprocessing import path_utils
 from src.preprocessing.preprocessing_utils import get_nuclei_count, crop_image_to_tiles, extract_polygons_from_mask,\
                                                       fit_image_shape, get_nuclei_segmentations, is_image_focused,\
                                                       is_contains_whole_nucleus, rescale_intensity, \
-                                                      is_tile_focused
+                                                      is_tile_focused, get_image_focus_quality
 from src.preprocessing.preprocessing_config import PreprocessingConfig
 
 class Preprocessor(ABC):
@@ -58,6 +58,7 @@ class Preprocessor(ABC):
             self.markers_focus_boundries_tiles = pd.read_csv(self.markers_focus_boundries_tiles_path, index_col=0)
 
         self.logging_df = LogDFPreprocessing(self.preprocessing_config.LOGS_FOLDER)
+        self.logging_df_failed_reasons = LogDFPreprocessingFailedReasons(self.preprocessing_config.LOGS_FOLDER)
 
     @staticmethod
     def raw2processed_path(refpath:Union[str, Path])->str:
@@ -279,13 +280,16 @@ class Preprocessor(ABC):
 
         # Filter out empty tiles or tiles with dead cells based on pixel intensities
         nuclei_tiled = crop_image_to_tiles(nucleus_image, self.preprocessing_config.TILE_INTERMEDIATE_SHAPE)
-        _, valid_tiles_indexes = self.__process_and_filter_tiles(nuclei_tiled, valid_tiles_indexes, tile_name=self.__NUCLEUS_MARKER_NAME)
+        _, valid_tiles_indexes, failed_tiles_reasons = self.__process_and_filter_tiles(nuclei_tiled, valid_tiles_indexes, tile_name=self.__NUCLEUS_MARKER_NAME)
 
         if return_masked_tiles:
-            return valid_tiles_indexes , nuclei_mask_tiled
-        return valid_tiles_indexes
+            return valid_tiles_indexes , nuclei_mask_tiled, failed_tiles_reasons
+        return valid_tiles_indexes, failed_tiles_reasons
 
-    def _get_valid_site_image(self, path: str, ch_idx:int = 0) -> Union[np.ndarray , None]:
+    def _get_valid_site_image(self, path: str, ch_idx:int = 0,
+                              rescale_lower_bound:float = 0.0,
+                              rescale_upper_bound:float = 100.0,
+                              ) -> Union[np.ndarray , None]:
         """
         Load and preprocess the image from the given path.
 
@@ -317,8 +321,8 @@ class Preprocessor(ABC):
         
         # rescale based on new thresholds
         image = rescale_intensity(image,\
-                                    lower_bound=self.preprocessing_config.RESCALE_INTENSITY['LOWER_BOUND'][ch_idx],\
-                                    upper_bound=self.preprocessing_config.RESCALE_INTENSITY['UPPER_BOUND'][ch_idx]) 
+                                    rescale_lower_bound,\
+                                    rescale_upper_bound) 
         return image
 
     def _process_images_group_and_save(self, group_id: str, images_group: Dict[str, str], save_folder_path:str):
@@ -378,9 +382,13 @@ class Preprocessor(ABC):
         if processed_nucleus is None: return 
         
         # Get valid tile indexes for the nucleus image
-        valid_tiles_indexes, nuclei_mask_tiled  = self._get_valid_tiles_indexes(processed_nucleus) 
+        valid_tiles_indexes, nuclei_mask_tiled, failed_tiles_nucleus_reasons  = self._get_valid_tiles_indexes(processed_nucleus) 
 
         self.logging_df.log_nucleus(nuclei_mask_tiled, valid_tiles_indexes, nucleus_path)
+
+        
+        self.logging_df_failed_reasons.log_failed_reasons(failed_tiles_nucleus_reasons, nucleus_path)
+
         if len(valid_tiles_indexes) == 0: 
             logging.warning(f"[{group_id}] No valid tiles were found for nucleus image: {nucleus_path}")
             return
@@ -401,8 +409,21 @@ class Preprocessor(ABC):
             if marker_name == self.__NUCLEUS_MARKER_NAME and not panel_has_valid_markers:
                     logging.warning(f"[{group_id}] No valid markers were found in this panel. Skipping also DAPI.")
                     break
-
-            processed_marker = self._get_valid_site_image(marker_path, ch_idx= 0)
+            
+            # CHANGE pilot2 - rescale conditionally
+            if marker_name in self.preprocessing_config.NO_RESCALE_FOR_LOW_SIGNAL_MARKERS:
+                # For markers in the NO_RESCALE list - apply basic rescale (adjust range to [0,1])
+                processed_marker = self._get_valid_site_image(
+                                    marker_path, ch_idx= 0,
+                                    rescale_lower_bound=0.0,\
+                                    rescale_upper_bound=100.0)
+            else:
+                # For other markers - apply predefined rescale
+                processed_marker = self._get_valid_site_image(
+                                    marker_path, ch_idx= 0,
+                                    rescale_lower_bound=self.preprocessing_config.RESCALE_INTENSITY['LOWER_BOUND'][0],\
+                                    rescale_upper_bound=self.preprocessing_config.RESCALE_INTENSITY['UPPER_BOUND'][0])
+            
             if processed_marker is None: continue
             
             # Pair marker and nucleus images
@@ -412,10 +433,12 @@ class Preprocessor(ABC):
             image_pair_tiled = crop_image_to_tiles(image_pair, self.preprocessing_config.TILE_INTERMEDIATE_SHAPE)
 
             # Process and filter tiles based on variance and intensity
-            image_pair_processed_valid_tiles, valid_tiles_indexes = self.__process_and_filter_tiles(image_pair_tiled, valid_tiles_indexes, tile_name=marker_name)
+            image_pair_processed_valid_tiles, valid_tiles_indexes, failed_tiles_marker_reasons = self.__process_and_filter_tiles(image_pair_tiled, valid_tiles_indexes, tile_name=marker_name)
             
+
             if marker_name != self.__NUCLEUS_MARKER_NAME:
                 self.logging_df.log_marker(valid_tiles_indexes, marker_path)
+                self.logging_df_failed_reasons.log_failed_reasons(failed_tiles_marker_reasons, marker_path)
 
             # If no valid tiles were found, don't save this marker
             if len(image_pair_processed_valid_tiles) == 0: 
@@ -429,7 +452,7 @@ class Preprocessor(ABC):
             
         __shapes =  {m: v.shape for m, v in processed_images.items()}
         logging.info(f"[{group_id}] Shape of processed images: {__shapes}")
-            
+
         return processed_images
         
         
@@ -449,6 +472,31 @@ class Preprocessor(ABC):
 
         return panel_has_valid_processed_markers
 
+    def __extract_failed_reason(self, cause:str, marker_name:str)-> str:
+        """
+        Extract the failed reason from the cause string.
+        
+        Args:
+            cause (str): The cause of the failure.
+            marker_name (str): The name of the marker.
+        
+        Returns:
+            failed_reason (str): The extracted failed reason.
+        """
+        entity = cause.split(']')[0].strip('[')
+
+        category = cause.split(']')[1].split(':')[0].strip()
+        category = category.lower().replace(' ', '_')
+
+        sub_category = cause.split(':')[1].strip()
+        sub_category = sub_category.lower().replace(' ', '_')
+
+        return f"{category}_{sub_category}"
+
+        
+
+
+
     def __process_and_filter_tiles(self, tiles:List[np.ndarray], valid_tiles_indexes:List[int], tile_name:str) -> Tuple[np.ndarray, np.ndarray]:
         """
         Filters out invalid tiles from the image pair and processes them.
@@ -465,9 +513,11 @@ class Preprocessor(ABC):
                 - Processed valid tiles of the image pair.
                 - Valid tiles indexes after filtering.
         """
+
         if len(valid_tiles_indexes) == 0:
-            return np.array([]), valid_tiles_indexes
+            return np.array([]), valid_tiles_indexes, None
         
+        failed_tiles_counter = Counter()
         image_pair_valid_tiles = []
         valid_tiles_indexes = valid_tiles_indexes.tolist()
         is_empty_tile_function = self.__is_empty_tile_dapi if (tile_name == self.__NUCLEUS_MARKER_NAME) else self.__is_empty_tile_target
@@ -478,10 +528,13 @@ class Preprocessor(ABC):
 
             # Resize the tile to be TILE_SHAPE
             tile = transform.resize(tile, self.preprocessing_config.TILE_SHAPE, anti_aliasing=True)
-            tile_rescaled = self.__apply_rescale_intensity_to_multi_channel_tile(tile)
+            tile_rescaled = self.__apply_rescale_intensity_to_multi_channel_tile(tile, tile_name)
 
-            if is_empty_tile_function(tile[...,0], tile_rescaled[...,0], tile_name)[0]:
+            result, cause = is_empty_tile_function(tile[...,0], tile_rescaled[...,0], tile_name)
+            if result:
                 valid_tiles_indexes.remove(i)
+                failed_reason = self.__extract_failed_reason(cause, tile_name)
+                failed_tiles_counter.update([failed_reason])
                 continue
 
             image_pair_valid_tiles.append(tile_rescaled)
@@ -489,11 +542,15 @@ class Preprocessor(ABC):
         valid_tiles_indexes = np.asarray(valid_tiles_indexes)
         
         if len(image_pair_valid_tiles) == 0:
-            return np.array([]), valid_tiles_indexes
+            return np.array([]), valid_tiles_indexes, None
 
         image_pair_valid_tiles = np.stack(image_pair_valid_tiles)
 
-        return image_pair_valid_tiles, valid_tiles_indexes
+        # return None if counter is empty
+        if len(failed_tiles_counter) == 0:
+            failed_tiles_counter = None
+
+        return image_pair_valid_tiles, valid_tiles_indexes, failed_tiles_counter
 
     def __sort_markers(self, images_group: Dict[str, str]) -> List[str]:
         """
@@ -595,7 +652,7 @@ class Preprocessor(ABC):
         # check if num of components exceeds limit (noisy)
         if ncomponents >= self.preprocessing_config.MAX_NUM_NUCLEI_BLOB:
             # print("ncomponents failed:", ncomponents)
-            return True
+            return True, "dead_cells: ncomponents"
 
         num_alive_cells = 0
         num_dead_cells = 0
@@ -604,7 +661,7 @@ class Preprocessor(ABC):
             # if more than one dead cell, discard tile
             if num_dead_cells > 1:
                 # print("Failed - More than one dead cell.") 
-                return True
+                return True, "dead_cells: more than one dead cell"
         
             blob_mask = (labeled == i)
             dapi_masked = dapi_rescaled[blob_mask]
@@ -619,34 +676,50 @@ class Preprocessor(ABC):
             ###############################################################
             # if blob is too small - ignore and continue
             if blob_size < self.preprocessing_config.MIN_NUCLEI_BLOB_AREA:
-                # print("blob too small, continueing")
+                # print("blob too small, ", blob_size, "continueing")
                 continue
+
+            # print("blob_size:", blob_size)
+            # print("elipse:", elipse, "ecc:", ecc, "ar:", ar, "solidity:", solidity)
+            # print("blob_size:", blob_size, "blob_median: ", blob_median, "blob_variance:", blob_variance)
             
+            # pilot 1:
             # if blob is too big - return False, as it is probabaly large noise
-            if blob_size > self.preprocessing_config.MAX_ALIVE_NUCLEI_AREA:
-                # print("blob too big:",blob_size,", tile failed.")
-                return True
+            # if blob_size > self.preprocessing_config.MAX_ALIVE_NUCLEI_AREA:
+            #     print("blob too big tile failed.")
+            #     return True
+            # if not elipse and blob_size:
+            #     continue
+
+            # avoid clouds 4500,0.022- 
+            if blob_size > self.preprocessing_config.MAX_BLOB_AREA and blob_variance > self.preprocessing_config.MAX_VARIANCE_BIG_BLOBS:
+                #print("blob too big and high variance - tile failed. (cloud?)")
+                return True, "dead_cells: cloud like"
+
+            # blob is too big, and is elipse - whale cell, 4500,elipse
+            if blob_size > self.preprocessing_config.MAX_BLOB_AREA and elipse:
+                #print("blob too big and is elipse - tile failed. (whale?)")
+                return True, "dead_cells: whale like"
             
-            # check shape of the cell
-            if not elipse:
+            # check shape of the cell only if size is in the range of ALIVE cells (avoid cell merging)
+            if not elipse and blob_size < self.preprocessing_config.MAX_ALIVE_NUCLEI_AREA and blob_size > self.preprocessing_config.MIN_ALIVE_NUCLEI_AREA:
                 # cell is not elipse - considered as dead.
-                # print("cell is not elipse -", "ecc:", ecc, "ar:", ar, "solidity:", solidity, ", considered as dead.")
+                # print("cell is not elipse - considered as dead.")
                 num_dead_cells+=1
                 continue
 
             # if the size is sufficient for ALIVE cell - 
             if (blob_size > self.preprocessing_config.MIN_ALIVE_NUCLEI_AREA):
                 # check texture of the ALIVE cell
-                if ((blob_variance <= self.preprocessing_config.MIN_VARIANCE_THRESHOLD_ALIVE_NUCLEI or blob_variance >= self.preprocessing_config.MAX_VARIANCE_THRESHOLD_ALIVE_NUCLEI) and \
+                #pilot1: *AND* between variance condition and median intensity condition
+                if ((blob_variance <= self.preprocessing_config.MIN_VARIANCE_THRESHOLD_ALIVE_NUCLEI or blob_variance >= self.preprocessing_config.MAX_VARIANCE_THRESHOLD_ALIVE_NUCLEI) or \
                 ( blob_median <= self.preprocessing_config.MIN_MEDIAN_INTENSITY_THRESHOLD_ALIVE_NUCLEI or blob_median >= self.preprocessing_config.MAX_MEDIAN_INTENSITY_THRESHOLD_ALIVE_NUCLEI)):
                     # ALIVE CELL failed thresholds - considered as dead
-                    # print("ALIVE CELL failed thresholds -")
-                    # print("blob_size:", blob_size, "blob_median: ", blob_median, "blob_variance:", blob_variance)
+                    # print("ALIVE CELL failed thresholds")
                     num_dead_cells += 1
                     continue
                 else: # ALIVE CELL passed thresholds 
-                    # print("ALIVE CELL passed thresholds -")
-                    # print("blob_size:", blob_size, "blob_median: ", blob_median, "blob_variance:", blob_variance)
+                    # print("ALIVE CELL passed thresholds")
                     num_alive_cells += 1
                     continue
             else: # the size is of a DEAD cell
@@ -655,21 +728,22 @@ class Preprocessor(ABC):
                     if blob_median >= intensity_threshold or \
                     blob_variance <= self.preprocessing_config.MAX_VARIANCE_NUCLEI_BLOB_THRESHOLD:
                         # DEAD CELL failed thresholds
-                        # print("DEAD CELL failed thresholds -")
-                        # print("blob_size:", blob_size, "blob_median: ", blob_median, "blob_variance:", blob_variance)
+                        #print("DEAD CELL failed thresholds")
                         num_dead_cells += 1
                         continue
-                else: # touches edge
                     # DEAD CELL passed thresholds - skipping. 
-                    # print("dead cell didn't fail threshold. continueing.")
+                    #print("dead cell didn't fail thresholds (doesn't touch edge)")
+                else: # touches edge
+                    # DEAD CELL is touching edge - skipping. 
+                    #print("dead cell didn't fail thresholds (touching edge)")
                     continue
             ###############################################################
         if num_alive_cells == 0:
             # Failed - No alive cells.
-            # print("Failed - No alive cells.") 
-            return  True
+            #print("Failed - No alive cells.") 
+            return  True, "dead_cells: no alive cells"
         
-        return False           
+        return False, None           
 
 
 
@@ -698,6 +772,7 @@ class Preprocessor(ABC):
         else:
             out_of_focus_threshold = None
         
+        # check tile values - empty/out-of-focus
         result, cause = self.__is_empty_tile(dapi, dapi_scaled,\
                                              lower_bound_intensity_threshold=self.preprocessing_config.MAX_INTENSITY_THRESHOLD_NUCLEI,\
                                              lower_bound_variance_threshold=self.preprocessing_config.VARIANCE_THRESHOLD_NUCLEI, \
@@ -705,9 +780,12 @@ class Preprocessor(ABC):
         if result:
             return True, f'[DAPI] {cause}'
 
-        if self.__is_contains_dead_cells(dapi_scaled, intensity_threshold=self.preprocessing_config.MIN_MEDIAN_INTENSITY_NUCLEI_BLOB_THRESHOLD):
-            return True, "Contains dead cells"
+        # check cells in the dapi tile - dead/alive
+        result, cause = self.__is_contains_dead_cells(dapi_scaled, intensity_threshold=self.preprocessing_config.MIN_MEDIAN_INTENSITY_NUCLEI_BLOB_THRESHOLD)
+        if result:
+            return True, f'[DAPI] {cause}'
 
+        # tile is valid
         return False, None
 
 
@@ -732,6 +810,7 @@ class Preprocessor(ABC):
         else:
                 out_of_focus_threshold = None
         
+        # check tile values - empty/out-of-focus
         result, cause = self.__is_empty_tile(target, target_scaled,\
                                              lower_bound_intensity_threshold=self.preprocessing_config.MAX_INTENSITY_THRESHOLD_TARGET,\
                                              upper_bound_intensity_threshold=self.preprocessing_config.MAX_INTENSITY_UPPER_BOUND_THRESHOLD_TARGET, \
@@ -740,8 +819,9 @@ class Preprocessor(ABC):
                                             out_of_focus_threshold = out_of_focus_threshold)
 
         if cause is not None:
-            cause = f'[Target] {cause}'
+            cause = f'[MARKER] {cause}'
 
+        # tile is valid
         return result, cause
 
     def __is_empty_tile(self, image_channel:np.ndarray, 
@@ -766,30 +846,36 @@ class Preprocessor(ABC):
 
         image_channel_max_intensity = round(image_channel.max(), 4)
         if image_channel_max_intensity <= lower_bound_intensity_threshold:
-            return True, f"Invalid max intensity: {image_channel_max_intensity} <= {lower_bound_intensity_threshold}"
+            return True, f"Invalid max intensity: below threshold"
         
         if upper_bound_intensity_threshold is not None:
             if image_channel_max_intensity >= upper_bound_intensity_threshold:
-                return True, f"Invalid max intensity: {image_channel_max_intensity} >= {upper_bound_intensity_threshold}"
+                return True, f"Invalid max intensity: above threshold"
         
         image_channel_rescaled_variance = round(image_channel_rescaled.var(), 4)
         if image_channel_rescaled_variance <= lower_bound_variance_threshold:
-            return True, f"Invalid variance: {image_channel_rescaled_variance} <= {lower_bound_variance_threshold}"
+            return True, f"Invalid variance: below threshold"
 
         
         if upper_bound_variance_threshold is not None:
             if image_channel_rescaled_variance >= upper_bound_variance_threshold:
-                return True, f"Invalid variance: {image_channel_rescaled_variance} >= {upper_bound_variance_threshold}"
+                return True, f"Invalid variance: above threshold"
 
         # ADDED - TILE BRENNER - GAL'S CODE
         if out_of_focus_threshold is not None:
             if not is_tile_focused(image_channel, out_of_focus_threshold):
-                return True, f"out-of-focus tile: lower bound threshold = {out_of_focus_threshold}"
+                return True, f"out of focus: below threshold"
+            
+        # CHANGE - tile brenner upper bound
+        # print("Brenner value:", get_image_focus_quality(image_channel))
+        # print("Brenner value rescaled:", get_image_focus_quality(image_channel_rescaled))
+        if get_image_focus_quality(image_channel_rescaled) >= self.preprocessing_config.MAX_BRENNER_THRESHOLD_TILE:
+            return True, f"out of focus: above threshold"
 
         return False, None
 
 
-    def __apply_rescale_intensity_to_multi_channel_tile(self, tile: np.ndarray) -> np.ndarray:
+    def __apply_rescale_intensity_to_multi_channel_tile(self, tile: np.ndarray, tile_name: str) -> np.ndarray:
         """
         Apply rescale_intensity to each channel of the given tile.
 
@@ -799,13 +885,54 @@ class Preprocessor(ABC):
         Returns:
         - np.ndarray of same shape as tile with function applied per channel (H,W,C)
         """
+        # CHANGE - added to pilot 2:
+        def compute_snr(img):
+            # 1. Identify Background (bottom 10% of pixels)
+            bg_threshold = np.percentile(img, 10)
+            bg_pixels = img[img <= bg_threshold]
+            
+            mu_b = np.mean(bg_pixels)
+            sigma_b = np.std(bg_pixels)
+            
+            # 2. Identify Potential Signal (top 5% of pixels)
+            mu_s = np.percentile(img, 95)
+            
+            # 3. Calculate SNR (add small epsilon to avoid division by zero)
+            snr = (mu_s - mu_b) / (sigma_b + 1e-6)
+
+            return snr
+
+        check_signal = tile_name in self.preprocessing_config.NO_RESCALE_FOR_LOW_SIGNAL_MARKERS
+        snr_threshold = self.preprocessing_config.SNR_THRESHOLD_FOR_RESCALE
+        #-------------------------
+
         H, W, C = tile.shape
         result = np.empty_like(tile)
 
         for c in range(C):
-            result[...,c] = rescale_intensity(tile[...,c],
-                                                lower_bound=self.preprocessing_config.RESCALE_INTENSITY['LOWER_BOUND'][c],\
-                                                upper_bound=self.preprocessing_config.RESCALE_INTENSITY['UPPER_BOUND'][c])
+            # If wanted to rescale with condition - 
+            # (!) CHANGED, pilot2: 
+            channel_img = tile[...,c]
+            if check_signal and c == self.preprocessing_config.MARKER_CHANNEL_INDEX: 
+                    # if marker is in the list of low-signal markers (on/off markers)
+                    # only for marker channel
+                    channel_snr = compute_snr(channel_img)
+                    # print(f"Channel {c} - SNR: {channel_snr}")
+                    #  If SNR below threshold - skip rescaling
+                    if channel_snr < snr_threshold:
+                        # print(f"Channel {c} - SNR below threshold, skipping rescaling.")
+                        result[...,c] = channel_img
+                    else:
+                    # if SNR above threshold - basic rescaling (only to be in range [0,1])
+                        # print(f"Channel {c} - SNR above threshold, rescaling with (0,100).")
+                        result[...,c] = rescale_intensity(channel_img,
+                                                    lower_bound=0,\
+                                                    upper_bound=100.0)
+                    continue
+            # predefined rescaling for all other cases
+            result[...,c] = rescale_intensity(channel_img,
+                                                    lower_bound=self.preprocessing_config.RESCALE_INTENSITY['LOWER_BOUND'][c],\
+                                                    upper_bound=self.preprocessing_config.RESCALE_INTENSITY['UPPER_BOUND'][c])
 
         return result
 

@@ -3,7 +3,7 @@ import pandas as pd
 import numpy as np
 import pickle
 import matplotlib.pyplot as plt
-import mplcursors
+# import mplcursors
 import re
 import matplotlib.colors as mcolors
 from matplotlib.widgets import RectangleSelector
@@ -29,6 +29,7 @@ def load_and_process_data(umaps_dir, path_to_umap, df_brenner=None, print_valida
     paths = data['paths']
     config_data = data["config_data"]
     config_plot = data["config_plot"]
+
     
     # Regex pattern to extract Batch, Condition, Rep, Raw Image Name, Panel, Cell Line, and Tile
     pattern = re.compile(
@@ -65,14 +66,20 @@ def load_and_process_data(umaps_dir, path_to_umap, df_brenner=None, print_valida
     
     df_umap_tiles['Path'] = [path.split('.npy')[0]+'.npy' for path in df_umap_tiles['Path']]
     df_umap_tiles["Image_Name"] = df_umap_tiles["Image_Name"].str.extract(r"^(.*?)_panel")
-    
     df_umap_tiles = fix_deltaNLS_metadata(df_umap_tiles)
 
-    if (df_brenner is not None) and (paths.ndim == 1):      
+    if (df_brenner is not None) and (paths.ndim == 1):    
+        # ADDED BY GILI TO FIX BUG WHERE NULTIPLE ROWS PER BRENNER EXIST
+        key_cols = ["Batch", "Rep", "Image_Name", "Condition", "Marker", "CellLine", "Panel"]
+        df_brenner_unique = (
+            df_brenner
+            .groupby(key_cols, as_index=False)["Target_Sharpness_Brenner"]
+            .mean()   # or .first(), .median(), .max() 
+        )  
         # Merge df with df_brenner to get Target_Sharpness_Brenner
         df_umap_tiles = df_umap_tiles.merge(
-            df_brenner[["Batch", "Rep", "Image_Name", "Condition", "Marker", "CellLine", "Panel", "Target_Sharpness_Brenner"]],
-            on=["Batch", "Rep", "Image_Name", "Condition", "Marker", "CellLine", "Panel"],
+            df_brenner_unique[key_cols + ["Target_Sharpness_Brenner"]],
+            on=key_cols,
             how="left"
         )
         df_umap_tiles["Target_Sharpness_Brenner"] = df_umap_tiles["Target_Sharpness_Brenner"].round()

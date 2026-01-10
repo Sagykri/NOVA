@@ -419,7 +419,7 @@ class InteractiveUMAPPipeline:
 
             self.umap_embeddings, self.label_data, self.config_data, self.config_plot, self.df_umap_tiles = load_and_process_data(
                 self.umaps_dir_widget.text_input.value.strip(), pickle_file_path, self.df_brenner)
-            
+
             self.apply_dilution() 
      
             self.config_plot['MIX_GROUPS'] = self.mix_groups_checkbox.value
@@ -521,6 +521,10 @@ class InteractiveUMAPPipeline:
             mask &= self.df_umap_tiles[column].apply(
                 lambda x: str(x) in cleaned_values
             )
+        print("mask:", len(mask))
+        print("umap_embeddings:", self.umap_embeddings.shape[0])
+        print("df_umap_tiles:", len(self.df_umap_tiles))
+        print("label_data:", len(self.label_data))
         # Apply mask to all data
         self.umap_embeddings_filt = self.umap_embeddings[mask]
         self.label_data_filt = self.label_data[mask]

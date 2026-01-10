@@ -128,7 +128,7 @@ class Config_A(Config_Base_4Markers):
         self.col_rep1 = 1
         self.col_rep2 = 2
         self.panel = 'A'
-        self.markers = ["DAPI", "Cas3", "FK-2", "SMI32"]
+        self.markers = ["DAPI", "Cas3", "FK-2", "c"]
         
         super().__init__(batch)
 
@@ -189,4 +189,96 @@ class Config_F(Config_Base_4Markers):
 
         self.INCLUDE_SUB_FOLDERS = [f'Plate_{self.BATCH}/Panel{self.panel}1', f'Plate_{self.BATCH}/Panel{self.panel}2']
         
+## ------- pilot 2 ----------
+
+class Config_Pilot2(Config_Base_Data):
+    def __init__(self, batch):
+        super().__init__(batch)
+        # Path to source folder (root)
+        self.SRC_ROOT_PATH = "/home/projects/hornsteinlab/Collaboration/Guy_Lior/fuNOVA_Pilot2/raw"
+
+        # Path to destination folder (root)
+        self.DST_ROOT_PATH = "/home/projects/hornsteinlab/Collaboration/Guy_Lior/fuNOVA_Pilot2/sorted"
+
+class Config_Base_5Markers(Config_Pilot2):
+    def __init__(self, batch):
+        super().__init__(batch)
+
+        self.FOLDERS = [f"Plate{self.BATCH}"]
+        self.INCLUDE_SUB_FOLDERS = [f'Plate{self.BATCH}/Panel{self.panel}']
+        self.CONFIG = {
+            self.KEY_MARKERS_ALIAS_ORDERED: ["ch1", "ch2", "ch3", "ch4", "ch5"],
+            self.KEY_REPS: ["rep1", "rep2"],
+            self.KEY_CELL_LINES: get_mappings(self.col_rep1, self.col_rep2, self.HALF_PLATE_NUM_COLUMNS),
+            self.KEY_MARKERS: {f'panel{self.panel}': self.markers}
+        }
+
+class Config_A_pilot2(Config_Base_5Markers):
+    def __init__(self, batch):
         
+        # Params:
+        self.col_rep1 = 1
+        self.col_rep2 = 2
+        self.panel = 'A'
+        self.markers = ["DAPI",  "FK-2", "TDP-43", "SMI32", "Brightfield"]
+        
+        super().__init__(batch)
+
+class Config_B_pilot2(Config_Base_5Markers):
+    def __init__(self, batch):
+        # Params:
+        self.col_rep1 = 3
+        self.col_rep2 = 4
+        self.panel = 'B'
+        self.markers = ["DAPI","pCaMKIIa", "pDRP1", "Brightfield", "TOMM20"]
+
+        super().__init__(batch)
+
+class Config_C_pilot2(Config_Base_5Markers):
+    def __init__(self, batch):
+
+        # Params:
+        self.col_rep1 = 5
+        self.col_rep2 = 6
+        self.panel = 'C'
+        self.markers = ["DAPI", "ATF4", "pTDP-43", "ATF6", "Brightfield"]
+
+        super().__init__(batch)
+
+class Config_D_pilot2(Config_Base_5Markers):
+    def __init__(self, batch):
+
+        # Params:
+        self.col_rep1 = 7
+        self.col_rep2 = 8
+        self.panel = 'D'
+        self.markers = ["DAPI", "G3BP1", "pAMPK", "pS6", "Brightfield"]
+
+        super().__init__(batch)
+
+class Config_E_pilot2(Config_Base_5Markers):
+    def __init__(self, batch):
+
+        # Params:
+        self.col_rep1 = 9
+        self.col_rep2 = 10
+        self.panel = 'E'
+        self.markers = ["DAPI", "UNC13A", "PAR",  "Calreticulin", "Brightfield"]
+
+        super().__init__(batch)
+
+class Config_F_pilot2(Config_Base_5Markers):
+    def __init__(self, batch):
+
+        # Params:
+        self.col_rep1 =11
+        self.col_rep2 = 12
+        self.panel = 'F'
+        self.markers = ["DAPI", "p62", "POM121",  "CathepsinD", "Brightfield"]
+
+        super().__init__(batch)
+
+        self.INCLUDE_SUB_FOLDERS = [f'Plate{self.BATCH}/Panel{self.panel}1', f'Plate{self.BATCH}/Panel{self.panel}2']
+        
+        
+

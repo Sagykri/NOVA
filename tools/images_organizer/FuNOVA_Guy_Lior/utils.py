@@ -128,7 +128,9 @@ class Utils():
     def __get_folder_info(self, folder):
         # parent_folder = os.path.dirname(folder)
         # datestamp, pert1, pert2, pert3, n_days, panels = parent_folder.split('_')
-        batch = f"batch{os.path.dirname(folder).split('_')[1]}"
+        # batch = f"batch{os.path.dirname(folder).split('_')[1]}"
+        #pilot2:
+        batch = os.path.dirname(folder)
         panel = os.path.basename(folder)
         # lower case the first letter (Panel to panel)
         panel = panel[0].lower() + panel[1:]

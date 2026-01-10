@@ -71,3 +71,35 @@ class LogDFPreprocessing(LogDF):
                 len(valid_tiles_indexes),
                 None, None, None, None]
         self.write(marker_to_log)
+
+class LogDFPreprocessingFailedReasons(LogDF):
+    def __init__(self, path:str):
+        super().__init__(path, 
+                        columns=["well", "batch", "cell_line", "panel",
+                                "condition", "rep", "marker", 
+                                "dead_cells_ncomponents","dead_cells_more_than_one_dead_cell","dead_cells_cloud_like", "dead_cells_whale_like","dead_cells_no_alive_cells",
+                                "invalid_max_intensity_above_threshold","invalid_max_intensity_below_threshold", "invalid_variance_below_threshold","invalid_variance_above_threshold", 
+                                "out_of_focus_below_threshold",
+                                "out_of_focus_above_threshold"],
+                        filename_prefix="cell_failed_reasons_stats")
+
+    def log_failed_reasons(self,failed_reasons, path)->None:
+        """
+        """
+        if failed_reasons is None:
+            return
+        # extract meta data
+        to_log =        [path_utils.get_filename(path),
+                        path_utils.get_raw_batch(path), 
+                        path_utils.get_raw_cell_line(path), 
+                        path_utils.get_raw_panel(path),
+                        path_utils.get_raw_condition(path), 
+                        path_utils.get_raw_rep(path),
+                        path_utils.get_raw_marker(path)]
+
+        # extract failed reasons
+        for col in self.df.columns[len(to_log):]:
+            to_log.append(failed_reasons.get(col, None))
+
+        self.write(to_log)
+

@@ -281,6 +281,21 @@ config_AAT_NOVA = {
     'layouts': base_fov_layout,
     'name': 'AAT_NOVA'
 }
+
+
+
+## AAT NOVA PILOT 2 ##
+config_AAT_NOVA_pilot2 = {
+    'paths':{
+    'umaps_folder' : f'{new_finetuned_figures_path}/AAT_NOVA_pilot2/UMAPs',
+    'csv_path' : '/home/projects/hornsteinlab/Collaboration/Guy_Lior/raw_metrics_2025-12-23.csv',
+    'images_dir' : [f'{os.getenv("AAT_NOVA_DATA_DIR")}2/sorted/batch1/',
+                    f'{os.getenv("AAT_NOVA_DATA_DIR")}2/sorted/batch2/',
+                    f'{os.getenv("AAT_NOVA_DATA_DIR")}2/sorted/batch3/']
+    },
+    'layouts': base_fov_layout,
+    'name': 'AAT_NOVA_pilot2'
+}
 # Collect all variables starting with "config" into a dictionary called `configs`.
 # This allows easy access to all config objects via: configs['config_name']
 configs = {

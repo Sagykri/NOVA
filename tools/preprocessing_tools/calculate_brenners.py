@@ -16,6 +16,7 @@ from sklearn.decomposition import PCA
 from PIL import Image
 import sys
 import logging
+from datetime import date
 
 sys.path.insert(1, os.getenv("NOVA_HOME"))
 print(f"NOVA_HOME: {os.getenv('NOVA_HOME')}")
@@ -24,9 +25,13 @@ from src.preprocessing.preprocessing_utils import fit_image_shape, get_image_foc
 from src.common.utils import init_logging, flat_list_of_lists
 from tools.preprocessing_tools.image_sampling_utils import sample_images_all_markers_all_lines
 
+# Global Params
+BASE_DIR = os.path.join('home','projects','hornsteinlab','Collaboration','NOVA')
+INPUT_DIR = os.path.join(f"{os.getenv('AAT_NOVA_DATA_DIR')}2", 'sorted')
+OUTPUT_DIR = os.path.join(BASE_DIR, "outputs", "preprocessing", "AAT_NOVA_pilot2", "brenner")
+os.makedirs(OUTPUT_DIR, exist_ok=True)
+DATE = date.today().strftime("%Y-%m-%d")
 
-BASE_DIR = os.path.join('/home','projects','hornsteinlab','Collaboration','NOVA')
-INPUT_DIR = os.path.join(BASE_DIR, 'input', 'images', 'raw', 'Opera18DaysReimaged_sorted')
 calc_per_tile = False # I ran _site_ with this being False! (281123)
 
 def calculate_metrics_for_batch(batch_name, sample_size_per_markers=100, num_markers=36, markers=None):
@@ -132,13 +137,10 @@ def main():
     # cell_lines = ['WT']
     # conditions = ['Untreated']#, 'stress']
     # markers = #['DAPI']#["DAPI"]#['NONO', 'G3BP1']
-    batches = ['batch1', 'batch2']#[os.path.join('240323_day29_neurons_sorted', 'batch1')]#['batch4','batch5','batch6', 'batch9']#['batch7', 'batch8', 'batch3', 'batch4','batch5','batch6', 'batch9']#, 'batch8']#['batch6_16bit_no_downsample']
+    batches = ['batch1', 'batch2', 'batch3']
     # raw_base_path = '/home/projects/hornsteinlab/Collaboration/MOmaps/input/images/raw/SpinningDisk/'
-    
-    folder_path = "/home/projects/hornsteinlab/Collaboration/NOVA/outputs/preprocessing/ManuscriptFinalData_80pct/neuronsDay18/brenner"
-    log_file_path = os.path.join(folder_path, "log210825_all.txt")
-    savepath = os.path.join(folder_path, "raw_metrics210825_all.csv")
-
+    log_file_path = os.path.join(OUTPUT_DIR, f"{DATE}.log")
+    savepath = os.path.join(OUTPUT_DIR, f"raw_metrics_{DATE}.csv")
     init_logging(log_file_path)
     
     logging.info("Starting outlier detection..")
