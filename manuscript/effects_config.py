@@ -338,10 +338,10 @@ class AATNOVAEffectConfig(EffectConfig):
     def __init__(self):
         super().__init__()
 
-        self.EXPERIMENT_TYPE = 'AAT_NOVA'
+        self.EXPERIMENT_TYPE = 'AAT_NOVA_pilot2'
 
         # The path to the data folders
-        self.INPUT_FOLDERS =  ["batch1", "batch2"]
+        self.INPUT_FOLDERS =  ["batch1", "batch2", "batch3"]
         
         self.BASELINE:str = None # example: WT_Untreated
         self.PERTURBATION:str = None # example: WT_stress
@@ -356,15 +356,17 @@ class AATNOVAEffectConfig(EffectConfig):
 
         self.BOOTSTRAP_TRIMMING_ALPHA = 0 # fraction of extreme values to trim from the bootstrap distribution for estimating the variance (e.g. 0.01 means trimming 1% from each tail) (Default: 0, no trimming)
 
-        self.MARKERS = ['pTDP-43','TDP-43','FK2','SMI-32','LC3-II','UNC13A']
+        # self.MARKERS = ['pTDP-43','TDP-43','FK2','SMI-32','LC3-II','UNC13A']
 # "combined-NT"
 # KD_list = ["PPP2R1A","HMGCS1","PIK3C3","NDUFAB1","MAPKAP1","NDUFS2","RALA","TLK1","NRIP1","TARDBP","RANBP17","CYLD"]
+
+
 
 # ------------- C9: NT vs KD -----------------
 class AATNOVAEffectConfigC9_NTvsKD(AATNOVAEffectConfig):
     def __init__(self):
         super().__init__()
-        self.BASELINE:str =  "C9_combined-NT" # example: WT_Untreated
+        self.BASELINE:str =  "C9_NT-1873" #"C9_combined-NT" # example: WT_Untreated
         self.PERTURBATION:str = f"C9_{self.PERTUB_NAME}" # example: WT_stress
 
 class AATNOVAEffectConfigC9_NTvsPPP2R1A(AATNOVAEffectConfigC9_NTvsKD):
@@ -422,7 +424,7 @@ class AATNOVAEffectConfigC9_NTvsCYLD(AATNOVAEffectConfigC9_NTvsKD):
 class AATNOVAEffectConfigCTL_NTvsKD(AATNOVAEffectConfig):
     def __init__(self):
         super().__init__()
-        self.BASELINE:str =  "CTL_combined-NT"# example: WT_Untreated
+        self.BASELINE:str =  "CTL_NT-1873" #"CTL_combined-NT"# example: WT_Untreated
         self.PERTURBATION:str = f"CTL_{self.PERTUB_NAME}" # example: WT_stress
 
 class AATNOVAEffectConfigCTL_NTvsPPP2R1A(AATNOVAEffectConfigCTL_NTvsKD):
@@ -551,11 +553,72 @@ class AATNOVAEffectConfigCYLD_CTLvsC9(AATNOVAEffectConfigKD_CTLvsC9):
 
 # ------------- NT: CTL vs C9 -----------------
 class AATNOVAEffectConfigNT_CTLvsC9(AATNOVAEffectConfig):
-    def __init__(self):
+     def __init__(self, perturb_name: str):
         """
-        Base configuration for CTL vs C9 comparison under a given perturbation.
-        Example: perturb_name = 'PPP2R1A' → baseline = CTL_PPP2R1A, perturbation = C9_PPP2R1A
+        Base configuration for CTL vs C9 comparison under a NT condition
         """
         super().__init__()
-        self.BASELINE = f"CTL_combined-NT"
-        self.PERTURBATION = f"C9_combined-NT"
+        self.PERTUB_NAME = perturb_name
+        self.BASELINE = "CTL_NT-1873" #f"CTL_combined-NT"
+        self.PERTURBATION = "C9_NT-1873"#f"C9_combined-NT"
+        self.CONDITIONS = ["NT-1873", self.PERTUB_NAME]
+
+class AATNOVAEffectConfigNT_CTLvsC9_onlyPPP2R1A(AATNOVAEffectConfigNT_CTLvsC9):
+    def __init__(self):
+        super().__init__("PPP2R1A")
+
+
+class AATNOVAEffectConfigNT_CTLvsC9_onlyHMGCS1(AATNOVAEffectConfigNT_CTLvsC9):
+    def __init__(self):
+        super().__init__("HMGCS1")
+
+
+class AATNOVAEffectConfigNT_CTLvsC9_onlyPIK3C3(AATNOVAEffectConfigNT_CTLvsC9):
+    def __init__(self):
+        super().__init__("PIK3C3")
+
+
+class AATNOVAEffectConfigNT_CTLvsC9_onlyNDUFAB1(AATNOVAEffectConfigNT_CTLvsC9):
+    def __init__(self):
+        super().__init__("NDUFAB1")
+
+
+class AATNOVAEffectConfigNT_CTLvsC9_onlyMAPKAP1(AATNOVAEffectConfigNT_CTLvsC9):
+    def __init__(self):
+        super().__init__("MAPKAP1")
+
+
+class AATNOVAEffectConfigNT_CTLvsC9_onlyNDUFS2(AATNOVAEffectConfigNT_CTLvsC9):
+    def __init__(self):
+        super().__init__("NDUFS2")
+
+
+class AATNOVAEffectConfigNT_CTLvsC9_onlyRALA(AATNOVAEffectConfigNT_CTLvsC9):
+    def __init__(self):
+        super().__init__("RALA")
+
+
+class AATNOVAEffectConfigNT_CTLvsC9_onlyTLK1(AATNOVAEffectConfigNT_CTLvsC9):
+    def __init__(self):
+        super().__init__("TLK1")
+
+
+class AATNOVAEffectConfigNT_CTLvsC9_onlyNRIP1(AATNOVAEffectConfigNT_CTLvsC9):
+    def __init__(self):
+        super().__init__("NRIP1")
+
+
+class AATNOVAEffectConfigNT_CTLvsC9_onlyTARDBP(AATNOVAEffectConfigNT_CTLvsC9):
+    def __init__(self):
+        super().__init__("TARDBP")
+
+
+class AATNOVAEffectConfigNT_CTLvsC9_onlyRANBP17(AATNOVAEffectConfigNT_CTLvsC9):
+    def __init__(self):
+        super().__init__("RANBP17")
+
+
+class AATNOVAEffectConfigNT_CTLvsC9_onlyCYLD(AATNOVAEffectConfigNT_CTLvsC9):
+    def __init__(self):
+        super().__init__("CYLD")
+

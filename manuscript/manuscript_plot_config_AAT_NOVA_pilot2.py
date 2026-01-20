@@ -55,10 +55,10 @@ class AAT_NOVA_BaseFigureConfig(PlotConfig):
             'RALA': {self.MAPPINGS_ALIAS_KEY: 'RALA', self.MAPPINGS_COLOR_KEY: '#168FB2'},
             'TLK1': {self.MAPPINGS_ALIAS_KEY: 'TLK1', self.MAPPINGS_COLOR_KEY: '#A80358'},
             'NRIP1': {self.MAPPINGS_ALIAS_KEY: 'NRIP1', self.MAPPINGS_COLOR_KEY: "#490092"},
-            'TARDBP': {self.MAPPINGS_ALIAS_KEY: 'TARDBP', self.MAPPINGS_COLOR_KEY: "#9223A9"},
+            'TARDBP': {self.MAPPINGS_ALIAS_KEY: 'TARDBP', self.MAPPINGS_COLOR_KEY: "#7729FF"},
             'RANBP17': {self.MAPPINGS_ALIAS_KEY: 'RANBP17', self.MAPPINGS_COLOR_KEY: "#B07FB4"},
             'CYLD': {self.MAPPINGS_ALIAS_KEY: 'CYLD', self.MAPPINGS_COLOR_KEY: '#F04521'},
-            'NT-1873': {self.MAPPINGS_ALIAS_KEY: 'NT-1873', self.MAPPINGS_COLOR_KEY: '#F08F21'},
+            'NT-1873': {self.MAPPINGS_ALIAS_KEY: 'NT-1873', self.MAPPINGS_COLOR_KEY: "#EE8F00"},
             'NT-6301-3085': {self.MAPPINGS_ALIAS_KEY: 'NT-6301-3085', self.MAPPINGS_COLOR_KEY: "#646464"},
             'Intergenic': {self.MAPPINGS_ALIAS_KEY: 'Intergenic', self.MAPPINGS_COLOR_KEY: "#51388A"},
             'Untreated': {self.MAPPINGS_ALIAS_KEY: 'Untreated', self.MAPPINGS_COLOR_KEY: "#1E1E3A"},
@@ -69,8 +69,8 @@ class AAT_NOVA_BaseFigureConfig(PlotConfig):
             'CTL_PPP2R1A': {self.MAPPINGS_ALIAS_KEY: 'CTL_PPP2R1A', self.MAPPINGS_COLOR_KEY: "#5B76D8"}, # brighter
             'C9_PPP2R1A': {self.MAPPINGS_ALIAS_KEY: 'C9_PPP2R1A', self.MAPPINGS_COLOR_KEY: "#1B39A6"}, # darker
 
-            'CTL_HMGCS1': {self.MAPPINGS_ALIAS_KEY: 'CTL_HMGCS1', self.MAPPINGS_COLOR_KEY: "#8989F5"},
-            'C9_HMGCS1': {self.MAPPINGS_ALIAS_KEY: 'C9_HMGCS1', self.MAPPINGS_COLOR_KEY: "#2E2E9D"},
+            'CTL_HMGCS1': {self.MAPPINGS_ALIAS_KEY: 'CTL_HMGCS1', self.MAPPINGS_COLOR_KEY: "#963C00"},
+            'C9_HMGCS1': {self.MAPPINGS_ALIAS_KEY: 'C9_HMGCS1', self.MAPPINGS_COLOR_KEY: "#1F1FBB"},
 
             'CTL_PIK3C3': {self.MAPPINGS_ALIAS_KEY: 'CTL_PIK3C3', self.MAPPINGS_COLOR_KEY: "#F34545"},
             'C9_PIK3C3': {self.MAPPINGS_ALIAS_KEY: 'C9_PIK3C3', self.MAPPINGS_COLOR_KEY: "#7D0F0F"},
@@ -78,8 +78,8 @@ class AAT_NOVA_BaseFigureConfig(PlotConfig):
             'CTL_NDUFAB1': {self.MAPPINGS_ALIAS_KEY: 'CTL_NDUFAB1', self.MAPPINGS_COLOR_KEY: "#33F979"},
             'C9_NDUFAB1': {self.MAPPINGS_ALIAS_KEY: 'C9_NDUFAB1', self.MAPPINGS_COLOR_KEY: "#0B663F"},
 
-            'CTL_MAPKAP1': {self.MAPPINGS_ALIAS_KEY: 'CTL_MAPKAP1', self.MAPPINGS_COLOR_KEY: "#59C3CD"},
-            'C9_MAPKAP1': {self.MAPPINGS_ALIAS_KEY: 'C9_MAPKAP1', self.MAPPINGS_COLOR_KEY: "#20678D"},
+            'CTL_MAPKAP1': {self.MAPPINGS_ALIAS_KEY: 'CTL_MAPKAP1', self.MAPPINGS_COLOR_KEY: "#963C00"},
+            'C9_MAPKAP1': {self.MAPPINGS_ALIAS_KEY: 'C9_MAPKAP1', self.MAPPINGS_COLOR_KEY: "#1F1FBB"},
 
             'CTL_NDUFS2': {self.MAPPINGS_ALIAS_KEY: 'CTL_NDUFS2', self.MAPPINGS_COLOR_KEY: "#A281E9"},
             'C9_NDUFS2': {self.MAPPINGS_ALIAS_KEY: 'C9_NDUFS2', self.MAPPINGS_COLOR_KEY: "#4D0E99"},
@@ -93,8 +93,10 @@ class AAT_NOVA_BaseFigureConfig(PlotConfig):
             'CTL_NRIP1': {self.MAPPINGS_ALIAS_KEY: 'CTL_NRIP1', self.MAPPINGS_COLOR_KEY: "#EB728B"},
             'C9_NRIP1': {self.MAPPINGS_ALIAS_KEY: 'C9_NRIP1', self.MAPPINGS_COLOR_KEY: "#98011F"},
 
-            'CTL_TARDBP': {self.MAPPINGS_ALIAS_KEY: 'CTL_TARDBP', self.MAPPINGS_COLOR_KEY: "#F80000"},
-            'C9_TARDBP': {self.MAPPINGS_ALIAS_KEY: 'C9_TARDBP', self.MAPPINGS_COLOR_KEY: "#800606"},
+            # 'CTL_TARDBP': {self.MAPPINGS_ALIAS_KEY: 'CTL_TARDBP', self.MAPPINGS_COLOR_KEY: "#963C00"},
+            # 'C9_TARDBP': {self.MAPPINGS_ALIAS_KEY: 'C9_TARDBP', self.MAPPINGS_COLOR_KEY: "#1F1FBB"},
+            'CTL_TARDBP': {self.MAPPINGS_ALIAS_KEY: 'CTL_TARDBP', self.MAPPINGS_COLOR_KEY: "#29E200"},
+            'C9_TARDBP': {self.MAPPINGS_ALIAS_KEY: 'C9_TARDBP', self.MAPPINGS_COLOR_KEY: "#FF21CB"},
 
             'CTL_RANBP17': {self.MAPPINGS_ALIAS_KEY: 'CTL_RANBP17', self.MAPPINGS_COLOR_KEY: "#B289B2"},
             'C9_RANBP17': {self.MAPPINGS_ALIAS_KEY: 'C9_RANBP17', self.MAPPINGS_COLOR_KEY: '#914691'},
@@ -102,8 +104,10 @@ class AAT_NOVA_BaseFigureConfig(PlotConfig):
             'CTL_CYLD': {self.MAPPINGS_ALIAS_KEY: 'CTL_CYLD', self.MAPPINGS_COLOR_KEY: '#FF6F4A'},
             'C9_CYLD': {self.MAPPINGS_ALIAS_KEY: 'C9_CYLD', self.MAPPINGS_COLOR_KEY: '#91260E'},
 
-            'CTL_NT-1873': {self.MAPPINGS_ALIAS_KEY: 'CTL_NT-1873', self.MAPPINGS_COLOR_KEY: "#CA945A"},
-            'C9_NT-1873': {self.MAPPINGS_ALIAS_KEY: 'C9_NT-1873', self.MAPPINGS_COLOR_KEY: "#B34902"},
+            # 'CTL_NT-1873': {self.MAPPINGS_ALIAS_KEY: 'CTL_NT-1873', self.MAPPINGS_COLOR_KEY: "#CA945A"},
+            # 'C9_NT-1873': {self.MAPPINGS_ALIAS_KEY: 'C9_NT-1873', self.MAPPINGS_COLOR_KEY: "#7C7CE8"},
+            'CTL_NT-1873': {self.MAPPINGS_ALIAS_KEY: 'CTL_NT-1873', self.MAPPINGS_COLOR_KEY: "#FF0000"},
+            'C9_NT-1873': {self.MAPPINGS_ALIAS_KEY: 'C9_NT-1873', self.MAPPINGS_COLOR_KEY: "#0000FF"},
 
             'CTL_NT-6301-3085': {self.MAPPINGS_ALIAS_KEY: 'CTL_NT-6301-3085', self.MAPPINGS_COLOR_KEY: "#636161"},
             'C9_NT-6301-3085': {self.MAPPINGS_ALIAS_KEY: 'C9_NT-6301-3085', self.MAPPINGS_COLOR_KEY: "#010101"},
@@ -164,8 +168,8 @@ class AAT_NOVA_BaseFigureConfig(PlotConfig):
 
         # Cell lines - 
         self.COLOR_MAPPINGS_AAT_NOVA_CELL_LINES: Dict[str, Dict[str, str]] = { 
-            'C9': {self.MAPPINGS_ALIAS_KEY: 'C9', self.MAPPINGS_COLOR_KEY: '#1F77B4'}, 
-            'CTL': {self.MAPPINGS_ALIAS_KEY: 'CTL', self.MAPPINGS_COLOR_KEY: '#2E8B57'}, 
+            'C9': {self.MAPPINGS_ALIAS_KEY: 'C9', self.MAPPINGS_COLOR_KEY: "#236CD9"}, 
+            'CTL': {self.MAPPINGS_ALIAS_KEY: 'CTL', self.MAPPINGS_COLOR_KEY: "#B93A08"}, 
             }
 
         self.COLOR_MAPPINGS_AAT_NOVA_CATEGORIES = {

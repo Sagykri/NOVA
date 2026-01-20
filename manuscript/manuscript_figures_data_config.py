@@ -3259,6 +3259,27 @@ class AAT_NOVA_Pilot2_UMAP0_CTL_and_C9_NT_1873_PPP2R1A(AAT_NOVA_Pilot2_UMAP0_CTL
     def __init__(self):
         super().__init__()
         self.CONDITIONS = self.CONDITIONS + ["PPP2R1A"]
+class AAT_NOVA_Pilot2_UMAP0_CTL_and_C9_NT_1873_MAPKAP1(AAT_NOVA_Pilot2_UMAP0_CTL_and_C9_NT_1873):
+    def __init__(self):
+        super().__init__()
+        self.CONDITIONS = self.CONDITIONS + ["MAPKAP1"]
+class AAT_NOVA_Pilot2_UMAP0_CTL_and_C9_NT_1873_PIK3C3(AAT_NOVA_Pilot2_UMAP0_CTL_and_C9_NT_1873):
+    def __init__(self):
+        super().__init__()
+        self.CONDITIONS = self.CONDITIONS + ["PIK3C3"]
+class AAT_NOVA_Pilot2_UMAP0_CTL_and_C9_NT_1873_NDUFAB1(AAT_NOVA_Pilot2_UMAP0_CTL_and_C9_NT_1873):
+    def __init__(self):
+        super().__init__()
+        self.CONDITIONS = self.CONDITIONS + ["NDUFAB1"]
+class AAT_NOVA_Pilot2_UMAP0_CTL_and_C9_NT_1873_NDUFS2(AAT_NOVA_Pilot2_UMAP0_CTL_and_C9_NT_1873):
+    def __init__(self):
+        super().__init__()
+        self.CONDITIONS = self.CONDITIONS + ["NDUFS2"]
+class AAT_NOVA_Pilot2_UMAP0_CTL_and_C9_NT_1873_NRIP1(AAT_NOVA_Pilot2_UMAP0_CTL_and_C9_NT_1873):
+    def __init__(self):
+        super().__init__()
+        self.CONDITIONS = self.CONDITIONS + ["NRIP1"]
+
 #XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 ############ UMAP 1 (fig per multiple markers) ##############
 
