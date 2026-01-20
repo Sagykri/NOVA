@@ -867,8 +867,8 @@ class Preprocessor(ABC):
                 return True, f"out of focus: below threshold"
             
         # CHANGE - tile brenner upper bound
-        # print("Brenner value:", get_image_focus_quality(image_channel))
-        # print("Brenner value rescaled:", get_image_focus_quality(image_channel_rescaled))
+        print("Brenner value:", get_image_focus_quality(image_channel))
+        print("Brenner value rescaled:", get_image_focus_quality(image_channel_rescaled))
         if get_image_focus_quality(image_channel_rescaled) >= self.preprocessing_config.MAX_BRENNER_THRESHOLD_TILE:
             return True, f"out of focus: above threshold"
 
@@ -902,8 +902,27 @@ class Preprocessor(ABC):
 
             return snr
 
+        def robust_background_normalization(img, k=11, eps=1e-6):
+            img = img.astype(np.float32)
+
+            # robust background estimate
+            med = np.median(img)
+            mad = np.median(np.abs(img - med)) + eps
+
+            # substract background and scale by spread
+            out =(img - med) / (k * mad)
+
+            # non-linear squashing
+            out = np.tanh((img - med) / (k * mad))
+
+            # enforce [0,1] range
+            out = np.clip(out, 0, 1)
+
+            return out
+
+
         check_signal = tile_name in self.preprocessing_config.NO_RESCALE_FOR_LOW_SIGNAL_MARKERS
-        snr_threshold = self.preprocessing_config.SNR_THRESHOLD_FOR_RESCALE
+        # snr_threshold = self.preprocessing_config.SNR_THRESHOLD_FOR_RESCALE
         #-------------------------
 
         H, W, C = tile.shape
@@ -914,21 +933,20 @@ class Preprocessor(ABC):
             # (!) CHANGED, pilot2: 
             channel_img = tile[...,c]
             if check_signal and c == self.preprocessing_config.MARKER_CHANNEL_INDEX: 
-                    # if marker is in the list of low-signal markers (on/off markers)
-                    # only for marker channel
-                    channel_snr = compute_snr(channel_img)
-                    # print(f"Channel {c} - SNR: {channel_snr}")
-                    #  If SNR below threshold - skip rescaling
-                    if channel_snr < snr_threshold:
-                        # print(f"Channel {c} - SNR below threshold, skipping rescaling.")
-                        result[...,c] = channel_img
-                    else:
-                    # if SNR above threshold - basic rescaling (only to be in range [0,1])
-                        # print(f"Channel {c} - SNR above threshold, rescaling with (0,100).")
-                        result[...,c] = rescale_intensity(channel_img,
-                                                    lower_bound=0,\
-                                                    upper_bound=100.0)
-                    continue
+                    # # if marker is in the list of low-signal markers (on/off markers)
+                    # # only for marker channel
+                    # channel_snr = compute_snr(channel_img)
+                    # # print(f"Channel {c} - SNR: {channel_snr}")
+                    # #  If SNR below threshold - skip rescaling
+                    # if channel_snr < snr_threshold:
+                    #     # print(f"Channel {c} - SNR below threshold, skipping rescaling.")
+                    #     result[...,c] = channel_img
+                    # else:
+                    # # if SNR above threshold - basic rescaling (only to be in range [0,1])
+                    #     # print(f"Channel {c} - SNR above threshold, rescaling with (0,100).")
+                        # result[...,c] = rescale_intensity(channel_img,lower_bound=0,upper_bound=100.0)
+                        result[...,c] = robust_background_normalization(channel_img)
+                        continue
             # predefined rescaling for all other cases
             result[...,c] = rescale_intensity(channel_img,
                                                     lower_bound=self.preprocessing_config.RESCALE_INTENSITY['LOWER_BOUND'][c],\

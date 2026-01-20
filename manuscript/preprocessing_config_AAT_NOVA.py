@@ -100,3 +100,33 @@ class PreprocessingBaseConfigAATNOVAPilot2Batch3PanelF2Rep2(PreprocessingBaseCon
         self.REPS = ["rep2"]
         self.PANELS = ["panelF"]
         self.MARKERS =  ["DAPI", "p62", "POM121",  "CathepsinD", "Brightfield"]
+
+class PreprocessingBaseConfigAATNOVAPilot2Batch1OnOffMarkers(PreprocessingBaseConfigAATNOVA_pilot2):
+    def __init__(self):
+        super().__init__()
+        self.INPUT_FOLDERS = [os.path.join(self.RAW_FOLDER_ROOT, "batch1")]
+        self.PROCESSED_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "batch1")]
+        self.OUTPUTS_FOLDER  = os.path.join(self.OUTPUTS_FOLDER, "batch1")
+
+        self.MARKERS =  ["DAPI", "pS6", "POM121", "p62", "Brightfield", "pAMPK"]
+        self.MARKERS_TO_EXCLUDE = ["ATF4", "FK-2", "SMI32", "pDRP1", "TOMM20", "pCaMKIIa", "pTDP-43", "TDP-43", "ATF6","G3BP1","PAR", "UNC13A", "Calreticulin","CathepsinD"]
+
+class PreprocessingBaseConfigAATNOVAPilot2Batch2OnOffMarkers(PreprocessingBaseConfigAATNOVA_pilot2):
+    def __init__(self):
+        super().__init__()
+        self.INPUT_FOLDERS = [os.path.join(self.RAW_FOLDER_ROOT, "batch2")]
+        self.PROCESSED_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "batch2")]
+        self.OUTPUTS_FOLDER  = os.path.join(self.OUTPUTS_FOLDER, "batch2")
+
+        self.MARKERS =  ["DAPI", "pS6", "POM121", "p62", "Brightfield", "pAMPK"]
+        self.MARKERS_TO_EXCLUDE = ["ATF4", "FK-2", "SMI32", "pDRP1", "TOMM20", "pCaMKIIa", "pTDP-43", "TDP-43", "ATF6","G3BP1","PAR", "UNC13A", "Calreticulin","CathepsinD"]
+        
+class PreprocessingBaseConfigAATNOVAPilot2Batch3OnOffMarkers(PreprocessingBaseConfigAATNOVA_pilot2):
+    def __init__(self):
+        super().__init__()
+        self.INPUT_FOLDERS = [os.path.join(self.RAW_FOLDER_ROOT, "batch3")]
+        self.PROCESSED_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "batch3")]
+        self.OUTPUTS_FOLDER  = os.path.join(self.OUTPUTS_FOLDER, "batch3")
+
+        self.MARKERS =  ["DAPI", "pS6", "POM121", "p62", "Brightfield", "pAMPK"]
+        self.MARKERS_TO_EXCLUDE = ["ATF4", "FK-2", "SMI32", "pDRP1", "TOMM20", "pCaMKIIa", "pTDP-43", "TDP-43", "ATF6","G3BP1","PAR", "UNC13A", "Calreticulin","CathepsinD"]
