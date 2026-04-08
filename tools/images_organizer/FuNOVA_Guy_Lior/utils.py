@@ -130,7 +130,8 @@ class Utils():
         # datestamp, pert1, pert2, pert3, n_days, panels = parent_folder.split('_')
         # batch = f"batch{os.path.dirname(folder).split('_')[1]}"
         #pilot2:
-        batch = os.path.dirname(folder)
+        #batch = os.path.dirname(folder)
+        batch = f"batch{os.path.dirname(folder).split('Plate')[1]}"
         panel = os.path.basename(folder)
         # lower case the first letter (Panel to panel)
         panel = panel[0].lower() + panel[1:]
@@ -247,6 +248,12 @@ class Utils():
                 dst_path = self.__get_dst_path(batch, matched_rep, panel, matched_condition, matched_cell_line, matched_marker, file_name)
                 src_path = os.path.join(folder_path, f)
                 
+                # destination exists and skip existing files
+                if os.path.exists(dst_path) and self.config.SKIP_EXISTING_FILES:
+                        dst_path_full = dst_path
+                        logging.info(f"Skipping existing file: {dst_path}")
+                        continue
+
                 # for DRY RUN - don't copy or move files
                 if self.config.DRY_RUN:
                     dst_path_full = dst_path
@@ -258,7 +265,7 @@ class Utils():
                 
                 n_copied += 1
                 logging.info(f"[{os.path.join(folder_path, f)}] {src_path} {'moved' if cut_files else 'copied'} to {dst_path_full}")
-                print(f"[{os.path.join(folder_path, f)}] {src_path} {'moved' if cut_files else 'copied'} to {dst_path_full}")
+                # print(f"[{os.path.join(folder_path, f)}] {src_path} {'moved' if cut_files else 'copied'} to {dst_path_full}")
                     
             except Exception as e:
                 logging.error(e, exc_info=True)

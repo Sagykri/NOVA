@@ -24,6 +24,12 @@ class PreprocessingConfig(BaseConfig):
         self.INPUT_FOLDERS:List[str] = None
         # An array to where to save the processed files
         self.PROCESSED_FOLDERS:List[str] = None
+
+        # If FILTER_EXIST_FILES is True, skips already processed files
+        self.FILTER_EXIST_FILES:bool = True
+
+        # FILTER_CUTOFF_TIMESTAMP, skip processed files only if were modified *after* this timestamp
+        self.FILTER_CUTOFF_TIMESTAMP:Union[None, Tuple[int,int,int,int,int,int]] =(2026, 1, 20, 0, 0, 0, 0, 0, -1) # (year, month, day, hour, minute, second)
         
         # The expected image shape
         self.EXPECTED_IMAGE_SHAPE:Tuple[int, int] = (1024,1024)

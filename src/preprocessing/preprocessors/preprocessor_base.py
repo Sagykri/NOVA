@@ -13,7 +13,7 @@ from cellpose import models
 import pandas as pd
 from shapely import affinity , make_valid
 from shapely.geometry import box ,Polygon
-
+import time
 from skimage.filters import threshold_otsu
 from scipy.ndimage import label as ncomp_label
 from skimage.measure import regionprops, label
@@ -369,7 +369,11 @@ class Preprocessor(ABC):
         
         logging.info(f"Processing group {group_id}")
 
-        self.__filter_already_processed_files_inplace(images_group, save_folder_path)
+        # CHNAGED - 21-01-2026, for re-processing of the on-off markers of AAT NOVA pilot2
+        if self.preprocessing_config.FILTER_EXIST_FILES:
+            self.__filter_already_processed_files_inplace(images_group, save_folder_path)
+            # cutoff_ts = time.mktime(self.preprocessing_config.FILTER_CUTOFF_TIMESTAMP)
+            # self.__filter_processed_files_by_date(images_group, save_folder_path, cutoff_ts)
 
         if len(images_group) == 0:
             logging.warning(f"[{group_id}] No images to process. All files already exist in {save_folder_path}")
@@ -592,6 +596,44 @@ class Preprocessor(ABC):
             
             # If the processed file does not exist, turn the flag to True
             if not os.path.exists(save_path):
+                has_unprocessed_marker_in_group = True
+                continue
+
+            # If the processed file exists, remove it from the group to avoid processing it again
+            logging.info(f"Skipping existing file: {save_path}")
+            images_group.pop(marker_name)
+
+    def __filter_processed_files_by_date(self, images_group: Dict[str, str], save_folder_path:str, cutoff_ts: float) -> None:
+        """
+        Keeps files that do not exit or were last modified before the cutoff timestamp.
+        Filter out already processed files in the images group (processed after the cutoff timestamp.)
+        
+        Args:
+            images_group (Dict[str, str]): Mapping of marker names to paths.
+            save_folder_path (str): The path to the folder where processed files are saved.
+            cutoff_ts (float): The cutoff timestamp.
+        
+        Returns:
+            None: The function modifies the images_group in place.
+        """
+        has_unprocessed_marker_in_group = False
+
+        markers = self.__sort_markers(images_group)
+        logging.info(f"Markers in the group: {markers}")
+
+        for marker_name in markers:
+            # If we have unprocessed marker in the group, return and don't filter out (i.e. do process) DAPI
+            if has_unprocessed_marker_in_group and marker_name == self.__NUCLEUS_MARKER_NAME:
+                return
+
+            raw_path = images_group[marker_name]
+            
+            save_path = os.path.join(save_folder_path, Preprocessor.raw2processed_path(raw_path))
+            
+            # If the processed file does not exist, 
+            # or it was last modified before the cutoff timestamp,
+            # turn the flag to True
+            if (not os.path.exists(save_path)) or (os.path.getmtime(save_path) < cutoff_ts):
                 has_unprocessed_marker_in_group = True
                 continue
 
@@ -867,8 +909,6 @@ class Preprocessor(ABC):
                 return True, f"out of focus: below threshold"
             
         # CHANGE - tile brenner upper bound
-        print("Brenner value:", get_image_focus_quality(image_channel))
-        print("Brenner value rescaled:", get_image_focus_quality(image_channel_rescaled))
         if get_image_focus_quality(image_channel_rescaled) >= self.preprocessing_config.MAX_BRENNER_THRESHOLD_TILE:
             return True, f"out of focus: above threshold"
 
@@ -885,23 +925,7 @@ class Preprocessor(ABC):
         Returns:
         - np.ndarray of same shape as tile with function applied per channel (H,W,C)
         """
-        # CHANGE - added to pilot 2:
-        def compute_snr(img):
-            # 1. Identify Background (bottom 10% of pixels)
-            bg_threshold = np.percentile(img, 10)
-            bg_pixels = img[img <= bg_threshold]
-            
-            mu_b = np.mean(bg_pixels)
-            sigma_b = np.std(bg_pixels)
-            
-            # 2. Identify Potential Signal (top 5% of pixels)
-            mu_s = np.percentile(img, 95)
-            
-            # 3. Calculate SNR (add small epsilon to avoid division by zero)
-            snr = (mu_s - mu_b) / (sigma_b + 1e-6)
-
-            return snr
-
+        # CHANGE - added to pilot 2, re-preprocessing for on-off markers
         def robust_background_normalization(img, k=11, eps=1e-6):
             img = img.astype(np.float32)
 
@@ -922,7 +946,6 @@ class Preprocessor(ABC):
 
 
         check_signal = tile_name in self.preprocessing_config.NO_RESCALE_FOR_LOW_SIGNAL_MARKERS
-        # snr_threshold = self.preprocessing_config.SNR_THRESHOLD_FOR_RESCALE
         #-------------------------
 
         H, W, C = tile.shape
@@ -933,18 +956,6 @@ class Preprocessor(ABC):
             # (!) CHANGED, pilot2: 
             channel_img = tile[...,c]
             if check_signal and c == self.preprocessing_config.MARKER_CHANNEL_INDEX: 
-                    # # if marker is in the list of low-signal markers (on/off markers)
-                    # # only for marker channel
-                    # channel_snr = compute_snr(channel_img)
-                    # # print(f"Channel {c} - SNR: {channel_snr}")
-                    # #  If SNR below threshold - skip rescaling
-                    # if channel_snr < snr_threshold:
-                    #     # print(f"Channel {c} - SNR below threshold, skipping rescaling.")
-                    #     result[...,c] = channel_img
-                    # else:
-                    # # if SNR above threshold - basic rescaling (only to be in range [0,1])
-                    #     # print(f"Channel {c} - SNR above threshold, rescaling with (0,100).")
-                        # result[...,c] = rescale_intensity(channel_img,lower_bound=0,upper_bound=100.0)
                         result[...,c] = robust_background_normalization(channel_img)
                         continue
             # predefined rescaling for all other cases

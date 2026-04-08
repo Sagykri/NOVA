@@ -91,6 +91,7 @@ class PreprocessingBaseConfigAATNOVAPilot2Batch3(PreprocessingBaseConfigAATNOVA_
         self.PROCESSED_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "batch3")]
         self.OUTPUTS_FOLDER  = os.path.join(self.OUTPUTS_FOLDER, "batch3")
 
+# missing: sorting mismatch for rep2 panelF2
 class PreprocessingBaseConfigAATNOVAPilot2Batch3PanelF2Rep2(PreprocessingBaseConfigAATNOVAPilot2Batch3):
     def __init__(self):
         super().__init__()
@@ -101,6 +102,7 @@ class PreprocessingBaseConfigAATNOVAPilot2Batch3PanelF2Rep2(PreprocessingBaseCon
         self.PANELS = ["panelF"]
         self.MARKERS =  ["DAPI", "p62", "POM121",  "CathepsinD", "Brightfield"]
 
+# re-run for on/off markers (without snr thresholding, with new robust_background_normalization)
 class PreprocessingBaseConfigAATNOVAPilot2Batch1OnOffMarkers(PreprocessingBaseConfigAATNOVA_pilot2):
     def __init__(self):
         super().__init__()
@@ -130,3 +132,19 @@ class PreprocessingBaseConfigAATNOVAPilot2Batch3OnOffMarkers(PreprocessingBaseCo
 
         self.MARKERS =  ["DAPI", "pS6", "POM121", "p62", "Brightfield", "pAMPK"]
         self.MARKERS_TO_EXCLUDE = ["ATF4", "FK-2", "SMI32", "pDRP1", "TOMM20", "pCaMKIIa", "pTDP-43", "TDP-43", "ATF6","G3BP1","PAR", "UNC13A", "Calreticulin","CathepsinD"]
+
+# missing: projection (flexp) mismatch - C9 Untreated rep2 panelC
+class PreprocessingBaseConfigAATNOVAPilot2Batch3C9PanelCRep2MissingImgs(PreprocessingBaseConfigAATNOVA_pilot2):
+    def __init__(self):
+        super().__init__()
+        self.INPUT_FOLDERS = [os.path.join(self.RAW_FOLDER_ROOT, "batch3")]
+        self.PROCESSED_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, "batch3")]
+        self.OUTPUTS_FOLDER  = os.path.join(self.OUTPUTS_FOLDER, "batch3")
+
+        self.MARKERS = ["DAPI", "ATF4", "pTDP-43", "ATF6", "Brightfield"]
+        self.MARKERS_TO_EXCLUDE = ["FK-2", "SMI32", "pDRP1", "TOMM20", "pCaMKIIa", "TDP-43", "pAMPK", "G3BP1", "pS6", "PAR", "UNC13A", "Calreticulin", "POM121", "p62", "CathepsinD"]
+
+        self.CELL_LINES = ["C9"]
+        self.CONDITIONS = ["Untreated"]
+        self.REPS = ["rep2"]
+        self.PANELS = ["panelC"]

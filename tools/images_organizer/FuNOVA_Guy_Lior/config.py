@@ -53,9 +53,12 @@ class Config():
 
         # If set to True, running as "dry run" - doesn't copy/move files, only prints to logs
         self.DRY_RUN = False
+
+        # If set to True, existing files in DST_ROOT_PATH will be skipped (not copied/moved)
+        self.SKIP_EXISTING_FILES = True
         
         # If set to False, the files will be *copied* to DST_ROOT_PATH, otherwise, the files will be *cut*/*moved* to DST_ROOT_PATH
-        self.CUT_FILES = False
+        self.CUT_FILES = True
         
         # Raise exception when index couldn't be found in the config?
         self.RAISE_ON_MISSING_INDEX = True
