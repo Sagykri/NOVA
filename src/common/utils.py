@@ -97,7 +97,7 @@ def filter_paths_by_substrings(paths: List[Path], substrings: List[str], part_in
     # Determine whether to filter out or keep paths based on the part matching the substrings
     return [
         path for path in paths
-        if len(path.parts) > abs(part_index) and (
+        if len(path.parts) >= abs(part_index) and (
             (not any(substring in path.parts[part_index] for substring in substrings)) if filter_out
             else (any(substring in path.parts[part_index] for substring in substrings))
         )

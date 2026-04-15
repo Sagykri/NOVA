@@ -1,4 +1,5 @@
 from collections import Counter, defaultdict
+from functools import partial
 import logging
 from multiprocessing import Pool
 import os
@@ -30,6 +31,26 @@ from src.preprocessing.preprocessing_utils import get_nuclei_count, crop_image_t
                                                       is_contains_whole_nucleus, rescale_intensity, \
                                                       is_tile_focused, get_image_focus_quality
 from src.preprocessing.preprocessing_config import PreprocessingConfig
+
+# wrapper func for multiprocessing
+def _wrapper_func(instance, group_id, images_group, output_folder):
+    """
+    Unpacks arguments and calls the instance method.
+    Using a standalone function avoids many pickling headaches.
+    """
+    try:
+        # args_tuple here will be (group_id, images_group, output_folder)
+        return instance._process_images_group_and_save(group_id, images_group, output_folder)
+    except Exception as e:
+        import traceback
+        logging.error(f"Error in process with args - group_id:{group_id}, images_group:{images_group}, output_folder:{output_folder}:\n {e}")
+        traceback.print_exc()
+        raise e
+
+def _test_wrapper(group_id, images_group, output_folder):
+    # Do NOT use 'instance' or 'self' here
+    print(f"DEBUG: Worker started for {group_id}", flush=True)
+    return True
 
 class Preprocessor(ABC):
     def __init__(self, preprocessing_config: PreprocessingConfig):
@@ -117,6 +138,7 @@ class Preprocessor(ABC):
         filename = filename.replace(f"{rep}_", '').replace(f"{panel}_", "").replace(f"{celline}_", "").replace("_processed","")
         
         return os.path.join(celline, panel, condition, rep, marker, f"{filename}.tif")
+    
 
     def preprocess(self, multiprocess=True) -> None:
             """
@@ -134,12 +156,13 @@ class Preprocessor(ABC):
                 logging.info(f"input folder: {input_folder}, output folder: {output_folder}")
                 
                 images_groups = self.__get_grouped_images_for_folder(input_folder)
-                
+                task_args = [ (gid, img_dict, output_folder) for gid, img_dict in images_groups.items()]
+                num_tasks = len(task_args)
+                logging.info(f"Prepared {num_tasks} tasks for folder {input_folder}")
                 if multiprocess:
                     # Use multiprocessing to parallelize the image preprocessing
                     with Pool(self.preprocessing_config.NUM_WORKERS) as pool:
-                            args = [t + (output_folder,) for t in images_groups.items()]
-                            pool.starmap(self._process_images_group_and_save, args)
+                            pool.starmap(partial(_wrapper_func, self), task_args)
                 else:
                     # Run sequentially
                     for group_id, images_group in images_groups.items():
@@ -309,7 +332,7 @@ class Preprocessor(ABC):
         image = fit_image_shape(image, self.preprocessing_config.EXPECTED_IMAGE_SHAPE) 
 
         # rescaled on default threholds to fit the brenner values
-        scaled_for_brenner_image = rescale_intensity(image, lower_bound=0.5, upper_bound=99.9) 
+        scaled_for_brenner_image = rescale_intensity(image, lower_bound=0.0, upper_bound=100.0) 
         
         if self.markers_focus_boundries is not None:
             # Filter out-of-focus images
@@ -735,12 +758,12 @@ class Preprocessor(ABC):
 
             # avoid clouds 4500,0.022- 
             if blob_size > self.preprocessing_config.MAX_BLOB_AREA and blob_variance > self.preprocessing_config.MAX_VARIANCE_BIG_BLOBS:
-                #print("blob too big and high variance - tile failed. (cloud?)")
+                # print("blob too big and high variance - tile failed. (cloud?)")
                 return True, "dead_cells: cloud like"
 
             # blob is too big, and is elipse - whale cell, 4500,elipse
             if blob_size > self.preprocessing_config.MAX_BLOB_AREA and elipse:
-                #print("blob too big and is elipse - tile failed. (whale?)")
+                # print("blob too big and is elipse - tile failed. (whale?)")
                 return True, "dead_cells: whale like"
             
             # check shape of the cell only if size is in the range of ALIVE cells (avoid cell merging)
@@ -770,19 +793,19 @@ class Preprocessor(ABC):
                     if blob_median >= intensity_threshold or \
                     blob_variance <= self.preprocessing_config.MAX_VARIANCE_NUCLEI_BLOB_THRESHOLD:
                         # DEAD CELL failed thresholds
-                        #print("DEAD CELL failed thresholds")
+                        # print("DEAD CELL failed thresholds")
                         num_dead_cells += 1
                         continue
                     # DEAD CELL passed thresholds - skipping. 
-                    #print("dead cell didn't fail thresholds (doesn't touch edge)")
+                    # print("dead cell didn't fail thresholds (doesn't touch edge)")
                 else: # touches edge
                     # DEAD CELL is touching edge - skipping. 
-                    #print("dead cell didn't fail thresholds (touching edge)")
+                    # print("dead cell didn't fail thresholds (touching edge)")
                     continue
             ###############################################################
         if num_alive_cells == 0:
             # Failed - No alive cells.
-            #print("Failed - No alive cells.") 
+            # print("Failed - No alive cells.") 
             return  True, "dead_cells: no alive cells"
         
         return False, None           
