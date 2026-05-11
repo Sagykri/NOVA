@@ -61,7 +61,7 @@ class Config():
         self.CUT_FILES = True
         
         # Raise exception when index couldn't be found in the config?
-        self.RAISE_ON_MISSING_INDEX = True
+        self.RAISE_ON_MISSING_INDEX = False
 
         self.FILENAME_POSTFIX = ""
         ##################################

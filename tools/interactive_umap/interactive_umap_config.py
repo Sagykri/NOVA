@@ -302,3 +302,21 @@ configs = {
     k: v for k, v in globals().items()
     if k.startswith("config") and not callable(v)
 }
+
+## FuNOVA Screen ##
+config_FuNOVA_Screen = {
+    'paths':{
+    'umaps_folder' : f'{new_finetuned_figures_path}/FuNOVA_Screen/UMAPs',
+    'csv_path' : '/home/projects/hornsteinlab/Collaboration/NOVA/outputs/preprocessing/FuNOVA_Screen/brenner/raw_metrics_2026-04-09_RESCALE0-100.csv',
+    'images_dir' : ['/home/projects/hornsteinlab/Collaboration/Guy_Lior/fuNOVA_Screen/sorted/batch1']
+    },
+    'layouts': base_fov_layout,
+    'name': 'FuNOVA_Screen'
+}
+# Collect all variables starting with "config" into a dictionary called `configs`.
+# This allows easy access to all config objects via: configs['config_name']
+configs = {
+    k: v for k, v in globals().items()
+    if k.startswith("config") and not callable(v)
+}
+

@@ -29,13 +29,14 @@ def main():
 
     print("DRY RUN: ", utils_obj.config.DRY_RUN)
     print(f"CUT_FILES: {utils_obj.config.CUT_FILES}")
+    print(f"SKIP_EXISTING_FILES: {utils_obj.config.SKIP_EXISTING_FILES}")
     
     folders = utils_obj.get_folders_to_handle()
     assert all([os.path.exists(os.path.join(utils_obj.config.SRC_ROOT_PATH, f)) and os.path.isdir(os.path.join(utils_obj.config.SRC_ROOT_PATH, f)) for f in folders]), "One or more of the specified folders don't exists (or aren't folders)"
     
     for folder in folders:
             folder_path, batch, panel = utils_obj.init_folders(folder)#, replace_wells=copy_well_folder)
-            
+            folder_path = folder_path+"/flexp"
             # Copy files to dist
             n_copied += utils_obj.copy_files(folder_path, panel, batch, cut_files=utils_obj.config.CUT_FILES,
                                              raise_on_missing_index=utils_obj.config.RAISE_ON_MISSING_INDEX)#, replace_wells=copy_well_folder, wells=wells)

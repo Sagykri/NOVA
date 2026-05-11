@@ -622,3 +622,40 @@ class AATNOVAEffectConfigNT_CTLvsC9_onlyCYLD(AATNOVAEffectConfigNT_CTLvsC9):
     def __init__(self):
         super().__init__("CYLD")
 
+# --------------------------------------------------------------------------------------------------
+############### FuNOVA Screen ###############
+
+class FuNOVAScreenEffectConfig(EffectConfig):
+    def __init__(self):
+        super().__init__()
+
+        self.EXPERIMENT_TYPE = 'FuNOVA_Screen'
+
+        # The path to the data folders
+        self.INPUT_FOLDERS =  ["batch1"]
+        
+        self.BASELINE:str = None # example: WT_Untreated
+        self.PERTURBATION:str = None # example: WT_stress
+        # Dictionary mapping each baseline to a list of perturbations.
+        self.BASELINE_PERTURB:Dict[int:List[int]] = None # Used for Alyssa's data. for example: {'WT_Untreated':['WT_stress']}
+
+        self.MIN_REQUIRED:int = 30 # min required sites!
+
+        self.N_BOOT:int = 200
+
+        self.SUBSAMPLE_FRACTION = 0.8 # fraction of samples to use in each bootstrap iteration (the formula is: max(MIN_REQUIRED, int(n_samples ** SUBSAMPLE_FRACTION)) (i.e. to the power))
+
+        self.BOOTSTRAP_TRIMMING_ALPHA = 0 # fraction of extreme values to trim from the bootstrap distribution for estimating the variance (e.g. 0.01 means trimming 1% from each tail) (Default: 0, no trimming)
+
+# NON TARGETING CONTROLS
+# ['non-targeting_00004_00017_p1', 'non-targeting_00010_00031_p1', 'non-targeting_00035_00050_p1', 'non-targeting_00053_00059_p1', 'non-targeting_00111_00121_p1']
+
+class FuNOVAScreenEffectConfigC9_NTvsKD(FuNOVAScreenEffectConfig):
+    def __init__(self,cell_line, control, perturbation):
+        super().__init__()
+        self.CELL_LINE:str = cell_line # example: C9
+        self.CONTROL:str = control # example: NT
+        self.PERTUB_NAME:str = perturbation # example: PPP2R1A
+        self.BASELINE:str =  f"{self.CELL_LINE}_{self.CONTROL}" #"C9_NT
+        self.PERTURBATION:str = f"{self.CELL_LINE}_{self.PERTUB_NAME}" # example: C9_PPP2R1A
+

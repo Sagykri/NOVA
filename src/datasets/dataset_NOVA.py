@@ -280,6 +280,9 @@ class DatasetNOVA(DatasetBase):
         condition = self.__extract_condition(marker_folder)
         batch = self.__extract_batch(marker_folder)
 
+        if "_" in condition:
+            condition = condition.replace("_", "-")
+
         label = marker_name
         if flags['cellline']:
             label += f"_{cell_line}"

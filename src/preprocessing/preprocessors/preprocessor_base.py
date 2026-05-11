@@ -47,10 +47,21 @@ def _wrapper_func(instance, group_id, images_group, output_folder):
         traceback.print_exc()
         raise e
 
-def _test_wrapper(group_id, images_group, output_folder):
-    # Do NOT use 'instance' or 'self' here
-    print(f"DEBUG: Worker started for {group_id}", flush=True)
-    return True
+def _batch_wrapper_func(instance, task_batch):
+    """
+    Receives a list of tasks. Self is pickled once for the whole list.
+    """
+    results = []
+    for gid, img_dict, output_folder in task_batch:
+        try:
+            res = instance._process_images_group_and_save(gid, img_dict, output_folder)
+            results.append(res)
+        except Exception as e:
+            logging.error(f"Error in group {gid}: {e}")
+    return results
+class MissingNucleusError(Exception):
+    """Raised when the essential nucleus channel is missing from a group."""
+    pass
 
 class Preprocessor(ABC):
     def __init__(self, preprocessing_config: PreprocessingConfig):
@@ -139,6 +150,9 @@ class Preprocessor(ABC):
         
         return os.path.join(celline, panel, condition, rep, marker, f"{filename}.tif")
     
+    def __batch_tasks(self, task_list, batch_size):
+        for i in range(0, len(task_list), batch_size):
+            yield task_list[i:i + batch_size]
 
     def preprocess(self, multiprocess=True) -> None:
             """
@@ -158,13 +172,18 @@ class Preprocessor(ABC):
                 images_groups = self.__get_grouped_images_for_folder(input_folder)
                 task_args = [ (gid, img_dict, output_folder) for gid, img_dict in images_groups.items()]
                 num_tasks = len(task_args)
-                logging.info(f"Prepared {num_tasks} tasks for folder {input_folder}")
+
                 if multiprocess:
                     # Use multiprocessing to parallelize the image preprocessing
+                    batch_size = 1000  # Adjust based on memory; 500 groups per process execution
+                    task_batches = list(self.__batch_tasks(task_args, batch_size))
+                    logging.info(f"Grouped {num_tasks} tasks into {len(task_batches)} batches.")
                     with Pool(self.preprocessing_config.NUM_WORKERS) as pool:
-                            pool.starmap(partial(_wrapper_func, self), task_args)
+                            # pool.starmap(partial(_wrapper_func, self), task_args)
+                            pool.map(partial(_batch_wrapper_func, self), task_batches)
                 else:
                     # Run sequentially
+                    logging.info(f"Prepared {num_tasks} tasks for folder {input_folder}")
                     for group_id, images_group in images_groups.items():
                         self._process_images_group_and_save(group_id, images_group, output_folder)
                 
@@ -402,6 +421,15 @@ class Preprocessor(ABC):
             logging.warning(f"[{group_id}] No images to process. All files already exist in {save_folder_path}")
             return
 
+        if self.__NUCLEUS_MARKER_NAME not in images_group:
+            print(
+                f"Nucleus marker '{self.__NUCLEUS_MARKER_NAME}' not found. "
+                f"Available markers: {list(images_group.keys())}"
+                f"Group ID: {group_id}"
+            )
+            logging.warning(f"[{group_id}] DAPI channel is missing. Skipping this group.")
+            return
+            
         nucleus_path = images_group[self.__NUCLEUS_MARKER_NAME]
         logging.info(f"[{group_id}] Processing {self.__NUCLEUS_MARKER_NAME}: {nucleus_path}")
         
@@ -428,7 +456,15 @@ class Preprocessor(ABC):
             panel_has_valid_markers = True
 
         # For being able to filter out DAPI in case all panel markers are invalid, DAPI must be last
-        for marker_name in markers: 
+        for marker_name in markers:
+            if marker_name not in images_group:
+                print(
+                    f"Marker '{marker_name}' not found. "
+                    f"Available markers: {list(images_group.keys())}"
+                    f"Group ID: {group_id}"
+                )
+                logging.warning(f"[{group_id}] {marker_name} channel is missing. Skipping this group.")
+                continue
             marker_path = images_group[marker_name]
             logging.info(f"[{group_id}] Processing marker: {marker_name} from path: {marker_path}")
 

@@ -417,6 +417,7 @@ class InteractiveUMAPPipeline:
                 self.pickle_status_label.value = f"<span style='color: red;'>❌ Pickle file not found:</span><br><code></code>"
                 return  # Stop execution if file doesn't exist
 
+
             self.umap_embeddings, self.label_data, self.config_data, self.config_plot, self.df_umap_tiles = load_and_process_data(
                 self.umaps_dir_widget.text_input.value.strip(), pickle_file_path, self.df_brenner)
 

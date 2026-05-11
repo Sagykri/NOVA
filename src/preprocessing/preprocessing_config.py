@@ -46,7 +46,7 @@ class PreprocessingConfig(BaseConfig):
         # The width of main image frame - to recognize nuceli intersecting with main frame
         self.FRAME_WIDTH_BUFFER:float = 1
         # Num of workers to use when running the preprocessing in parallel
-        self.NUM_WORKERS:int = 6
+        self.NUM_WORKERS:int = 7
         
         # Settings for cellpose
         # For more details please see: https://cellpose.readthedocs.io/en/latest/settings.html

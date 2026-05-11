@@ -269,7 +269,7 @@ def create_folder_structure(folder_type, markers,cell_lines_to_cond, reps, panel
                                                     for cond in cell_lines_to_cond[cell_line]}
 
         elif folder_type == 'raw':
-            folder_structure[cell_line] = {f'panel{panel}':
+            folder_structure[cell_line] = {f'Panel{panel}':
                                             {cond: 
                                             {f"{rep}":
                                             {marker:{marker} for marker in panels[panel] if not pd.isna(marker)} for rep in reps}

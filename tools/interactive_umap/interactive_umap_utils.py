@@ -24,17 +24,20 @@ def load_and_process_data(umaps_dir, path_to_umap, df_brenner=None, print_valida
     with open(umaps_dir + path_to_umap, "rb") as f:
         data = pickle.load(f)
     
+    print("umaps_dir:", umaps_dir)
+    print("path_to_umap:", path_to_umap)
     umap_embeddings = data["umap_embeddings"]
     label_data = data["label_data"]
     paths = data['paths']
     config_data = data["config_data"]
     config_plot = data["config_plot"]
 
+    print("paths:", paths[:5])  # Print first 5 paths for verification
     
     # Regex pattern to extract Batch, Condition, Rep, Raw Image Name, Panel, Cell Line, and Tile
     pattern = re.compile(
         r".*/((?:[Bb]atch\d+_?)+)/([^/]+)/([^/]+)/([^/]+)/"# Batch / Cell_Line / Condition / Marker
-        r"(rep\d+)_([^/]*_panel(\w+)_.*)_processed\.npy/(\d+)"      # Rep / Image_Name, Panel, Tile
+        r"(rep\d+)_([^/]*_[Pp]anel(\w+)_.*)_processed\.npy/(\d+)"      # Rep / Image_Name, Panel, Tile
     )
 
     colnames = ["Batch", "CellLine", "Condition", "Marker", "Rep", "Image_Name", "Panel", "Tile"]
@@ -189,7 +192,14 @@ def process_tile(df, index):
         overlay: RGB overlay image (H, W, 3)
     """
     path = df.Path.loc[index]
+    print("colnames:", df.columns.tolist())
+    tile_num = df.Tile.loc[index]
+    if tile_num is np.nan:
+        print(f'❌ Tile number is missing in the DataFrame. Please check the metadata extraction.')
+        print(f"Loading image from {path}...")
+        return None, None, None
     tile = int(df.Tile.loc[index])
+    
 
     image = np.load(path)
     site_image = image[tile]
@@ -219,6 +229,7 @@ def show_processed_tile(df, index=0):
     - nucleus: 2D image of the normalized nucleus channel
     - overlay: RGB overlay image as a (H, W, 3) array
     """
+
     marker, nucleus, overlay = process_tile(df, index)
     image_name = df.Image_Name.loc[index]
     tile = df.Tile.loc[index]
@@ -413,9 +424,10 @@ def extract_umap_data(base_dir):
     Returns:
     - pd.DataFrame: DataFrame containing extracted metadata.
     """
-    CELL_LINE_LIST = ["CTL", "C9"]
-    CONDITIONS_LIST = ["PPP2R1A","HMGCS1","PIK3C3","NDUFAB1","MAPKAP1","NDUFS2","RALA","TLK1","NRIP1","TARDBP","RANBP17","CYLD","NT-1873","NT-6301-3085","Intergenic","Untreated"]
-    MARKER_LIST = ["DAPI", "Cas3", "FK-2", "SMI32", "pDRP1", "TOMM20", "pCaMKIIa", "pTDP-43", "TDP-43", "ATF6", "pAMPK", "HDGFL2", "pS6", "PAR", "UNC13A", "Calreticulin", "LC3-II", "p62", "CathepsinD"]
+    from NOVA.manuscript.FuNOVA_Screen_Conditions_Lists import plate1_conditions, plate2_conditions, plate3_conditions, plate4_conditions
+    CELL_LINE_LIST = ["C9"]
+    CONDITIONS_LIST = plate1_conditions + plate2_conditions + plate3_conditions + plate4_conditions
+    MARKER_LIST = ['DAPI', 'TDP-43', 'p62', 'pTDP-43', 'ATF6', 'pAMPK', 'G3BP1', 'Calreticulin', 'Aggreagtes', 'Cas3', 'pS6']
 
     # Regex to extract metadata from folder names
     folder_pattern = re.compile(

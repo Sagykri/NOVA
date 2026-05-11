@@ -3589,6 +3589,9 @@ class AAT_NOVA_Pilot2_UMAP1_C9_only_TDP_pTDP_DAPI(AAT_NOVA_Pilot2_UMAP1_C9):
         super().__init__()
         self.MARKERS = ["DAPI", "TDP-43", "pTDP-43"]
 
+#XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+# FuNOVA_Screen configs live in manuscript_figures_data_config_FuNOVA_Screen.py
+# (and the spec-driven generated file alongside it).
 
 #XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 # -------------NIH--------------------

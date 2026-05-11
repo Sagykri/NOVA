@@ -49,6 +49,15 @@ def get_mappings(col_idx_1, col_idx_2, plate):
             for row_idx, gene in enumerate(genes):
                 mapping[gene] = [(row_idx+1, col_idx_1 + col_shift), (row_idx+1, col_idx_2 + col_shift)]
     
+    # filter to keep specific genes only (for testing)
+    genes_to_keep = ["non-targeting_00004_00017_p1", "non-targeting_00004_00017_p2",
+                     "non-targeting_00004_00017_p3","non-targeting_00004_00017_p4", 
+                     "non-targeting_00010_00031_p1", "non-targeting_00010_00031_p2", "non-targeting_00010_00031_p3", "non-targeting_00010_00031_p4","non-targeting_00035_00050_p1", "non-targeting_00035_00050_p2", "non-targeting_00035_00050_p3", "non-targeting_00035_00050_p4", "non-targeting_00053_00059_p1", "non-targeting_00053_00059_p2", "non-targeting_00053_00059_p3", "non-targeting_00053_00059_p4", "non-targeting_00111_00121_p1", "non-targeting_00111_00121_p2", "non-targeting_00111_00121_p3", "non-targeting_00111_00121_p4", 
+                     "Empty_p1", "Empty_p2", "Empty_p3", "Empty_p4",
+                     "TDP-43_p3", "TDP-43_p4", 
+                     "Ranbp17_p3", "Ranbp17_p4"]
+    mapping = {gene: mapping[gene] for gene in genes_to_keep if gene in mapping}
+    
     return {"C9": mapping}
 
 class Config_Base_Data(Config):
