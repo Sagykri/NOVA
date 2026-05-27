@@ -68,7 +68,8 @@ class Preprocessor(ABC):
         self.preprocessing_config = preprocessing_config
         # The depth of the folder holding the markers folders
         self.__SUPPORTED_EXTENSIONS = ['tiff', 'tif']
-        self.__NUCLEUS_MARKER_NAME = "DAPI"
+
+        self.__NUCLEUS_MARKER_NAME = getattr(preprocessing_config, "NUCLEUS_MARKER_NAME", "DAPI")
         
         self.cellpose_model = models.Cellpose(gpu=True, model_type='nuclei')
         
@@ -175,7 +176,7 @@ class Preprocessor(ABC):
 
                 if multiprocess:
                     # Use multiprocessing to parallelize the image preprocessing
-                    batch_size = 1000  # Adjust based on memory; 500 groups per process execution
+                    batch_size = 100  # Adjust based on memory; 500 groups per process execution
                     task_batches = list(self.__batch_tasks(task_args, batch_size))
                     logging.info(f"Grouped {num_tasks} tasks into {len(task_batches)} batches.")
                     with Pool(self.preprocessing_config.NUM_WORKERS) as pool:
@@ -787,7 +788,7 @@ class Preprocessor(ABC):
             # pilot 1:
             # if blob is too big - return False, as it is probabaly large noise
             # if blob_size > self.preprocessing_config.MAX_ALIVE_NUCLEI_AREA:
-            #     print("blob too big tile failed.")
+            #     # print("blob too big tile failed.")
             #     return True
             # if not elipse and blob_size:
             #     continue

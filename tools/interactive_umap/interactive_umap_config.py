@@ -296,12 +296,7 @@ config_AAT_NOVA_pilot2 = {
     'layouts': base_fov_layout,
     'name': 'AAT_NOVA_pilot2'
 }
-# Collect all variables starting with "config" into a dictionary called `configs`.
-# This allows easy access to all config objects via: configs['config_name']
-configs = {
-    k: v for k, v in globals().items()
-    if k.startswith("config") and not callable(v)
-}
+
 
 ## FuNOVA Screen ##
 config_FuNOVA_Screen = {
@@ -312,6 +307,17 @@ config_FuNOVA_Screen = {
     },
     'layouts': base_fov_layout,
     'name': 'FuNOVA_Screen'
+}
+
+
+config_RANBP17_exp = {
+    'paths':{
+    'umaps_folder' : f'{new_finetuned_figures_path}/RANBP17-exp/UMAPs',
+    'csv_path' : '/home/projects/hornsteinlab/Collaboration/NOVA/outputs/preprocessing/RANBP17_exp/brenner/raw_metrics_2026-05-18_RESCALE0.0-100.0.csv',
+    'images_dir' : ['/home/projects/hornsteinlab/Collaboration/Guy_Lior/RANBP17_exp/co-localization_and_KD/sorted/batch1']
+    },
+    'layouts': base_fov_layout,
+    'name': 'RANBP17_exp'
 }
 # Collect all variables starting with "config" into a dictionary called `configs`.
 # This allows easy access to all config objects via: configs['config_name']

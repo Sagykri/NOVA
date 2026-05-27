@@ -24,6 +24,9 @@ def run_preprocessing():
     logging.info(f"[Preprocessing]{f'Running in multiprocessing with {run_config.NUM_WORKERS} workers' if is_multiprocess else ''}")
     
     logging.info(f"Importing preprocessor class.. {run_config.PREPROCESSOR_CLASS_PATH}")
+    logging.info(f"input raw root: {run_config.RAW_FOLDER_ROOT}")
+    logging.info(f"input proc root: {run_config.PROCESSED_FOLDER_ROOT}")
+
     preprocessor_class: Preprocessor = get_class(run_config.PREPROCESSOR_CLASS_PATH)
     
     logging.info(f"Instantiate preprocessor {type(preprocessor_class)}")

@@ -424,10 +424,15 @@ def extract_umap_data(base_dir):
     Returns:
     - pd.DataFrame: DataFrame containing extracted metadata.
     """
-    from NOVA.manuscript.FuNOVA_Screen_Conditions_Lists import plate1_conditions, plate2_conditions, plate3_conditions, plate4_conditions
-    CELL_LINE_LIST = ["C9"]
-    CONDITIONS_LIST = plate1_conditions + plate2_conditions + plate3_conditions + plate4_conditions
-    MARKER_LIST = ['DAPI', 'TDP-43', 'p62', 'pTDP-43', 'ATF6', 'pAMPK', 'G3BP1', 'Calreticulin', 'Aggreagtes', 'Cas3', 'pS6']
+
+    #FuNOVA screen
+    # from NOVA.manuscript.FuNOVA_Screen_Conditions_Lists import plate1_conditions, plate2_conditions, plate3_conditions, plate4_conditions
+    # CELL_LINE_LIST = ["C9"]
+    # CONDITIONS_LIST = plate1_conditions + plate2_conditions + plate3_conditions + plate4_conditions
+    # MARKER_LIST = ['DAPI', 'TDP-43', 'p62', 'pTDP-43', 'ATF6', 'pAMPK', 'G3BP1', 'Calreticulin', 'Aggreagtes', 'Cas3', 'pS6']
+    CELL_LINE_LIST = ["iW11"]
+    CONDITIONS_LIST = ['tardp-kd', 'ranbp17-kd', 'both-kd', 'control-179', 'control-180', 'untreated']
+    MARKER_LIST = ['DAPI', 'TDP-43', 'RANBP17']
 
     # Regex to extract metadata from folder names
     folder_pattern = re.compile(

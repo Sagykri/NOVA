@@ -5,19 +5,17 @@ import numpy as np
 import sys
 sys.path.insert(0, os.getenv("HOME"))
 sys.path.insert(1, os.getenv("NOVA_HOME"))
-from tools.images_organizer.FuNOVA_screen.utils import Utils
+from tools.images_organizer.RANBP17_exp.utils import Utils
 from src.common.utils import get_class
 
 def main():
     config_path = sys.argv[1]
-    batch = int(sys.argv[2])
-    plate = int(sys.argv[3])
+    plate = int(sys.argv[2])
     print("config_path:", config_path)
-    print("Batch:", batch)
     print("Plate:", plate)
     
     config_class = get_class(config_path)
-    config = config_class(batch, plate)
+    config = config_class(plate)
     utils_obj = Utils(config)
     
     n_copied = 0
@@ -36,7 +34,8 @@ def main():
     
     for folder in folders:
             folder_path, batch, panel = utils_obj.init_folders(folder)#, replace_wells=copy_well_folder)
-            # folder_path = folder_path+"/flexp"
+            folder_path = folder_path+"/flexp"
+            print(f"Handling folder: {folder_path}")
             # Copy files to dist
             n_copied += utils_obj.copy_files(folder_path, panel, batch, cut_files=utils_obj.config.CUT_FILES,
                                              raise_on_missing_index=utils_obj.config.RAISE_ON_MISSING_INDEX)#, replace_wells=copy_well_folder, wells=wells)

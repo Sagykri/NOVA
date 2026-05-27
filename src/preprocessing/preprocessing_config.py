@@ -60,11 +60,11 @@ class PreprocessingConfig(BaseConfig):
         # Requirement: 0<=lower_bound<=upper_bound<=100
         # For more details see: https://scikit-image.org/docs/stable/api/skimage.exposure.html#skimage.exposure.rescale_intensity 
         self.MARKER_CHANNEL_INDEX:int = 0
-        self.NO_RESCALE_FOR_LOW_SIGNAL_MARKERS: List[str] = ["pS6", "POM121", "p62", "Brightfield", "pAMPK"] # list of markers (names) for which to skip rescaling if low SNR (on/off markers)
+        self.NO_RESCALE_FOR_LOW_SIGNAL_MARKERS: List[str] = [] #["pS6", "POM121", "p62", "Brightfield", "pAMPK"] # list of markers (names) for which to skip rescaling if low SNR (on/off markers)
         self.SNR_THRESHOLD_FOR_RESCALE: float = 20.0
         self.RESCALE_INTENSITY = { # PER CHANNEL
-            'LOWER_BOUND': [0.5 ,1.0], # pilot2: [0.5 ,0.5] # pilot1: [2.5 ,0.5] # Marker, DAPI
-            'UPPER_BOUND': [99.8, 99.5] # pilot2:  [99.4, 99.3] # pilot1: [99.45, 100] # Marker, DAPI
+            'LOWER_BOUND': [0.5 ,0.5], # screen batch1 [0.5 ,1.0] # pilot2: [0.5 ,0.5] # pilot1: [2.5 ,0.5] # Marker, DAPI
+            'UPPER_BOUND': [99.9, 99.75] # screen batch1 [99.8, 99.5] # pilot2:  [99.4, 99.3] # pilot1: [99.45, 100] # Marker, DAPI
         }
 
         # The path to the file holding the focus boundries for each marker
@@ -82,7 +82,7 @@ class PreprocessingConfig(BaseConfig):
 
         # NUCLEI (DAPI)
         # Before rescale intenisty
-        self.MAX_INTENSITY_THRESHOLD_NUCLEI:float = 0.17 #pilot2: 0.17# old funova  0.2 # none: 0 # NOVA: 0.2 
+        self.MAX_INTENSITY_THRESHOLD_NUCLEI:float = 0.05 # screen b1: 0.17 #pilot2: 0.17# old funova  0.2 # none: 0 # NOVA: 0.2 
         # After rescale intenisty
         self.VARIANCE_THRESHOLD_NUCLEI:float = 0.028 #pilot2: 0.028 # old funova - 0.02 # none: 0 # NOVA: 0.03 
 
@@ -93,30 +93,30 @@ class PreprocessingConfig(BaseConfig):
         self.MAX_NUM_NUCLEI_BLOB:int = 15 # pilot2: 15 # pilot1: 12 # old funova 12 # None - ~500
 
         # Minimum area of a nuclei to be considered alive (in pixels)
-        self.MIN_ALIVE_NUCLEI_AREA: int = 1050 #pilot2: 1050 # pilot 1: 1150 #old funova 700 # none:-1 #  NOVA: 800 
+        self.MIN_ALIVE_NUCLEI_AREA: int = 900 # screen b1: 1050 #pilot2: 1050 # pilot 1: 1150 #old funova 700 # none:-1 #  NOVA: 800 
 
         # NEW THRESHOLDS
         # filter for elipse-like shape, using - skimage.measure.regionprops
-        self.MAX_ECC:float = 0.91 # pilot2:0.88 # pilot1: 0.83 # maximum allowed eccentricity (0=circle, 1=line)
+        self.MAX_ECC:float = 0.92# screen b1: 0.91 # pilot2:0.88 # pilot1: 0.83 # maximum allowed eccentricity (0=circle, 1=line)
         self.AR_RANGE:tuple = (1.0, 3.0) #pilot2:(1.0, 3.0) # pilot1:(0.9, 3.0) # allowed range for aspect ratio (major/minor axis)
-        self.MIN_SOL:float = 0.88 #pilot2: 0.88 # pilot1:0.92 # minimum ratio of area to convex hull area (0–1)
+        self.MIN_SOL:float = 0.8# screen b1: 0.88 #pilot2: 0.88 # pilot1:0.92 # minimum ratio of area to convex hull area (0–1)
 
         # brenner focus thresholds for tiles
         self.MAX_BRENNER_THRESHOLD_TILE:float = 1000.0 # increased to 1000 for on-off markers, before it was 650 #pilot2: 1000.0 # new thresholds for pilot 2
 
         # whales or clouds
-        self.MAX_BLOB_AREA:int = 6000 #pilot2: 4500 # new for pilot2: try to avoid "whales" or clouds 
+        self.MAX_BLOB_AREA:int = 8000 # screen b1: 6000 #pilot2: 4500 # new for pilot2: try to avoid "whales" or clouds 
         self.MAX_VARIANCE_BIG_BLOBS:float = 0.026 #pilot2: 0.022 # new for pilot 2: avoid big blobs with high variance
 
         # Thresholds for filtering ALIVE cell
         # maximum area of an alive nuclei (above is probably noise or a smear)
         self.MAX_ALIVE_NUCLEI_AREA: int = 3500 #pilot2: 3500 # pilot1: 4200  
         # below minimal thresholds
-        self.MIN_VARIANCE_THRESHOLD_ALIVE_NUCLEI: float = 0.006 #pilot2: 0.005 # pilot 1:0.006 # old funova 0.01 # None 0.0
-        self.MIN_MEDIAN_INTENSITY_THRESHOLD_ALIVE_NUCLEI: float = 0.4 #pilot2: 0.4 # pilot 1: 0.68  # old funova 0.25 # None 0.25
+        self.MIN_VARIANCE_THRESHOLD_ALIVE_NUCLEI: float = 0.0045# screen b1:0.006 #pilot2: 0.005 # pilot 1:0.006 # old funova 0.01 # None 0.0
+        self.MIN_MEDIAN_INTENSITY_THRESHOLD_ALIVE_NUCLEI: float = 0.45 # screen b1:0.4 #pilot2: 0.4 # pilot 1: 0.68  # old funova 0.25 # None 0.25
         # above maximal thresholds
-        self.MAX_VARIANCE_THRESHOLD_ALIVE_NUCLEI: float = 0.021 #pilot2: 0.026 # pilot 1: 0.0265 # old funova 0.03 # None 1.0
-        self.MAX_MEDIAN_INTENSITY_THRESHOLD_ALIVE_NUCLEI: float = 0.82 #pilot2: 0.82# pilot 1: 0.96 # old funova 0.6 # None 1.0
+        self.MAX_VARIANCE_THRESHOLD_ALIVE_NUCLEI: float = 0.032 # screen b1:0.021 #pilot2: 0.026 # pilot 1: 0.0265 # old funova 0.03 # None 1.0
+        self.MAX_MEDIAN_INTENSITY_THRESHOLD_ALIVE_NUCLEI: float = 0.9# screen b1:0.82 #pilot2: 0.82# pilot 1: 0.96 # old funova 0.6 # None 1.0
 
         # Threshold for fitering DEAD Nucleus detected in [__is_contains_dead_cells]
         self.MIN_NUCLEI_BLOB_AREA:int = 450 # pilot2:450 # minimum size for a blob to be considered as dead cell

@@ -32,10 +32,11 @@ class Config():
         #####################################
 
         # Path to source folder (root)
-        self.SRC_ROOT_PATH = os.path.join(FUNOVA_SCREEN_DIR, "fuNOVA_Screen_B1","projected_new_cy3")
+
+        self.SRC_ROOT_PATH = os.path.join(FUNOVA_SCREEN_DIR, "RANBP17_exp","co-localization_and_KD", "projected")
 
         # Path to destination folder (root)
-        self.DST_ROOT_PATH = os.path.join(FUNOVA_SCREEN_DIR, "fuNOVA_Screen","sorted")
+        self.DST_ROOT_PATH = os.path.join(FUNOVA_SCREEN_DIR, "RANBP17_exp","co-localization_and_KD", "sorted")
 
         # Names of folders to handle
         # - For selecting all folders in SRC_ROOT_PATH - set FOLDERS to None or delete the assignment 
@@ -58,7 +59,7 @@ class Config():
         self.SKIP_EXISTING_FILES = True
         
         # If set to False, the files will be *copied* to DST_ROOT_PATH, otherwise, the files will be *cut*/*moved* to DST_ROOT_PATH
-        self.CUT_FILES = True
+        self.CUT_FILES = False
         
         # Raise exception when index couldn't be found in the config?
         self.RAISE_ON_MISSING_INDEX = False
