@@ -25,10 +25,11 @@ from src.common.utils import init_logging, flat_list_of_lists
 from tools.preprocessing_tools.image_sampling_utils import sample_images_all_markers_all_lines
 
 # Global Params
-DATA_DIR = "/home/projects/hornsteinlab/Collaboration/Guy_Lior"
+DATA_DIR = "/home/projects/hornsteinlab/Collaboration/Guy_Lior/RANBP17_exp/co-localization_and_KD"
 BASE_DIR = os.path.join('/home','projects','hornsteinlab','Collaboration','NOVA')
-INPUT_DIR = os.path.join(DATA_DIR, "RANBP17_exp", "co-localization_and_KD", "sorted")
+INPUT_DIR = os.path.join(DATA_DIR, "sorted")
 OUTPUT_DIR = os.path.join(BASE_DIR, "outputs", "preprocessing", "RANBP17_exp", "brenner")
+BATCHES = ["batch3"]
 os.makedirs(OUTPUT_DIR, exist_ok=True)
 DATE = date.today().strftime("%Y-%m-%d")
 
@@ -138,9 +139,10 @@ def get_metrics(tile):
 
 def main():
 
-    batches = ['batch1']
-    log_file_path = os.path.join(OUTPUT_DIR, f"{DATE}_RESCALE{LOWER_BOUND}-{UPPER_BOUND}.log")
-    savepath = os.path.join(OUTPUT_DIR, f"raw_metrics_{DATE}_RESCALE{LOWER_BOUND}-{UPPER_BOUND}.csv")
+    batches = BATCHES
+    batches_str = '_'.join(batches)
+    log_file_path = os.path.join(OUTPUT_DIR, f"{DATE}_RESCALE{LOWER_BOUND}-{UPPER_BOUND}_{batches_str}.log")
+    savepath = os.path.join(OUTPUT_DIR, f"raw_metrics_{DATE}_RESCALE{LOWER_BOUND}-{UPPER_BOUND}_{batches_str}.csv")
     init_logging(log_file_path)
     
     logging.info("Starting outlier detection..")

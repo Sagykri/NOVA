@@ -53,7 +53,8 @@ class Utils():
 
     def __get_batch(self, batch):
         # for screen batch 1 return batch1 for all plates
-        return "batch1"
+        batch_num = batch.split('batch')[1]
+        return f"batch{batch_num}"
 
 
     def __get_reps_ranges(self, cell_line, condition):

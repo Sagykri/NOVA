@@ -23,7 +23,6 @@ class EmbeddingsRANBP17ExpDatasetConfig(EmbeddingsConfig):
         self.SETS:List[str] = ['testset']
 
         self.CELL_LINES:List[str]  = ["iW11"]
-        self.CONDITIONS:List[str]  = ["tardp-kd", "ranbp17-kd", "control-179", "control-180", "both-kd", "untreated"]
         
         self.MARKERS:List[str]  = ['DAPI', 'TDP-43', 'RANBP17']
 
@@ -35,5 +34,25 @@ class EmbeddingsRANBP17ExpBatch1DatasetConfig(EmbeddingsRANBP17ExpDatasetConfig)
 
         self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, f) for f in 
                         ["batch1"]]
+        
+        self.CONDITIONS:List[str]  = ["tardp-kd", "ranbp17-kd", "control-179", "control-180", "both-kd", "untreated"]
+
+class EmbeddingsRANBP17ExpBatch2DatasetConfig(EmbeddingsRANBP17ExpDatasetConfig):
+    def __init__(self):
+        super().__init__()
+
+        self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, f) for f in 
+                        ["batch2"]]
+        
+        self.CONDITIONS:List[str]  = ["tardp-kd", "ranbp17-kd", "control-179", "control-180", "both-kd"]
+
+class EmbeddingsRANBP17ExpBatch3DatasetConfig(EmbeddingsRANBP17ExpDatasetConfig):
+    def __init__(self):
+        super().__init__()
+
+        self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, f) for f in 
+                        ["batch3"]]
+        
+        self.CONDITIONS:List[str]  = ["tardp-kd", "ranbp17-kd", "control-179", "control-180", "both-kd", "untreated"]
 
         

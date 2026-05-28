@@ -143,6 +143,14 @@ def get_cell_lines_conditions_from_labels(labels: np.ndarray[str], dataset_confi
     cell_line_conditions = get_parts_from_labels(labels=labels, indices=(cell_line_idx,condition_idx+1))
     return cell_line_conditions
 
+def get_conditions_markers_from_labels(labels: np.ndarray[str], dataset_config:DatasetConfig) -> np.ndarray[str]:
+    if not dataset_config.ADD_CONDITION_TO_LABEL:
+        logging.warning(f'DatasetConfig.ADD_CONDITION_TO_LABEL is FALSE, cannot extract condition_marker from labels!')
+        return None
+    conditions = get_conditions_from_labels(labels, dataset_config)
+    markers = get_markers_from_labels(labels)
+    return np.array([f"{c}_{m}" for c, m in zip(conditions, markers)])
+
 def get_cell_lines_condition_batches_from_labels(labels: np.ndarray[str], dataset_config:DatasetConfig, multiplex:bool = False) -> np.ndarray[str]:
     if not dataset_config.ADD_LINE_TO_LABEL:
         logging.warning(f'DatasetConfig.ADD_LINE_TO_LABEL is FALSE, cannot extract cell lines from labels!')
@@ -250,6 +258,7 @@ def multiplex_cell_lines_condition_batches(labels:np.ndarray[str], dataset_confi
 class MapLabelsFunction(Enum):
     MARKERS = (get_markers_from_labels,)
     CONDITIONS = (get_conditions_from_labels,)
+    CONDITIONS_MARKERS = (get_conditions_markers_from_labels,)
     CELL_LINES = (get_cell_lines_from_labels,)
     CELL_LINES_CONDITIONS = (get_cell_lines_conditions_from_labels,)
     REPS = (get_reps_from_labels,)

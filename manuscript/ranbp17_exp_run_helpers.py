@@ -47,6 +47,7 @@ COLOR_BY_MAP = {
     "cell_line":           (0, "CELL_LINES",            "COLOR_MAPPINGS_RANBP17_EXP_CELL_LINES"),
     "cell_line_condition": (0, "CELL_LINES_CONDITIONS", "COLOR_MAPPINGS_RANBP17_EXP_CELL_LINE_CONDITIONS"),
     "marker":              (1, "MARKERS",               "COLOR_MAPPINGS_RANBP17_EXP_MARKERS"),
+    "condition_marker":    (1, "CONDITIONS_MARKERS",    "COLOR_MAPPINGS_RANBP17_EXP_CONDITIONS_MARKERS"),
 }
 
 # spec-key → BaseFigureConfig attribute name
@@ -138,6 +139,12 @@ def _gen_plot_class(spec, data=None):
     elif color_by == "cell_line_condition" and run_conditions:
         cls = list(run_cell_lines) if run_cell_lines else ["iW11"]
         palette_expr = f"self.make_cell_line_condition_palette({cls!r}, {list(run_conditions)!r})"
+    elif color_by == "condition_marker" and run_conditions:
+        from manuscript.manuscript_figures_data_config_RANBP17_exp import RANBP17_exp_MARKERS as _ALL_MARKERS
+        run_markers = data.get("markers")
+        markers_to_exclude = set(data.get("markers_to_exclude") or [])
+        effective_markers = [m for m in (run_markers or _ALL_MARKERS) if m not in markers_to_exclude]
+        palette_expr = f"self.make_condition_marker_palette({list(run_conditions)!r}, {list(effective_markers)!r})"
     else:
         palette_expr = f"self.{color_attr}"
 
@@ -213,12 +220,16 @@ def _bsub_command(idx, data_class, plot_class, dir_label, memory,
 
 def submit_runs(runs, memory=10000, dir="$run_type", submit=False, verbose=True,
                 nova_home=None, model_path="$MODEL_PATH", user_nova_home=None,
-                reset=False):
+                reset=False, batch=None):
     """Generate config classes from `runs` specs, append them to the two .py
     files (skipping any class names that already exist), and return / optionally
     execute the bsub commands.
 
     Each run is a dict: {"data": {...spec...}, "plot": {...spec..., "color_by": ...}}
+
+    batch=<str>  : auto-injects input_folders=[batch] into each data spec (if not
+                   already set) and prefixes class names with the batch to prevent
+                   cross-batch collisions (e.g. "batch2" → class prefix "Batch2_").
 
     reset=True wipes both _generated.py files before writing — use this only
     when no previously-submitted bsub jobs still need their old classes.
@@ -237,10 +248,18 @@ def submit_runs(runs, memory=10000, dir="$run_type", submit=False, verbose=True,
     new_data, kept_data = [], []
     new_plot, kept_plot = [], []
     for run in runs:
-        d_name, d_src = _gen_data_class(run["data"])
+        d_spec = dict(run["data"])
+        if batch is not None:
+            if "input_folders" not in d_spec:
+                d_spec["input_folders"] = [batch]
+            batch_prefix = batch[0].upper() + batch[1:]  # "batch2" → "Batch2"
+            orig_name = d_spec.get("name", "unnamed")
+            if not orig_name.startswith(batch_prefix + "_"):
+                d_spec["name"] = f"{batch_prefix}_{orig_name}"
+        d_name, d_src = _gen_data_class(d_spec)
         p_name, p_src = _gen_plot_class(
-            {**run["plot"], "name": run["data"].get("name", "unnamed")},
-            data=run["data"],
+            {**run["plot"], "name": d_spec.get("name", "unnamed")},
+            data=d_spec,
         )
         pairs.append((d_name, p_name))
 

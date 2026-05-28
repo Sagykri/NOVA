@@ -176,7 +176,7 @@ class Preprocessor(ABC):
 
                 if multiprocess:
                     # Use multiprocessing to parallelize the image preprocessing
-                    batch_size = 100  # Adjust based on memory; 500 groups per process execution
+                    batch_size = 150  # Adjust based on memory; 500 groups per process execution
                     task_batches = list(self.__batch_tasks(task_args, batch_size))
                     logging.info(f"Grouped {num_tasks} tasks into {len(task_batches)} batches.")
                     with Pool(self.preprocessing_config.NUM_WORKERS) as pool:

@@ -107,3 +107,213 @@ class RANBP17_exp_Data_AllCond_Highlight_ranbp17_kd(RANBP17_exp_BaseFigureConfig
     def __init__(self):
         super().__init__()
         pass
+
+
+class RANBP17_exp_Data_Batch2_AllCond(RANBP17_exp_BaseFigureConfig):
+    def __init__(self):
+        super().__init__()
+        self.INPUT_FOLDERS = ['batch2']
+        self.CONDITIONS = ['tardp-kd', 'ranbp17-kd', 'control-179', 'control-180', 'both-kd']
+
+
+class RANBP17_exp_Data_Batch2_AllCond_AllMarkers(RANBP17_exp_BaseFigureConfig):
+    def __init__(self):
+        super().__init__()
+        self.INPUT_FOLDERS = ['batch2']
+
+
+class RANBP17_exp_Data_Batch2_AllCond_woDAPI(RANBP17_exp_BaseFigureConfig):
+    def __init__(self):
+        super().__init__()
+        self.INPUT_FOLDERS = ['batch2']
+        self.MARKERS_TO_EXCLUDE = ['DAPI']
+
+
+class RANBP17_exp_Data_Batch2_AllData_ByReps(RANBP17_exp_BaseFigureConfig):
+    def __init__(self):
+        super().__init__()
+        self.INPUT_FOLDERS = ['batch2']
+
+
+class RANBP17_exp_Data_Batch2_AllData_ByBatches(RANBP17_exp_BaseFigureConfig):
+    def __init__(self):
+        super().__init__()
+        self.INPUT_FOLDERS = ['batch2']
+
+
+class RANBP17_exp_Data_Batch2_BinaryCtrlKD(RANBP17_exp_BaseFigureConfig):
+    def __init__(self):
+        super().__init__()
+        self.INPUT_FOLDERS = ['batch2']
+        self.CONDITIONS = ['tardp-kd', 'ranbp17-kd', 'both-kd', 'control-179', 'control-180']
+
+
+class RANBP17_exp_Data_Batch2_tardp_kd_vs_control_179(RANBP17_exp_BaseFigureConfig):
+    def __init__(self):
+        super().__init__()
+        self.INPUT_FOLDERS = ['batch2']
+        self.CONDITIONS = ['tardp-kd', 'control-179']
+
+
+class RANBP17_exp_Data_Batch2_tardp_kd_vs_control_180(RANBP17_exp_BaseFigureConfig):
+    def __init__(self):
+        super().__init__()
+        self.INPUT_FOLDERS = ['batch2']
+        self.CONDITIONS = ['tardp-kd', 'control-180']
+
+
+class RANBP17_exp_Data_Batch2_ranbp17_kd_vs_control_179(RANBP17_exp_BaseFigureConfig):
+    def __init__(self):
+        super().__init__()
+        self.INPUT_FOLDERS = ['batch2']
+        self.CONDITIONS = ['ranbp17-kd', 'control-179']
+
+
+class RANBP17_exp_Data_Batch2_ranbp17_kd_vs_control_180(RANBP17_exp_BaseFigureConfig):
+    def __init__(self):
+        super().__init__()
+        self.INPUT_FOLDERS = ['batch2']
+        self.CONDITIONS = ['ranbp17-kd', 'control-180']
+
+
+class RANBP17_exp_Data_Batch2_both_kd_vs_control_179(RANBP17_exp_BaseFigureConfig):
+    def __init__(self):
+        super().__init__()
+        self.INPUT_FOLDERS = ['batch2']
+        self.CONDITIONS = ['both-kd', 'control-179']
+
+
+class RANBP17_exp_Data_Batch2_both_kd_vs_control_180(RANBP17_exp_BaseFigureConfig):
+    def __init__(self):
+        super().__init__()
+        self.INPUT_FOLDERS = ['batch2']
+        self.CONDITIONS = ['both-kd', 'control-180']
+
+
+class RANBP17_exp_Data_Batch2_AllCond_Highlight_ranbp17_kd(RANBP17_exp_BaseFigureConfig):
+    def __init__(self):
+        super().__init__()
+        self.INPUT_FOLDERS = ['batch2']
+
+
+class RANBP17_exp_Data_Batch3_AllCond(RANBP17_exp_BaseFigureConfig):
+    def __init__(self):
+        super().__init__()
+        self.INPUT_FOLDERS = ['batch3']
+        self.CONDITIONS = ['tardp-kd', 'ranbp17-kd', 'control-179', 'control-180', 'both-kd', 'untreated']
+
+
+class RANBP17_exp_Data_Batch3_AllCond_AllMarkers(RANBP17_exp_BaseFigureConfig):
+    def __init__(self):
+        super().__init__()
+        self.INPUT_FOLDERS = ['batch3']
+
+
+class RANBP17_exp_Data_Batch3_AllCond_woDAPI(RANBP17_exp_BaseFigureConfig):
+    def __init__(self):
+        super().__init__()
+        self.INPUT_FOLDERS = ['batch3']
+        self.MARKERS_TO_EXCLUDE = ['DAPI']
+
+
+class RANBP17_exp_Data_Batch3_AllData_ByReps(RANBP17_exp_BaseFigureConfig):
+    def __init__(self):
+        super().__init__()
+        self.INPUT_FOLDERS = ['batch3']
+
+
+class RANBP17_exp_Data_Batch3_AllData_ByBatches(RANBP17_exp_BaseFigureConfig):
+    def __init__(self):
+        super().__init__()
+        self.INPUT_FOLDERS = ['batch3']
+
+
+class RANBP17_exp_Data_Batch3_BinaryCtrlKD(RANBP17_exp_BaseFigureConfig):
+    def __init__(self):
+        super().__init__()
+        self.INPUT_FOLDERS = ['batch3']
+        self.CONDITIONS = ['tardp-kd', 'ranbp17-kd', 'both-kd', 'control-179', 'control-180', 'untreated']
+
+
+class RANBP17_exp_Data_Batch3_tardp_kd_vs_control_179(RANBP17_exp_BaseFigureConfig):
+    def __init__(self):
+        super().__init__()
+        self.INPUT_FOLDERS = ['batch3']
+        self.CONDITIONS = ['tardp-kd', 'control-179']
+
+
+class RANBP17_exp_Data_Batch3_tardp_kd_vs_control_180(RANBP17_exp_BaseFigureConfig):
+    def __init__(self):
+        super().__init__()
+        self.INPUT_FOLDERS = ['batch3']
+        self.CONDITIONS = ['tardp-kd', 'control-180']
+
+
+class RANBP17_exp_Data_Batch3_tardp_kd_vs_untreated(RANBP17_exp_BaseFigureConfig):
+    def __init__(self):
+        super().__init__()
+        self.INPUT_FOLDERS = ['batch3']
+        self.CONDITIONS = ['tardp-kd', 'untreated']
+
+
+class RANBP17_exp_Data_Batch3_ranbp17_kd_vs_control_179(RANBP17_exp_BaseFigureConfig):
+    def __init__(self):
+        super().__init__()
+        self.INPUT_FOLDERS = ['batch3']
+        self.CONDITIONS = ['ranbp17-kd', 'control-179']
+
+
+class RANBP17_exp_Data_Batch3_ranbp17_kd_vs_control_180(RANBP17_exp_BaseFigureConfig):
+    def __init__(self):
+        super().__init__()
+        self.INPUT_FOLDERS = ['batch3']
+        self.CONDITIONS = ['ranbp17-kd', 'control-180']
+
+
+class RANBP17_exp_Data_Batch3_ranbp17_kd_vs_untreated(RANBP17_exp_BaseFigureConfig):
+    def __init__(self):
+        super().__init__()
+        self.INPUT_FOLDERS = ['batch3']
+        self.CONDITIONS = ['ranbp17-kd', 'untreated']
+
+
+class RANBP17_exp_Data_Batch3_both_kd_vs_control_179(RANBP17_exp_BaseFigureConfig):
+    def __init__(self):
+        super().__init__()
+        self.INPUT_FOLDERS = ['batch3']
+        self.CONDITIONS = ['both-kd', 'control-179']
+
+
+class RANBP17_exp_Data_Batch3_both_kd_vs_control_180(RANBP17_exp_BaseFigureConfig):
+    def __init__(self):
+        super().__init__()
+        self.INPUT_FOLDERS = ['batch3']
+        self.CONDITIONS = ['both-kd', 'control-180']
+
+
+class RANBP17_exp_Data_Batch3_both_kd_vs_untreated(RANBP17_exp_BaseFigureConfig):
+    def __init__(self):
+        super().__init__()
+        self.INPUT_FOLDERS = ['batch3']
+        self.CONDITIONS = ['both-kd', 'untreated']
+
+
+class RANBP17_exp_Data_Batch3_AllCond_Highlight_ranbp17_kd(RANBP17_exp_BaseFigureConfig):
+    def __init__(self):
+        super().__init__()
+        self.INPUT_FOLDERS = ['batch3']
+
+
+class RANBP17_exp_Data_Batch3_ControlCond(RANBP17_exp_BaseFigureConfig):
+    def __init__(self):
+        super().__init__()
+        self.INPUT_FOLDERS = ['batch3']
+        self.CONDITIONS = ['control-179', 'control-180', 'untreated']
+
+
+class RANBP17_exp_Data_Batch3_CondMarker_ranbp17kd_ctrl179(RANBP17_exp_BaseFigureConfig):
+    def __init__(self):
+        super().__init__()
+        self.INPUT_FOLDERS = ['batch3']
+        self.CONDITIONS = ['ranbp17-kd', 'control-179']
+        self.MARKERS_TO_EXCLUDE = ['DAPI']

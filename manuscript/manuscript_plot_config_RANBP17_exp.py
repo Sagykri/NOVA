@@ -24,6 +24,8 @@ class RANBP17_exp_BasePlotConfig(PlotConfig):
     def __init__(self):
         super().__init__()
 
+        self.NUCLEUS_MARKER_PLOT_FRACTION = 1.0
+
         self.COLOR_MAPPINGS_RANBP17_EXP_REPS = {
             'rep1': {self.MAPPINGS_ALIAS_KEY: 'Rep1', self.MAPPINGS_COLOR_KEY: '#F04521'},
             'rep2': {self.MAPPINGS_ALIAS_KEY: 'Rep2', self.MAPPINGS_COLOR_KEY: '#4343FE'},
@@ -33,6 +35,8 @@ class RANBP17_exp_BasePlotConfig(PlotConfig):
 
         self.COLOR_MAPPINGS_RANBP17_EXP_BATCHES = {
             'batch1': {self.MAPPINGS_ALIAS_KEY: 'Batch1', self.MAPPINGS_COLOR_KEY: '#409A14'},
+            'batch2': {self.MAPPINGS_ALIAS_KEY: 'Batch2', self.MAPPINGS_COLOR_KEY: '#9467BD'},
+            'batch3': {self.MAPPINGS_ALIAS_KEY: 'Batch3', self.MAPPINGS_COLOR_KEY: '#17BECF'},
         }
 
         self.COLOR_MAPPINGS_RANBP17_EXP_CELL_LINES = {
@@ -64,6 +68,14 @@ class RANBP17_exp_BasePlotConfig(PlotConfig):
             for key, hex_color in cell_cond_palette.items()
         }
 
+        # condition_marker combos: warm = ranbp17-kd, cool = control-179
+        self.COLOR_MAPPINGS_RANBP17_EXP_CONDITIONS_MARKERS = {
+            'ranbp17-kd_TDP-43':  {self.MAPPINGS_ALIAS_KEY: 'ranbp17-kd TDP-43',  self.MAPPINGS_COLOR_KEY: '#D62728'},
+            'ranbp17-kd_RANBP17': {self.MAPPINGS_ALIAS_KEY: 'ranbp17-kd RANBP17', self.MAPPINGS_COLOR_KEY: '#FF7F0E'},
+            'control-179_TDP-43': {self.MAPPINGS_ALIAS_KEY: 'ctrl-179 TDP-43',    self.MAPPINGS_COLOR_KEY: '#1F77B4'},
+            'control-179_RANBP17':{self.MAPPINGS_ALIAS_KEY: 'ctrl-179 RANBP17',   self.MAPPINGS_COLOR_KEY: '#17BECF'},
+        }
+
     def make_condition_palette(self, conditions, cmap_name='hsv'):
         """Build a fresh {condition: {alias, color}} dict sized to N=len(conditions).
         Falls back to the hand-picked palette where a condition is known."""
@@ -84,3 +96,16 @@ class RANBP17_exp_BasePlotConfig(PlotConfig):
             k: {self.MAPPINGS_ALIAS_KEY: k, self.MAPPINGS_COLOR_KEY: hex_color}
             for k, hex_color in palette.items()
         }
+
+    def make_condition_marker_palette(self, conditions, markers, cmap_name='hsv'):
+        """Build {condition_marker: {alias, color}} for all conditions × markers.
+        Falls back to hand-picked colors from COLOR_MAPPINGS_RANBP17_EXP_CONDITIONS_MARKERS."""
+        keys = [f'{c}_{m}' for c in conditions for m in markers]
+        palette = _categorical_palette(keys, cmap_name)
+        out = {}
+        for k, hex_color in palette.items():
+            if k in self.COLOR_MAPPINGS_RANBP17_EXP_CONDITIONS_MARKERS:
+                out[k] = self.COLOR_MAPPINGS_RANBP17_EXP_CONDITIONS_MARKERS[k]
+            else:
+                out[k] = {self.MAPPINGS_ALIAS_KEY: k, self.MAPPINGS_COLOR_KEY: hex_color}
+        return out
