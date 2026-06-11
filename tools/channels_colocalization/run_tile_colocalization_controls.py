@@ -278,9 +278,9 @@ def main():
             logger.warning("  no scorable tiles; skipping pair.")
             continue
 
-        # --- Persist per-tile scores (drop the array column).
+        # --- Persist per-tile scores.
         csv_path = os.path.join(save_path, f'{anchor}_{partner}_fraction_overlap_tiles.csv')
-        df_overlap.drop(columns=['tile_data']).to_csv(csv_path, index=False)
+        df_overlap.to_csv(csv_path, index=False)
 
         # --- Stats: replicate-level (primary) + per-tile descriptive + CV.
         repl, agg = replicate_level_test(df_clean)
@@ -304,7 +304,7 @@ def main():
         if not args.no_sample_tiles:
             sample_dir = os.path.join(save_path, 'sample_tiles')
             os.makedirs(sample_dir, exist_ok=True)
-            show_sample_tiles(df_overlap, df, anchor, partner, MASK_K_MAP,
+            show_sample_tiles(df_overlap, anchor, partner, MASK_K_MAP,
                               n_per_condition=2, output_dir=sample_dir)
 
         summary_rows.append({
