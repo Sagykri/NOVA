@@ -7,7 +7,8 @@ sys.path.insert(0, os.getenv("HOME"))
 sys.path.insert(1, os.getenv("NOVA_HOME"))
 print(f"NOVA_HOME: {os.getenv('NOVA_HOME')}")
 
-DATA_DIR = "/home/projects/hornsteinlab/Collaboration/Guy_Lior/RANBP17_exp/co-localization_and_KD"
+DATA_INPUT_DIR = "/home/projects/hornsteinlab/Collaboration/Guy_Lior/RANBP17_exp_full"
+DATA_OUTPUT_DIR = "/home/projects/hornsteinlab/Collaboration/Guy_Lior/RANBP17_exp/co-localization_and_KD"
 class Config():
     def __init__(self):
         super().__init__()
@@ -33,10 +34,10 @@ class Config():
 
         # Path to source folder (root)
 
-        self.SRC_ROOT_PATH = os.path.join(DATA_DIR, "projected")
+        self.SRC_ROOT_PATH = os.path.join(DATA_INPUT_DIR, "projected")
 
         # Path to destination folder (root)
-        self.DST_ROOT_PATH = os.path.join(DATA_DIR, "sorted")
+        self.DST_ROOT_PATH = os.path.join(DATA_OUTPUT_DIR, "sorted")
 
         # Names of folders to handle
         # - For selecting all folders in SRC_ROOT_PATH - set FOLDERS to None or delete the assignment 

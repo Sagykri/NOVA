@@ -377,6 +377,223 @@ class RANBP17_exp_Plot_Batch2_AllCond_Highlight_ranbp17_kd_condition(RANBP17_exp
         self.COLOR_MAPPINGS_MARKERS = self.COLOR_MAPPINGS_RANBP17_EXP_MARKERS
 
 
+class RANBP17_exp_Plot_Batch3_Partial_AllCond_condition(RANBP17_exp_BasePlotConfig):
+    def __init__(self):
+        super().__init__()
+        self.MAP_LABELS_FUNCTION = MapLabelsFunction.CONDITIONS.name
+        self.UMAP_TYPE = 0
+        self.SIZE = 5
+        self.ALPHA = 1
+        self.COLOR_MAPPINGS = self.make_condition_palette(['tardp-kd', 'ranbp17-kd', 'control-179', 'control-180', 'both-kd', 'untreated'])
+        self.COLOR_MAPPINGS_MARKERS = self.COLOR_MAPPINGS_RANBP17_EXP_MARKERS
+
+
+class RANBP17_exp_Plot_Batch3_Partial_AllCond_AllMarkers_marker(RANBP17_exp_BasePlotConfig):
+    def __init__(self):
+        super().__init__()
+        self.MAP_LABELS_FUNCTION = MapLabelsFunction.MARKERS.name
+        self.UMAP_TYPE = 1
+        self.SIZE = 5
+        self.ALPHA = 1
+        self.COLOR_MAPPINGS = self.COLOR_MAPPINGS_RANBP17_EXP_MARKERS
+        self.COLOR_MAPPINGS_MARKERS = self.COLOR_MAPPINGS_RANBP17_EXP_MARKERS
+
+
+class RANBP17_exp_Plot_Batch3_Partial_AllCond_woDAPI_marker(RANBP17_exp_BasePlotConfig):
+    def __init__(self):
+        super().__init__()
+        self.MAP_LABELS_FUNCTION = MapLabelsFunction.MARKERS.name
+        self.UMAP_TYPE = 1
+        self.SIZE = 5
+        self.ALPHA = 1
+        self.COLOR_MAPPINGS = self.COLOR_MAPPINGS_RANBP17_EXP_MARKERS
+        self.COLOR_MAPPINGS_MARKERS = self.COLOR_MAPPINGS_RANBP17_EXP_MARKERS
+
+
+class RANBP17_exp_Plot_Batch3_Partial_AllData_ByReps_rep(RANBP17_exp_BasePlotConfig):
+    def __init__(self):
+        super().__init__()
+        self.MAP_LABELS_FUNCTION = MapLabelsFunction.REPS.name
+        self.UMAP_TYPE = 0
+        self.SIZE = 5
+        self.ALPHA = 1
+        self.COLOR_MAPPINGS = self.COLOR_MAPPINGS_RANBP17_EXP_REPS
+        self.COLOR_MAPPINGS_MARKERS = self.COLOR_MAPPINGS_RANBP17_EXP_MARKERS
+
+
+class RANBP17_exp_Plot_Batch3_Partial_AllData_ByBatches_batch(RANBP17_exp_BasePlotConfig):
+    def __init__(self):
+        super().__init__()
+        self.MAP_LABELS_FUNCTION = MapLabelsFunction.BATCHES.name
+        self.UMAP_TYPE = 0
+        self.SIZE = 5
+        self.ALPHA = 1
+        self.COLOR_MAPPINGS = self.COLOR_MAPPINGS_RANBP17_EXP_BATCHES
+        self.COLOR_MAPPINGS_MARKERS = self.COLOR_MAPPINGS_RANBP17_EXP_MARKERS
+
+
+class RANBP17_exp_Plot_Batch3_Partial_BinaryCtrlKD_condition(RANBP17_exp_BasePlotConfig):
+    def __init__(self):
+        super().__init__()
+        self.MAP_LABELS_FUNCTION = MapLabelsFunction.CONDITIONS.name
+        self.UMAP_TYPE = 0
+        self.SIZE = 30
+        self.ALPHA = 1
+        self.COLOR_MAPPINGS = dict(self.make_condition_palette(['tardp-kd', 'ranbp17-kd', 'both-kd', 'control-179', 'control-180', 'untreated']))
+        self.COLOR_MAPPINGS['tardp-kd'] = {self.MAPPINGS_ALIAS_KEY: 'tardp-kd', self.MAPPINGS_COLOR_KEY: '#D62728'}
+        self.COLOR_MAPPINGS['ranbp17-kd'] = {self.MAPPINGS_ALIAS_KEY: 'ranbp17-kd', self.MAPPINGS_COLOR_KEY: '#D62728'}
+        self.COLOR_MAPPINGS['both-kd'] = {self.MAPPINGS_ALIAS_KEY: 'both-kd', self.MAPPINGS_COLOR_KEY: '#D62728'}
+        self.COLOR_MAPPINGS['control-179'] = {self.MAPPINGS_ALIAS_KEY: 'control-179', self.MAPPINGS_COLOR_KEY: '#1F77B4'}
+        self.COLOR_MAPPINGS['control-180'] = {self.MAPPINGS_ALIAS_KEY: 'control-180', self.MAPPINGS_COLOR_KEY: '#1F77B4'}
+        self.COLOR_MAPPINGS['untreated'] = {self.MAPPINGS_ALIAS_KEY: 'untreated', self.MAPPINGS_COLOR_KEY: '#1F77B4'}
+        self.COLOR_MAPPINGS_MARKERS = self.COLOR_MAPPINGS_RANBP17_EXP_MARKERS
+
+
+class RANBP17_exp_Plot_Batch3_Partial_tardp_kd_vs_control_179_condition(RANBP17_exp_BasePlotConfig):
+    def __init__(self):
+        super().__init__()
+        self.MAP_LABELS_FUNCTION = MapLabelsFunction.CONDITIONS.name
+        self.UMAP_TYPE = 0
+        self.SIZE = 10
+        self.ALPHA = 1
+        self.COLOR_MAPPINGS = dict(self.make_condition_palette(['tardp-kd', 'control-179']))
+        self.COLOR_MAPPINGS['tardp-kd'] = {self.MAPPINGS_ALIAS_KEY: 'tardp-kd', self.MAPPINGS_COLOR_KEY: '#D62728'}
+        self.COLOR_MAPPINGS['control-179'] = {self.MAPPINGS_ALIAS_KEY: 'control-179', self.MAPPINGS_COLOR_KEY: '#1F77B4'}
+        self.COLOR_MAPPINGS_MARKERS = self.COLOR_MAPPINGS_RANBP17_EXP_MARKERS
+
+
+class RANBP17_exp_Plot_Batch3_Partial_tardp_kd_vs_control_180_condition(RANBP17_exp_BasePlotConfig):
+    def __init__(self):
+        super().__init__()
+        self.MAP_LABELS_FUNCTION = MapLabelsFunction.CONDITIONS.name
+        self.UMAP_TYPE = 0
+        self.SIZE = 10
+        self.ALPHA = 1
+        self.COLOR_MAPPINGS = dict(self.make_condition_palette(['tardp-kd', 'control-180']))
+        self.COLOR_MAPPINGS['tardp-kd'] = {self.MAPPINGS_ALIAS_KEY: 'tardp-kd', self.MAPPINGS_COLOR_KEY: '#D62728'}
+        self.COLOR_MAPPINGS['control-180'] = {self.MAPPINGS_ALIAS_KEY: 'control-180', self.MAPPINGS_COLOR_KEY: '#1F77B4'}
+        self.COLOR_MAPPINGS_MARKERS = self.COLOR_MAPPINGS_RANBP17_EXP_MARKERS
+
+
+class RANBP17_exp_Plot_Batch3_Partial_tardp_kd_vs_untreated_condition(RANBP17_exp_BasePlotConfig):
+    def __init__(self):
+        super().__init__()
+        self.MAP_LABELS_FUNCTION = MapLabelsFunction.CONDITIONS.name
+        self.UMAP_TYPE = 0
+        self.SIZE = 10
+        self.ALPHA = 1
+        self.COLOR_MAPPINGS = dict(self.make_condition_palette(['tardp-kd', 'untreated']))
+        self.COLOR_MAPPINGS['tardp-kd'] = {self.MAPPINGS_ALIAS_KEY: 'tardp-kd', self.MAPPINGS_COLOR_KEY: '#D62728'}
+        self.COLOR_MAPPINGS['untreated'] = {self.MAPPINGS_ALIAS_KEY: 'untreated', self.MAPPINGS_COLOR_KEY: '#1F77B4'}
+        self.COLOR_MAPPINGS_MARKERS = self.COLOR_MAPPINGS_RANBP17_EXP_MARKERS
+
+
+class RANBP17_exp_Plot_Batch3_Partial_ranbp17_kd_vs_control_179_condition(RANBP17_exp_BasePlotConfig):
+    def __init__(self):
+        super().__init__()
+        self.MAP_LABELS_FUNCTION = MapLabelsFunction.CONDITIONS.name
+        self.UMAP_TYPE = 0
+        self.SIZE = 10
+        self.ALPHA = 1
+        self.COLOR_MAPPINGS = dict(self.make_condition_palette(['ranbp17-kd', 'control-179']))
+        self.COLOR_MAPPINGS['ranbp17-kd'] = {self.MAPPINGS_ALIAS_KEY: 'ranbp17-kd', self.MAPPINGS_COLOR_KEY: '#D62728'}
+        self.COLOR_MAPPINGS['control-179'] = {self.MAPPINGS_ALIAS_KEY: 'control-179', self.MAPPINGS_COLOR_KEY: '#1F77B4'}
+        self.COLOR_MAPPINGS_MARKERS = self.COLOR_MAPPINGS_RANBP17_EXP_MARKERS
+
+
+class RANBP17_exp_Plot_Batch3_Partial_ranbp17_kd_vs_control_180_condition(RANBP17_exp_BasePlotConfig):
+    def __init__(self):
+        super().__init__()
+        self.MAP_LABELS_FUNCTION = MapLabelsFunction.CONDITIONS.name
+        self.UMAP_TYPE = 0
+        self.SIZE = 10
+        self.ALPHA = 1
+        self.COLOR_MAPPINGS = dict(self.make_condition_palette(['ranbp17-kd', 'control-180']))
+        self.COLOR_MAPPINGS['ranbp17-kd'] = {self.MAPPINGS_ALIAS_KEY: 'ranbp17-kd', self.MAPPINGS_COLOR_KEY: '#D62728'}
+        self.COLOR_MAPPINGS['control-180'] = {self.MAPPINGS_ALIAS_KEY: 'control-180', self.MAPPINGS_COLOR_KEY: '#1F77B4'}
+        self.COLOR_MAPPINGS_MARKERS = self.COLOR_MAPPINGS_RANBP17_EXP_MARKERS
+
+
+class RANBP17_exp_Plot_Batch3_Partial_ranbp17_kd_vs_untreated_condition(RANBP17_exp_BasePlotConfig):
+    def __init__(self):
+        super().__init__()
+        self.MAP_LABELS_FUNCTION = MapLabelsFunction.CONDITIONS.name
+        self.UMAP_TYPE = 0
+        self.SIZE = 10
+        self.ALPHA = 1
+        self.COLOR_MAPPINGS = dict(self.make_condition_palette(['ranbp17-kd', 'untreated']))
+        self.COLOR_MAPPINGS['ranbp17-kd'] = {self.MAPPINGS_ALIAS_KEY: 'ranbp17-kd', self.MAPPINGS_COLOR_KEY: '#D62728'}
+        self.COLOR_MAPPINGS['untreated'] = {self.MAPPINGS_ALIAS_KEY: 'untreated', self.MAPPINGS_COLOR_KEY: '#1F77B4'}
+        self.COLOR_MAPPINGS_MARKERS = self.COLOR_MAPPINGS_RANBP17_EXP_MARKERS
+
+
+class RANBP17_exp_Plot_Batch3_Partial_both_kd_vs_control_179_condition(RANBP17_exp_BasePlotConfig):
+    def __init__(self):
+        super().__init__()
+        self.MAP_LABELS_FUNCTION = MapLabelsFunction.CONDITIONS.name
+        self.UMAP_TYPE = 0
+        self.SIZE = 10
+        self.ALPHA = 1
+        self.COLOR_MAPPINGS = dict(self.make_condition_palette(['both-kd', 'control-179']))
+        self.COLOR_MAPPINGS['both-kd'] = {self.MAPPINGS_ALIAS_KEY: 'both-kd', self.MAPPINGS_COLOR_KEY: '#D62728'}
+        self.COLOR_MAPPINGS['control-179'] = {self.MAPPINGS_ALIAS_KEY: 'control-179', self.MAPPINGS_COLOR_KEY: '#1F77B4'}
+        self.COLOR_MAPPINGS_MARKERS = self.COLOR_MAPPINGS_RANBP17_EXP_MARKERS
+
+
+class RANBP17_exp_Plot_Batch3_Partial_both_kd_vs_control_180_condition(RANBP17_exp_BasePlotConfig):
+    def __init__(self):
+        super().__init__()
+        self.MAP_LABELS_FUNCTION = MapLabelsFunction.CONDITIONS.name
+        self.UMAP_TYPE = 0
+        self.SIZE = 10
+        self.ALPHA = 1
+        self.COLOR_MAPPINGS = dict(self.make_condition_palette(['both-kd', 'control-180']))
+        self.COLOR_MAPPINGS['both-kd'] = {self.MAPPINGS_ALIAS_KEY: 'both-kd', self.MAPPINGS_COLOR_KEY: '#D62728'}
+        self.COLOR_MAPPINGS['control-180'] = {self.MAPPINGS_ALIAS_KEY: 'control-180', self.MAPPINGS_COLOR_KEY: '#1F77B4'}
+        self.COLOR_MAPPINGS_MARKERS = self.COLOR_MAPPINGS_RANBP17_EXP_MARKERS
+
+
+class RANBP17_exp_Plot_Batch3_Partial_both_kd_vs_untreated_condition(RANBP17_exp_BasePlotConfig):
+    def __init__(self):
+        super().__init__()
+        self.MAP_LABELS_FUNCTION = MapLabelsFunction.CONDITIONS.name
+        self.UMAP_TYPE = 0
+        self.SIZE = 10
+        self.ALPHA = 1
+        self.COLOR_MAPPINGS = dict(self.make_condition_palette(['both-kd', 'untreated']))
+        self.COLOR_MAPPINGS['both-kd'] = {self.MAPPINGS_ALIAS_KEY: 'both-kd', self.MAPPINGS_COLOR_KEY: '#D62728'}
+        self.COLOR_MAPPINGS['untreated'] = {self.MAPPINGS_ALIAS_KEY: 'untreated', self.MAPPINGS_COLOR_KEY: '#1F77B4'}
+        self.COLOR_MAPPINGS_MARKERS = self.COLOR_MAPPINGS_RANBP17_EXP_MARKERS
+
+
+class RANBP17_exp_Plot_Batch3_Partial_AllCond_Highlight_ranbp17_kd_condition(RANBP17_exp_BasePlotConfig):
+    def __init__(self):
+        super().__init__()
+        self.MAP_LABELS_FUNCTION = MapLabelsFunction.CONDITIONS.name
+        self.UMAP_TYPE = 0
+        self.SIZE = 5
+        self.ALPHA = 1
+        self.COLOR_MAPPINGS = dict(self.COLOR_MAPPINGS_RANBP17_EXP_CONDITIONS)
+        self.COLOR_MAPPINGS['tardp-kd'] = {self.MAPPINGS_ALIAS_KEY: 'tardp-kd', self.MAPPINGS_COLOR_KEY: '#CCCCCC'}
+        self.COLOR_MAPPINGS['ranbp17-kd'] = {self.MAPPINGS_ALIAS_KEY: 'ranbp17-kd', self.MAPPINGS_COLOR_KEY: '#E41A1C'}
+        self.COLOR_MAPPINGS['control-179'] = {self.MAPPINGS_ALIAS_KEY: 'control-179', self.MAPPINGS_COLOR_KEY: '#CCCCCC'}
+        self.COLOR_MAPPINGS['control-180'] = {self.MAPPINGS_ALIAS_KEY: 'control-180', self.MAPPINGS_COLOR_KEY: '#CCCCCC'}
+        self.COLOR_MAPPINGS['both-kd'] = {self.MAPPINGS_ALIAS_KEY: 'both-kd', self.MAPPINGS_COLOR_KEY: '#CCCCCC'}
+        self.COLOR_MAPPINGS['untreated'] = {self.MAPPINGS_ALIAS_KEY: 'untreated', self.MAPPINGS_COLOR_KEY: '#CCCCCC'}
+        self.COLOR_MAPPINGS_MARKERS = self.COLOR_MAPPINGS_RANBP17_EXP_MARKERS
+
+
+class RANBP17_exp_Plot_Batch3_Partial_CondMarker_ranbp17kd_ctrl179_condition_marker(RANBP17_exp_BasePlotConfig):
+    def __init__(self):
+        super().__init__()
+        self.MAP_LABELS_FUNCTION = MapLabelsFunction.CONDITIONS_MARKERS.name
+        self.UMAP_TYPE = 1
+        self.SIZE = 5
+        self.ALPHA = 1
+        self.COLOR_MAPPINGS = self.make_condition_marker_palette(['ranbp17-kd', 'control-179'], ['TDP-43', 'RANBP17'])
+        self.COLOR_MAPPINGS_MARKERS = self.COLOR_MAPPINGS_RANBP17_EXP_MARKERS
+
+
 class RANBP17_exp_Plot_Batch3_AllCond_condition(RANBP17_exp_BasePlotConfig):
     def __init__(self):
         super().__init__()
@@ -385,6 +602,17 @@ class RANBP17_exp_Plot_Batch3_AllCond_condition(RANBP17_exp_BasePlotConfig):
         self.SIZE = 5
         self.ALPHA = 1
         self.COLOR_MAPPINGS = self.make_condition_palette(['tardp-kd', 'ranbp17-kd', 'control-179', 'control-180', 'both-kd', 'untreated'])
+        self.COLOR_MAPPINGS_MARKERS = self.COLOR_MAPPINGS_RANBP17_EXP_MARKERS
+
+
+class RANBP17_exp_Plot_Batch3_ControlCond_condition(RANBP17_exp_BasePlotConfig):
+    def __init__(self):
+        super().__init__()
+        self.MAP_LABELS_FUNCTION = MapLabelsFunction.CONDITIONS.name
+        self.UMAP_TYPE = 0
+        self.SIZE = 5
+        self.ALPHA = 1
+        self.COLOR_MAPPINGS = self.make_condition_palette(['control-179', 'control-180', 'untreated'])
         self.COLOR_MAPPINGS_MARKERS = self.COLOR_MAPPINGS_RANBP17_EXP_MARKERS
 
 
@@ -407,6 +635,17 @@ class RANBP17_exp_Plot_Batch3_AllCond_woDAPI_marker(RANBP17_exp_BasePlotConfig):
         self.SIZE = 5
         self.ALPHA = 1
         self.COLOR_MAPPINGS = self.COLOR_MAPPINGS_RANBP17_EXP_MARKERS
+        self.COLOR_MAPPINGS_MARKERS = self.COLOR_MAPPINGS_RANBP17_EXP_MARKERS
+
+
+class RANBP17_exp_Plot_Batch3_CondMarker_ranbp17kd_ctrl179_condition_marker(RANBP17_exp_BasePlotConfig):
+    def __init__(self):
+        super().__init__()
+        self.MAP_LABELS_FUNCTION = MapLabelsFunction.CONDITIONS_MARKERS.name
+        self.UMAP_TYPE = 1
+        self.SIZE = 5
+        self.ALPHA = 1
+        self.COLOR_MAPPINGS = self.make_condition_marker_palette(['ranbp17-kd', 'control-179'], ['TDP-43', 'RANBP17', 'SG', 'RANBP17_SG'])
         self.COLOR_MAPPINGS_MARKERS = self.COLOR_MAPPINGS_RANBP17_EXP_MARKERS
 
 
@@ -580,26 +819,4 @@ class RANBP17_exp_Plot_Batch3_AllCond_Highlight_ranbp17_kd_condition(RANBP17_exp
         self.COLOR_MAPPINGS['control-180'] = {self.MAPPINGS_ALIAS_KEY: 'control-180', self.MAPPINGS_COLOR_KEY: '#CCCCCC'}
         self.COLOR_MAPPINGS['both-kd'] = {self.MAPPINGS_ALIAS_KEY: 'both-kd', self.MAPPINGS_COLOR_KEY: '#CCCCCC'}
         self.COLOR_MAPPINGS['untreated'] = {self.MAPPINGS_ALIAS_KEY: 'untreated', self.MAPPINGS_COLOR_KEY: '#CCCCCC'}
-        self.COLOR_MAPPINGS_MARKERS = self.COLOR_MAPPINGS_RANBP17_EXP_MARKERS
-
-
-class RANBP17_exp_Plot_Batch3_ControlCond_condition(RANBP17_exp_BasePlotConfig):
-    def __init__(self):
-        super().__init__()
-        self.MAP_LABELS_FUNCTION = MapLabelsFunction.CONDITIONS.name
-        self.UMAP_TYPE = 0
-        self.SIZE = 5
-        self.ALPHA = 1
-        self.COLOR_MAPPINGS = self.make_condition_palette(['control-179', 'control-180'])
-        self.COLOR_MAPPINGS_MARKERS = self.COLOR_MAPPINGS_RANBP17_EXP_MARKERS
-
-
-class RANBP17_exp_Plot_Batch3_CondMarker_ranbp17kd_ctrl179_condition_marker(RANBP17_exp_BasePlotConfig):
-    def __init__(self):
-        super().__init__()
-        self.MAP_LABELS_FUNCTION = MapLabelsFunction.CONDITIONS_MARKERS.name
-        self.UMAP_TYPE = 1
-        self.SIZE = 5
-        self.ALPHA = 1
-        self.COLOR_MAPPINGS = self.make_condition_marker_palette(['ranbp17-kd', 'control-179'], ['TDP-43', 'RANBP17'])
         self.COLOR_MAPPINGS_MARKERS = self.COLOR_MAPPINGS_RANBP17_EXP_MARKERS

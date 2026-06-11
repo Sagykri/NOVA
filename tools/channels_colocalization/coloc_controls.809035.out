@@ -1,0 +1,93 @@
+NOVA_HOME: /home/projects/hornsteinlab/Collaboration/NOVA
+13:24:54 [INFO] === Tile-level co-localization control validation ===
+13:24:54 [INFO] Data: /home/projects/hornsteinlab/Collaboration/NOVA/input/images/processed/AAT_NOVA_pilot2/processed
+13:24:54 [INFO] Scope: cell_lines=['C9'], conditions=['NT-1873', 'NT-6301-3085'], batches=['batch1', 'batch2', 'batch3']
+13:24:54 [INFO] Rotation null Ks: (1, 2, 3); replicate unit = ['batch', 'rep', 'condition']
+13:24:54 [INFO] Output root: /home/projects/hornsteinlab/Collaboration/NOVA/tools/channels_colocalization/colocalization_outputs/AAT_NOVA_pilot2_tiles_controls
+13:24:54 [INFO] 4 pairs: [positive] pDRP1->TOMM20, [negative] TDP-43->SMI32, [negative] TOMM20->pCaMKIIa, [negative] pTDP-43->ATF4
+13:24:54 [INFO] ----------------------------------------------------------------------
+13:24:54 [INFO] PAIR [positive] pDRP1 (anchor) -> TOMM20 (partner) | panelB | K=ancK1.5_partK1.5
+13:24:54 [INFO]   rationale: Both mitochondrial; pDRP1 marks fission sites on the mito network.
+13:25:08 [INFO]   tiles loaded: {'TOMM20': 2637, 'pDRP1': 2617}
+13:25:09 [INFO]   scored tiles: 2601/2617 (rest had no partner / empty anchor mask)
+13:25:09 [INFO]   per-tile mean: real=0.1891 rotated=0.0660 delta=+0.1230 | tile Wilcoxon p=3.65e-258
+13:25:09 [INFO]   replicate (12 units, 3 batches): real=0.1885 rotated=0.0663 delta=+0.1222 | Wilcoxon p=0.000244 sign p=0.000244
+13:25:09 [INFO]   CV per condition: NT-1873=0.278, NT-6301-3085=0.245
+13:25:13 [INFO] ----------------------------------------------------------------------
+13:25:13 [INFO] PAIR [negative] TDP-43 (anchor) -> SMI32 (partner) | panelA | K=ancK1.5_partK1.5
+13:25:13 [INFO]   rationale: Nuclear RNA-binding protein vs axonal neurofilament.
+13:25:23 [INFO]   tiles loaded: {'SMI32': 2734, 'TDP-43': 2751}
+13:25:24 [INFO]   scored tiles: 2707/2751 (rest had no partner / empty anchor mask)
+13:25:24 [INFO]   per-tile mean: real=0.1146 rotated=0.0729 delta=+0.0416 | tile Wilcoxon p=8.97e-18
+13:25:24 [INFO]   replicate (12 units, 3 batches): real=0.1153 rotated=0.0732 delta=+0.0421 | Wilcoxon p=0.000244 sign p=0.000244
+13:25:24 [INFO]   CV per condition: NT-1873=0.260, NT-6301-3085=0.207
+13:25:28 [INFO] ----------------------------------------------------------------------
+13:25:28 [INFO] PAIR [negative] TOMM20 (anchor) -> pCaMKIIa (partner) | panelB | K=ancK1.5_partK1.5
+13:25:28 [INFO]   rationale: Mitochondria vs synaptic kinase (within-panel contrast to the positive).
+13:25:32 [INFO]   tiles loaded: {'TOMM20': 2637, 'pCaMKIIa': 2629}
+13:25:33 [INFO]   scored tiles: 2615/2637 (rest had no partner / empty anchor mask)
+13:25:33 [INFO]   per-tile mean: real=0.1217 rotated=0.0592 delta=+0.0625 | tile Wilcoxon p=2.47e-145
+13:25:33 [INFO]   replicate (12 units, 3 batches): real=0.1208 rotated=0.0593 delta=+0.0615 | Wilcoxon p=0.000244 sign p=0.000244
+13:25:33 [INFO]   CV per condition: NT-1873=0.159, NT-6301-3085=0.191
+13:25:36 [INFO] ----------------------------------------------------------------------
+13:25:36 [INFO] PAIR [negative] pTDP-43 (anchor) -> ATF4 (partner) | panelC | K=ancK1.5_partK1.5
+13:25:36 [INFO]   rationale: Cytoplasmic phospho-TDP-43 vs nuclear transcription factor ATF4.
+13:26:10 [INFO]   tiles loaded: {'ATF4': 2713, 'pTDP-43': 2708}
+13:26:12 [INFO]   scored tiles: 2704/2708 (rest had no partner / empty anchor mask)
+13:26:12 [INFO]   per-tile mean: real=0.1272 rotated=0.0576 delta=+0.0696 | tile Wilcoxon p=1.04e-156
+13:26:12 [INFO]   replicate (12 units, 3 batches): real=0.1285 rotated=0.0574 delta=+0.0711 | Wilcoxon p=0.000244 sign p=0.000244
+13:26:12 [INFO]   CV per condition: NT-1873=0.156, NT-6301-3085=0.163
+13:26:16 [INFO] ======================================================================
+13:26:16 [INFO] COMBINED SUMMARY (primary test = replicate-level Wilcoxon, real > rotated):
+13:26:16 [INFO] 
+ control  anchor  partner  panel  tile_mean_real  tile_mean_rotated  tile_mean_delta  repl_wilcoxon_p  worst_cv
+positive   pDRP1   TOMM20 panelB        0.189084           0.066039         0.123045         0.000244  0.277508
+negative  TDP-43    SMI32 panelA        0.114566           0.072919         0.041647         0.000244  0.259763
+negative  TOMM20 pCaMKIIa panelB        0.121656           0.059175         0.062481         0.000244  0.191203
+negative pTDP-43     ATF4 panelC        0.127156           0.057598         0.069558         0.000244  0.162674
+13:26:16 [INFO] Saved combined summary to /home/projects/hornsteinlab/Collaboration/NOVA/tools/channels_colocalization/colocalization_outputs/AAT_NOVA_pilot2_tiles_controls/combined_summary.csv
+13:26:16 [INFO] Log written to /home/projects/hornsteinlab/Collaboration/NOVA/tools/channels_colocalization/colocalization_outputs/AAT_NOVA_pilot2_tiles_controls/run_20260601_132454.log
+13:26:16 [INFO] Done.
+
+------------------------------------------------------------
+Sender: LSF System <DoNotReply>
+Subject: Job 809035: <coloc_controls> in cluster <wexac> Done
+
+Job <coloc_controls> was submitted from host <login3> by user <giliwo> in cluster <wexac> at Mon Jun  1 13:24:30 2026
+Job was executed on host(s) <cn110>, in queue <long>, as user <giliwo> in cluster <wexac> at Mon Jun  1 13:24:31 2026
+</home/projects/hornsteinlab/giliwo> was used as the home directory.
+</home/projects/hornsteinlab/giliwo/NOVA/tools/channels_colocalization> was used as the working directory.
+Started at Mon Jun  1 13:24:31 2026
+Terminated at Mon Jun  1 13:26:16 2026
+Results reported at Mon Jun  1 13:26:16 2026
+
+Your job looked like:
+
+------------------------------------------------------------
+# LSBATCH: User input
+conda run -n nova python run_tile_colocalization_controls.py
+------------------------------------------------------------
+
+Successfully completed.
+
+Resource usage summary:
+
+    CPU time :                                   28.03 sec.
+    Max Memory :                                 1908 MB
+    Average Memory :                             1276.53 MB
+    Total Requested Memory :                     10000.00 MB
+    Delta Memory :                               8092.00 MB
+    Max Swap :                                   -
+    Max Processes :                              7
+    Max Threads :                                17
+    Run time :                                   106 sec.
+    Turnaround time :                            106 sec.
+
+The output (if any) is above this job summary.
+
+
+
+PS:
+
+Read file <coloc_controls.809035.err> for stderr output of this job.
+

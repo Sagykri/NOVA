@@ -161,7 +161,7 @@ class Preprocessor(ABC):
             and saving the paired images of marker and its nucleus.
             
             Args:
-                multiprocess (bool, optional): Whether to run with multiprocessing. Default to True.
+                multiprocess (bool, optional): Whether to run with bprocessing. Default to True.
             """
             
             assert self.__is_nucleus_requested(), f"The nucleus marker ({self.__NUCLEUS_MARKER_NAME}) must be requested in the configuration files (via MARKERS)"

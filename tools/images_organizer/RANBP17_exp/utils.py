@@ -66,10 +66,10 @@ class Utils():
         return self.config.CONFIG[self.config.KEY_REPS][:len(rngs)]
 
     def __get_panel(self, panel):
-        # panel_number = panel.split('Panel')[1]
-
-        if panel == "Panel4A" or panel == "Panel4B":
-            return "Panel4"
+        
+        # A1 and A2 contains different markers but have the same input folder name "panelA", therefore, we need to distinguish between them by panel_alias
+        if getattr(self.config, 'panel_alias', None):
+            return f"panel{self.config.panel_alias}"
         return panel
 
     def __get_cell_lines(self):

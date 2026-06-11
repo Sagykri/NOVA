@@ -432,7 +432,7 @@ def extract_umap_data(base_dir):
     # MARKER_LIST = ['DAPI', 'TDP-43', 'p62', 'pTDP-43', 'ATF6', 'pAMPK', 'G3BP1', 'Calreticulin', 'Aggreagtes', 'Cas3', 'pS6']
     CELL_LINE_LIST = ["iW11"]
     CONDITIONS_LIST = ['tardp-kd', 'ranbp17-kd', 'both-kd', 'control-179', 'control-180', 'untreated']
-    MARKER_LIST = ['DAPI', 'TDP-43', 'RANBP17']
+    MARKER_LIST = ['DAPI', 'TDP-43', 'RANBP17', 'SG', 'RANBP17_SG']
 
     # Regex to extract metadata from folder names
     folder_pattern = re.compile(

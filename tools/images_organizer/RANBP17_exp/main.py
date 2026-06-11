@@ -28,6 +28,8 @@ def main():
     print("DRY RUN: ", utils_obj.config.DRY_RUN)
     print(f"CUT_FILES: {utils_obj.config.CUT_FILES}")
     print(f"SKIP_EXISTING_FILES: {utils_obj.config.SKIP_EXISTING_FILES}")
+    print(f"SRC_ROOT_PATH: {utils_obj.config.SRC_ROOT_PATH}")
+    print(f"DST_ROOT_PATH: {utils_obj.config.DST_ROOT_PATH}")
     
     folders = utils_obj.get_folders_to_handle()
     assert all([os.path.exists(os.path.join(utils_obj.config.SRC_ROOT_PATH, f)) and os.path.isdir(os.path.join(utils_obj.config.SRC_ROOT_PATH, f)) for f in folders]), "One or more of the specified folders don't exists (or aren't folders)"

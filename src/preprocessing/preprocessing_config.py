@@ -63,8 +63,8 @@ class PreprocessingConfig(BaseConfig):
         self.NO_RESCALE_FOR_LOW_SIGNAL_MARKERS: List[str] = [] #["pS6", "POM121", "p62", "Brightfield", "pAMPK"] # list of markers (names) for which to skip rescaling if low SNR (on/off markers)
         self.SNR_THRESHOLD_FOR_RESCALE: float = 20.0
         self.RESCALE_INTENSITY = { # PER CHANNEL
-            'LOWER_BOUND': [0.5 ,0.5], # screen batch1 [0.5 ,1.0] # pilot2: [0.5 ,0.5] # pilot1: [2.5 ,0.5] # Marker, DAPI
-            'UPPER_BOUND': [99.9, 99.75] # screen batch1 [99.8, 99.5] # pilot2:  [99.4, 99.3] # pilot1: [99.45, 100] # Marker, DAPI
+            'LOWER_BOUND': [0.5 ,0.5], # RANBP17: batch1, batch2, batch3_partial:[0.5 ,0.5]# screen batch1 [0.5 ,1.0] # pilot2: [0.5 ,0.5] # pilot1: [2.5 ,0.5] # Marker, DAPI
+            'UPPER_BOUND': [99.9, 99.75] # RANBP17: batch1, batch2, batch3_partial:[99.9, 99.75] # screen batch1 [99.8, 99.5] # pilot2:  [99.4, 99.3] # pilot1: [99.45, 100] # Marker, DAPI
         }
 
         # The path to the file holding the focus boundries for each marker

@@ -55,4 +55,13 @@ class EmbeddingsRANBP17ExpBatch3DatasetConfig(EmbeddingsRANBP17ExpDatasetConfig)
         
         self.CONDITIONS:List[str]  = ["tardp-kd", "ranbp17-kd", "control-179", "control-180", "both-kd", "untreated"]
 
+class EmbeddingsRANBP17ExpBatch3FullDatasetConfig(EmbeddingsRANBP17ExpDatasetConfig):
+    def __init__(self):
+        super().__init__()
+
+        self.INPUT_FOLDERS = [os.path.join(self.PROCESSED_FOLDER_ROOT, f) for f in 
+                        ["batch3"]]
         
+        self.CONDITIONS:List[str]  = ["tardp-kd", "ranbp17-kd", "control-179", "control-180", "both-kd", "untreated"]
+
+        self.MARKERS:List[str]  = ['DAPI', 'TDP-43', 'RANBP17', 'SG', 'RANBP17_SG']        

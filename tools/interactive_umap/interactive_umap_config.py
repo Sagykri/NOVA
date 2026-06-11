@@ -310,11 +310,31 @@ config_FuNOVA_Screen = {
 }
 
 
-config_RANBP17_exp = {
+config_RANBP17_exp_b1 = {
     'paths':{
     'umaps_folder' : f'{new_finetuned_figures_path}/RANBP17-exp/UMAPs',
     'csv_path' : '/home/projects/hornsteinlab/Collaboration/NOVA/outputs/preprocessing/RANBP17_exp/brenner/raw_metrics_2026-05-18_RESCALE0.0-100.0.csv',
     'images_dir' : ['/home/projects/hornsteinlab/Collaboration/Guy_Lior/RANBP17_exp/co-localization_and_KD/sorted/batch1']
+    },
+    'layouts': base_fov_layout,
+    'name': 'RANBP17_exp'
+}
+
+config_RANBP17_exp_b2 = {
+    'paths':{
+    'umaps_folder' : f'{new_finetuned_figures_path}/RANBP17_exp/UMAPs',
+    'csv_path' : '/home/projects/hornsteinlab/Collaboration/NOVA/outputs/preprocessing/RANBP17_exp/brenner/raw_metrics_2026-05-28_RESCALE0.0-100.0_batch2.csv',
+    'images_dir' : ['/home/projects/hornsteinlab/Collaboration/Guy_Lior/RANBP17_exp/co-localization_and_KD/sorted/batch2']
+    },
+    'layouts': base_fov_layout,
+    'name': 'RANBP17_exp'
+}
+
+config_RANBP17_exp_b3 = {
+    'paths':{
+    'umaps_folder' : f'{new_finetuned_figures_path}/RANBP17_exp/UMAPs',
+    'csv_path' : '/home/projects/hornsteinlab/Collaboration/NOVA/outputs/preprocessing/RANBP17_exp/brenner/raw_metrics_2026-06-09_RESCALE0.0-100.0_batch3.csv',
+    'images_dir' : ['/home/projects/hornsteinlab/Collaboration/Guy_Lior/RANBP17_exp/co-localization_and_KD/sorted/batch3']
     },
     'layouts': base_fov_layout,
     'name': 'RANBP17_exp'

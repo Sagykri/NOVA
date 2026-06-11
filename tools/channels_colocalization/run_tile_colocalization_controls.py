@@ -53,8 +53,7 @@ from tile_colocalization_utils import (
 # ----------------------------------------------------------------------------- #
 MAIN_DATA_PATH = ("/home/projects/hornsteinlab/Collaboration/NOVA/"
                   "input/images/processed/AAT_NOVA_pilot2/processed")
-OUTPUT_ROOT = ("/home/projects/hornsteinlab/Collaboration/NOVA/"
-               "tools/channels_colocalization/colocalization_outputs/"
+OUTPUT_ROOT = ("/home/projects/hornsteinlab/giliwo/NOVA/tools/channels_colocalization/colocalization_outputs/"
                "AAT_NOVA_pilot2_tiles_controls")
 
 BATCHES    = ['batch1', 'batch2', 'batch3']

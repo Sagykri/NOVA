@@ -5,7 +5,7 @@ sys.path.insert(1, os.getenv("NOVA_HOME"))
 from src.figures.figures_config import FigureConfig
 
 
-RANBP17_exp_MARKERS = ['DAPI', 'TDP-43', 'RANBP17']
+RANBP17_exp_MARKERS = ['DAPI', 'TDP-43', 'RANBP17', 'SG', 'RANBP17_SG']
 RANBP17_exp_MARKERS_TO_EXCLUDE = None
 RANBP17_exp_CELL_LINES = ["iW11"]
 RANBP17_exp_BATCHES = ['batch1', 'batch2', 'batch3']
