@@ -176,7 +176,7 @@ class Preprocessor(ABC):
 
                 if multiprocess:
                     # Use multiprocessing to parallelize the image preprocessing
-                    batch_size = 150  # Adjust based on memory; 500 groups per process execution
+                    batch_size = 1000  # Adjust based on memory; 500 groups per process execution
                     task_batches = list(self.__batch_tasks(task_args, batch_size))
                     logging.info(f"Grouped {num_tasks} tasks into {len(task_batches)} batches.")
                     with Pool(self.preprocessing_config.NUM_WORKERS) as pool:
@@ -800,7 +800,7 @@ class Preprocessor(ABC):
 
             # blob is too big, and is elipse - whale cell, 4500,elipse
             if blob_size > self.preprocessing_config.MAX_BLOB_AREA and elipse:
-                # print("blob too big and is elipse - tile failed. (whale?)")
+                print("blob too big and is elipse - tile failed. (whale?)")
                 return True, "dead_cells: whale like"
             
             # check shape of the cell only if size is in the range of ALIVE cells (avoid cell merging)
@@ -814,31 +814,41 @@ class Preprocessor(ABC):
             if (blob_size > self.preprocessing_config.MIN_ALIVE_NUCLEI_AREA):
                 # check texture of the ALIVE cell
                 #pilot1: *AND* between variance condition and median intensity condition
-                if ((blob_variance <= self.preprocessing_config.MIN_VARIANCE_THRESHOLD_ALIVE_NUCLEI or blob_variance >= self.preprocessing_config.MAX_VARIANCE_THRESHOLD_ALIVE_NUCLEI) or \
-                ( blob_median <= self.preprocessing_config.MIN_MEDIAN_INTENSITY_THRESHOLD_ALIVE_NUCLEI or blob_median >= self.preprocessing_config.MAX_MEDIAN_INTENSITY_THRESHOLD_ALIVE_NUCLEI)):
-                    # ALIVE CELL failed thresholds - considered as dead
-                    # print("ALIVE CELL failed thresholds")
-                    num_dead_cells += 1
-                    continue
+                if (blob_variance <= self.preprocessing_config.MIN_VARIANCE_THRESHOLD_ALIVE_NUCLEI or blob_variance >= self.preprocessing_config.MAX_VARIANCE_THRESHOLD_ALIVE_NUCLEI or \
+                blob_median <= self.preprocessing_config.MIN_MEDIAN_INTENSITY_THRESHOLD_ALIVE_NUCLEI or blob_median >= self.preprocessing_config.MAX_MEDIAN_INTENSITY_THRESHOLD_ALIVE_NUCLEI):
+                    if blob_size > self.preprocessing_config.MAX_ALIVE_NUCLEI_AREA:
+                        # print("ALIVE CELL failed thresholds and size above threshold")
+                        return True, "dead_cells: alive cell failed thresholds"
+                    else:
+                        # ALIVE CELL failed thresholds - considered as dead
+                        # print("ALIVE CELL failed thresholds, considered as dead")
+                        num_dead_cells += 1
+                        continue
                 else: # ALIVE CELL passed thresholds 
                     # print("ALIVE CELL passed thresholds")
                     num_alive_cells += 1
                     continue
             else: # the size is of a DEAD cell
-                if  not touches_edge:
-                    # check texture of the DEAD cell-
-                    if blob_median >= intensity_threshold or \
+                if blob_median >= intensity_threshold or \
                     blob_variance <= self.preprocessing_config.MAX_VARIANCE_NUCLEI_BLOB_THRESHOLD:
                         # DEAD CELL failed thresholds
                         # print("DEAD CELL failed thresholds")
                         num_dead_cells += 1
                         continue
-                    # DEAD CELL passed thresholds - skipping. 
-                    # print("dead cell didn't fail thresholds (doesn't touch edge)")
-                else: # touches edge
-                    # DEAD CELL is touching edge - skipping. 
-                    # print("dead cell didn't fail thresholds (touching edge)")
-                    continue
+                # if  not touches_edge:
+                #     # check texture of the DEAD cell-
+                #     if blob_median >= intensity_threshold or \
+                #     blob_variance <= self.preprocessing_config.MAX_VARIANCE_NUCLEI_BLOB_THRESHOLD:
+                #         # DEAD CELL failed thresholds
+                #         print("DEAD CELL failed thresholds")
+                #         num_dead_cells += 1
+                #         continue
+                #     # DEAD CELL passed thresholds - skipping. 
+                #     print("dead cell didn't fail thresholds (doesn't touch edge)")
+                # else: # touches edge
+                #     # DEAD CELL is touching edge - skipping. 
+                #     print("dead cell didn't fail thresholds (touching edge)")
+                #     continue
             ###############################################################
         if num_alive_cells == 0:
             # Failed - No alive cells.
@@ -963,14 +973,15 @@ class Preprocessor(ABC):
             if image_channel_rescaled_variance >= upper_bound_variance_threshold:
                 return True, f"Invalid variance: above threshold"
 
-        # ADDED - TILE BRENNER - GAL'S CODE
-        if out_of_focus_threshold is not None:
-            if not is_tile_focused(image_channel, out_of_focus_threshold):
-                return True, f"out of focus: below threshold"
+        # # ADDED - TILE BRENNER - GAL'S CODE
+        # if out_of_focus_threshold is not None:
+        #     if not is_tile_focused(image_channel, out_of_focus_threshold):
+        #         return True, f"out of focus: below threshold"
             
         # CHANGE - tile brenner upper bound
-        if get_image_focus_quality(image_channel_rescaled) >= self.preprocessing_config.MAX_BRENNER_THRESHOLD_TILE:
-            return True, f"out of focus: above threshold"
+        # for funova pilot 2
+        # if get_image_focus_quality(image_channel_rescaled) >= self.preprocessing_config.MAX_BRENNER_THRESHOLD_TILE:
+        #     return True, f"out of focus: above threshold"
 
         return False, None
 
@@ -1013,10 +1024,15 @@ class Preprocessor(ABC):
 
         for c in range(C):
             # If wanted to rescale with condition - 
-            # (!) CHANGED, pilot2: 
             channel_img = tile[...,c]
-            if check_signal and c == self.preprocessing_config.MARKER_CHANNEL_INDEX: 
-                        result[...,c] = robust_background_normalization(channel_img)
+            if check_signal and c == self.preprocessing_config.MARKER_CHANNEL_INDEX:
+                        # (!) CHANGED, pilot2: 
+                        # result[...,c] = robust_background_normalization(channel_img)
+
+                        # funova screen- rescsale with (0,100)
+                        result[...,c] = rescale_intensity(channel_img,
+                                                    lower_bound=0.0,\
+                                                    upper_bound=100.0)
                         continue
             # predefined rescaling for all other cases
             result[...,c] = rescale_intensity(channel_img,

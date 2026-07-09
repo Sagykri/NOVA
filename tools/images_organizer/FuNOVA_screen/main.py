@@ -8,6 +8,12 @@ sys.path.insert(1, os.getenv("NOVA_HOME"))
 from tools.images_organizer.FuNOVA_screen.utils import Utils
 from src.common.utils import get_class
 
+"""
+(!) change before running new batch!! -
+    a. __get_batch  in utils
+    b. SRC_ROOT_PATH in config
+    c. paths in config panels funova
+"""
 def main():
     config_path = sys.argv[1]
     batch = int(sys.argv[2])

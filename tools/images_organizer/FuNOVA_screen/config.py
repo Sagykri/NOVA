@@ -32,7 +32,7 @@ class Config():
         #####################################
 
         # Path to source folder (root)
-        self.SRC_ROOT_PATH = os.path.join(FUNOVA_SCREEN_DIR, "fuNOVA_Screen_B1","projected_new_cy3")
+        self.SRC_ROOT_PATH = os.path.join(FUNOVA_SCREEN_DIR, "fuNOVA_Screen_B2","projected")
 
         # Path to destination folder (root)
         self.DST_ROOT_PATH = os.path.join(FUNOVA_SCREEN_DIR, "fuNOVA_Screen","sorted")
@@ -61,7 +61,7 @@ class Config():
         self.CUT_FILES = True
         
         # Raise exception when index couldn't be found in the config?
-        self.RAISE_ON_MISSING_INDEX = False
+        self.RAISE_ON_MISSING_INDEX = True
 
         self.FILENAME_POSTFIX = ""
         ##################################

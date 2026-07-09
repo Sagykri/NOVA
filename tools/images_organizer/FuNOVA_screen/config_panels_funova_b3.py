@@ -1,7 +1,7 @@
 
 """
-config suitable for funova screen batch1 and batch2 - as they have the same panel layout, and the same plate-part gene mapping.
-(!) Note that the order of genes in each part differs between batches, so needs to map with distinct functions
+config suitable for funova screen batch3 - as it has distinct panel layout compared to batch1+2
+
 """
 
 import os
@@ -12,7 +12,7 @@ sys.path.insert(1, os.getenv("NOVA_HOME"))
 from tools.images_organizer.FuNOVA_screen.config import Config
 import pandas as pd
 
-BATCH = 2
+BATCH = 3
 GENES_METADATA_PATH = f"/home/projects/hornsteinlab/Collaboration/Guy_Lior/fuNOVA_Screen_B{BATCH}/virus_metadata.csv"
 GENE_NAME_COL = "gene_name"
 NUMS_TO_GENES_DICT_PATH = "/home/projects/hornsteinlab/Collaboration/Guy_Lior/fuNOVA_Screen/organizer_files/virus_dict.csv"
@@ -123,8 +123,8 @@ class Config_A(Config_Base_4Markers):
     def __init__(self, batch, plate):
         
         # Params:
-        self.col_rep1 = 1
-        self.col_rep2 = 2
+        self.col_rep1 = 3
+        self.col_rep2 = 4
         self.panel = 'A'
         self.panel_number = panel_letter_to_num_dict[self.panel]
         self.markers = get_panel_markers(plate, self.panel_number)
@@ -135,8 +135,8 @@ class Config_B(Config_Base_4Markers):
     def __init__(self, batch, plate):
 
         # Params:
-        self.col_rep1 = 3
-        self.col_rep2 = 4
+        self.col_rep1 = 1
+        self.col_rep2 = 2
         self.panel = 'B'
         self.panel_number = panel_letter_to_num_dict[self.panel]
         self.markers = get_panel_markers(plate, self.panel_number)
@@ -147,21 +147,9 @@ class Config_C(Config_Base_4Markers):
     def __init__(self, batch, plate):
 
         # Params:
-        self.col_rep1 = 5
-        self.col_rep2 = 6
-        self.panel = 'C'
-        self.panel_number = panel_letter_to_num_dict[self.panel]
-        self.markers = get_panel_markers(plate, self.panel_number)
-
-        super().__init__(batch, plate)
-
-class Config_D(Config_Base_4Markers):
-    def __init__(self, batch, plate):
-
-        # Params:
         self.col_rep1 = 7
         self.col_rep2 = 8
-        self.panel = 'D'
+        self.panel = 'C'
         self.panel_number = panel_letter_to_num_dict[self.panel]
         # same marker for 4A and 4B
         self.markers = get_panel_markers(plate, f"{self.panel_number}A")
@@ -169,9 +157,20 @@ class Config_D(Config_Base_4Markers):
         super().__init__(batch, plate)
         self.INCLUDE_SUB_FOLDERS = [f'plate{self.PLATE}/Panel{self.panel_number}A', f'plate{self.PLATE}/Panel{self.panel_number}B']
 
+class Config_D(Config_Base_4Markers):
+    def __init__(self, batch, plate):
+
+         # Params:
+        self.col_rep1 = 5
+        self.col_rep2 = 6
+        self.panel = 'D'
+        self.panel_number = panel_letter_to_num_dict[self.panel]
+        self.markers = get_panel_markers(plate, self.panel_number)
+
+        super().__init__(batch, plate)
+
 
 if __name__ == "__main__":
-    get_panel_markers(4, 4)
     df = load_data()
     print(df.head())
     df.to_csv(f"/home/projects/hornsteinlab/Collaboration/Guy_Lior/fuNOVA_Screen_B{BATCH}/virus_metadata_with_gene_names.csv", index=False)

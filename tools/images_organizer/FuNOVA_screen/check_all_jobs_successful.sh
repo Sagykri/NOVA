@@ -6,19 +6,17 @@
 PANELS=("A" "B" "C" "D")
 PLATES=(1 2 3 4)
 
-# Base paths
-MAIN_PY="/home/projects/hornsteinlab/giliwo/NOVA/tools/images_organizer/FuNOVA_screen/main.py"
 CONFIG_DIR="./NOVA/tools/images_organizer/FuNOVA_screen/config_panels_funova"
 
 # Loop over plates and panels
 for plate in "${PLATES[@]}"; do
     for panel in "${PANELS[@]}"; do
-        JOB_NAME="org_p${plate}_${panel}"
-        OUT_FILE="screen_batch2_plate${plate}_panel${panel}_organizer.out"
-        CONFIG_FILE="${CONFIG_DIR}/Config_${panel}"
 
-        bsub -q short -R "rusage[mem=4800]" -J "$JOB_NAME" -oo "$OUT_FILE" "python $MAIN_PY $CONFIG_FILE 2 $plate"
+        OUT_FILE="screen_batch2_plate${plate}_panel${panel}_organizer.out"
+
+        echo "Checking job for plate ${plate}, panel ${panel}..."
+        tail -50 "$OUT_FILE" | grep "Successfully completed."
+         
     done
 done
 
-echo "All jobs submitted!"

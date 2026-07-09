@@ -3,27 +3,33 @@ import seaborn as sns
 import os
 import sys
 sys.path.insert(1, os.getenv("NOVA_HOME"))
-from manuscript.preprocessing_config_FuNOVA_Screen import PreprocessingBaseConfigFuNOVAScreen
-config = PreprocessingBaseConfigFuNOVAScreen() 
-
-funova_cell_lines = config.CELL_LINES
+from manuscript.preprocessing_config_FuNOVA_Screen import PreprocessingBaseConfigFuNOVAScreenBatch2
+from manuscript.FuNOVA_Screen_Conditions_Lists_b2 import (
+    plate1_conditions as b2_plate1_conditions,
+    plate2_conditions as b2_plate2_conditions,
+    plate3_conditions as b2_plate3_conditions,
+    plate4_conditions as b2_plate4_conditions,
+)
+config = PreprocessingBaseConfigFuNOVAScreenBatch2() 
+DAPI_NAME = "DAPI"
+funova_cell_lines =["C9"]
 
 funova_cell_lines_to_cond = {
-    config.CELL_LINES[0]: config.CONDITIONS,
+    funova_cell_lines[0]: b2_plate1_conditions + b2_plate2_conditions + b2_plate3_conditions + b2_plate4_conditions,
 }
 
 funova_markers = config.MARKERS
 
 
-funova_reps = config.REPS
+funova_reps = ["rep1", "rep2"]
 
 
 temp_panel_data = {
-    "1": ["p62","DAPI", "TDP-43"], # "FK-2", 
-    "2": ["ATF6", "DAPI", "pTDP-43"], # "HDGFL2", 
-    "3": ["G3BP1", "Calreticulin", "DAPI", "pAMPK"],
-    "4": ["Aggreagtes", "pS6", "DAPI", "Cas3"],
-}  # DISCARD - 'HDGFL2', 'FK-2'
+    "A": ["p62","DAPI", "TDP-43"], # discard "FK-2", 
+    "B": ["ATF6", "DAPI", "pTDP-43"], # discard "HDGFL2", 
+    "C": ["G3BP1", "DAPI", "pAMPK"], # discard Calreticulin
+    "D": ["Aggreagtes", "pS6", "DAPI", "Cas3"],
+} 
 
 # Convert the dictionary to a DataFrame
 funova_panels = pd.DataFrame.from_dict(temp_panel_data, orient="index").T
@@ -36,7 +42,7 @@ for panel, markers in temp_panel_data.items():
 
 funova_marker_info = pd.DataFrame(
     [
-        [[] for _ in range(len(config.MARKERS))],  # 26 empty lists for the 'Antibody' row
+        [[] for _ in range(len(funova_markers))],  # 26 empty lists for the 'Antibody' row
         list(marker_to_panels.values())
     ],
     index=['Antibody', 'panel'],  # Two rows: 'Antibody' and 'panel'

@@ -102,7 +102,7 @@ class PreprocessingConfig(BaseConfig):
         self.MIN_SOL:float = 0.8# screen b1: 0.88 #pilot2: 0.88 # pilot1:0.92 # minimum ratio of area to convex hull area (0–1)
 
         # brenner focus thresholds for tiles
-        self.MAX_BRENNER_THRESHOLD_TILE:float = 1000.0 # increased to 1000 for on-off markers, before it was 650 #pilot2: 1000.0 # new thresholds for pilot 2
+        self.MAX_BRENNER_THRESHOLD_TILE:float = None # discard for screen ##pilot2: 1000.0 # new thresholds for pilot 2
 
         # whales or clouds
         self.MAX_BLOB_AREA:int = 8000 # screen b1: 6000 #pilot2: 4500 # new for pilot2: try to avoid "whales" or clouds 

@@ -31,9 +31,11 @@ INPUT_DIR = os.path.join(FuNOVA_DATA_DIR, 'sorted')
 OUTPUT_DIR = os.path.join(BASE_DIR, "outputs", "preprocessing", "FuNOVA_Screen", "brenner")
 os.makedirs(OUTPUT_DIR, exist_ok=True)
 DATE = date.today().strftime("%Y-%m-%d")
+BATCH = 'batch1'
+SUFFIX= '_withNewCy3'
 
-LOWER_BOUND = 0.5
-UPPER_BOUND = 99.9
+LOWER_BOUND = 0.0
+UPPER_BOUND = 100.0
 
 calc_per_tile = False # I ran _site_ with this being False! (281123)
 
@@ -138,9 +140,9 @@ def get_metrics(tile):
 
 def main():
 
-    batches = ['batch1']
+    batches = [BATCH]
     log_file_path = os.path.join(OUTPUT_DIR, f"{DATE}_RESCALE{LOWER_BOUND}-{UPPER_BOUND}.log")
-    savepath = os.path.join(OUTPUT_DIR, f"raw_metrics_{DATE}_RESCALE{LOWER_BOUND}-{UPPER_BOUND}.csv")
+    savepath = os.path.join(OUTPUT_DIR, f"raw_metrics_{DATE}_RESCALE{LOWER_BOUND}-{UPPER_BOUND}_{BATCH}{SUFFIX}.csv")
     init_logging(log_file_path)
     
     logging.info("Starting outlier detection..")
